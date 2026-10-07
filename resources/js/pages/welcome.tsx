@@ -1,7 +1,6 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { dashboard, login, register } from '@/routes';
 
 interface WelcomeProps {
     targetDate?: string;
@@ -17,9 +16,6 @@ interface TimeLeft {
 }
 
 export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps) {
-    const page = usePage();
-    const auth = (page.props as Record<string, any>).auth;
-
     // Date cible par défaut : 60 jours
     const resolvedTarget = targetDate || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -69,28 +65,28 @@ export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps
                 <title>{`${appName} — Bientôt disponible`}</title>
             </Head>
 
-            {/* Conteneur principal avec image de fond en flou léger et overlay clair */}
-            <div className="relative min-h-screen flex flex-col justify-between overflow-hidden font-sans text-slate-800">
+            {/* Conteneur principal avec image nette et overlay réduit */}
+            <div className="relative min-h-screen flex flex-col justify-between overflow-hidden font-sans text-slate-900">
                 
-                {/* Image de fond avec léger flou */}
+                {/* Image de fond nette (sans flou excessif) */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center scale-105 filter blur-[3px]"
+                    className="absolute inset-0 bg-cover bg-center"
                     style={{ backgroundImage: `url('/images/hero-bg.png')` }}
                     aria-hidden="true"
                 />
 
-                {/* Overlay clair et lumineux pour préserver la lisibilité sans assombrir */}
+                {/* Overlay blanc ajusté à 70% pour garantir un contraste et une lisibilité parfaite des textes */}
                 <div 
-                    className="absolute inset-0 bg-white/80 backdrop-blur-[1px]"
+                    className="absolute inset-0 bg-white/70"
                     aria-hidden="true"
                 />
 
                 {/* Contenu principal */}
                 <div className="relative z-10 flex flex-col min-h-screen justify-between">
                     
-                    {/* En-tête avec logo et boutons d'accès figés */}
+                    {/* En-tête avec logo et boutons figés (non-cliquables) */}
                     <header className="max-w-6xl w-full mx-auto px-6 py-6 flex justify-between items-center">
-                        {/* Logo avec accent discret #4FC031 */}
+                        {/* Logo avec touche #4FC031 */}
                         <div className="flex items-center gap-2.5">
                             <div className="h-9 w-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
                                 A
@@ -101,39 +97,32 @@ export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps
                             </div>
                         </div>
 
-                        {/* Boutons d'accès fixes et stables */}
+                        {/* Boutons Connexion et Inscription figés (non-cliquables) */}
                         <nav className="flex items-center gap-3">
-                            {auth?.user ? (
-                                <Link
-                                    href={dashboard()}
-                                    className="px-4 py-2 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-xs transition"
-                                >
-                                    Tableau de bord
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link
-                                        href={login()}
-                                        className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white/80 hover:bg-white border border-slate-300 rounded-lg shadow-2xs transition"
-                                    >
-                                        Connexion
-                                    </Link>
-                                    <Link
-                                        href={register()}
-                                        className="px-4 py-2 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-xs transition"
-                                    >
-                                        Espace client
-                                    </Link>
-                                </>
-                            )}
+                            <button
+                                type="button"
+                                disabled
+                                className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white/90 border border-slate-300 rounded-lg cursor-not-allowed select-none opacity-80 shadow-2xs"
+                                title="Accès temporairement verrouillé"
+                            >
+                                Connexion
+                            </button>
+                            <button
+                                type="button"
+                                disabled
+                                className="px-4 py-2 text-sm font-semibold text-slate-200 bg-slate-900/85 rounded-lg cursor-not-allowed select-none opacity-80 shadow-xs"
+                                title="Inscriptions temporairement verrouillées"
+                            >
+                                Inscription
+                            </button>
                         </nav>
                     </header>
 
-                    {/* Cœur de la page : Suspense & Décompte sobre */}
-                    <main className="max-w-4xl w-full mx-auto px-6 py-12 flex-1 flex flex-col items-center justify-center text-center">
+                    {/* Section Hero : Suspense & Décompte */}
+                    <main className="max-w-4xl w-full mx-auto px-6 py-10 flex-1 flex flex-col items-center justify-center text-center">
                         
-                        {/* Indicateur discret avec le point vert #4FC031 */}
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 border border-slate-200 text-slate-700 text-xs font-semibold tracking-wide shadow-2xs mb-6">
+                        {/* Statut discret */}
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-300 text-slate-900 text-xs font-semibold tracking-wide shadow-xs mb-6">
                             <span 
                                 className="h-2 w-2 rounded-full" 
                                 style={{ backgroundColor: '#4FC031' }}
@@ -141,18 +130,20 @@ export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps
                             <span>Bientôt disponible</span>
                         </div>
 
-                        {/* Titre fort, humain et mystérieux */}
-                        <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 max-w-3xl leading-tight">
-                            La nouvelle façon de piloter vos équipes sur le terrain.
+                        {/* Gros titre en palier de 3 lignes avec 'équipes' et 'terrain' en vert #4FC031 */}
+                        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 max-w-4xl leading-[1.15]">
+                            <span className="block">La nouvelle façon</span>
+                            <span className="block">de piloter vos <span style={{ color: '#4FC031' }}>équipes</span></span>
+                            <span className="block">sur le <span style={{ color: '#4FC031' }}>terrain</span>.</span>
                         </h1>
 
-                        {/* Description sobre sans surcharge */}
-                        <p className="mt-5 text-base sm:text-lg md:text-xl text-slate-600 max-w-xl font-normal leading-relaxed">
+                        {/* Description nette, contrastée et bien visible en noir profond */}
+                        <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-900 max-w-2xl font-medium leading-relaxed">
                             Une expérience fluide pensée pour les gestionnaires, superviseurs et équipes mobiles. Quelque chose de grand arrive.
                         </p>
 
-                        {/* Compte à rebours épuré et solide */}
-                        <div className="mt-10 w-full max-w-2xl bg-white/95 backdrop-blur-sm border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-sm">
+                        {/* Compte à rebours épuré */}
+                        <div className="mt-10 w-full max-w-2xl bg-white/95 backdrop-blur-md border border-slate-300/90 rounded-2xl p-6 sm:p-8 shadow-md">
                             <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6 flex items-center justify-center gap-2">
                                 <Clock className="w-3.5 h-3.5 text-slate-400" />
                                 <span>Ouverture officielle dans</span>
@@ -168,7 +159,7 @@ export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps
                                 ].map((unit, idx) => (
                                     <div 
                                         key={idx} 
-                                        className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center"
+                                        className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center shadow-2xs"
                                     >
                                         <span className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight font-sans">
                                             {String(unit.value).padStart(2, '0')}
@@ -181,10 +172,10 @@ export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps
                             </div>
                         </div>
 
-                        {/* Formulaire d'accès prioritaire sobre */}
+                        {/* Formulaire d'invitation sobre */}
                         <div className="mt-10 w-full max-w-md">
                             {submitted ? (
-                                <div className="bg-white border border-slate-200 text-slate-900 rounded-xl p-4 flex items-center justify-center gap-2.5 text-sm font-semibold shadow-2xs">
+                                <div className="bg-white/95 border border-slate-300 text-slate-900 rounded-xl p-4 flex items-center justify-center gap-2.5 text-sm font-semibold shadow-sm">
                                     <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: '#4FC031' }} />
                                     <span>C'est noté. Vous recevrez une invitation prioritaire.</span>
                                 </div>
@@ -196,7 +187,7 @@ export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Votre adresse email professionnelle..."
-                                        className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-800 text-sm shadow-2xs transition"
+                                        className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-800 text-sm shadow-xs transition"
                                     />
                                     <button
                                         type="submit"
@@ -208,7 +199,7 @@ export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps
                                     </button>
                                 </form>
                             )}
-                            <p className="text-xs text-slate-500 mt-2">
+                            <p className="text-xs text-slate-600 font-medium mt-2">
                                 Accès anticipé réservé aux premières entreprises inscrites.
                             </p>
                         </div>
@@ -216,12 +207,10 @@ export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps
                     </main>
 
                     {/* Pied de page minimaliste */}
-                    <footer className="w-full py-6 text-center text-xs text-slate-500">
+                    <footer className="w-full py-6 text-center text-xs text-slate-600 font-medium">
                         <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-2">
                             <span>&copy; {new Date().getFullYear()} {appName}. Tous droits réservés.</span>
-                            <span className="text-slate-500">
-                                Conçu pour le terrain.
-                            </span>
+                            <span>Conçu pour le terrain.</span>
                         </div>
                     </footer>
 

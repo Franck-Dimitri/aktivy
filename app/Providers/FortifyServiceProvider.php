@@ -7,15 +7,25 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 /* @end-chisel-registration */
 use App\Actions\Fortify\ResetUserPassword;
+use App\Http\Responses\LoginResponse;
+use App\Http\Responses\PasskeyLoginResponse;
+use App\Models\AuditLog;
+use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Contracts\TwoFactorLoginResponse as TwoFactorLoginResponseContract;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Passkeys\Contracts\PasskeyLoginResponse as PasskeyLoginResponseContract;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -24,7 +34,9 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
+        $this->app->singleton(TwoFactorLoginResponseContract::class, LoginResponse::class);
+        $this->app->singleton(PasskeyLoginResponseContract::class, PasskeyLoginResponse::class);
     }
 
     /**
@@ -33,6 +45,7 @@ class FortifyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureActions();
+        $this->configureAuthentication();
         $this->configureViews();
         $this->configureRateLimiting();
     }
@@ -46,6 +59,46 @@ class FortifyServiceProvider extends ServiceProvider
         /* @chisel-registration */
         Fortify::createUsersUsing(CreateNewUser::class);
         /* @end-chisel-registration */
+    }
+
+    /**
+     * Let users log in with either their email address or their phone number.
+     */
+    private function configureAuthentication(): void
+    {
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = $this->findUserByLogin((string) $request->input(Fortify::username()));
+
+            if (! $user || ! Hash::check((string) $request->input('password'), $user->password)) {
+                if ($user) {
+                    AuditLog::record('auth.login_failed', $user);
+                }
+
+                return null;
+            }
+
+            if (! $user->isActive()) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => __('Ce compte est suspendu. Contactez votre administrateur.'),
+                ]);
+            }
+
+            return $user;
+        });
+    }
+
+    /**
+     * Find the user matching an email address or a phone number.
+     */
+    private function findUserByLogin(string $login): ?User
+    {
+        if (PhoneNumber::looksLikePhone($login)) {
+            $phone = PhoneNumber::normalize($login);
+
+            return $phone === null ? null : User::where('phone', $phone)->first();
+        }
+
+        return User::where('email', Str::lower($login))->first();
     }
 
     /**

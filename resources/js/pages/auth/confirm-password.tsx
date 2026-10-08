@@ -1,8 +1,8 @@
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import {
+    AuthPasswordField,
+    AuthPrimaryButton,
+} from '@/components/auth/auth-field';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
 /* @chisel-passkeys */
@@ -16,47 +16,49 @@ import PasskeyVerify from '@/components/passkey-verify';
 export default function ConfirmPassword() {
     return (
         <>
-            <Head title="Confirm password" />
+            <Head title="Confirmer le mot de passe" />
 
             {/* @chisel-passkeys */}
-            <PasskeyVerify
-                routes={{
-                    options: confirmOptions(),
-                    submit: confirmStore(),
-                }}
-                label="Confirm with passkey"
-                loadingLabel="Confirming..."
-                separator="Or confirm with password"
-            />
+            <div className="mb-6">
+                <PasskeyVerify
+                    routes={{
+                        options: confirmOptions(),
+                        submit: confirmStore(),
+                    }}
+                    label="Confirmer avec une clé d’accès"
+                    loadingLabel="Confirmation…"
+                    separator="ou avec votre mot de passe"
+                />
+            </div>
             {/* @end-chisel-passkeys */}
 
-            <Form {...store.form()} resetOnSuccess={['password']}>
+            <Form
+                {...store.form()}
+                resetOnSuccess={['password']}
+                className="flex flex-col gap-5"
+            >
                 {({ processing, errors }) => (
-                    <div className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
-                            <PasswordInput
-                                id="password"
-                                name="password"
-                                placeholder="Password"
-                                autoComplete="current-password"
-                                autoFocus
-                            />
+                    <>
+                        <AuthPasswordField
+                            id="password"
+                            name="password"
+                            label="Mot de passe"
+                            required
+                            autoFocus
+                            autoComplete="current-password"
+                            placeholder="Votre mot de passe"
+                            error={errors.password}
+                        />
 
-                            <InputError message={errors.password} />
-                        </div>
-
-                        <div className="flex items-center">
-                            <Button
-                                className="w-full"
-                                disabled={processing}
-                                data-test="confirm-password-button"
-                            >
-                                {processing && <Spinner />}
-                                Confirm password
-                            </Button>
-                        </div>
-                    </div>
+                        <AuthPrimaryButton
+                            className="mt-1"
+                            disabled={processing}
+                            data-test="confirm-password-button"
+                        >
+                            {processing && <Spinner />}
+                            Confirmer
+                        </AuthPrimaryButton>
+                    </>
                 )}
             </Form>
         </>
@@ -64,7 +66,8 @@ export default function ConfirmPassword() {
 }
 
 ConfirmPassword.layout = {
-    title: 'Confirm password',
+    title: 'Confirmez votre mot de passe',
     description:
-        'This is a secure area of the application. Please confirm your password before continuing.',
+        'Cette zone touche à la sécurité de votre compte. Saisissez à nouveau votre mot de passe pour continuer.',
+    showcase: 'security',
 };

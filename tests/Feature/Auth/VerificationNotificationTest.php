@@ -45,4 +45,19 @@ class VerificationNotificationTest extends TestCase
 
         Notification::assertNothingSent();
     }
+
+    public function test_verification_email_uses_the_branded_template(): void
+    {
+        $user = User::factory()->unverified()->create(['name' => 'Awa Diop']);
+
+        $mail = (new VerifyEmail)->toMail($user);
+        $html = (string) $mail->render();
+
+        $this->assertSame('emails.verify-email', $mail->view);
+        $this->assertStringContainsString('Confirmez votre adresse email', $mail->subject);
+        $this->assertStringContainsString('Bonjour Awa Diop', $html);
+        $this->assertStringContainsString(e($user->company->name), $html);
+        $this->assertStringContainsString(e($mail->viewData['url']), $html);
+        $this->assertStringContainsString('/email/verify/'.$user->id.'/', $mail->viewData['url']);
+    }
 }

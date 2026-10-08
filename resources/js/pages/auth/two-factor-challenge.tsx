@@ -1,9 +1,9 @@
 import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
+import { KeyRound } from 'lucide-react';
+import { AuthField, AuthPrimaryButton } from '@/components/auth/auth-field';
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     InputOTP,
     InputOTPGroup,
@@ -23,24 +23,25 @@ export default function TwoFactorChallenge() {
     }>(() => {
         if (showRecoveryInput) {
             return {
-                title: 'Recovery code',
+                title: 'Code de récupération',
                 description:
-                    'Please confirm access to your account by entering one of your emergency recovery codes.',
-                toggleText: 'login using an authentication code',
+                    'Saisissez l’un des codes de récupération que vous avez conservés lors de l’activation de la double authentification.',
+                toggleText: 'utiliser un code d’authentification',
             };
         }
 
         return {
-            title: 'Authentication code',
+            title: 'Code d’authentification',
             description:
-                'Enter the authentication code provided by your authenticator application.',
-            toggleText: 'login using a recovery code',
+                'Saisissez le code à 6 chiffres affiché par votre application d’authentification.',
+            toggleText: 'utiliser un code de récupération',
         };
     }, [showRecoveryInput]);
 
     setLayoutProps({
         title: authConfigContent.title,
         description: authConfigContent.description,
+        showcase: 'two-factor',
     });
 
     const toggleRecoveryMode = (clearErrors: () => void): void => {
@@ -51,30 +52,30 @@ export default function TwoFactorChallenge() {
 
     return (
         <>
-            <Head title="Two-factor authentication" />
+            <Head title="Double authentification" />
 
             <div className="space-y-6">
                 <Form
                     {...store.form()}
-                    className="space-y-4"
+                    className="flex flex-col gap-5"
                     resetOnError
                     resetOnSuccess={!showRecoveryInput}
                 >
                     {({ errors, processing, clearErrors }) => (
                         <>
                             {showRecoveryInput ? (
-                                <>
-                                    <Input
-                                        name="recovery_code"
-                                        type="text"
-                                        placeholder="Enter recovery code"
-                                        autoFocus={showRecoveryInput}
-                                        required
-                                    />
-                                    <InputError
-                                        message={errors.recovery_code}
-                                    />
-                                </>
+                                <AuthField
+                                    id="recovery_code"
+                                    name="recovery_code"
+                                    type="text"
+                                    label="Code de récupération"
+                                    icon={KeyRound}
+                                    placeholder="xxxxxxxxxx-xxxxxxxxxx"
+                                    autoComplete="one-time-code"
+                                    autoFocus={showRecoveryInput}
+                                    required
+                                    error={errors.recovery_code}
+                                />
                             ) : (
                                 <div className="flex flex-col items-center justify-center space-y-3 text-center">
                                     <div className="flex w-full items-center justify-center">
@@ -87,13 +88,14 @@ export default function TwoFactorChallenge() {
                                             pattern={REGEXP_ONLY_DIGITS}
                                             autoFocus
                                         >
-                                            <InputOTPGroup>
+                                            <InputOTPGroup className="gap-2">
                                                 {Array.from(
                                                     { length: OTP_MAX_LENGTH },
                                                     (_, index) => (
                                                         <InputOTPSlot
                                                             key={index}
                                                             index={index}
+                                                            className="h-14 w-12 rounded-xl border border-slate-200 bg-slate-50 text-xl font-bold text-ink shadow-none first:rounded-xl last:rounded-xl"
                                                         />
                                                     ),
                                                 )}
@@ -104,19 +106,18 @@ export default function TwoFactorChallenge() {
                                 </div>
                             )}
 
-                            <Button
+                            <AuthPrimaryButton
                                 type="submit"
-                                className="w-full"
                                 disabled={processing}
                             >
-                                Continue
-                            </Button>
+                                Continuer
+                            </AuthPrimaryButton>
 
                             <div className="text-center text-sm text-muted-foreground">
-                                <span>or you can </span>
+                                <span>Ou </span>
                                 <button
                                     type="button"
-                                    className="cursor-pointer text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                    className="cursor-pointer font-semibold text-aktivy-deep underline-offset-4 hover:underline"
                                     onClick={() =>
                                         toggleRecoveryMode(clearErrors)
                                     }

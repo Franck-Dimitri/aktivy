@@ -1,7 +1,18 @@
+export type Role =
+    | 'super_admin'
+    | 'company_admin'
+    | 'supervisor'
+    | 'field_agent'
+    | 'accountant';
+
 export type User = {
     id: number;
+    company_id: number | null;
+    role: Role;
     name: string;
-    email: string;
+    email: string | null;
+    phone: string | null;
+    must_change_password: boolean;
     avatar?: string;
     email_verified_at: string | null;
     /* @chisel-2fa */
@@ -12,8 +23,16 @@ export type User = {
     [key: string]: unknown;
 };
 
+export type Company = {
+    id: number;
+    name: string;
+    logo_path: string | null;
+    primary_color: string | null;
+};
+
 export type Auth = {
     user: User;
+    company: Company | null;
 };
 
 /* @chisel-passkeys */

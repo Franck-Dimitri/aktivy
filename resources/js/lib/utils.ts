@@ -10,3 +10,10 @@ export function cn(...inputs: ClassValue[]) {
 export function toUrl(url: NonNullable<InertiaLinkProps['href']>): string {
     return typeof url === 'string' ? url : url.url;
 }
+
+/**
+ * Display an E.164 Cameroon number as "+237 676383986".
+ */
+export function formatPhone(phone: string): string {
+    return phone.replace(/^\+237(\d{9})$/, '+237 $1');
+}

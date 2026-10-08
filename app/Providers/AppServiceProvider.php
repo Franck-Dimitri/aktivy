@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureMails();
     }
 
     /**
@@ -45,6 +49,21 @@ class AppServiceProvider extends ServiceProvider
                 ->symbols()
                 ->uncompromised()
             : null,
+        );
+    }
+
+    /**
+     * Configure the branded transactional emails.
+     */
+    protected function configureMails(): void
+    {
+        VerifyEmail::toMailUsing(fn (User $user, string $url): MailMessage => (new MailMessage)
+            ->subject('Confirmez votre adresse email — '.config('app.name'))
+            ->view('emails.verify-email', [
+                'user' => $user,
+                'url' => $url,
+                'expire' => config('auth.verification.expire', 60),
+            ]),
         );
     }
 }

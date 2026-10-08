@@ -17,6 +17,7 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->profileRules($this->user()->id);
+        // Users who log in with their phone number may leave their email empty.
+        return $this->profileRules($this->user()->id, emailRequired: $this->user()->phone === null);
     }
 }

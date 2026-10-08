@@ -16,7 +16,7 @@ type Props = {
 export default function Register({ passwordRules }: Props) {
     return (
         <>
-            <Head title="Register" />
+            <Head title="Créer un espace entreprise" />
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -27,16 +27,32 @@ export default function Register({ passwordRules }: Props) {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="company_name">
+                                    Nom de l'entreprise
+                                </Label>
                                 <Input
-                                    id="name"
+                                    id="company_name"
                                     type="text"
                                     required
                                     autoFocus
                                     tabIndex={1}
+                                    autoComplete="organization"
+                                    name="company_name"
+                                    placeholder="Ex. : Distribution Dakar SARL"
+                                />
+                                <InputError message={errors.company_name} />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="name">Votre nom</Label>
+                                <Input
+                                    id="name"
+                                    type="text"
+                                    required
+                                    tabIndex={1}
                                     autoComplete="name"
                                     name="name"
-                                    placeholder="Full name"
+                                    placeholder="Prénom et nom"
                                 />
                                 <InputError
                                     message={errors.name}
@@ -45,7 +61,7 @@ export default function Register({ passwordRules }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">Adresse e-mail</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -53,20 +69,20 @@ export default function Register({ passwordRules }: Props) {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="email@example.com"
+                                    placeholder="email@exemple.com"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
+                                <Label htmlFor="password">Mot de passe</Label>
                                 <PasswordInput
                                     id="password"
                                     required
                                     tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
-                                    placeholder="Password"
+                                    placeholder="Mot de passe"
                                     passwordrules={passwordRules}
                                 />
                                 <InputError message={errors.password} />
@@ -74,7 +90,7 @@ export default function Register({ passwordRules }: Props) {
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password_confirmation">
-                                    Confirm password
+                                    Confirmer le mot de passe
                                 </Label>
                                 <PasswordInput
                                     id="password_confirmation"
@@ -82,7 +98,7 @@ export default function Register({ passwordRules }: Props) {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
-                                    placeholder="Confirm password"
+                                    placeholder="Confirmer le mot de passe"
                                     passwordrules={passwordRules}
                                 />
                                 <InputError
@@ -97,14 +113,14 @@ export default function Register({ passwordRules }: Props) {
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Create account
+                                Créer mon espace
                             </Button>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
+                            Vous avez déjà un compte ?{' '}
                             <TextLink href={login()} tabIndex={6}>
-                                Log in
+                                Se connecter
                             </TextLink>
                         </div>
                     </>
@@ -115,6 +131,7 @@ export default function Register({ passwordRules }: Props) {
 }
 
 Register.layout = {
-    title: 'Create an account',
-    description: 'Enter your details below to create your account',
+    title: 'Créer un espace entreprise',
+    description:
+        'Vous serez l’administrateur de votre entreprise et pourrez ensuite ajouter votre équipe',
 };

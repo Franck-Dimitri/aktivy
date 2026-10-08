@@ -1,7 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, ShieldCheck } from 'lucide-react';
+import { LifeBuoy } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -13,64 +12,57 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
-import { dashboard as adminDashboard } from '@/routes/admin';
-import type { NavItem } from '@/types';
-
-const companyNavItems: NavItem[] = [
-    {
-        title: 'Tableau de bord',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const adminNavItems: NavItem[] = [
-    {
-        title: 'Administration',
-        href: adminDashboard(),
-        icon: ShieldCheck,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
+import { menuFor, roleLabels } from '@/lib/navigation';
 
 export function AppSidebar() {
     const { auth } = usePage().props;
-    const isSuperAdmin = auth.user.role === 'super_admin';
-    const mainNavItems = isSuperAdmin ? adminNavItems : companyNavItems;
+    const groups = menuFor(auth.user.role);
+    const home = groups[0].items[0].href;
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+        <Sidebar collapsible="icon" variant="sidebar">
+            <SidebarHeader className="gap-3 px-3 pt-4">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={mainNavItems[0].href} prefetch>
+                        <SidebarMenuButton
+                            size="lg"
+                            asChild
+                            className="hover:bg-transparent"
+                        >
+                            <Link href={home ?? '/'} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
+
+                <div className="rounded-xl border border-sidebar-border bg-slate-50 px-3 py-2.5 group-data-[collapsible=icon]:hidden dark:bg-sidebar-accent">
+                    <p className="truncate text-sm font-semibold text-ink dark:text-white">
+                        {auth.company?.name ?? 'Plateforme Aktivy'}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                        {roleLabels[auth.user.role]}
+                    </p>
+                </div>
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain groups={groups} />
             </SidebarContent>
 
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
+            <SidebarFooter className="gap-1 px-3 pb-3">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            aria-disabled
+                            tooltip={{ children: 'Aide (bientôt disponible)' }}
+                            className="h-9 cursor-default rounded-lg px-2.5 text-[13.5px] font-medium text-slate-400 hover:bg-transparent hover:text-slate-400 aria-disabled:pointer-events-auto aria-disabled:opacity-100 [&>svg]:size-[18px]"
+                        >
+                            <LifeBuoy />
+                            <span>Aide</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

@@ -1,9 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Mail } from 'lucide-react';
+import {
+    AuthField,
+    AuthPasswordField,
+    AuthPrimaryButton,
+} from '@/components/auth/auth-field';
 import { Spinner } from '@/components/ui/spinner';
 import { update } from '@/routes/password';
 
@@ -16,74 +17,62 @@ type Props = {
 export default function ResetPassword({ token, email, passwordRules }: Props) {
     return (
         <>
-            <Head title="Reset password" />
+            <Head title="Nouveau mot de passe" />
 
             <Form
                 {...update.form()}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
+                className="flex flex-col gap-5"
             >
                 {({ processing, errors }) => (
-                    <div className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                name="email"
-                                autoComplete="email"
-                                value={email}
-                                className="mt-1 block w-full"
-                                readOnly
-                            />
-                            <InputError
-                                message={errors.email}
-                                className="mt-2"
-                            />
-                        </div>
+                    <>
+                        <AuthField
+                            id="email"
+                            name="email"
+                            type="email"
+                            label="Compte"
+                            icon={Mail}
+                            autoComplete="email"
+                            value={email}
+                            readOnly
+                            error={errors.email}
+                        />
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
-                            <PasswordInput
-                                id="password"
-                                name="password"
-                                autoComplete="new-password"
-                                className="mt-1 block w-full"
-                                autoFocus
-                                placeholder="Password"
-                                passwordrules={passwordRules}
-                            />
-                            <InputError message={errors.password} />
-                        </div>
+                        <AuthPasswordField
+                            id="password"
+                            name="password"
+                            label="Nouveau mot de passe"
+                            required
+                            autoFocus
+                            autoComplete="new-password"
+                            placeholder="Choisissez un mot de passe"
+                            passwordrules={passwordRules}
+                            showStrength
+                            error={errors.password}
+                        />
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">
-                                Confirm password
-                            </Label>
-                            <PasswordInput
-                                id="password_confirmation"
-                                name="password_confirmation"
-                                autoComplete="new-password"
-                                className="mt-1 block w-full"
-                                placeholder="Confirm password"
-                                passwordrules={passwordRules}
-                            />
-                            <InputError
-                                message={errors.password_confirmation}
-                                className="mt-2"
-                            />
-                        </div>
+                        <AuthPasswordField
+                            id="password_confirmation"
+                            name="password_confirmation"
+                            label="Confirmer le mot de passe"
+                            required
+                            autoComplete="new-password"
+                            placeholder="Saisissez-le à nouveau"
+                            passwordrules={passwordRules}
+                            error={errors.password_confirmation}
+                        />
 
-                        <Button
+                        <AuthPrimaryButton
                             type="submit"
-                            className="mt-4 w-full"
+                            className="mt-1"
                             disabled={processing}
                             data-test="reset-password-button"
                         >
                             {processing && <Spinner />}
-                            Reset password
-                        </Button>
-                    </div>
+                            Enregistrer le mot de passe
+                        </AuthPrimaryButton>
+                    </>
                 )}
             </Form>
         </>
@@ -91,6 +80,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 }
 
 ResetPassword.layout = {
-    title: 'Reset password',
-    description: 'Please enter your new password below',
+    title: 'Choisissez un nouveau mot de passe',
+    description: 'Il remplacera l’ancien dès que vous l’aurez enregistré.',
+    showcase: 'security',
 };

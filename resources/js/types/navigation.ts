@@ -12,3 +12,15 @@ export type NavItem = {
     icon?: LucideIcon | null;
     isActive?: boolean;
 };
+
+/** A back-office menu entry; one without `href` is not built yet. */
+export type MenuItem = {
+    title: string;
+    icon: LucideIcon;
+    href?: NonNullable<InertiaLinkProps['href']>;
+};
+
+export type MenuGroup = {
+    label: string;
+    items: MenuItem[];
+};

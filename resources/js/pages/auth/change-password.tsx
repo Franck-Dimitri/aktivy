@@ -1,8 +1,8 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import {
+    AuthPasswordField,
+    AuthPrimaryButton,
+} from '@/components/auth/auth-field';
 import { Spinner } from '@/components/ui/spinner';
 import { logout } from '@/routes';
 import { update } from '@/routes/password/change';
@@ -20,60 +20,51 @@ export default function ChangePassword({ passwordRules }: Props) {
                 {...update.form()}
                 resetOnError
                 disableWhileProcessing
-                className="flex flex-col gap-6"
+                className="flex flex-col gap-5"
             >
                 {({ processing, errors }) => (
-                    <div className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">
-                                Nouveau mot de passe
-                            </Label>
-                            <PasswordInput
-                                id="password"
-                                name="password"
-                                required
-                                autoFocus
-                                autoComplete="new-password"
-                                placeholder="Nouveau mot de passe"
-                                passwordrules={passwordRules}
-                            />
-                            <InputError message={errors.password} />
-                        </div>
+                    <>
+                        <AuthPasswordField
+                            id="password"
+                            name="password"
+                            label="Nouveau mot de passe"
+                            required
+                            autoFocus
+                            autoComplete="new-password"
+                            placeholder="Choisissez un mot de passe"
+                            passwordrules={passwordRules}
+                            showStrength
+                            error={errors.password}
+                        />
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">
-                                Confirmer le mot de passe
-                            </Label>
-                            <PasswordInput
-                                id="password_confirmation"
-                                name="password_confirmation"
-                                required
-                                autoComplete="new-password"
-                                placeholder="Confirmer le mot de passe"
-                                passwordrules={passwordRules}
-                            />
-                            <InputError
-                                message={errors.password_confirmation}
-                            />
-                        </div>
+                        <AuthPasswordField
+                            id="password_confirmation"
+                            name="password_confirmation"
+                            label="Confirmer le mot de passe"
+                            required
+                            autoComplete="new-password"
+                            placeholder="Saisissez-le à nouveau"
+                            passwordrules={passwordRules}
+                            error={errors.password_confirmation}
+                        />
 
-                        <Button
+                        <AuthPrimaryButton
                             type="submit"
-                            className="w-full"
+                            className="mt-1"
                             data-test="change-password-button"
                         >
                             {processing && <Spinner />}
                             Enregistrer mon mot de passe
-                        </Button>
+                        </AuthPrimaryButton>
 
                         <Link
                             href={logout()}
                             as="button"
-                            className="text-center text-sm text-muted-foreground underline underline-offset-4"
+                            className="mx-auto cursor-pointer text-sm text-slate-500 underline-offset-4 hover:text-ink hover:underline"
                         >
                             Se déconnecter
                         </Link>
-                    </div>
+                    </>
                 )}
             </Form>
         </>
@@ -83,5 +74,6 @@ export default function ChangePassword({ passwordRules }: Props) {
 ChangePassword.layout = {
     title: 'Choisissez votre mot de passe',
     description:
-        'Votre compte a été créé avec un mot de passe provisoire. Remplacez-le par un mot de passe personnel.',
+        'Votre compte a été créé avec un mot de passe provisoire. Remplacez-le par un mot de passe que vous seul connaissez.',
+    showcase: 'security',
 };

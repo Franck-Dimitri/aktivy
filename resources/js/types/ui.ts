@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { ShowcaseName } from '@/components/auth/showcases';
 import type { BreadcrumbItem } from '@/types/navigation';
 
 export type AppLayoutProps = {
@@ -18,4 +19,10 @@ export type AuthLayoutProps = {
     name?: string;
     title?: string;
     description?: string;
+    showcase?: ShowcaseName;
+    headerLink?: {
+        text: string;
+        label: string;
+        href: string;
+    };
 };

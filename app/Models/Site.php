@@ -42,6 +42,7 @@ use Illuminate\Support\Carbon;
     'name', 'code', 'type', 'address', 'city', 'region',
     'latitude', 'longitude', 'contact_name', 'contact_phone',
     'opening_days', 'opening_time', 'closing_time', 'notes', 'status',
+    'created_by',
 ])]
 class Site extends Model
 {

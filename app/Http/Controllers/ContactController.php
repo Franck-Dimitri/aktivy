@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -18,9 +19,23 @@ class ContactController
 
     public function show(): Response
     {
+        $directory = public_path('images/payments');
+
+        $paymentLogos = File::isDirectory($directory)
+            ? collect(File::files($directory))
+                ->filter(fn ($file) => in_array(strtolower($file->getExtension()), ['png', 'jpg', 'jpeg', 'svg', 'webp'], true))
+                ->sortBy(fn ($file) => $file->getFilename())
+                ->map(fn ($file) => [
+                    'name' => $file->getFilenameWithoutExtension(),
+                    'url' => '/images/payments/'.rawurlencode($file->getFilename()),
+                ])
+                ->values()
+                ->all()
+            : [];
+
         return Inertia::render('contact', [
-            // heure d'ouverture de la page, chiffrée : le visiteur ne peut ni la lire ni la modifier
             'formToken' => encrypt(now()->timestamp),
+            'paymentLogos' => $paymentLogos,
         ]);
     }
 

@@ -72,7 +72,7 @@ class PersonnelController extends Controller
             return back()->withErrors(['phone' => 'Au moins un identifiant (téléphone ou e-mail) est requis.'])->withInput();
         }
 
-        $request->user()->company->users()->create([
+        $member = $request->user()->company->users()->create([
             'name'                  => $validated['name'],
             'phone'                 => $validated['phone'] ?? null,
             'email'                 => $validated['email'] ?? null,
@@ -81,6 +81,11 @@ class PersonnelController extends Controller
             'status'                => AccountStatus::Active,
             'must_change_password'  => true,
         ]);
+
+        // Envoyer l'email de vérification si le membre a une adresse email
+        if ($member->email !== null) {
+            $member->sendEmailVerificationNotification();
+        }
 
         return redirect()->route('personnel.index')
             ->with('success', 'Membre du personnel ajouté.');

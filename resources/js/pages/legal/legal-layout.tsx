@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Head, Link } from '@inertiajs/react';
+import LandingFooter from '@/components/landing/footer';
 
 /* ------------------------------------------------------------------ */
 /*  Informations légales : à compléter UNE seule fois ici               */
@@ -21,8 +22,7 @@ export const LEGAL_INFO = {
     aiProvider: '[Fournisseur du modèle d\'IA utilisé]',
     city: '[Ville du tribunal compétent, ex. Yaoundé]',
     updatedAt: '14 octobre 2026',
-    /* page vers laquelle renvoient le logo et « Retour à l'accueil » (la landing est sur /accueil pour l'instant) */
-    homeUrl: '/accueil',
+    homeUrl: '/',
 };
 
 export type LegalSection = { id: string; title: string; body: ReactNode };
@@ -49,18 +49,22 @@ export function Strong({ children }: { children: ReactNode }) {
     return <strong className="font-semibold text-slate-900">{children}</strong>;
 }
 
+type PaymentLogo = { name: string; url: string };
+
 export default function LegalLayout({
     title,
     metaDescription,
     intro,
     sections,
     otherLink,
+    paymentLogos,
 }: {
     title: string;
     metaDescription: string;
     intro: ReactNode;
     sections: LegalSection[];
     otherLink: { href: string; label: string };
+    paymentLogos?: PaymentLogo[];
 }) {
     const [current, setCurrent] = useState(sections[0]?.id ?? '');
 
@@ -175,15 +179,7 @@ export default function LegalLayout({
                     </main>
                 </div>
 
-                <footer className="border-t border-slate-200">
-                    <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-xs text-slate-500 sm:flex-row sm:px-6">
-                        <p>© {new Date().getFullYear()} {LEGAL_INFO.product}. Tous droits réservés.</p>
-                        <div className="flex gap-6">
-                            <Link href="/conditions" className="hover:text-green-700">Conditions d'utilisation</Link>
-                            <Link href="/confidentialite" className="hover:text-green-700">Politique de confidentialité</Link>
-                        </div>
-                    </div>
-                </footer>
+                <LandingFooter paymentLogos={paymentLogos} />
             </div>
         </>
     );

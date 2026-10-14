@@ -219,7 +219,7 @@ const SECTIONS: LegalSection[] = [
     },
 ];
 
-export default function Conditions() {
+export default function Conditions({ paymentLogos }: { paymentLogos?: { name: string; url: string }[] }) {
     return (
         <LegalLayout
             title="Conditions d'utilisation"
@@ -232,6 +232,7 @@ export default function Conditions() {
             }
             sections={SECTIONS}
             otherLink={{ href: '/confidentialite', label: 'Politique de confidentialité' }}
+            paymentLogos={paymentLogos}
         />
     );
 }

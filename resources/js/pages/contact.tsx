@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import LandingFooter from '@/components/landing/footer';
 
 /* ------------------------------------------------------------------ */
 /*  Contenu modifiable                                                 */
@@ -23,11 +24,11 @@ const SUBJECTS = [
 ];
 
 const NAV_LINKS = [
-    { label: 'Accueil', href: '/accueil' },
-    { label: 'Fonctionnalités', href: '/accueil#fonctionnalites' },
-    { label: 'Intelligence artificielle', href: '/accueil#ia' },
-    { label: 'Tarifs', href: '/accueil#tarifs' },
-    { label: 'FAQ', href: '/accueil#faq' },
+    { label: 'Accueil', href: '/' },
+    { label: 'Fonctionnalités', href: '/#fonctionnalites' },
+    { label: 'Intelligence artificielle', href: '/#ia' },
+    { label: 'Tarifs', href: '/#tarifs' },
+    { label: 'FAQ', href: '/#faq' },
 ];
 
 const NEXT_STEPS = [
@@ -62,7 +63,7 @@ function Icon({ name, className = 'h-5 w-5' }: { name: IconName; className?: str
 
 function Logo({ light = false }: { light?: boolean }) {
     return (
-        <Link href="/accueil" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5">
             <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg font-extrabold ${light ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
                 A
             </span>
@@ -99,7 +100,9 @@ const PAGE_CSS = `
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
-export default function Contact({ formToken = '' }: { formToken?: string }) {
+type PaymentLogo = { name: string; url: string };
+
+export default function Contact({ formToken = '', paymentLogos }: { formToken?: string; paymentLogos?: PaymentLogo[] }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [sent, setSent] = useState(false);
@@ -502,46 +505,7 @@ export default function Contact({ formToken = '' }: { formToken?: string }) {
                     </div>
                 </section>
 
-                {/* --------------------------------- Footer --------------------------------- */}
-                <footer className="relative overflow-hidden bg-slate-950 text-slate-400">
-                    <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[48rem] max-w-full -translate-x-1/2 rounded-full bg-green-500/10 blur-3xl" aria-hidden="true" />
-                    <div className="relative mx-auto max-w-7xl px-4 pt-14 sm:px-6 lg:px-8">
-                        <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
-                            <Logo light />
-                            <nav className="flex flex-wrap gap-x-7 gap-y-3 text-sm">
-                                {NAV_LINKS.map((l) => (
-                                    <Link key={l.href} href={l.href} className="text-slate-300 transition hover:text-white">
-                                        {l.label}
-                                    </Link>
-                                ))}
-                            </nav>
-                        </div>
-                        <div className="mt-10 flex flex-col-reverse items-center justify-between gap-4 border-t border-white/10 py-7 text-xs text-slate-500 sm:flex-row">
-                            <p>© {new Date().getFullYear()} Aktivy. Tous droits réservés.</p>
-                            <div className="flex items-center gap-6">
-                                <Link href="/conditions" className="transition hover:text-white">
-                                    Conditions d'utilisation
-                                </Link>
-                                <Link href="/confidentialite" className="transition hover:text-white">
-                                    Confidentialité
-                                </Link>
-                                <button
-                                    type="button"
-                                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                    aria-label="Retour en haut"
-                                    className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-slate-300 transition hover:border-white/20 hover:text-white"
-                                >
-                                    <Icon name="up" className="h-3.5 w-3.5" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="pointer-events-none relative -mb-[0.22em] select-none text-center" aria-hidden="true">
-                        <span className="block bg-gradient-to-b from-white/[0.09] to-transparent bg-clip-text text-[26vw] font-extrabold leading-none tracking-tighter text-transparent lg:text-[19rem]">
-                            Aktivy
-                        </span>
-                    </div>
-                </footer>
+                <LandingFooter paymentLogos={paymentLogos} />
             </div>
         </>
     );

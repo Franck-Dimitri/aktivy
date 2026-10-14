@@ -2,33 +2,19 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Auth\ChangePasswordController;
-<<<<<<< Updated upstream
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\SiteController;
-=======
->>>>>>> Stashed changes
 use App\Http\Middleware\EnsureUserHasRole;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Page "bientôt" avec compte à rebours (page d'accueil actuelle)
-Route::get('/', function () {
-    $targetDate = Carbon::parse('2026-10-07')->addMonths(2)->endOfDay()->toIso8601String();
-
-    return Inertia::render('welcome', [
-        'targetDate' => $targetDate,
-        'appName' => config('app.name', 'Aktivy'),
-    ]);
-})->name('home');
-
-// Nouvelle landing page : affiche tous les logos de paiement trouvés dans public/images/payments
-Route::get('/accueil', function () {
+// Logos de paiement partagés entre la landing, le contact et les pages légales
+$paymentLogos = function (): array {
     $directory = public_path('images/payments');
 
-    $paymentLogos = File::isDirectory($directory)
+    return File::isDirectory($directory)
         ? collect(File::files($directory))
             ->filter(fn ($file) => in_array(strtolower($file->getExtension()), ['png', 'jpg', 'jpeg', 'svg', 'webp'], true))
             ->sortBy(fn ($file) => $file->getFilename())
@@ -39,15 +25,29 @@ Route::get('/accueil', function () {
             ->values()
             ->all()
         : [];
+};
 
+// Landing page
+Route::get('/', function () use ($paymentLogos) {
     return Inertia::render('landing', [
-        'paymentLogos' => $paymentLogos,
+        'paymentLogos' => $paymentLogos(),
     ]);
-})->name('landing');
+})->name('home');
+
+Route::redirect('/accueil', '/', 301)->name('landing');
 
 // Pages légales (accessibles sans connexion)
-Route::inertia('/conditions', 'legal/conditions')->name('conditions');
-Route::inertia('/confidentialite', 'legal/confidentialite')->name('confidentialite');
+Route::get('/conditions', function () use ($paymentLogos) {
+    return Inertia::render('legal/conditions', [
+        'paymentLogos' => $paymentLogos(),
+    ]);
+})->name('conditions');
+
+Route::get('/confidentialite', function () use ($paymentLogos) {
+    return Inertia::render('legal/confidentialite', [
+        'paymentLogos' => $paymentLogos(),
+    ]);
+})->name('confidentialite');
 
 // Page "Nous contacter"
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
@@ -70,17 +70,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::inertia('/', 'admin/dashboard')->name('dashboard');
         });
 
-    Route::middleware(EnsureUserHasRole::using(Role::FieldAgent))
-        ->prefix('terrain')
-        ->name('terrain.')
-        ->group(function () {
-            Route::inertia('/', 'terrain/home')->name('home');
-        });
 });
 
-<<<<<<< Updated upstream
-require __DIR__.'/settings.php';
-=======
+
+require __DIR__.'/terrain.php';
 require __DIR__.'/company.php';
 require __DIR__.'/settings.php';
->>>>>>> Stashed changes

@@ -1,7 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import {
     Activity,
+    BadgeDollarSign,
+    ClipboardCheck,
     MapPin,
+    Package,
     Plus,
     Store,
     TrendingUp,
@@ -21,6 +24,10 @@ type Stats = {
     staff_on_site: number;
     visits_today: number;
     visits_week: number;
+    revenue_today: number;
+    revenue_week: number;
+    units_sold_today: number;
+    reports_today: number;
 };
 
 type RecentVisit = {
@@ -49,6 +56,12 @@ type Props = {
     recent_sites: RecentSite[];
     auth: { user: { name: string; role: string }; company?: { name: string } };
 };
+
+function formatCurrency(amount: number): string {
+    if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} M`;
+    if (amount >= 1_000) return `${(amount / 1_000).toFixed(0)} K`;
+    return amount.toFixed(0);
+}
 
 const visitStatusTone: Record<string, StatusTone> = {
     in_progress: 'info',
@@ -108,7 +121,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites }: Props)
             >
                 {hasData && stats && (
                     <div className="flex flex-col gap-6">
-                        {/* KPI row */}
+                        {/* KPI activité */}
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                             <KpiCard
                                 icon={Store}
@@ -159,6 +172,31 @@ export default function Dashboard({ stats, recent_visits, recent_sites }: Props)
                                     </Link>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* KPI ventes */}
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                            <KpiCard
+                                icon={BadgeDollarSign}
+                                label="CA aujourd'hui"
+                                value={`${formatCurrency(stats.revenue_today)} FCFA`}
+                                highlight={stats.revenue_today > 0}
+                            />
+                            <KpiCard
+                                icon={TrendingUp}
+                                label="CA cette semaine"
+                                value={`${formatCurrency(stats.revenue_week)} FCFA`}
+                            />
+                            <KpiCard
+                                icon={Package}
+                                label="Unités vendues auj."
+                                value={stats.units_sold_today}
+                            />
+                            <KpiCard
+                                icon={ClipboardCheck}
+                                label="Rapports soumis auj."
+                                value={stats.reports_today}
+                            />
                         </div>
 
                         <div className="grid gap-6 lg:grid-cols-3">

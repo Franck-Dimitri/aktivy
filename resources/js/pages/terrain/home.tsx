@@ -1,8 +1,8 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, type ReactNode } from 'react';
-import { store as visitStore } from '@/routes/terrain/visit';
-import { checkout as visitCheckout } from '@/routes/terrain/visit';
+import { store as visitStore, checkout as visitCheckout } from '@/routes/terrain/visit';
 import { show as reportShow } from '@/routes/terrain/report';
+import { home as terrainHome } from '@/routes/terrain';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -27,6 +27,14 @@ type VisitInfo = {
     has_report: boolean;
     report_status: 'draft' | 'submitted' | null;
     report_id: number | null;
+};
+
+type MyStats = {
+    total_visits: number;
+    visits_this_month: number;
+    revenue_this_month: number;
+    units_sold_this_month: number;
+    reports_submitted: number;
 };
 
 /* ------------------------------------------------------------------ */
@@ -61,6 +69,12 @@ function StatusBadge({ status }: { status: string }) {
     );
 }
 
+function formatCurrency(amount: number): string {
+    if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} M`;
+    if (amount >= 1_000) return `${(amount / 1_000).toFixed(0)} K`;
+    return amount.toFixed(0);
+}
+
 function formatDuration(minutes: number): string {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
@@ -73,9 +87,11 @@ function formatDuration(minutes: number): string {
 export default function TerrainHome({
     affectation,
     visit,
+    my_stats,
 }: {
     affectation: Affectation | null;
     visit: VisitInfo | null;
+    my_stats: MyStats;
 }) {
     const { auth } = usePage().props as { auth: { user: { name: string } } };
     const [time, setTime] = useState(() => new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
@@ -286,6 +302,34 @@ export default function TerrainHome({
                     )}
                 </div>
             )}
+
+            {/* Stats personnelles */}
+            <div className="mt-6">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Mes statistiques — ce mois</p>
+                <div className="grid grid-cols-2 gap-3">
+                    <Card>
+                        <p className="text-2xl font-bold text-slate-900">{my_stats.visits_this_month}</p>
+                        <p className="text-xs text-slate-500">Visites ce mois</p>
+                        <p className="mt-0.5 text-xs text-slate-400">{my_stats.total_visits} au total</p>
+                    </Card>
+                    <Card>
+                        <p className="text-2xl font-bold text-green-600">{formatCurrency(my_stats.revenue_this_month)} FCFA</p>
+                        <p className="text-xs text-slate-500">CA ce mois</p>
+                    </Card>
+                    <Card>
+                        <p className="text-2xl font-bold text-slate-900">{my_stats.units_sold_this_month}</p>
+                        <p className="text-xs text-slate-500">Unités vendues</p>
+                    </Card>
+                    <Card>
+                        <p className="text-2xl font-bold text-indigo-600">{my_stats.reports_submitted}</p>
+                        <p className="text-xs text-slate-500">Rapports soumis</p>
+                    </Card>
+                </div>
+            </div>
         </>
     );
 }
+
+TerrainHome.layout = {
+    breadcrumbs: [{ title: 'Ma journée', href: terrainHome().url }],
+};

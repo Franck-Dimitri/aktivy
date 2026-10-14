@@ -137,6 +137,17 @@ class SiteController extends Controller
         $avgDuration     = (int) ($site->visits()->whereNotNull('duration_minutes')->avg('duration_minutes') ?? 0);
         $completedVisits = $site->visits()->where('status', 'completed')->count();
 
+        // ── Stats ventes du site ──────────────────────────────────────────────
+        $siteSalesBase = fn () => DB::table('daily_report_lines')
+            ->join('daily_reports', 'daily_reports.id', '=', 'daily_report_lines.daily_report_id')
+            ->where('daily_reports.site_id', $site->id)
+            ->where('daily_reports.status', 'submitted');
+
+        $revenueAllTime     = (float) $siteSalesBase()->sum('daily_report_lines.revenue');
+        $revenueThisMonth   = (float) $siteSalesBase()->where('daily_reports.report_date', '>=', now()->startOfMonth()->toDateString())->sum('daily_report_lines.revenue');
+        $unitsSoldThisMonth = (int)   $siteSalesBase()->where('daily_reports.report_date', '>=', now()->startOfMonth()->toDateString())->sum('daily_report_lines.units_sold');
+        $reportsSubmitted   = DB::table('daily_reports')->where('site_id', $site->id)->where('status', 'submitted')->count();
+
         // ── Données graphique : 7 derniers jours ─────────────────────────────
         $weekRows = $site->visits()
             ->selectRaw("DATE(checked_in_at AT TIME ZONE 'UTC') as day, COUNT(*) as total")
@@ -286,10 +297,14 @@ class SiteController extends Controller
                 'photos_count' => count($photos),
             ],
             'stats' => [
-                'total_visits'     => $totalVisits,
-                'visits_this_month'=> $visitsThisMonth,
-                'avg_duration'     => $avgDuration,
-                'completed_visits' => $completedVisits,
+                'total_visits'        => $totalVisits,
+                'visits_this_month'   => $visitsThisMonth,
+                'avg_duration'        => $avgDuration,
+                'completed_visits'    => $completedVisits,
+                'revenue_all_time'    => $revenueAllTime,
+                'revenue_this_month'  => $revenueThisMonth,
+                'units_sold_this_month' => $unitsSoldThisMonth,
+                'reports_submitted'   => $reportsSubmitted,
             ],
             'chart' => [
                 'week'  => $weekData,

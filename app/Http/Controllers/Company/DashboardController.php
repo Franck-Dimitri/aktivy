@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Enums\Role;
 use App\Models\Site;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -39,6 +40,17 @@ class DashboardController extends Controller
         $visitsWeek   = $company->visits()
             ->where('checked_in_at', '>=', now()->startOfWeek())
             ->count();
+
+        // ── KPIs ventes ───────────────────────────────────────────────────────
+        $salesBase = fn () => DB::table('daily_report_lines')
+            ->join('daily_reports', 'daily_reports.id', '=', 'daily_report_lines.daily_report_id')
+            ->where('daily_reports.company_id', $company->id)
+            ->where('daily_reports.status', 'submitted');
+
+        $revenueToday   = (float) $salesBase()->whereDate('daily_reports.report_date', today())->sum('daily_report_lines.revenue');
+        $revenueWeek    = (float) $salesBase()->where('daily_reports.report_date', '>=', now()->startOfWeek()->toDateString())->sum('daily_report_lines.revenue');
+        $unitsSoldToday = (int)   $salesBase()->whereDate('daily_reports.report_date', today())->sum('daily_report_lines.units_sold');
+        $reportsToday   = $company->dailyReports()->where('status', 'submitted')->whereDate('report_date', today())->count();
 
         // ── Activité récente ─────────────────────────────────────────────────
         $recentVisits = $company->visits()
@@ -74,12 +86,16 @@ class DashboardController extends Controller
 
         return Inertia::render('dashboard', [
             'stats' => [
-                'sites_total'  => $sitesTotal,
-                'sites_active' => $sitesActive,
-                'staff_total'  => $staffTotal,
-                'staff_on_site'=> $staffOnSite,
-                'visits_today' => $visitsToday,
-                'visits_week'  => $visitsWeek,
+                'sites_total'     => $sitesTotal,
+                'sites_active'    => $sitesActive,
+                'staff_total'     => $staffTotal,
+                'staff_on_site'   => $staffOnSite,
+                'visits_today'    => $visitsToday,
+                'visits_week'     => $visitsWeek,
+                'revenue_today'   => $revenueToday,
+                'revenue_week'    => $revenueWeek,
+                'units_sold_today'=> $unitsSoldToday,
+                'reports_today'   => $reportsToday,
             ],
             'recent_visits' => $recentVisits,
             'recent_sites'  => $recentSites,

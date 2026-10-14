@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Terrain;
 use App\Http\Controllers\Controller;
 use App\Models\Affectation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -30,6 +31,20 @@ class HomeController extends Controller
             ->latest('checked_in_at')
             ->first();
 
+        // Stats personnelles de l'hôtesse
+        $myStatsBase = fn () => DB::table('daily_report_lines')
+            ->join('daily_reports', 'daily_reports.id', '=', 'daily_report_lines.daily_report_id')
+            ->where('daily_reports.user_id', $user->id)
+            ->where('daily_reports.status', 'submitted');
+
+        $myStats = [
+            'total_visits'        => $user->visits()->count(),
+            'visits_this_month'   => $user->visits()->where('checked_in_at', '>=', now()->startOfMonth())->count(),
+            'revenue_this_month'  => (float) $myStatsBase()->where('daily_reports.report_date', '>=', now()->startOfMonth()->toDateString())->sum('daily_report_lines.revenue'),
+            'units_sold_this_month' => (int) $myStatsBase()->where('daily_reports.report_date', '>=', now()->startOfMonth()->toDateString())->sum('daily_report_lines.units_sold'),
+            'reports_submitted'   => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->count(),
+        ];
+
         return Inertia::render('terrain/home', [
             'affectation' => $affectation ? [
                 'id'         => $affectation->id,
@@ -51,6 +66,7 @@ class HomeController extends Controller
                 'report_status'  => $visit->dailyReport?->status,
                 'report_id'      => $visit->dailyReport?->id,
             ] : null,
+            'my_stats' => $myStats,
         ]);
     }
 }

@@ -6,9 +6,9 @@ use App\Enums\VisitStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -89,7 +89,7 @@ class Visit extends Model
      * Record checkout and compute duration.
      */
     public function checkout(
-        Carbon $at,
+        CarbonInterface $at,
         ?float $latitude = null,
         ?float $longitude = null,
         ?string $notes = null,

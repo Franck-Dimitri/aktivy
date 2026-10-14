@@ -1,8 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowLeftRight,
+    BadgeDollarSign,
     BarChart2,
     CalendarRange,
+    ClipboardCheck,
     Clock,
     ImagePlus,
     MapPin,
@@ -58,6 +60,10 @@ type SiteStats = {
     visits_this_month: number;
     avg_duration: number;
     completed_visits: number;
+    revenue_all_time: number;
+    revenue_this_month: number;
+    units_sold_this_month: number;
+    reports_submitted: number;
 };
 
 type HostessRecord = {
@@ -127,6 +133,12 @@ const visitStatusTone: Record<string, StatusTone> = {
     inactive: 'neutral',
     suspended: 'warning',
 };
+
+function formatCurrency(amount: number): string {
+    if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} M`;
+    if (amount >= 1_000) return `${(amount / 1_000).toFixed(0)} K`;
+    return amount.toFixed(0);
+}
 
 function formatDuration(minutes: number): string {
     if (!minutes) return '—';
@@ -704,6 +716,31 @@ export default function SiteShow({
                             label="Taux de complétion"
                             value={`${completionRate}%`}
                             sub={`${stats.completed_visits} complètes`}
+                        />
+                    </div>
+
+                    {/* KPI ventes */}
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        <StatCard
+                            icon={BadgeDollarSign}
+                            label="CA ce mois-ci"
+                            value={`${formatCurrency(stats.revenue_this_month)} FCFA`}
+                            sub={`${formatCurrency(stats.revenue_all_time)} total`}
+                        />
+                        <StatCard
+                            icon={TrendingUp}
+                            label="CA total"
+                            value={`${formatCurrency(stats.revenue_all_time)} FCFA`}
+                        />
+                        <StatCard
+                            icon={Package}
+                            label="Unités vendues (mois)"
+                            value={stats.units_sold_this_month}
+                        />
+                        <StatCard
+                            icon={ClipboardCheck}
+                            label="Rapports soumis"
+                            value={stats.reports_submitted}
                         />
                     </div>
 

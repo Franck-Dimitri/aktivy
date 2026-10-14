@@ -2,6 +2,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { update as reportUpdate, submit as reportSubmit, flag as reportFlag } from '@/routes/terrain/report';
 import { checkout as visitCheckout } from '@/routes/terrain/visit';
+import { home as terrainHome } from '@/routes/terrain';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -430,3 +431,10 @@ export default function TerrainReport({
         </>
     );
 }
+
+TerrainReport.layout = {
+    breadcrumbs: [
+        { title: 'Ma journée', href: terrainHome().url },
+        { title: 'Rapport du jour' },
+    ],
+};

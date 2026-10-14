@@ -1,5 +1,7 @@
 import {
     Building2,
+    CalendarDays,
+    CalendarRange,
     ClipboardCheck,
     CreditCard,
     FileBarChart,
@@ -10,10 +12,10 @@ import {
     Settings2,
     UserCog,
     Users,
-    CalendarRange,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
+import { home as terrainHome } from '@/routes/terrain';
 import { index as sitesIndex } from '@/routes/sites';
 import { index as personnelIndex } from '@/routes/personnel';
 import { index as affectationsIndex } from '@/routes/affectations';
@@ -33,6 +35,21 @@ export const roleLabels: Record<Role, string> = {
  * Pages that are not built yet have no `href` and show as "Bientôt".
  */
 export function menuFor(role: Role): MenuGroup[] {
+    if (role === 'field_agent') {
+        return [
+            {
+                label: 'Terrain',
+                items: [
+                    {
+                        title: 'Ma journée',
+                        icon: CalendarDays,
+                        href: terrainHome().url,
+                    },
+                ],
+            },
+        ];
+    }
+
     if (role === 'super_admin') {
         return [
             {

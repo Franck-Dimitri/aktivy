@@ -9,6 +9,31 @@ Page de connexion : **http://localhost:8000/login**
 
 ---
 
+## Comptes de développement principaux
+
+### Responsable de l'entreprise (Company Admin)
+
+| Champ        | Valeur                        |
+|--------------|-------------------------------|
+| Rôle         | `company_admin`               |
+| E-mail       | franckdimitrio000@gmail.com   |
+| Mot de passe | franckdimitrio000@gmail.com   |
+| Entreprise   | Bennett Lynn Trading          |
+
+### Hôtesse (Field Agent)
+
+| Champ        | Valeur                        |
+|--------------|-------------------------------|
+| Rôle         | `field_agent`                 |
+| E-mail       | franckdimitrio009@gmail.com   |
+| Téléphone    | +237676383986 (ou 676383986) |
+| Mot de passe | Lapersonne2020                |
+| Entreprise   | Bennett Lynn Trading          |
+
+> L'hôtesse peut se connecter soit avec son e-mail (`franckdimitrio009@gmail.com`), soit avec son numéro de téléphone (`676383986` ou `+237676383986`).
+
+---
+
 ## Super Administrateur
 
 | Champ    | Valeur              |

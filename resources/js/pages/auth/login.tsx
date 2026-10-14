@@ -1,11 +1,13 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { AtSign } from 'lucide-react';
+import { useState } from 'react';
 import {
     AuthField,
     AuthPasswordField,
     AuthPrimaryButton,
 } from '@/components/auth/auth-field';
 import AuthStatus from '@/components/auth/auth-status';
+import DevTestAccounts from '@/components/auth/dev-test-accounts';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Spinner } from '@/components/ui/spinner';
 /* @chisel-registration */
@@ -20,14 +22,62 @@ import PasskeyVerify from '@/components/passkey-verify';
 type Props = {
     status?: string;
     canResetPassword: boolean;
+    isDev?: boolean;
 };
 
-export default function Login({ status, canResetPassword }: Props) {
+export default function Login({ status, canResetPassword, isDev }: Props) {
+    const [loginValue, setLoginValue] = useState('');
+    const [passwordValue, setPasswordValue] = useState('');
+    const showDevAccounts = isDev ?? true;
+
+    const handleSelectAccount = (
+        selectedLogin: string,
+        selectedPass: string,
+        autoSubmit = false,
+    ) => {
+        setLoginValue(selectedLogin);
+        setPasswordValue(selectedPass);
+
+        setTimeout(() => {
+            const loginInput = document.getElementById(
+                'login',
+            ) as HTMLInputElement | null;
+            const passInput = document.getElementById(
+                'password',
+            ) as HTMLInputElement | null;
+
+            if (loginInput) {
+                loginInput.value = selectedLogin;
+                loginInput.dispatchEvent(new Event('input', { bubbles: true }));
+                loginInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (passInput) {
+                passInput.value = selectedPass;
+                passInput.dispatchEvent(new Event('input', { bubbles: true }));
+                passInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            if (autoSubmit) {
+                const submitButton = document.querySelector<HTMLButtonElement>(
+                    'button[data-test="login-button"]',
+                );
+                submitButton?.click();
+            }
+        }, 50);
+    };
+
     return (
         <>
             <Head title="Connexion" />
 
             {status && <AuthStatus>{status}</AuthStatus>}
+
+            {showDevAccounts && (
+                <DevTestAccounts
+                    onSelectAccount={handleSelectAccount}
+                    currentLogin={loginValue}
+                />
+            )}
 
             <Form
                 {...store.form()}
@@ -47,6 +97,8 @@ export default function Login({ status, canResetPassword }: Props) {
                             autoComplete="username"
                             autoCapitalize="none"
                             placeholder="vous@entreprise.com ou 676383986"
+                            value={loginValue}
+                            onChange={(e) => setLoginValue(e.target.value)}
                             error={errors.login}
                         />
 
@@ -57,6 +109,8 @@ export default function Login({ status, canResetPassword }: Props) {
                             required
                             autoComplete="current-password"
                             placeholder="Votre mot de passe"
+                            value={passwordValue}
+                            onChange={(e) => setPasswordValue(e.target.value)}
                             error={errors.password}
                         />
 

@@ -45,5 +45,44 @@ class DatabaseSeeder extends Seeder
                 'phone' => $phone,
             ]);
         }
+
+        // Entreprise et comptes de test de développement
+        $bennett = Company::firstOrCreate(
+            ['slug' => 'bennett-lynn-trading'],
+            [
+                'name' => 'Bennett Lynn Trading',
+                'email' => 'franckdimitrio000@gmail.com',
+                'country' => 'SN',
+                'timezone' => 'Africa/Dakar',
+                'locale' => 'fr',
+                'currency' => 'XOF',
+                'status' => 'active',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'franckdimitrio000@gmail.com'],
+            [
+                'company_id' => $bennett->id,
+                'role' => Role::CompanyAdmin,
+                'name' => 'Franck Dimitri (Responsable)',
+                'password' => 'franckdimitrio000@gmail.com',
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'franckdimitrio009@gmail.com'],
+            [
+                'company_id' => $bennett->id,
+                'role' => Role::FieldAgent,
+                'name' => 'Franck Dimitri (Hôtesse)',
+                'phone' => '+237676383986',
+                'password' => 'Lapersonne2020',
+                'email_verified_at' => now(),
+                'status' => 'active',
+            ]
+        );
     }
 }

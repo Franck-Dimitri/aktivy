@@ -67,6 +67,36 @@ class Company extends Model
     }
 
     /**
+     * Get the sites (points de vente) of the company.
+     *
+     * @return HasMany<Site, $this>
+     */
+    public function sites(): HasMany
+    {
+        return $this->hasMany(Site::class);
+    }
+
+    /**
+     * Get the affectations of the company.
+     *
+     * @return HasMany<Affectation, $this>
+     */
+    public function affectations(): HasMany
+    {
+        return $this->hasMany(Affectation::class);
+    }
+
+    /**
+     * Get the visits of the company.
+     *
+     * @return HasMany<Visit, $this>
+     */
+    public function visits(): HasMany
+    {
+        return $this->hasMany(Visit::class);
+    }
+
+    /**
      * Determine if the company may use the platform.
      */
     public function isActive(): bool

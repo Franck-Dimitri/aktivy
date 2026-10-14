@@ -2,6 +2,8 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\SiteController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +36,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor, Role::Accountant))
         ->group(function () {
             Route::inertia('dashboard', 'dashboard')->name('dashboard');
+        });
+
+    Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor))
+        ->group(function () {
+            Route::resource('sites', SiteController::class);
+            Route::resource('personnel', PersonnelController::class);
         });
 
     Route::middleware(EnsureUserHasRole::using(Role::FieldAgent))

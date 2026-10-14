@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -173,5 +174,35 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         if ($this->email !== null) {
             parent::sendEmailVerificationNotification();
         }
+    }
+
+    /**
+     * Get the affectations (assignments to sites) of this field agent.
+     *
+     * @return HasMany<Affectation, $this>
+     */
+    public function affectations(): HasMany
+    {
+        return $this->hasMany(Affectation::class);
+    }
+
+    /**
+     * Get the visits (check-ins) made by this agent.
+     *
+     * @return HasMany<Visit, $this>
+     */
+    public function visits(): HasMany
+    {
+        return $this->hasMany(Visit::class);
+    }
+
+    /**
+     * Get the active visit in progress, if any.
+     *
+     * @return HasMany<Visit, $this>
+     */
+    public function activeVisit(): HasMany
+    {
+        return $this->hasMany(Visit::class)->where('status', 'in_progress');
     }
 }

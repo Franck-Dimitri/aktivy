@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
+import { index as sitesIndex } from '@/routes/sites';
+import { index as personnelIndex } from '@/routes/personnel';
 import type { MenuGroup, Role } from '@/types';
 
 export const roleLabels: Record<Role, string> = {
@@ -70,8 +72,8 @@ export function menuFor(role: Role): MenuGroup[] {
         groups.push({
             label: 'Équipe & terrain',
             items: [
-                { title: 'Personnel', icon: Users },
-                { title: 'Sites', icon: MapPin },
+                { title: 'Personnel', icon: Users, href: personnelIndex().url },
+                { title: 'Sites', icon: MapPin, href: sitesIndex().url },
                 { title: 'Affectations', icon: CalendarRange },
                 { title: 'Produits & prix', icon: Package },
             ],

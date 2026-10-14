@@ -44,6 +44,8 @@ export type SiteDetail = {
     status: SiteStatus;
     status_label: string;
     last_visit_at: string | null;
+    photos: string[];
+    photos_count: number;
 };
 
 export type SiteFormData = {
@@ -69,6 +71,7 @@ export type SiteStatusOption = { value: SiteStatus; label: string };
 
 export type SiteAffectation = {
     id: number;
+    agent_id: number;
     agent_name: string;
     agent_phone: string | null;
     starts_on: string;
@@ -80,6 +83,7 @@ export type SiteAffectation = {
 
 export type SiteVisit = {
     id: number;
+    agent_id: number;
     agent_name: string;
     checked_in_at: string;
     checked_out_at: string | null;

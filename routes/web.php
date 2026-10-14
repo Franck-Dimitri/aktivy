@@ -2,9 +2,12 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Auth\ChangePasswordController;
+<<<<<<< Updated upstream
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\SiteController;
+=======
+>>>>>>> Stashed changes
 use App\Http\Middleware\EnsureUserHasRole;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
@@ -67,17 +70,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::inertia('/', 'admin/dashboard')->name('dashboard');
         });
 
-    Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor, Role::Accountant))
-        ->group(function () {
-            Route::inertia('dashboard', 'dashboard')->name('dashboard');
-        });
-
-    Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor))
-        ->group(function () {
-            Route::resource('sites', SiteController::class);
-            Route::resource('personnel', PersonnelController::class);
-        });
-
     Route::middleware(EnsureUserHasRole::using(Role::FieldAgent))
         ->prefix('terrain')
         ->name('terrain.')
@@ -86,4 +78,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 });
 
+<<<<<<< Updated upstream
 require __DIR__.'/settings.php';
+=======
+require __DIR__.'/company.php';
+require __DIR__.'/settings.php';
+>>>>>>> Stashed changes

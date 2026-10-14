@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $opening_time
  * @property string|null $closing_time
  * @property string|null $notes
+ * @property array<string>|null $photos
  * @property SiteStatus $status
  * @property int $created_by
  * @property Carbon|null $last_visit_at
@@ -41,7 +42,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'name', 'code', 'type', 'address', 'city', 'region',
     'latitude', 'longitude', 'contact_name', 'contact_phone',
-    'opening_days', 'opening_time', 'closing_time', 'notes', 'status',
+    'opening_days', 'opening_time', 'closing_time', 'notes', 'photos', 'status',
     'created_by',
 ])]
 class Site extends Model
@@ -60,6 +61,7 @@ class Site extends Model
             'type' => SiteType::class,
             'status' => SiteStatus::class,
             'opening_days' => 'array',
+            'photos' => 'array',
             'latitude' => 'float',
             'longitude' => 'float',
             'last_visit_at' => 'datetime',
@@ -84,6 +86,11 @@ class Site extends Model
     public function visits(): HasMany
     {
         return $this->hasMany(Visit::class);
+    }
+
+    public function siteProducts(): HasMany
+    {
+        return $this->hasMany(SiteProduct::class);
     }
 
     public function isActive(): bool

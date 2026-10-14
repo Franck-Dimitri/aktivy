@@ -16,6 +16,8 @@ import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as sitesIndex } from '@/routes/sites';
 import { index as personnelIndex } from '@/routes/personnel';
+import { index as affectationsIndex } from '@/routes/affectations';
+import { index as productsIndex } from '@/routes/products';
 import type { MenuGroup, Role } from '@/types';
 
 export const roleLabels: Record<Role, string> = {
@@ -74,8 +76,8 @@ export function menuFor(role: Role): MenuGroup[] {
             items: [
                 { title: 'Personnel', icon: Users, href: personnelIndex().url },
                 { title: 'Sites', icon: MapPin, href: sitesIndex().url },
-                { title: 'Affectations', icon: CalendarRange },
-                { title: 'Produits & prix', icon: Package },
+                { title: 'Affectations', icon: CalendarRange, href: affectationsIndex().url },
+                { title: 'Produits & prix', icon: Package, href: productsIndex().url },
             ],
         });
     }

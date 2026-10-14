@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Company;
+
+use App\Http\Controllers\Controller;
 
 use App\Enums\AccountStatus;
 use App\Enums\Role;
@@ -84,20 +86,20 @@ class PersonnelController extends Controller
             ->with('success', 'Membre du personnel ajouté.');
     }
 
-    public function show(Request $request, User $user): Response
+    public function show(Request $request, User $personnel): Response
     {
-        $this->authorizeCompany($request, $user);
+        $this->authorizeCompany($request, $personnel);
 
         // Performance stats
         $stats = [
-            'total_visits'    => $user->visits()->count(),
-            'visits_30d'      => $user->visits()->where('checked_in_at', '>=', now()->subDays(30))->count(),
-            'avg_duration'    => (int) $user->visits()->whereNotNull('duration_minutes')->avg('duration_minutes'),
-            'completed_visits'=> $user->visits()->where('status', 'completed')->count(),
+            'total_visits'    => $personnel->visits()->count(),
+            'visits_30d'      => $personnel->visits()->where('checked_in_at', '>=', now()->subDays(30))->count(),
+            'avg_duration'    => (int) $personnel->visits()->whereNotNull('duration_minutes')->avg('duration_minutes'),
+            'completed_visits'=> $personnel->visits()->where('status', 'completed')->count(),
         ];
 
         // Current affectations with site info
-        $affectations = $user->affectations()
+        $affectations = $personnel->affectations()
             ->with('site:id,name,city,type')
             ->where('status', 'active')
             ->orderBy('starts_on')
@@ -116,7 +118,7 @@ class PersonnelController extends Controller
             ]);
 
         // Recent visits with site
-        $recentVisits = $user->visits()
+        $recentVisits = $personnel->visits()
             ->with('site:id,name')
             ->latest('checked_in_at')
             ->limit(10)
@@ -133,14 +135,14 @@ class PersonnelController extends Controller
 
         return Inertia::render('personnel/show', [
             'member' => [
-                'id'           => $user->id,
-                'name'         => $user->name,
-                'role'         => $user->role->value,
-                'role_label'   => $user->role->label(),
-                'phone'        => $user->phone,
-                'email'        => $user->email,
-                'status'       => $user->status->value,
-                'status_label' => $user->status === AccountStatus::Active ? 'Actif' : 'Suspendu',
+                'id'           => $personnel->id,
+                'name'         => $personnel->name,
+                'role'         => $personnel->role->value,
+                'role_label'   => $personnel->role->label(),
+                'phone'        => $personnel->phone,
+                'email'        => $personnel->email,
+                'status'       => $personnel->status->value,
+                'status_label' => $personnel->status === AccountStatus::Active ? 'Actif' : 'Suspendu',
             ],
             'stats'        => $stats,
             'affectations' => $affectations,
@@ -148,18 +150,18 @@ class PersonnelController extends Controller
         ]);
     }
 
-    public function edit(Request $request, User $user): Response
+    public function edit(Request $request, User $personnel): Response
     {
-        $this->authorizeCompany($request, $user);
+        $this->authorizeCompany($request, $personnel);
 
         return Inertia::render('personnel/edit', [
             'member' => [
-                'id'     => $user->id,
-                'name'   => $user->name,
-                'phone'  => $user->phone,
-                'email'  => $user->email,
-                'role'   => $user->role->value,
-                'status' => $user->status->value,
+                'id'     => $personnel->id,
+                'name'   => $personnel->name,
+                'phone'  => $personnel->phone,
+                'email'  => $personnel->email,
+                'role'   => $personnel->role->value,
+                'status' => $personnel->status->value,
             ],
             'roles'    => $this->roleOptions(),
             'statuses' => [
@@ -169,9 +171,9 @@ class PersonnelController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, User $personnel): RedirectResponse
     {
-        $this->authorizeCompany($request, $user);
+        $this->authorizeCompany($request, $personnel);
 
         $validated = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
@@ -186,7 +188,7 @@ class PersonnelController extends Controller
             return back()->withErrors(['phone' => 'Au moins un identifiant (téléphone ou e-mail) est requis.'])->withInput();
         }
 
-        $user->fill([
+        $personnel->fill([
             'name'   => $validated['name'],
             'phone'  => $validated['phone'] ?? null,
             'email'  => $validated['email'] ?? null,
@@ -195,29 +197,29 @@ class PersonnelController extends Controller
         ]);
 
         if (! empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
-            $user->must_change_password = true;
+            $personnel->password = Hash::make($validated['password']);
+            $personnel->must_change_password = true;
         }
 
-        $user->save();
+        $personnel->save();
 
-        return redirect()->route('personnel.show', $user)
+        return redirect()->route('personnel.show', $personnel)
             ->with('success', 'Profil mis à jour.');
     }
 
-    public function destroy(Request $request, User $user): RedirectResponse
+    public function destroy(Request $request, User $personnel): RedirectResponse
     {
-        $this->authorizeCompany($request, $user);
+        $this->authorizeCompany($request, $personnel);
 
-        $user->delete();
+        $personnel->delete();
 
         return redirect()->route('personnel.index')
             ->with('success', 'Membre archivé.');
     }
 
-    private function authorizeCompany(Request $request, User $user): void
+    private function authorizeCompany(Request $request, User $personnel): void
     {
-        abort_if($user->company_id !== $request->user()->company_id, 403);
+        abort_if($personnel->company_id !== $request->user()->company_id, 403);
     }
 
     /** @return array<int, array{value: string, label: string}> */

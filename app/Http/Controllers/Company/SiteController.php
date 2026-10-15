@@ -149,12 +149,7 @@ class SiteController extends Controller
         $reportsSubmitted   = DB::table('daily_reports')->where('site_id', $site->id)->where('status', 'submitted')->count();
 
         // ── Données graphique : 7 derniers jours ─────────────────────────────
-        $weekRows = $site->visits()
-            ->selectRaw("DATE(checked_in_at AT TIME ZONE 'UTC') as day, COUNT(*) as total")
-            ->where('checked_in_at', '>=', now()->subDays(6)->startOfDay())
-            ->groupBy('day')
-            ->orderBy('day')
-            ->pluck('total', 'day');
+        $weekRows = $this->visitCountsBy($site, now()->subDays(6)->startOfDay(), 'Y-m-d');
 
         $weekData = collect(range(6, 0))->map(function ($daysAgo) use ($weekRows) {
             $date = now()->subDays($daysAgo)->format('Y-m-d');
@@ -165,12 +160,7 @@ class SiteController extends Controller
         })->values()->all();
 
         // ── Données graphique : 30 derniers jours ────────────────────────────
-        $monthRows = $site->visits()
-            ->selectRaw("DATE(checked_in_at AT TIME ZONE 'UTC') as day, COUNT(*) as total")
-            ->where('checked_in_at', '>=', now()->subDays(29)->startOfDay())
-            ->groupBy('day')
-            ->orderBy('day')
-            ->pluck('total', 'day');
+        $monthRows = $this->visitCountsBy($site, now()->subDays(29)->startOfDay(), 'Y-m-d');
 
         $monthData = collect(range(29, 0))->map(function ($daysAgo) use ($monthRows) {
             $date = now()->subDays($daysAgo)->format('Y-m-d');
@@ -181,12 +171,7 @@ class SiteController extends Controller
         })->values()->all();
 
         // ── Données graphique : 12 derniers mois ─────────────────────────────
-        $yearRows = $site->visits()
-            ->selectRaw("TO_CHAR(checked_in_at, 'YYYY-MM') as month, COUNT(*) as total")
-            ->where('checked_in_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('total', 'month');
+        $yearRows = $this->visitCountsBy($site, now()->subMonths(11)->startOfMonth(), 'Y-m');
 
         $yearData = collect(range(11, 0))->map(function ($monthsAgo) use ($yearRows) {
             $month = now()->subMonths($monthsAgo)->format('Y-m');
@@ -317,6 +302,15 @@ class SiteController extends Controller
             'available_staff'   => $availableStaff,
             'inventory'         => $inventory,
             'available_products'=> $availableProducts,
+            // Options du modal « Modifier »
+            'types'    => collect(SiteType::cases())->map(fn ($t) => [
+                'value' => $t->value,
+                'label' => $t->label(),
+            ]),
+            'statuses' => collect(SiteStatus::cases())->map(fn ($s) => [
+                'value' => $s->value,
+                'label' => $s->label(),
+            ]),
         ]);
     }
 
@@ -398,7 +392,24 @@ class SiteController extends Controller
         $site->delete();
 
         return redirect()->route('sites.index')
-            ->with('success', 'Site archivé.');
+            ->with('success', 'Site supprimé.');
+    }
+
+    /**
+     * Nombre de visites du site depuis $from, regroupées selon $format (ex. 'Y-m-d').
+     *
+     * Le regroupement se fait en PHP plutôt qu'en SQL : les fonctions de date
+     * (AT TIME ZONE, TO_CHAR…) diffèrent entre SQLite et PostgreSQL, alors que
+     * ce calcul fonctionne à l'identique sur toutes les bases.
+     *
+     * @return \Illuminate\Support\Collection<string, int>
+     */
+    private function visitCountsBy(Site $site, \Carbon\CarbonInterface $from, string $format)
+    {
+        return $site->visits()
+            ->where('checked_in_at', '>=', $from)
+            ->get(['checked_in_at'])
+            ->countBy(fn ($visit) => $visit->checked_in_at->format($format));
     }
 
     private function authorizeCompany(Request $request, Site $site): void

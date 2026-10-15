@@ -152,6 +152,12 @@ class PersonnelController extends Controller
             'stats'        => $stats,
             'affectations' => $affectations,
             'recent_visits'=> $recentVisits,
+            // Options du modal « Modifier »
+            'roles'        => $this->roleOptions(),
+            'statuses'     => [
+                ['value' => AccountStatus::Active->value,    'label' => 'Actif'],
+                ['value' => AccountStatus::Suspended->value, 'label' => 'Suspendu'],
+            ],
         ]);
     }
 
@@ -219,7 +225,7 @@ class PersonnelController extends Controller
         $personnel->delete();
 
         return redirect()->route('personnel.index')
-            ->with('success', 'Membre archivé.');
+            ->with('success', 'Membre supprimé.');
     }
 
     private function authorizeCompany(Request $request, User $personnel): void

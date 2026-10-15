@@ -1,8 +1,7 @@
-import { Link, router, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Bell, LogOut, Settings, User } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,8 +10,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { useLogoutDialog } from '@/components/logout-dialog';
 import { roleLabels } from '@/lib/navigation';
-import { logout } from '@/routes';
 import { edit as profileEdit } from '@/routes/profile';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
@@ -36,22 +36,15 @@ function initials(name: string): string {
         .toUpperCase();
 }
 
-export function AppSidebarHeader({
-    breadcrumbs = [],
-}: {
-    breadcrumbs?: BreadcrumbItemType[];
-}) {
+export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
     const { auth } = usePage().props;
-
-    const handleLogout = () => {
-        router.flushAll();
-    };
+    const { ask, dialog } = useLogoutDialog();
 
     return (
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">
-            {/* Left — trigger + breadcrumbs */}
+        <>
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-xl sm:px-6 dark:border-sidebar-border dark:bg-background/80">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-                <SidebarTrigger className="-ml-1 shrink-0 text-slate-500" />
+                <SidebarTrigger className="-ml-1 shrink-0 text-slate-500 hover:bg-slate-100" />
                 <div className="flex items-center gap-1 md:hidden">
                     <AppLogo />
                 </div>
@@ -60,42 +53,40 @@ export function AppSidebarHeader({
                 </div>
             </div>
 
-            {/* Right — date + bell + avatar */}
-            <div className="flex shrink-0 items-center gap-3">
-                {/* Date */}
-                <p className="hidden text-xs text-slate-400 lg:block">{todayLabel()}</p>
+            <div className="flex shrink-0 items-center gap-2">
+                <p className="hidden rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500 lg:block">
+                    {todayLabel()}
+                </p>
 
-                {/* Notification bell (placeholder) */}
                 <button
-                    className="relative flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    type="button"
+                    className="flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-aktivy/40 focus-visible:outline-none"
                     aria-label="Notifications"
                 >
-                    <Bell className="size-4" />
+                    <Bell className="size-[18px]" />
                 </button>
 
-                {/* User avatar dropdown */}
                 {auth.user && (
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className="flex size-8 items-center justify-center rounded-full bg-aktivy-soft text-aktivy-deep text-xs font-bold ring-2 ring-transparent transition-all hover:ring-aktivy/30 focus-visible:outline-none focus-visible:ring-aktivy"
+                                type="button"
+                                className="flex size-9 items-center justify-center rounded-full bg-aktivy text-xs font-bold text-white shadow-sm shadow-green-600/25 ring-2 ring-transparent ring-offset-2 transition-all hover:ring-aktivy/30 focus-visible:ring-aktivy focus-visible:outline-none"
                                 aria-label="Mon compte"
                             >
                                 {initials(auth.user.name)}
                             </button>
                         </DropdownMenuTrigger>
 
-                        <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                        <DropdownMenuContent align="end" className="w-60 rounded-2xl p-1.5">
                             <DropdownMenuLabel className="p-0">
-                                <div className="flex items-center gap-3 px-3 py-2.5">
-                                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-aktivy-soft text-aktivy-deep text-sm font-bold">
+                                <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+                                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-aktivy text-sm font-bold text-white">
                                         {initials(auth.user.name)}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="truncate text-sm font-semibold text-ink">
-                                            {auth.user.name}
-                                        </p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="truncate text-sm font-semibold text-ink">{auth.user.name}</p>
+                                        <p className="text-xs font-normal text-slate-500">
                                             {roleLabels[auth.user.role as keyof typeof roleLabels] ?? auth.user.role}
                                         </p>
                                     </div>
@@ -104,13 +95,13 @@ export function AppSidebarHeader({
 
                             <DropdownMenuSeparator />
 
-                            <DropdownMenuItem asChild>
+                            <DropdownMenuItem asChild className="rounded-lg">
                                 <Link href={profileEdit()} className="cursor-pointer">
                                     <User className="mr-2 size-4" />
                                     Mon profil
                                 </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
+                            <DropdownMenuItem asChild className="rounded-lg">
                                 <Link href={profileEdit()} className="cursor-pointer">
                                     <Settings className="mr-2 size-4" />
                                     Paramètres
@@ -119,21 +110,19 @@ export function AppSidebarHeader({
 
                             <DropdownMenuSeparator />
 
-                            <DropdownMenuItem asChild>
-                                <Link
-                                    href={logout()}
-                                    as="button"
-                                    onClick={handleLogout}
-                                    className="w-full cursor-pointer text-red-600 focus:text-red-600"
-                                >
-                                    <LogOut className="mr-2 size-4" />
-                                    Se déconnecter
-                                </Link>
+                            <DropdownMenuItem
+                                onSelect={ask}
+                                className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600"
+                            >
+                                <LogOut className="mr-2 size-4" />
+                                Se déconnecter
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
             </div>
         </header>
+        {dialog}
+        </>
     );
 }

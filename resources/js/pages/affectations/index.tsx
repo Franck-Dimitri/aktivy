@@ -17,6 +17,7 @@ import {
     index as affectationsIndex,
     create as affectationCreate,
     edit as affectationEdit,
+    store as affectationStore,
     update as affectationUpdate,
     destroy as affectationDestroy,
 } from '@/routes/affectations';
@@ -196,11 +197,168 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
     return (
         <section className="grid gap-4">
             <div>
-                <h4 className="text-sm font-semibold text-ink">{title}</h4>
+                <h4 className="flex items-center gap-2 text-sm font-semibold text-ink">
+                    <span className="h-3.5 w-0.5 rounded-full bg-aktivy" aria-hidden="true" />
+                    {title}
+                </h4>
                 {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
             </div>
             {children}
         </section>
+    );
+}
+
+/* ───────────────────── Fenêtre de création ───────────────────── */
+
+type CreateDialogProps = {
+    sites: AffectationSelectOption[];
+    staff: AffectationSelectOption[];
+    onClose: () => void;
+};
+
+function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
+    const { data, setData, post, processing, errors } = useForm({
+        site_id: '' as number | '',
+        user_id: '' as number | '',
+        starts_on: '',
+        ends_on: '',
+        slot_start: '',
+        slot_end: '',
+        notes: '',
+    });
+
+    const close = useCallback(() => {
+        if (!processing) onClose();
+    }, [processing, onClose]);
+
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        post(affectationStore().url, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Affectation créée', { description: 'Le membre a bien été affecté au site.' });
+                onClose();
+            },
+            onError: toastFormError,
+        });
+    };
+
+    return (
+        <Modal onClose={close} title="Nouvelle affectation" description="Assignez un membre à un point de vente." size="lg" icon={<Plus />}>
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex-1 space-y-8 overflow-y-auto px-6 pt-4 pb-6">
+                    <Section title="Qui et où">
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <Field label="Membre" htmlFor="new-user_id" required error={errors.user_id}>
+                                <SelectInput
+                                    id="new-user_id"
+                                    icon={User}
+                                    value={data.user_id}
+                                    onChange={(e) => setData('user_id', Number(e.target.value) || '')}
+                                    error={errors.user_id}
+                                    required
+                                >
+                                    <option value="">Choisir un membre…</option>
+                                    {staff.map((s) => (
+                                        <option key={s.value} value={s.value}>{s.label} ({s.role_label})</option>
+                                    ))}
+                                </SelectInput>
+                            </Field>
+
+                            <Field label="Site" htmlFor="new-site_id" required error={errors.site_id}>
+                                <SelectInput
+                                    id="new-site_id"
+                                    icon={MapPin}
+                                    value={data.site_id}
+                                    onChange={(e) => setData('site_id', Number(e.target.value) || '')}
+                                    error={errors.site_id}
+                                    required
+                                >
+                                    <option value="">Choisir un site…</option>
+                                    {sites.map((s) => (
+                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                    ))}
+                                </SelectInput>
+                            </Field>
+                        </div>
+                    </Section>
+
+                    <Section title="Période">
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <Field label="Date de début" htmlFor="new-starts_on" required error={errors.starts_on}>
+                                <TextInput
+                                    id="new-starts_on"
+                                    type="date"
+                                    icon={CalendarRange}
+                                    value={data.starts_on}
+                                    onChange={(e) => setData('starts_on', e.target.value)}
+                                    error={errors.starts_on}
+                                    required
+                                />
+                            </Field>
+                            <Field label="Date de fin" htmlFor="new-ends_on" hint="(vide = permanent)" error={errors.ends_on}>
+                                <TextInput
+                                    id="new-ends_on"
+                                    type="date"
+                                    icon={CalendarRange}
+                                    value={data.ends_on}
+                                    onChange={(e) => setData('ends_on', e.target.value)}
+                                    error={errors.ends_on}
+                                />
+                            </Field>
+                        </div>
+                    </Section>
+
+                    <Section title="Créneau horaire" hint="Optionnel. Heures de prise de poste attendues.">
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <Field label="Heure de début" htmlFor="new-slot_start" error={errors.slot_start}>
+                                <TextInput
+                                    id="new-slot_start"
+                                    type="time"
+                                    icon={Clock}
+                                    value={data.slot_start}
+                                    onChange={(e) => setData('slot_start', e.target.value)}
+                                    error={errors.slot_start}
+                                />
+                            </Field>
+                            <Field label="Heure de fin" htmlFor="new-slot_end" error={errors.slot_end}>
+                                <TextInput
+                                    id="new-slot_end"
+                                    type="time"
+                                    icon={Clock}
+                                    value={data.slot_end}
+                                    onChange={(e) => setData('slot_end', e.target.value)}
+                                    error={errors.slot_end}
+                                />
+                            </Field>
+                        </div>
+                    </Section>
+
+                    <Section title="Notes internes">
+                        <Field label="Notes" htmlFor="new-notes" hint="(optionnel)" error={errors.notes}>
+                            <TextArea
+                                id="new-notes"
+                                icon={FileText}
+                                rows={3}
+                                value={data.notes}
+                                onChange={(e) => setData('notes', e.target.value)}
+                                placeholder="Instructions particulières, contexte…"
+                                error={errors.notes}
+                            />
+                        </Field>
+                    </Section>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-green-100 bg-white px-6 py-4">
+                    <ActionButton type="button" variant="secondary" onClick={close} disabled={processing}>
+                        Annuler
+                    </ActionButton>
+                    <ActionButton type="submit" loading={processing}>
+                        {processing ? 'Enregistrement…' : "Créer l'affectation"}
+                    </ActionButton>
+                </div>
+            </form>
+        </Modal>
     );
 }
 
@@ -247,6 +405,7 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
             title="Modifier l'affectation"
             description={`${affectation.agent_name} · ${affectation.site_name}`}
             size="lg"
+            icon={<Pencil />}
         >
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex-1 space-y-8 overflow-y-auto px-6 pt-4 pb-6">
@@ -365,7 +524,7 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
                     </Section>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
+                <div className="flex items-center justify-end gap-3 border-t border-green-100 bg-white px-6 py-4">
                     <ActionButton type="button" variant="secondary" onClick={close} disabled={processing}>
                         Annuler
                     </ActionButton>
@@ -389,6 +548,10 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
     const [editing, setEditing] = useState<Item | null>(null);
     const closeEdit = useCallback(() => setEditing(null), []);
 
+    // Fenêtre de création (même principe : montée seulement quand elle est visible).
+    const [creating, setCreating] = useState(false);
+    const closeCreate = useCallback(() => setCreating(false), []);
+
     // La fenêtre n'est disponible que si le contrôleur envoie les listes (sites, membres, statuts).
     const canEditInModal = Boolean(sites && staff && statuses);
 
@@ -399,6 +562,21 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
         }
         setEditing(a);
     };
+
+    // Bouton « nouvelle affectation » : ouvre la fenêtre si possible, sinon l'ancienne page.
+    const newButton = (label: string) =>
+        canEditInModal ? (
+            <ActionButton type="button" onClick={() => setCreating(true)}>
+                <span className="inline-flex items-center gap-2">
+                    <Plus className="size-4" />
+                    {label}
+                </span>
+            </ActionButton>
+        ) : (
+            <ActionLink href={affectationCreate().url} icon={<Plus />}>
+                {label}
+            </ActionLink>
+        );
 
     const { ask, dialog } = useDeleteDialog<AffectationListItem>({
         getUrl: (a) => affectationDestroy({ affectation: a.id }).url,
@@ -445,11 +623,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
             <Page
                 title="Affectations"
                 description="Qui travaille où et à quelle période."
-                actions={
-                    <ActionLink href={affectationCreate().url} icon={<Plus />}>
-                        Nouvelle affectation
-                    </ActionLink>
-                }
+                actions={newButton('Nouvelle affectation')}
             >
                 {affectations.length === 0 ? (
                     <Panel>
@@ -457,11 +631,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                             icon={CalendarRange}
                             title="Aucune affectation"
                             description="Assignez vos hôtesses et superviseurs à vos sites."
-                            action={
-                                <ActionLink href={affectationCreate().url} icon={<Plus />}>
-                                    Créer la première affectation
-                                </ActionLink>
-                            }
+                            action={newButton('Créer la première affectation')}
                         />
                     </Panel>
                 ) : (
@@ -578,6 +748,8 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                     onClose={closeEdit}
                 />
             )}
+
+            {creating && sites && staff && <CreateAffectationDialog sites={sites} staff={staff} onClose={closeCreate} />}
 
             {dialog}
         </>

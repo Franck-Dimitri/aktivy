@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 type ConfirmDialogProps = {
     open: boolean;
@@ -17,7 +18,10 @@ type ConfirmDialogProps = {
     onConfirm: () => void;
 };
 
-/** Remplace window.confirm() : boîte de dialogue propre, avec chargement sur le bouton de confirmation. */
+/**
+ * Remplace window.confirm() : boîte de dialogue propre, avec chargement sur le bouton de confirmation.
+ * Le fond flouté et le style (filet, ombre, contour) viennent de <DialogContent> dans ui/dialog.tsx.
+ */
 export function ConfirmDialog({
     open,
     onOpenChange,
@@ -29,12 +33,23 @@ export function ConfirmDialog({
     tone = 'danger',
     onConfirm,
 }: ConfirmDialogProps) {
+    const danger = tone === 'danger';
+
     return (
         <Dialog open={open} onOpenChange={(next) => !loading && onOpenChange(next)}>
-            <DialogContent className="gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-md">
+            <DialogContent
+                accent={danger ? 'red' : 'green'}
+                className={cn(
+                    'gap-0 p-0 sm:max-w-md',
+                    danger && 'shadow-[0_24px_80px_-12px_rgba(220,38,38,0.22)] ring-red-600/15',
+                )}
+            >
                 <div className="flex gap-4 p-6">
                     <span
-                        className={`flex size-11 shrink-0 items-center justify-center rounded-full ${tone === 'danger' ? 'bg-red-50 text-red-600' : 'bg-aktivy-soft text-aktivy-deep'}`}
+                        className={cn(
+                            'flex size-11 shrink-0 items-center justify-center rounded-xl border',
+                            danger ? 'border-red-100 bg-red-50 text-red-600' : 'border-green-200 bg-green-50 text-aktivy-deep',
+                        )}
                     >
                         <Icon className="size-5" />
                     </span>
@@ -45,11 +60,16 @@ export function ConfirmDialog({
                         </DialogDescription>
                     </div>
                 </div>
-                <div className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/70 px-6 py-4 sm:flex-row sm:justify-end">
+                <div
+                    className={cn(
+                        'flex flex-col-reverse gap-2 border-t bg-white px-6 py-4 sm:flex-row sm:justify-end',
+                        danger ? 'border-slate-100' : 'border-green-100',
+                    )}
+                >
                     <ActionButton variant="secondary" disabled={loading} onClick={() => onOpenChange(false)}>
                         Annuler
                     </ActionButton>
-                    <ActionButton variant={tone === 'danger' ? 'danger' : 'primary'} loading={loading} onClick={onConfirm}>
+                    <ActionButton variant={danger ? 'danger' : 'primary'} loading={loading} onClick={onConfirm}>
                         {confirmLabel}
                     </ActionButton>
                 </div>

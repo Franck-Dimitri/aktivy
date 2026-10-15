@@ -42,6 +42,11 @@ class SiteController extends Controller
 
         return Inertia::render('sites/index', [
             'sites' => $sites,
+            // Options du modal « Nouveau site » (même source que create()).
+            'types' => collect(SiteType::cases())->map(fn ($t) => [
+                'value' => $t->value,
+                'label' => $t->label(),
+            ]),
         ]);
     }
 

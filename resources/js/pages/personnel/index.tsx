@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowUpDown, CalendarCheck, Eye, MapPin, Pencil, Phone, Plus, Search, Trash2, Users, X } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
-import { ActionLink } from '@/components/page/buttons';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
@@ -10,10 +10,13 @@ import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
 import { dashboard } from '@/routes';
 import { index as personnelIndex, create as personnelCreate, show as personnelShow, destroy as personnelDestroy } from '@/routes/personnel';
-import type { StaffListItem } from '@/types';
+import type { RoleOption, StaffListItem } from '@/types';
+import { CreateMemberModal } from './create-member-modal';
 
 type Props = {
     staff: StaffListItem[];
+    /** Optionnel : fourni par le contrôleur. Sans lui, « Ajouter un membre » ouvre l'ancienne page. */
+    roles?: RoleOption[];
 };
 
 type RoleFilter = 'all' | 'field_agent' | 'supervisor' | 'accountant';
@@ -92,7 +95,26 @@ function Chip({ active, onClick, count, children }: { active: boolean; onClick: 
     );
 }
 
-export default function PersonnelIndex({ staff }: Props) {
+export default function PersonnelIndex({ staff, roles }: Props) {
+    // Fenêtre de création : montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
+    const [creating, setCreating] = useState(false);
+    const closeCreate = useCallback(() => setCreating(false), []);
+
+    // Bouton « ajouter un membre » : ouvre la fenêtre si les rôles sont fournis, sinon l'ancienne page.
+    const newButton = (label: string) =>
+        roles ? (
+            <ActionButton type="button" onClick={() => setCreating(true)}>
+                <span className="inline-flex items-center gap-2">
+                    <Plus className="size-4" />
+                    {label}
+                </span>
+            </ActionButton>
+        ) : (
+            <ActionLink href={personnelCreate().url} icon={<Plus />}>
+                {label}
+            </ActionLink>
+        );
+
     const [query, setQuery] = useState('');
     const [role, setRole] = useState<RoleFilter>('all');
     const [status, setStatus] = useState<StatusFilter>('all');
@@ -155,11 +177,7 @@ export default function PersonnelIndex({ staff }: Props) {
             <Page
                 title="Personnel"
                 description="Les membres de votre équipe terrain."
-                actions={
-                    <ActionLink href={personnelCreate().url} icon={<Plus />}>
-                        Ajouter un membre
-                    </ActionLink>
-                }
+                actions={newButton('Ajouter un membre')}
             >
                 {staff.length === 0 ? (
                     <Panel>
@@ -167,11 +185,7 @@ export default function PersonnelIndex({ staff }: Props) {
                             icon={Users}
                             title="Aucun membre pour l'instant"
                             description="Ajoutez vos superviseurs, hôtesses et comptables."
-                            action={
-                                <ActionLink href={personnelCreate().url} icon={<Plus />}>
-                                    Ajouter un membre
-                                </ActionLink>
-                            }
+                            action={newButton('Ajouter un membre')}
                         />
                     </Panel>
                 ) : (
@@ -379,6 +393,8 @@ export default function PersonnelIndex({ staff }: Props) {
                     </div>
                 )}
             </Page>
+
+            {creating && roles && <CreateMemberModal roles={roles} onClose={closeCreate} />}
 
             {dialog}
         </>

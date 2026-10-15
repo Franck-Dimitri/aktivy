@@ -47,6 +47,8 @@ class PersonnelController extends Controller
 
         return Inertia::render('personnel/index', [
             'staff' => $staff,
+            // Options du modal « Nouveau membre » (même source que create()).
+            'roles' => $this->roleOptions(),
         ]);
     }
 

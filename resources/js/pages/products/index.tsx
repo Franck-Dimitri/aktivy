@@ -2,7 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { Archive, FileText, ImagePlus, Package, Pencil, Plus, RefreshCw, Search, Store, Tag, Trash2, Undo2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import { ActionButton, ActionLink } from '@/components/page/buttons';
+import { ActionButton } from '@/components/page/buttons';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { Field, SelectInput, TextArea, TextInput, ToggleField } from '@/components/page/form-fields';
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import {
     index as productsIndex,
-    create as productCreate,
+    store as productStore,
     update as productUpdate,
     destroy as productDestroy,
 } from '@/routes/products';
@@ -295,6 +295,153 @@ function PhotoField({ file, currentUrl, removed, onChange, onRemoveCurrent, onRe
     );
 }
 
+/* ───────────────────── Fenêtre de création ───────────────────── */
+
+type CreateDialogProps = {
+    units: string[];
+    onClose: () => void;
+};
+
+function CreateProductDialog({ units, onClose }: CreateDialogProps) {
+    const { data, setData, post, processing, errors } = useForm({
+        name: '',
+        sku: '',
+        description: '',
+        unit: units.includes('pièce') ? 'pièce' : (units[0] ?? ''),
+        price: '',
+        is_active: true as boolean,
+        image: null as File | null,
+    });
+
+    // Pas de fermeture accidentelle pendant l'enregistrement.
+    const close = useCallback(() => {
+        if (!processing) onClose();
+    }, [processing, onClose]);
+
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        post(productStore().url, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Produit créé', { description: `« ${data.name} » a été ajouté au catalogue.` });
+                onClose();
+            },
+            onError: toastFormError,
+        });
+    };
+
+    return (
+        <Modal onClose={close} title="Nouveau produit" description="Ajoutez un produit au catalogue de l'entreprise." size="lg" icon={<Plus />}>
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+                <div className="grid flex-1 gap-8 overflow-y-auto px-6 pt-4 pb-6 md:grid-cols-5">
+                    {/* Champs */}
+                    <div className="grid content-start gap-5 md:col-span-3">
+                        <Field label="Nom" htmlFor="new-name" required error={errors.name}>
+                            <TextInput
+                                id="new-name"
+                                icon={Package}
+                                value={data.name}
+                                onChange={(e) => setData('name', e.target.value)}
+                                placeholder="Ex. : Eau minérale 1,5 L"
+                                error={errors.name}
+                                required
+                                autoFocus
+                            />
+                        </Field>
+
+                        <Field label="Description" htmlFor="new-description" hint="(optionnel)" error={errors.description}>
+                            <TextArea
+                                id="new-description"
+                                icon={FileText}
+                                rows={3}
+                                value={data.description}
+                                onChange={(e) => setData('description', e.target.value)}
+                                placeholder="Quelques mots sur le produit…"
+                                error={errors.description}
+                            />
+                        </Field>
+
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <Field label="Prix de vente" htmlFor="new-price" hint="(optionnel)" error={errors.price}>
+                                <TextInput
+                                    id="new-price"
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={data.price}
+                                    onChange={(e) => setData('price', e.target.value)}
+                                    placeholder="0"
+                                    error={errors.price}
+                                    trailing={<span className="text-xs font-semibold text-aktivy/70">FCFA</span>}
+                                />
+                            </Field>
+
+                            <Field label="Unité" htmlFor="new-unit" required error={errors.unit}>
+                                <SelectInput
+                                    id="new-unit"
+                                    value={data.unit}
+                                    onChange={(e) => setData('unit', e.target.value)}
+                                    error={errors.unit}
+                                    required
+                                >
+                                    {units.map((u) => (
+                                        <option key={u} value={u}>{u}</option>
+                                    ))}
+                                </SelectInput>
+                            </Field>
+                        </div>
+
+                        <Field label="Code SKU" htmlFor="new-sku" hint="(optionnel)" error={errors.sku}>
+                            <TextInput
+                                id="new-sku"
+                                icon={Tag}
+                                value={data.sku}
+                                onChange={(e) => setData('sku', e.target.value)}
+                                placeholder="Ex. : EAU-1500"
+                                error={errors.sku}
+                                className="font-mono"
+                            />
+                        </Field>
+                    </div>
+
+                    {/* Photo + statut */}
+                    <div className="flex flex-col gap-6 md:col-span-2">
+                        <div>
+                            <p className="mb-2 text-sm font-medium text-ink">Photo</p>
+                            <PhotoField
+                                file={data.image}
+                                currentUrl={null}
+                                removed={false}
+                                onChange={(f) => setData('image', f)}
+                                onRemoveCurrent={() => undefined}
+                                onRestore={() => undefined}
+                                error={errors.image}
+                            />
+                        </div>
+
+                        <ToggleField
+                            checked={data.is_active}
+                            onChange={(v) => setData('is_active', v)}
+                            label="Produit actif"
+                            description="Un produit inactif ne peut pas être ajouté à un site."
+                        />
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-green-100 bg-white px-6 py-4">
+                    <ActionButton type="button" variant="secondary" onClick={close} disabled={processing}>
+                        Annuler
+                    </ActionButton>
+                    <ActionButton type="submit" loading={processing}>
+                        {processing ? 'Enregistrement…' : 'Créer le produit'}
+                    </ActionButton>
+                </div>
+            </form>
+        </Modal>
+    );
+}
+
 /* ───────────────────── Fenêtre de modification ───────────────────── */
 
 type EditDialogProps = {
@@ -337,7 +484,7 @@ function EditProductDialog({ product, units, onClose }: EditDialogProps) {
     };
 
     return (
-        <Modal onClose={close} title="Modifier le produit" description={product.name} size="lg">
+        <Modal onClose={close} title="Modifier le produit" description={product.name} size="lg" icon={<Pencil />}>
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="grid flex-1 gap-8 overflow-y-auto px-6 pt-4 pb-6 md:grid-cols-5">
                     {/* Champs */}
@@ -429,7 +576,7 @@ function EditProductDialog({ product, units, onClose }: EditDialogProps) {
                     </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
+                <div className="flex items-center justify-end gap-3 border-t border-green-100 bg-white px-6 py-4">
                     <ActionButton type="button" variant="secondary" onClick={close} disabled={processing}>
                         Annuler
                     </ActionButton>
@@ -452,6 +599,20 @@ export default function ProductsIndex({ products, stats, units }: Props) {
     const [editing, setEditing] = useState<ProductListItem | null>(null);
     const openEdit = (p: ProductListItem) => setEditing(p);
     const closeEdit = useCallback(() => setEditing(null), []);
+
+    // Fenêtre de création (même principe : montée seulement quand elle est visible).
+    const [creating, setCreating] = useState(false);
+    const closeCreate = useCallback(() => setCreating(false), []);
+
+    // Bouton « nouveau produit » : ouvre la fenêtre de création.
+    const newButton = (label: string) => (
+        <ActionButton type="button" onClick={() => setCreating(true)}>
+            <span className="inline-flex items-center gap-2">
+                <Plus className="size-4" />
+                {label}
+            </span>
+        </ActionButton>
+    );
 
     const { ask, dialog } = useDeleteDialog<ProductListItem>({
         getUrl: (p) => productDestroy({ product: p.id }).url,
@@ -494,11 +655,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
             <Page
                 title="Produits"
                 description="Catalogue des produits de votre entreprise."
-                actions={
-                    <ActionLink href={productCreate().url} icon={<Plus />}>
-                        Nouveau produit
-                    </ActionLink>
-                }
+                actions={newButton('Nouveau produit')}
             >
                 {products.length === 0 ? (
                     <Panel>
@@ -506,11 +663,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                             icon={Package}
                             title="Aucun produit"
                             description="Ajoutez vos produits pour les gérer sur vos points de vente."
-                            action={
-                                <ActionLink href={productCreate().url} icon={<Plus />}>
-                                    Créer le premier produit
-                                </ActionLink>
-                            }
+                            action={newButton('Créer le premier produit')}
                         />
                     </Panel>
                 ) : (
@@ -604,6 +757,8 @@ export default function ProductsIndex({ products, stats, units }: Props) {
             {editing && (
                 <EditProductDialog key={editing.id} product={editing} units={units ?? FALLBACK_UNITS} onClose={closeEdit} />
             )}
+
+            {creating && <CreateProductDialog units={units ?? FALLBACK_UNITS} onClose={closeCreate} />}
 
             {dialog}
         </>

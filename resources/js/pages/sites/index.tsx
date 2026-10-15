@@ -19,8 +19,8 @@ import {
     Warehouse,
     type LucideIcon,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { ActionLink } from '@/components/page/buttons';
+import { useCallback, useMemo, useState } from 'react';
+import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
@@ -29,10 +29,13 @@ import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
 import { dashboard } from '@/routes';
 import { index as sitesIndex, create as siteCreate, show as siteShow, destroy as siteDestroy } from '@/routes/sites';
-import type { SiteListItem } from '@/types';
+import type { SiteListItem, SiteTypeOption } from '@/types';
+import { CreateSiteModal } from './create-site-modal';
 
 type Props = {
     sites: SiteListItem[];
+    /** Optionnel : fourni par le contrôleur. Sans lui, « Nouveau site » ouvre l'ancienne page. */
+    types?: SiteTypeOption[];
 };
 
 const statusTone: Record<string, StatusTone> = {
@@ -55,7 +58,26 @@ const typeIcon: Record<string, LucideIcon> = {
 const iconBtn =
     'flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none';
 
-export default function SitesIndex({ sites }: Props) {
+export default function SitesIndex({ sites, types }: Props) {
+    // Fenêtre de création : montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
+    const [creating, setCreating] = useState(false);
+    const closeCreate = useCallback(() => setCreating(false), []);
+
+    // Bouton « nouveau site » : ouvre la fenêtre si les types sont fournis, sinon l'ancienne page.
+    const newButton = (label: string) =>
+        types ? (
+            <ActionButton type="button" onClick={() => setCreating(true)}>
+                <span className="inline-flex items-center gap-2">
+                    <Plus className="size-4" />
+                    {label}
+                </span>
+            </ActionButton>
+        ) : (
+            <ActionLink href={siteCreate().url} icon={<Plus />}>
+                {label}
+            </ActionLink>
+        );
+
     const [query, setQuery] = useState('');
 
     const { ask, dialog } = useDeleteDialog<SiteListItem>({
@@ -85,11 +107,7 @@ export default function SitesIndex({ sites }: Props) {
             <Page
                 title="Sites"
                 description="Vos points de vente et leur activité."
-                actions={
-                    <ActionLink href={siteCreate().url} icon={<Plus />}>
-                        Nouveau site
-                    </ActionLink>
-                }
+                actions={newButton('Nouveau site')}
             >
                 {sites.length === 0 ? (
                     <Panel>
@@ -97,11 +115,7 @@ export default function SitesIndex({ sites }: Props) {
                             icon={Store}
                             title="Aucun site pour l'instant"
                             description="Ajoutez vos premiers points de vente : supermarchés, kiosques, pharmacies…"
-                            action={
-                                <ActionLink href={siteCreate().url} icon={<Plus />}>
-                                    Créer le premier site
-                                </ActionLink>
-                            }
+                            action={newButton('Créer le premier site')}
                         />
                     </Panel>
                 ) : (
@@ -236,6 +250,8 @@ export default function SitesIndex({ sites }: Props) {
                     </div>
                 )}
             </Page>
+
+            {creating && types && <CreateSiteModal types={types} onClose={closeCreate} />}
 
             {dialog}
         </>

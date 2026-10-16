@@ -1,12 +1,31 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, type ReactNode } from 'react';
-import { store as visitStore, checkout as visitCheckout } from '@/routes/terrain/visit';
-import { show as reportShow } from '@/routes/terrain/report';
+import {
+    BadgeDollarSign,
+    CalendarCheck,
+    CalendarOff,
+    CheckCircle2,
+    ClipboardCheck,
+    ClipboardList,
+    Clock,
+    Flag,
+    LogIn,
+    MapPin,
+    Navigation,
+    Package,
+    TriangleAlert,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { ActionButton, ActionLink } from '@/components/page/buttons';
+import { ConfirmDialog } from '@/components/page/confirm-dialog';
+import { Panel } from '@/components/page/page';
+import { StatCard } from '@/components/page/stat-card';
+import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
+import { toastFormError } from '@/lib/form-toast';
 import { home as terrainHome } from '@/routes/terrain';
+import { show as reportShow } from '@/routes/terrain/report';
+import { store as visitStore, checkout as visitCheckout } from '@/routes/terrain/visit';
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                               */
-/* ------------------------------------------------------------------ */
 type Affectation = {
     id: number;
     site_id: number;
@@ -37,36 +56,22 @@ type MyStats = {
     reports_submitted: number;
 };
 
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                             */
-/* ------------------------------------------------------------------ */
-function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-    return (
-        <div className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ${className}`}>
-            {children}
-        </div>
-    );
-}
+const badgeTone: Record<string, StatusTone> = {
+    in_progress: 'success',
+    completed: 'info',
+    submitted: 'success',
+    draft: 'warning',
+};
 
-function StatusBadge({ status }: { status: string }) {
-    const map: Record<string, string> = {
-        in_progress: 'bg-green-100 text-green-800',
-        completed:   'bg-blue-100 text-blue-800',
-        submitted:   'bg-indigo-100 text-indigo-800',
-        draft:       'bg-amber-100 text-amber-800',
-    };
-    const labels: Record<string, string> = {
-        in_progress: 'En service',
-        completed:   'Terminé',
-        submitted:   'Rapport soumis',
-        draft:       'Brouillon',
-    };
-    return (
-        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${map[status] ?? 'bg-slate-100 text-slate-700'}`}>
-            <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            {labels[status] ?? status}
-        </span>
-    );
+const badgeLabel: Record<string, string> = {
+    in_progress: 'En service',
+    completed: 'Terminé',
+    submitted: 'Rapport soumis',
+    draft: 'Brouillon',
+};
+
+function Badge({ status }: { status: string }) {
+    return <StatusBadge tone={badgeTone[status] ?? 'neutral'}>{badgeLabel[status] ?? status}</StatusBadge>;
 }
 
 function formatCurrency(amount: number): string {
@@ -78,12 +83,11 @@ function formatCurrency(amount: number): string {
 function formatDuration(minutes: number): string {
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    return h > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${m}min`;
+    return h > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${m} min`;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Page principale                                                     */
-/* ------------------------------------------------------------------ */
+const clock = () => new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
 export default function TerrainHome({
     affectation,
     visit,
@@ -94,15 +98,14 @@ export default function TerrainHome({
     my_stats: MyStats;
 }) {
     const { auth } = usePage().props as { auth: { user: { name: string } } };
-    const [time, setTime] = useState(() => new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+    const [time, setTime] = useState(clock);
     const [loading, setLoading] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [checkingOut, setCheckingOut] = useState(false);
     const [gpsStatus, setGpsStatus] = useState<'idle' | 'capturing' | 'done' | 'denied'>('idle');
 
-    // Horloge en direct
     useEffect(() => {
-        const t = setInterval(() => {
-            setTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
-        }, 10_000);
+        const t = setInterval(() => setTime(clock()), 10_000);
         return () => clearInterval(t);
     }, []);
 
@@ -112,13 +115,25 @@ export default function TerrainHome({
         setGpsStatus('capturing');
 
         const doCheckin = (lat?: number, lng?: number) => {
-            router.post(visitStore().url, {
-                affectation_id: affectation.id,
-                latitude: lat ?? null,
-                longitude: lng ?? null,
-            }, {
-                onFinish: () => setLoading(false),
-            });
+            router.post(
+                visitStore().url,
+                { affectation_id: affectation.id, latitude: lat ?? null, longitude: lng ?? null },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => toast.success('Service pris', { description: `Bon courage sur ${affectation.site_name} !` }),
+                    onError: toastFormError,
+                    onFinish: () => {
+                        setLoading(false);
+                        setGpsStatus('idle');
+                    },
+                },
+            );
+        };
+
+        const withoutGps = () => {
+            setGpsStatus('denied');
+            toast.warning('Position indisponible', { description: 'Votre pointage sera enregistré sans localisation.' });
+            doCheckin();
         };
 
         if ('geolocation' in navigator) {
@@ -127,205 +142,192 @@ export default function TerrainHome({
                     setGpsStatus('done');
                     doCheckin(pos.coords.latitude, pos.coords.longitude);
                 },
-                () => {
-                    setGpsStatus('denied');
-                    doCheckin();
-                },
+                withoutGps,
                 { timeout: 8000 },
             );
         } else {
-            setGpsStatus('denied');
-            doCheckin();
+            withoutGps();
         }
     }
 
     function checkout() {
         if (!visit) return;
-        setLoading(true);
+        setCheckingOut(true);
 
         const doCheckout = (lat?: number, lng?: number) => {
-            router.patch(visitCheckout({ visit: visit.id }).url, {
-                latitude: lat ?? null,
-                longitude: lng ?? null,
-            }, {
-                onFinish: () => setLoading(false),
-            });
+            router.patch(
+                visitCheckout({ visit: visit.id }).url,
+                { latitude: lat ?? null, longitude: lng ?? null },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Service terminé', { description: 'Merci pour votre journée !' });
+                        setConfirmOpen(false);
+                    },
+                    onError: toastFormError,
+                    onFinish: () => setCheckingOut(false),
+                },
+            );
         };
 
         if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => doCheckout(pos.coords.latitude, pos.coords.longitude),
-                () => doCheckout(),
-                { timeout: 8000 },
-            );
+            navigator.geolocation.getCurrentPosition((pos) => doCheckout(pos.coords.latitude, pos.coords.longitude), () => doCheckout(), { timeout: 8000 });
         } else {
             doCheckout();
         }
     }
 
-    const today = new Date().toLocaleDateString('fr-FR', {
-        weekday: 'long', day: 'numeric', month: 'long',
-    });
+    const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
     return (
         <>
             <Head title="Ma journée" />
 
-            {/* En-tête */}
-            <div className="mb-6">
-                <p className="text-sm capitalize text-slate-500">{today}</p>
-                <div className="flex items-end justify-between">
-                    <h1 className="text-2xl font-bold text-slate-900">Bonjour, {auth.user.name.split(' ')[0]} 👋</h1>
-                    <span className="text-3xl font-extrabold tabular-nums text-green-600">{time}</span>
-                </div>
-            </div>
+            <div className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-6 sm:py-8">
+                <header className="flex items-end justify-between gap-4">
+                    <div className="min-w-0">
+                        <p className="text-sm text-slate-500 capitalize">{today}</p>
+                        <h1 className="truncate text-2xl font-bold tracking-tight text-ink">Bonjour, {auth.user.name.split(' ')[0]}</h1>
+                    </div>
+                    <span className="rounded-2xl bg-aktivy-soft px-3 py-1.5 text-2xl font-extrabold text-aktivy-deep tabular-nums ring-1 ring-green-100">{time}</span>
+                </header>
 
-            {/* Pas d'affectation aujourd'hui */}
-            {!affectation && (
-                <Card className="text-center">
-                    <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-3xl">📅</div>
-                    <p className="font-semibold text-slate-800">Pas de site affecté aujourd'hui</p>
-                    <p className="mt-1 text-sm text-slate-500">Contactez votre responsable si vous pensez qu'il y a une erreur.</p>
-                </Card>
-            )}
+                {!affectation && (
+                    <Panel className="p-8 text-center">
+                        <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                            <CalendarOff className="size-6" />
+                        </span>
+                        <p className="mt-4 font-semibold text-ink">Pas de site affecté aujourd'hui</p>
+                        <p className="mt-1 text-sm text-slate-500">Contactez votre responsable si vous pensez qu'il y a une erreur.</p>
+                    </Panel>
+                )}
 
-            {/* Affectation + actions */}
-            {affectation && (
-                <div className="flex flex-col gap-4">
-                    {/* Carte site */}
-                    <Card>
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Votre site du jour</p>
-                        <p className="text-xl font-bold text-slate-900">{affectation.site_name}</p>
-                        <p className="text-sm text-slate-500">{affectation.site_type} · {affectation.site_city}</p>
-                        {affectation.site_address && (
-                            <p className="mt-1 text-sm text-slate-400">{affectation.site_address}</p>
-                        )}
-                        {(affectation.slot_start || affectation.slot_end) && (
-                            <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700">
-                                🕐 {affectation.slot_start ?? '–'} → {affectation.slot_end ?? '–'}
+                {affectation && (
+                    <>
+                        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-green-600 to-green-700 p-6 text-white shadow-xl shadow-green-600/25">
+                            <div className="pointer-events-none absolute -top-12 -right-12 size-44 rounded-full bg-white/10" />
+                            <div className="pointer-events-none absolute -right-4 -bottom-16 size-40 rounded-full bg-white/5" />
+                            <p className="text-sm font-medium text-green-100">Votre site du jour</p>
+                            <p className="mt-1 text-2xl font-bold tracking-tight">{affectation.site_name}</p>
+                            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-green-100">
+                                <MapPin className="size-4 shrink-0" />
+                                {affectation.site_type} · {affectation.site_city}
                             </p>
-                        )}
-                    </Card>
-
-                    {/* Pas encore pointé */}
-                    {!visit && (
-                        <Card className="text-center">
-                            <p className="mb-4 text-sm text-slate-600">Vous n'avez pas encore pris votre service. Appuyez sur le bouton pour démarrer.</p>
-                            {gpsStatus === 'capturing' && (
-                                <p className="mb-3 text-xs text-slate-400">📍 Capture de votre position…</p>
+                            {affectation.site_address && <p className="mt-0.5 text-sm text-green-100/80">{affectation.site_address}</p>}
+                            {(affectation.slot_start || affectation.slot_end) && (
+                                <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold backdrop-blur-sm">
+                                    <Clock className="size-4" />
+                                    {affectation.slot_start ?? '–'} → {affectation.slot_end ?? '–'}
+                                </p>
                             )}
-                            {gpsStatus === 'denied' && (
-                                <p className="mb-3 text-xs text-amber-500">⚠️ GPS non disponible – pointage sans localisation.</p>
-                            )}
-                            <button
-                                onClick={checkin}
-                                disabled={loading}
-                                className="w-full rounded-2xl bg-green-600 px-6 py-4 text-lg font-bold text-white shadow-lg shadow-green-600/30 transition active:scale-95 disabled:opacity-60"
-                            >
-                                {loading ? 'Pointage…' : '✅ Prendre mon service'}
-                            </button>
-                        </Card>
-                    )}
+                        </div>
 
-                    {/* Visite en cours */}
-                    {visit?.status === 'in_progress' && (
-                        <>
-                            <Card className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs text-slate-400">Prise de service</p>
-                                    <p className="text-2xl font-bold text-green-600">{visit.checked_in_at}</p>
-                                </div>
-                                <StatusBadge status="in_progress" />
-                            </Card>
-
-                            {/* Rapport brouillon */}
-                            <Card className="flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                    <p className="font-semibold text-slate-800">Rapport journalier</p>
-                                    <StatusBadge status={visit.report_status ?? 'draft'} />
-                                </div>
-                                <p className="text-sm text-slate-500">Saisissez vos ventes et soumettez avant de partir.</p>
-                                <a
-                                    href={reportShow({ visit: visit.id }).url}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition active:scale-95"
-                                >
-                                    📋 Ouvrir mon rapport
-                                </a>
-                            </Card>
-
-                            {/* Fin de service */}
-                            <Card className="text-center">
-                                <p className="mb-3 text-sm text-slate-600">Prêt à partir ? Terminez votre service.</p>
-                                <button
-                                    onClick={checkout}
-                                    disabled={loading}
-                                    className="w-full rounded-2xl border-2 border-red-200 bg-red-50 px-6 py-4 text-base font-bold text-red-600 transition active:scale-95 disabled:opacity-60"
-                                >
-                                    {loading ? 'Enregistrement…' : '🏁 Terminer mon service'}
-                                </button>
-                            </Card>
-                        </>
-                    )}
-
-                    {/* Visite terminée aujourd'hui */}
-                    {visit && visit.status !== 'in_progress' && (
-                        <Card>
-                            <div className="mb-3 flex items-center justify-between">
-                                <p className="font-semibold text-slate-800">Journée terminée</p>
-                                <StatusBadge status={visit.report_status === 'submitted' ? 'submitted' : 'completed'} />
-                            </div>
-                            <div className="grid grid-cols-3 gap-3 text-center">
-                                <div className="rounded-xl bg-slate-50 p-3">
-                                    <p className="text-xs text-slate-400">Arrivée</p>
-                                    <p className="font-bold text-slate-800">{visit.checked_in_at}</p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-3">
-                                    <p className="text-xs text-slate-400">Départ</p>
-                                    <p className="font-bold text-slate-800">{visit.checked_out_at ?? '–'}</p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-3">
-                                    <p className="text-xs text-slate-400">Durée</p>
-                                    <p className="font-bold text-slate-800">
-                                        {visit.duration_minutes ? formatDuration(visit.duration_minutes) : '–'}
+                        {!visit && (
+                            <Panel className="p-5 text-center">
+                                <p className="text-sm text-slate-600">Vous n'avez pas encore pris votre service. Appuyez sur le bouton pour démarrer.</p>
+                                {gpsStatus === 'capturing' && (
+                                    <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+                                        <Navigation className="size-3.5 animate-pulse text-aktivy" />
+                                        Capture de votre position…
                                     </p>
-                                </div>
-                            </div>
-                            {visit.has_report && (
-                                <a
-                                    href={reportShow({ visit: visit.id }).url}
-                                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 active:scale-95"
-                                >
-                                    📋 Voir mon rapport
-                                </a>
-                            )}
-                        </Card>
-                    )}
-                </div>
-            )}
+                                )}
+                                {gpsStatus === 'denied' && (
+                                    <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-amber-600">
+                                        <TriangleAlert className="size-3.5" />
+                                        GPS indisponible : pointage sans localisation.
+                                    </p>
+                                )}
+                                <ActionButton onClick={checkin} loading={loading} icon={<LogIn />} className="mt-4 h-14 w-full rounded-2xl text-base">
+                                    {loading ? 'Pointage en cours…' : 'Prendre mon service'}
+                                </ActionButton>
+                            </Panel>
+                        )}
 
-            {/* Stats personnelles */}
-            <div className="mt-6">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Mes statistiques — ce mois</p>
-                <div className="grid grid-cols-2 gap-3">
-                    <Card>
-                        <p className="text-2xl font-bold text-slate-900">{my_stats.visits_this_month}</p>
-                        <p className="text-xs text-slate-500">Visites ce mois</p>
-                        <p className="mt-0.5 text-xs text-slate-400">{my_stats.total_visits} au total</p>
-                    </Card>
-                    <Card>
-                        <p className="text-2xl font-bold text-green-600">{formatCurrency(my_stats.revenue_this_month)} FCFA</p>
-                        <p className="text-xs text-slate-500">CA ce mois</p>
-                    </Card>
-                    <Card>
-                        <p className="text-2xl font-bold text-slate-900">{my_stats.units_sold_this_month}</p>
-                        <p className="text-xs text-slate-500">Unités vendues</p>
-                    </Card>
-                    <Card>
-                        <p className="text-2xl font-bold text-indigo-600">{my_stats.reports_submitted}</p>
-                        <p className="text-xs text-slate-500">Rapports soumis</p>
-                    </Card>
-                </div>
+                        {visit?.status === 'in_progress' && (
+                            <>
+                                <Panel className="flex items-center justify-between p-5">
+                                    <div>
+                                        <p className="text-xs text-slate-500">Prise de service</p>
+                                        <p className="text-2xl font-bold text-aktivy-deep tabular-nums">{visit.checked_in_at}</p>
+                                    </div>
+                                    <Badge status="in_progress" />
+                                </Panel>
+
+                                <Panel className="flex flex-col gap-3 p-5">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <p className="font-semibold text-ink">Rapport journalier</p>
+                                        <Badge status={visit.report_status ?? 'draft'} />
+                                    </div>
+                                    <p className="text-sm text-slate-500">Saisissez vos ventes et soumettez avant de partir.</p>
+                                    <ActionLink href={reportShow({ visit: visit.id }).url} icon={<ClipboardList />} className="h-12 w-full rounded-2xl">
+                                        Ouvrir mon rapport
+                                    </ActionLink>
+                                </Panel>
+
+                                <Panel className="p-5 text-center">
+                                    <p className="mb-3 text-sm text-slate-600">Prêt à partir ? Terminez votre service.</p>
+                                    <ActionButton
+                                        variant="secondary"
+                                        icon={<Flag />}
+                                        onClick={() => setConfirmOpen(true)}
+                                        className="h-12 w-full rounded-2xl border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50"
+                                    >
+                                        Terminer mon service
+                                    </ActionButton>
+                                </Panel>
+                            </>
+                        )}
+
+                        {visit && visit.status !== 'in_progress' && (
+                            <Panel className="p-5">
+                                <div className="mb-4 flex items-center justify-between gap-3">
+                                    <p className="font-semibold text-ink">Journée terminée</p>
+                                    <Badge status={visit.report_status === 'submitted' ? 'submitted' : 'completed'} />
+                                </div>
+                                <div className="grid grid-cols-3 gap-3 text-center">
+                                    {[
+                                        { label: 'Arrivée', value: visit.checked_in_at },
+                                        { label: 'Départ', value: visit.checked_out_at ?? '–' },
+                                        { label: 'Durée', value: visit.duration_minutes ? formatDuration(visit.duration_minutes) : '–' },
+                                    ].map((t) => (
+                                        <div key={t.label} className="rounded-xl bg-slate-50 p-3">
+                                            <p className="text-xs text-slate-500">{t.label}</p>
+                                            <p className="font-bold text-ink">{t.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                                {visit.has_report && (
+                                    <ActionLink href={reportShow({ visit: visit.id }).url} variant="secondary" icon={<ClipboardList />} className="mt-4 h-11 w-full">
+                                        Voir mon rapport
+                                    </ActionLink>
+                                )}
+                            </Panel>
+                        )}
+                    </>
+                )}
+
+                <section>
+                    <h2 className="mb-3 text-sm font-semibold text-slate-500">Mes statistiques du mois</h2>
+                    <div className="grid grid-cols-2 gap-3">
+                        <StatCard icon={CalendarCheck} label="Visites ce mois" value={my_stats.visits_this_month} sub={`${my_stats.total_visits} au total`} />
+                        <StatCard icon={BadgeDollarSign} label="CA ce mois" value={`${formatCurrency(my_stats.revenue_this_month)} FCFA`} highlight />
+                        <StatCard icon={Package} label="Unités vendues" value={my_stats.units_sold_this_month} />
+                        <StatCard icon={ClipboardCheck} label="Rapports soumis" value={my_stats.reports_submitted} />
+                    </div>
+                </section>
             </div>
+
+            <ConfirmDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                title="Terminer votre service ?"
+                description="Votre heure de départ et votre position seront enregistrées. Pensez à soumettre votre rapport avant de partir."
+                confirmLabel="Terminer mon service"
+                icon={CheckCircle2}
+                tone="primary"
+                loading={checkingOut}
+                onConfirm={checkout}
+            />
         </>
     );
 }

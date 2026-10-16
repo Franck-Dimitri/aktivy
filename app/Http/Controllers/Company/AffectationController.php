@@ -43,6 +43,7 @@ class AffectationController extends Controller
                 'status'      => $a->status->value,
                 'status_label'=> $a->status->label(),
                 'is_current'  => $a->isCurrentlyActive(),
+                'notes'       => $a->notes,
             ]);
 
         $stats = [
@@ -55,6 +56,25 @@ class AffectationController extends Controller
         return Inertia::render('affectations/index', [
             'affectations' => $affectations->values(),
             'stats'        => $stats,
+
+            // Listes en lecture seule pour la modification dans la fenêtre flottante
+            // (mêmes requêtes que edit()).
+            'sites' => $company->sites()
+                ->orderBy('name')
+                ->get(['id', 'name', 'city'])
+                ->map(fn ($s) => ['value' => $s->id, 'label' => "{$s->name} ({$s->city})"]),
+            'staff' => $company->users()
+                ->whereIn('role', array_column(self::ASSIGNABLE_ROLES, 'value'))
+                ->orderBy('name')
+                ->get(['id', 'name', 'role', 'phone'])
+                ->map(fn ($u) => [
+                    'value'      => $u->id,
+                    'label'      => $u->name,
+                    'role_label' => $u->role->label(),
+                    'phone'      => $u->phone,
+                ]),
+            'statuses' => collect(AffectationStatus::cases())
+                ->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
         ]);
     }
 

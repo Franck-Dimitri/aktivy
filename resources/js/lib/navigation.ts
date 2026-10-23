@@ -1,21 +1,28 @@
 import {
     Building2,
-    CalendarDays,
     CalendarRange,
     ClipboardCheck,
+    ClipboardList,
     CreditCard,
     FileBarChart,
     LayoutDashboard,
     MapPin,
+    MessageSquarePlus,
     Package,
     ScrollText,
     Settings2,
+    ShoppingCart,
+    TrendingUp,
     UserCog,
     Users,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
-import { home as terrainHome } from '@/routes/terrain';
+import { home as terrainHome, stats as terrainStats } from '@/routes/terrain';
+import { index as terrainPlanning } from '@/routes/terrain/planning';
+import { index as terrainReports } from '@/routes/terrain/reports';
+import { index as terrainSales } from '@/routes/terrain/sales';
+import { index as terrainTickets } from '@/routes/terrain/tickets';
 import { index as sitesIndex } from '@/routes/sites';
 import { index as personnelIndex } from '@/routes/personnel';
 import { index as affectationsIndex } from '@/routes/affectations';
@@ -38,13 +45,24 @@ export function menuFor(role: Role): MenuGroup[] {
     if (role === 'field_agent') {
         return [
             {
+                label: 'Mon espace',
+                items: [
+                    { title: 'Tableau de bord', icon: LayoutDashboard, href: terrainHome().url },
+                    { title: 'Mes statistiques', icon: TrendingUp, href: terrainStats().url },
+                ],
+            },
+            {
                 label: 'Terrain',
                 items: [
-                    {
-                        title: 'Ma journée',
-                        icon: CalendarDays,
-                        href: terrainHome().url,
-                    },
+                    { title: 'Mes rapports', icon: ClipboardList, href: terrainReports().url },
+                    { title: 'Mon planning', icon: CalendarRange, href: terrainPlanning().url },
+                    { title: 'Mes ventes', icon: ShoppingCart, href: terrainSales().url },
+                ],
+            },
+            {
+                label: 'Support',
+                items: [
+                    { title: 'Tickets', icon: MessageSquarePlus, href: terrainTickets().url },
                 ],
             },
         ];

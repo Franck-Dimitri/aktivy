@@ -16,7 +16,7 @@ import { menuFor, roleLabels } from '@/lib/navigation';
 function companyInitials(name: string): string {
     return name
         .split(' ')
-        .map((part) => part[0])
+        .map((p) => p[0])
         .slice(0, 2)
         .join('')
         .toUpperCase();
@@ -25,56 +25,84 @@ function companyInitials(name: string): string {
 export function AppSidebar() {
     const { auth } = usePage().props;
     const groups = menuFor(auth.user.role);
-    const home = groups[0].items[0].href;
-    const companyName = auth.company?.name ?? 'Plateforme Aktivy';
+    const home = groups[0].items[0].href ?? '/';
+    const companyName = auth.company?.name ?? 'Aktivy';
+    const roleName = roleLabels[auth.user.role] ?? auth.user.role;
 
     return (
         <Sidebar collapsible="icon" variant="sidebar" className="border-r-0">
-            <SidebarHeader className="gap-5 p-4 group-data-[collapsible=icon]:p-2">
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild className="hover:bg-white/10 active:bg-white/10">
-                            <Link href={home ?? '/'} prefetch>
-                                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-lg font-extrabold text-green-700 shadow-lg shadow-green-950/20">
-                                    A
-                                </span>
-                                <span className="text-xl font-extrabold tracking-tight text-white group-data-[collapsible=icon]:hidden">
-                                    Aktivy<span className="text-green-200">.</span>
-                                </span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+            {/* ── Logo ── */}
+            <SidebarHeader className="p-0">
+                <div className="flex h-14 items-center px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                size="lg"
+                                asChild
+                                className="h-auto rounded-xl p-2 hover:bg-white/10 active:bg-white/10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center"
+                            >
+                                <Link href={home} prefetch>
+                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-[13px] font-black text-green-700 shadow shadow-green-950/20">
+                                        A
+                                    </span>
+                                    <span className="text-[18px] font-extrabold tracking-tight text-white group-data-[collapsible=icon]:hidden">
+                                        Aktivy<span className="text-green-300">.</span>
+                                    </span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </div>
 
-                <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 p-2.5 backdrop-blur-sm group-data-[collapsible=icon]:hidden">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-xs font-bold text-green-700">
+                {/* Bloc entreprise */}
+                <div className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl bg-white/10 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/20 text-[11px] font-bold text-white">
                         {companyInitials(companyName)}
                     </span>
                     <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">{companyName}</p>
-                        <p className="truncate text-xs text-green-100/80">{roleLabels[auth.user.role]}</p>
+                        <p className="truncate text-[12.5px] font-semibold leading-tight text-white">
+                            {companyName}
+                        </p>
+                        <p className="truncate text-[11px] leading-tight text-green-100/55">
+                            {roleName}
+                        </p>
                     </div>
                 </div>
+
+                <div className="mx-3 h-px bg-white/10 group-data-[collapsible=icon]:mx-2" />
             </SidebarHeader>
 
+            {/* ── Navigation ── */}
             <SidebarContent className="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <NavMain groups={groups} />
             </SidebarContent>
 
-            <SidebarFooter className="gap-2 p-3 group-data-[collapsible=icon]:px-2">
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            aria-disabled
-                            tooltip={{ children: 'Aide (bientôt disponible)' }}
-                            className="h-10 cursor-default rounded-xl px-3 text-[13.5px] font-medium text-green-100/60 hover:bg-transparent hover:text-green-100/60 aria-disabled:pointer-events-auto aria-disabled:opacity-100 [&>svg]:size-[18px]"
-                        >
-                            <LifeBuoy />
-                            <span>Aide</span>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-                <NavUser />
+            {/* ── Footer ── */}
+            <SidebarFooter className="p-0">
+                <div className="mx-3 h-px bg-white/10 group-data-[collapsible=icon]:mx-2" />
+
+                {/* Aide */}
+                <div className="px-3 pt-1.5 group-data-[collapsible=icon]:px-2">
+                    <SidebarMenu>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                aria-disabled
+                                tooltip={{ children: 'Aide — bientôt disponible' }}
+                                className="h-9 cursor-default rounded-xl px-3 text-[13px] text-green-100/35 hover:bg-transparent hover:text-green-100/35 aria-disabled:pointer-events-auto aria-disabled:opacity-100 [&>svg]:size-4 [&>svg]:text-green-100/30"
+                            >
+                                <LifeBuoy />
+                                <span>Aide</span>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </div>
+
+                <div className="mx-3 h-px bg-white/10 group-data-[collapsible=icon]:mx-2" />
+
+                {/* Utilisateur */}
+                <div className="p-3 group-data-[collapsible=icon]:p-2">
+                    <NavUser />
+                </div>
             </SidebarFooter>
         </Sidebar>
     );

@@ -1,3 +1,4 @@
+
 # Aktivy
 
 Plateforme SaaS de gestion d'équipes terrain et de reporting journalier pour les entreprises de distribution et de promotion commerciale.
@@ -18,17 +19,17 @@ Aktivy permet à une entreprise de piloter ses hôtesses et agents de terrain de
 
 ## Stack technique
 
-| Couche | Technologie |
-|---|---|
-| Backend | Laravel 11 (PHP 8.3) |
-| Frontend | React 19 + TypeScript + Inertia.js v2 |
-| Styles | Tailwind CSS v4 |
-| Base de données | PostgreSQL |
-| Auth | Laravel Fortify (email **ou** téléphone) |
-| Routes typées | Laravel Wayfinder |
-| Composants UI | Radix UI + shadcn/ui |
-| Graphiques | Recharts |
-| Notifications | Sonner |
+| Couche           | Technologie                                      |
+| ---------------- | ------------------------------------------------ |
+| Backend          | Laravel 11 (PHP 8.3)                             |
+| Frontend         | React 19 + TypeScript + Inertia.js v2            |
+| Styles           | Tailwind CSS v4                                  |
+| Base de données | PostgreSQL                                       |
+| Auth             | Laravel Fortify (email **ou** téléphone) |
+| Routes typées   | Laravel Wayfinder                                |
+| Composants UI    | Radix UI + shadcn/ui                             |
+| Graphiques       | Recharts                                         |
+| Notifications    | Sonner                                           |
 
 ---
 
@@ -45,19 +46,20 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 
 ## Rôles
 
-| Rôle | Label | Accès |
-|---|---|---|
-| `super_admin` | Super administrateur | Administration globale de la plateforme |
-| `company_admin` | Gérant | Tableau de bord, équipe, sites, produits, rapports |
-| `supervisor` | Superviseur | Même périmètre que le gérant |
-| `field_agent` | Hôtesse | Interface terrain mobile uniquement |
-| `accountant` | Comptable | Lecture des rapports financiers |
+| Rôle             | Label                | Accès                                              |
+| ----------------- | -------------------- | --------------------------------------------------- |
+| `super_admin`   | Super administrateur | Administration globale de la plateforme             |
+| `company_admin` | Gérant              | Tableau de bord, équipe, sites, produits, rapports |
+| `supervisor`    | Superviseur          | Même périmètre que le gérant                    |
+| `field_agent`   | Hôtesse             | Interface terrain mobile uniquement                 |
+| `accountant`    | Comptable            | Lecture des rapports financiers                     |
 
 ---
 
 ## Fonctionnalités implémentées
 
 ### Côté responsable / superviseur
+
 - Tableau de bord avec KPIs : sites actifs, équipe en poste, visites du jour, **CA du jour/semaine, unités vendues, rapports soumis**
 - CRUD des sites avec photos, coordonnées GPS, horaires et inventaire produits
 - Gestion du personnel avec invitation par email et vérification d'adresse
@@ -66,6 +68,7 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 - Statistiques détaillées par site (visites, CA, taux de complétion, graphique 7j / 30j / 12 mois)
 
 ### Côté hôtesse (terrain mobile)
+
 - Prise de service avec capture GPS optionnelle
 - Rapport journalier : saisie des ventes par compteur `+` / `−`, calcul automatique du stock résiduel et du CA
 - Flux draft → relecture → soumission (verrouillé après soumission)
@@ -73,6 +76,7 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 - Stats personnelles du mois (visites, CA, unités vendues, rapports soumis)
 
 ### Authentification
+
 - Connexion par **email** ou **numéro de téléphone**
 - Vérification d'email obligatoire pour les comptes invités
 - Changement de mot de passe obligatoire à la première connexion

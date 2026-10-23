@@ -18,9 +18,16 @@ class VisitController extends Controller
         $user = $request->user();
         $today = now()->toDateString();
 
-        // Vérifier qu'il n'y a pas déjà une visite aujourd'hui
-        $existing = $user->visits()->whereDate('checked_in_at', $today)->first();
-        if ($existing) {
+        // Visite en cours (potentiellement d'un jour précédent sans checkout)
+        $inProgress = $user->visits()->where('status', 'in_progress')->first();
+        if ($inProgress) {
+            return redirect()->route('terrain.report.show', $inProgress)
+                ->with('info', 'Vous avez une visite en cours. Continuez votre journée.');
+        }
+
+        // Déjà pointé aujourd'hui (visite terminée ou signalée)
+        $todayVisit = $user->visits()->whereDate('checked_in_at', $today)->first();
+        if ($todayVisit) {
             return back()->withErrors(['visit' => 'Vous avez déjà pointé aujourd\'hui.']);
         }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Terrain;
 
 use App\Http\Controllers\Controller;
 use App\Models\DailyReport;
+use App\Models\DailyReportLine;
 use App\Models\Visit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,31 @@ class DailyReportController extends Controller
     {
         abort_if($visit->user_id !== $request->user()->id, 403);
 
-        $report = $visit->dailyReport()->with('lines')->firstOrFail();
+        $report = $visit->dailyReport()->with(['lines', 'lines.siteProduct.product:id,image'])->firstOrFail();
+
+        // Si le rapport n'a pas encore de lignes (produits ajoutés après la prise de service),
+        // on crée le snapshot maintenant à partir des produits actuels du site.
+        if ($report->lines->isEmpty() && ! $report->isSubmitted()) {
+            $siteProducts = $visit->site->siteProducts()
+                ->with('product:id,name,unit,price')
+                ->get();
+
+            foreach ($siteProducts as $sp) {
+                DailyReportLine::create([
+                    'daily_report_id' => $report->id,
+                    'site_product_id' => $sp->id,
+                    'product_name'    => $sp->product->name,
+                    'unit'            => $sp->product->unit,
+                    'unit_price'      => $sp->product->price ?? 0,
+                    'opening_stock'   => $sp->current_stock,
+                    'units_sold'      => 0,
+                    'closing_stock'   => $sp->current_stock,
+                    'revenue'         => 0,
+                ]);
+            }
+
+            $report->load('lines');
+        }
 
         return Inertia::render('terrain/report', [
             'visit' => [
@@ -47,6 +72,9 @@ class DailyReportController extends Controller
                     'closing_stock' => $l->closing_stock,
                     'revenue'       => $l->revenue,
                     'notes'         => $l->notes,
+                    'image_url'     => $l->siteProduct?->product?->image
+                        ? asset('storage/' . $l->siteProduct->product->image)
+                        : null,
                 ]),
             ],
         ]);

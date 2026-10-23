@@ -8,7 +8,7 @@ export type UseAppearanceReturn = {
 };
 
 /**
- * Aktivy is light-only (docs/CARTE_APP.md §4): the dark theme is disabled,
+ * Motriks is light-only (docs/CARTE_APP.md §4): the dark theme is disabled,
  * whatever the stored preference or the system setting.
  */
 const applyLightTheme = (): void => {

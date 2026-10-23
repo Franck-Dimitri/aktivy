@@ -160,7 +160,7 @@ export default function Login({ status, canResetPassword, isDev }: Props) {
 }
 
 Login.layout = {
-    title: 'Bon retour sur Aktivy',
+    title: 'Bon retour sur Motriks',
     description:
         'Gérants et superviseurs se connectent avec leur e-mail, les hôtesses avec leur numéro de téléphone.',
     showcase: 'login',

@@ -60,7 +60,7 @@ export default function AuthShowcaseLayout({
                     </div>
 
                     <p className="text-xs text-slate-400">
-                        © {new Date().getFullYear()} Aktivy
+                        © {new Date().getFullYear()} Motriks
                     </p>
                 </div>
             </main>

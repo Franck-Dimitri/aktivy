@@ -18,7 +18,7 @@ import { Page } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
 import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
 import { cn } from '@/lib/utils';
-import { index as terrainSales } from '@/routes/terrain/sales';
+import { sales as terrainSales } from '@/routes/terrain';
 import { show as reportShow } from '@/routes/terrain/report';
 
 /* ─── Types ─── */

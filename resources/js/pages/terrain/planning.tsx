@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/page/empty-state';
 import { Page } from '@/components/page/page';
 import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
 import { cn } from '@/lib/utils';
-import { index as terrainPlanning } from '@/routes/terrain/planning';
+import { planning as terrainPlanning } from '@/routes/terrain';
 
 /* ─── Types ─── */
 

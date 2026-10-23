@@ -15,7 +15,7 @@ interface TimeLeft {
     isFinished: boolean;
 }
 
-export default function Welcome({ targetDate, appName = 'Aktivy' }: WelcomeProps) {
+export default function Welcome({ targetDate, appName = 'Motriks' }: WelcomeProps) {
     // Date cible par défaut : 60 jours
     const resolvedTarget = targetDate || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
 

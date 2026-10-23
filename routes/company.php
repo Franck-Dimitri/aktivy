@@ -3,6 +3,11 @@
 use App\Enums\Role;
 use App\Http\Controllers\Company\AffectationController;
 use App\Http\Controllers\Company\DashboardController;
+use App\Http\Controllers\Company\Events\EventActivateController;
+use App\Http\Controllers\Company\Events\EventController;
+use App\Http\Controllers\Company\Events\EventHostessController;
+use App\Http\Controllers\Company\Events\EventPackController;
+use App\Http\Controllers\Company\Events\EventSiteController;
 use App\Http\Controllers\Company\PersonnelController;
 use App\Http\Controllers\Company\ProductController;
 use App\Http\Controllers\Company\SiteController;
@@ -30,5 +35,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::resource('products', ProductController::class)->except(['show']);
             Route::resource('sites.inventory', SiteInventoryController::class)->only(['store', 'update', 'destroy']);
+
+            // Événements commerciaux
+            Route::resource('events', EventController::class)->except(['edit']);
+            Route::post('events/{event}/activate', EventActivateController::class)->name('events.activate');
+            Route::post('events/{event}/sites', [EventSiteController::class, 'store'])->name('events.sites.store');
+            Route::delete('events/{event}/sites/{eventSite}', [EventSiteController::class, 'destroy'])->name('events.sites.destroy');
+            Route::post('events/{event}/packs', [EventPackController::class, 'store'])->name('events.packs.store');
+            Route::put('events/{event}/packs/{pack}', [EventPackController::class, 'update'])->name('events.packs.update');
+            Route::delete('events/{event}/packs/{pack}', [EventPackController::class, 'destroy'])->name('events.packs.destroy');
+            Route::post('events/{event}/hostesses', [EventHostessController::class, 'store'])->name('events.hostesses.store');
+            Route::put('events/{event}/hostesses/{hostess}', [EventHostessController::class, 'update'])->name('events.hostesses.update');
+            Route::delete('events/{event}/hostesses/{hostess}', [EventHostessController::class, 'destroy'])->name('events.hostesses.destroy');
         });
 });

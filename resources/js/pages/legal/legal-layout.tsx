@@ -8,15 +8,15 @@ import LandingFooter from '@/components/landing/footer';
 /* ------------------------------------------------------------------ */
 
 export const LEGAL_INFO = {
-    product: 'Aktivy',
+    product: 'Motriks',
     company: '[Raison sociale de la société éditrice]',
     legalForm: '[Forme juridique, ex. SARL]',
     rccm: '[Numéro RCCM]',
     niu: '[Numéro d\'identifiant unique (NIU)]',
     address: '[Adresse du siège, ville, Cameroun]',
-    email: 'contact@aktivy.com',
-    privacyEmail: 'contact@aktivy.com',
-    website: 'aktivy.com',
+    email: 'contact@motriks.com',
+    privacyEmail: 'contact@motriks.com',
+    website: 'motriks.com',
     hosting: '[Nom de l\'hébergeur et pays des serveurs]',
     paymentProvider: '[Prestataire de paiement, ex. agrégateur Mobile Money]',
     aiProvider: '[Fournisseur du modèle d\'IA utilisé]',
@@ -101,7 +101,7 @@ export default function LegalLayout({
                 <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
                         <Link href={LEGAL_INFO.homeUrl} className="flex items-center gap-2.5">
-                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-lg font-extrabold text-white">A</span>
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-lg font-extrabold text-white">M</span>
                             <span className="text-xl font-extrabold tracking-tight text-slate-900">{LEGAL_INFO.product}</span>
                         </Link>
                         <Link

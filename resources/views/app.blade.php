@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        {{-- Aktivy is light-only (docs/CARTE_APP.md §4) --}}
+        {{-- Motriks is light-only (docs/CARTE_APP.md §4) --}}
         <style>
             html {
                 background-color: #f1f5f9;
@@ -22,7 +22,7 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
-            <title>{{ config('app.name', 'Aktivy') }}</title>
+            <title>{{ config('app.name', 'Motriks') }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

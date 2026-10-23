@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 
 const CONTACT = {
-    email: 'contact@aktivy.com',
+    email: 'contact@motriks.com',
     whatsapp: '237000000000',
 };
 
@@ -23,10 +23,10 @@ function Logo({ light = false }: { light?: boolean }) {
     return (
         <Link href="/" className="flex items-center gap-2.5">
             <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg font-extrabold ${light ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
-                A
+                M
             </span>
             <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>
-                Aktivy
+                Motriks
             </span>
         </Link>
     );
@@ -144,7 +144,7 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
 
                 {/* barre du bas */}
                 <div className="mt-10 flex flex-col-reverse items-center justify-between gap-4 border-t border-white/10 py-7 text-xs text-slate-500 sm:flex-row">
-                    <p>© {new Date().getFullYear()} Aktivy. Tous droits réservés.</p>
+                    <p>© {new Date().getFullYear()} Motriks. Tous droits réservés.</p>
                     <a
                         href="#"
                         onClick={(e) => {
@@ -164,7 +164,7 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
             {/* grand nom de marque en filigrane */}
             <div className="pointer-events-none relative -mb-[0.22em] select-none text-center" aria-hidden="true">
                 <span className="block bg-gradient-to-b from-white/[0.09] to-transparent bg-clip-text text-[26vw] font-extrabold leading-none tracking-tighter text-transparent lg:text-[19rem]">
-                    Aktivy
+                    Motriks
                 </span>
             </div>
         </footer>

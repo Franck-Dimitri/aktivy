@@ -127,7 +127,7 @@ export default function AuthShowcase({ name }: { name: ShowcaseName }) {
     return (
         <section
             aria-roledescription="carrousel"
-            aria-label="Ce que fait Aktivy"
+            aria-label="Ce que fait Motriks"
             className={cn('relative flex h-full w-full flex-col', background)}
         >
             <div

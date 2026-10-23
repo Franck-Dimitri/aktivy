@@ -177,7 +177,7 @@ function Logo({ light = false }: { light?: boolean }) {
                 A
             </span>
             <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>
-                Aktivy
+                Motriks
             </span>
         </Link>
     );
@@ -607,7 +607,7 @@ function HeroDashboard() {
                     <div className="flex items-center gap-3">
                         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white">A</span>
                         <p className="text-sm font-semibold leading-tight text-slate-900">
-                            Aktivy
+                            Motriks
                             <span className="block text-xs font-normal text-slate-500">Démo Distribution</span>
                         </p>
                     </div>
@@ -865,7 +865,7 @@ function AssistantDemo() {
             <div className="flex items-center gap-3 border-b border-slate-700/80 px-5 py-4">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-base font-extrabold text-white">A</span>
                 <div className="leading-tight">
-                    <p className="text-sm font-semibold text-white">Assistant Aktivy</p>
+                    <p className="text-sm font-semibold text-white">Assistant Motriks</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
                         En ligne
@@ -991,10 +991,10 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
 
     return (
         <>
-            <Head title="Aktivy - Pilotez vos équipes terrain en temps réel">
+            <Head title="Motriks - Pilotez vos équipes terrain en temps réel">
                 <meta
                     name="description"
-                    content="Aktivy est la plateforme de gestion d'équipes terrain : suivi des hôtesses, stocks, présences, rapports PDF et intelligence artificielle."
+                    content="Motriks est la plateforme de gestion d'équipes terrain : suivi des hôtesses, stocks, présences, rapports PDF et intelligence artificielle."
                 />
             </Head>
 
@@ -1119,7 +1119,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                 Pilotez vos équipes terrain en temps réel, sans saisie manuelle
                             </h1>
                             <p data-reveal className="mt-7 max-w-xl text-lg leading-relaxed text-slate-600">
-                                Aktivy remplace les messages WhatsApp, les tableurs éparpillés et les rapports papier par un seul outil, et laisse l'intelligence artificielle vous dire où agir.
+                                Motriks remplace les messages WhatsApp, les tableurs éparpillés et les rapports papier par un seul outil, et laisse l'intelligence artificielle vous dire où agir.
                             </p>
                             <div data-reveal className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
                                 <Link
@@ -1169,9 +1169,9 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 <section className="relative overflow-hidden bg-slate-50 py-20 lg:py-28">
                     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                         <SectionTitle
-                            eyebrow="Pourquoi Aktivy"
+                            eyebrow="Pourquoi Motriks"
                             title="Fini le chaos des messages et des tableurs"
-                            text="Ce qui vous fait perdre du temps aujourd'hui, Aktivy le règle automatiquement."
+                            text="Ce qui vous fait perdre du temps aujourd'hui, Motriks le règle automatiquement."
                         />
 
                         <div className="relative mt-14 grid gap-5 lg:grid-cols-2 lg:gap-8">
@@ -1181,7 +1181,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
                                     Aujourd'hui
                                 </span>
-                                <h3 className="mt-4 text-xl font-bold text-slate-400">Sans Aktivy</h3>
+                                <h3 className="mt-4 text-xl font-bold text-slate-400">Sans Motriks</h3>
                                 <ul className="mt-7 space-y-3">
                                     {PROBLEMS.map((p) => (
                                         <li key={p} className="flex min-h-[3.25rem] items-center gap-3.5 rounded-2xl px-1 text-slate-500">
@@ -1210,7 +1210,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     <div className="relative">
                                         <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-green-700">
                                             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
-                                            Avec Aktivy
+                                            Avec Motriks
                                         </span>
                                         <h3 className="mt-4 text-xl font-bold text-slate-900">Tout est automatique</h3>
                                         <ul className="mt-7 space-y-3">
@@ -1337,7 +1337,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         <SectionTitle
                             eyebrow="Adapté à votre réalité"
                             title="Pensé pour le terrain africain"
-                            text="Connexion variable, téléphones d'entrée de gamme, paiement mobile : Aktivy a été conçu avec ces contraintes."
+                            text="Connexion variable, téléphones d'entrée de gamme, paiement mobile : Motriks a été conçu avec ces contraintes."
                         />
                         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                             {LOCAL.map((l) => (
@@ -1425,7 +1425,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     Les réponses à vos questions
                                 </h2>
                                 <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-600">
-                                    Sécurité, essai, abonnement, données : l'essentiel pour démarrer sereinement avec Aktivy.
+                                    Sécurité, essai, abonnement, données : l'essentiel pour démarrer sereinement avec Motriks.
                                 </p>
                             </div>
 

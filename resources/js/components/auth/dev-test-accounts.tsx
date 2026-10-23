@@ -57,10 +57,10 @@ export const DEV_ACCOUNTS: DevAccount[] = [
         name: 'Super Administrateur',
         roleLabel: 'Super Admin',
         roleType: 'admin',
-        company: 'Plateforme Aktivy',
+        company: 'Plateforme Motriks',
         login: 'admin@aktivy.test',
         password: 'password',
-        description: 'Administration globale du système Aktivy',
+        description: 'Administration globale du système Motriks',
         isPrimary: false,
     },
     {

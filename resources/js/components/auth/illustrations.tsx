@@ -951,7 +951,7 @@ export function TwoFactorIllustration() {
                 textAnchor="middle"
                 fill={MUTED}
             >
-                Code Aktivy
+                Code Motriks
             </text>
             {digits.map((digit, index) => (
                 <g key={index}>

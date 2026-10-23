@@ -67,7 +67,7 @@ function Logo({ light = false }: { light?: boolean }) {
             <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg font-extrabold ${light ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
                 A
             </span>
-            <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>Aktivy</span>
+            <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>Motriks</span>
         </Link>
     );
 }
@@ -159,8 +159,8 @@ export default function Contact({ formToken = '', paymentLogos }: { formToken?: 
 
     return (
         <>
-            <Head title="Nous contacter - Aktivy">
-                <meta name="description" content="Une question, une démo, un projet ? Contactez l'équipe Aktivy, nous vous répondons sous 24 heures." />
+            <Head title="Nous contacter - Motriks">
+                <meta name="description" content="Une question, une démo, un projet ? Contactez l'équipe Motriks, nous vous répondons sous 24 heures." />
             </Head>
 
             <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">

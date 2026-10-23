@@ -106,6 +106,11 @@ class Company extends Model
         return $this->hasMany(DailyReport::class);
     }
 
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
     /**
      * Determine if the company may use the platform.
      */

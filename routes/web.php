@@ -1,8 +1,11 @@
 <?php
 
 use App\Enums\Role;
+use App\Http\Controllers\Admin\CompanyRequestController;
+use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\TelegramWebhookController;
@@ -61,6 +64,16 @@ Route::middleware('auth')->group(function () {
     Route::put('password/change', [ChangePasswordController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('password.change.update');
+
+    // Onboarding entreprise (accessible aux comptes pending)
+    Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding.show');
+    Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
+    Route::inertia('/onboarding/pending', 'onboarding/pending')->name('onboarding.pending');
+    Route::get('/onboarding/rejected', function (Illuminate\Http\Request $request) {
+        return Inertia::render('onboarding/rejected', [
+            'rejection_reason' => $request->user()?->company?->rejection_reason,
+        ]);
+    })->name('onboarding.rejected');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -69,6 +82,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::inertia('/', 'admin/dashboard')->name('dashboard');
+
+            // Demandes d'inscription entreprises
+            Route::prefix('onboarding')->name('onboarding.')->group(function () {
+                Route::get('/', [CompanyRequestController::class, 'index'])->name('index');
+                Route::get('/{company}', [CompanyRequestController::class, 'show'])->name('show');
+                Route::post('/{company}/approve', [CompanyRequestController::class, 'approve'])->name('approve');
+                Route::post('/{company}/reject', [CompanyRequestController::class, 'reject'])->name('reject');
+                Route::get('/{company}/document/{type}', [DocumentController::class, 'show'])->name('document');
+            });
         });
 
 });

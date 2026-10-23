@@ -29,20 +29,23 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'company_name' => ['required', 'string', 'max:255'],
             ...$this->profileRules(),
+            'phone'    => ['nullable', 'string', 'max:20'],
             'password' => $this->passwordRules(),
         ])->validate();
 
         return DB::transaction(function () use ($input) {
             $company = Company::create([
-                'name' => $input['company_name'],
-                'slug' => Company::uniqueSlug($input['company_name']),
-                'email' => $input['email'],
+                'name'   => $input['company_name'],
+                'slug'   => Company::uniqueSlug($input['company_name']),
+                'email'  => $input['email'],
+                'status' => 'pending',
             ]);
 
             $user = $company->users()->create([
-                'role' => Role::CompanyAdmin,
-                'name' => $input['name'],
-                'email' => $input['email'],
+                'role'     => Role::CompanyAdmin,
+                'name'     => $input['name'],
+                'email'    => $input['email'],
+                'phone'    => $input['phone'] ?? null,
                 'password' => $input['password'],
             ]);
 

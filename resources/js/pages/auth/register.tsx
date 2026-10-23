@@ -1,5 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import { Building2, ChevronLeft, Mail, UserRound } from 'lucide-react';
+import { Building2, ChevronLeft, Mail, Phone, UserRound } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import {
@@ -163,6 +163,18 @@ export default function Register({ passwordRules }: Props) {
                                 placeholder="vous@entreprise.com"
                                 hint="Nous y enverrons un lien pour confirmer votre compte."
                                 error={errors.email}
+                            />
+
+                            <AuthField
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                label="Téléphone"
+                                icon={Phone}
+                                autoComplete="tel"
+                                placeholder="+237 6XX XXX XXX"
+                                hint="optionnel"
+                                error={errors.phone}
                             />
 
                             <AuthPasswordField

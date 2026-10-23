@@ -25,11 +25,25 @@ use Illuminate\Support\Str;
  * @property string $locale
  * @property string $currency
  * @property AccountStatus $status
+ * @property string|null $sector
+ * @property string|null $city
+ * @property string|null $address
+ * @property string|null $id_card_front_path
+ * @property string|null $id_card_back_path
+ * @property string|null $registration_doc_path
+ * @property string|null $rejection_reason
+ * @property Carbon|null $onboarding_completed_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  */
-#[Fillable(['name', 'slug', 'logo_path', 'primary_color', 'email', 'phone', 'country', 'timezone', 'locale', 'currency', 'status'])]
+#[Fillable([
+    'name', 'slug', 'logo_path', 'primary_color', 'email', 'phone',
+    'country', 'timezone', 'locale', 'currency', 'status',
+    'sector', 'city', 'address',
+    'id_card_front_path', 'id_card_back_path', 'registration_doc_path',
+    'rejection_reason', 'onboarding_completed_at',
+])]
 class Company extends Model
 {
     /** @use HasFactory<CompanyFactory> */
@@ -52,7 +66,8 @@ class Company extends Model
     protected function casts(): array
     {
         return [
-            'status' => AccountStatus::class,
+            'status'                  => AccountStatus::class,
+            'onboarding_completed_at' => 'datetime',
         ];
     }
 
@@ -117,6 +132,21 @@ class Company extends Model
     public function isActive(): bool
     {
         return $this->status === AccountStatus::Active;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === AccountStatus::Pending;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === AccountStatus::Rejected;
+    }
+
+    public function onboardingCompleted(): bool
+    {
+        return $this->onboarding_completed_at !== null;
     }
 
     /**

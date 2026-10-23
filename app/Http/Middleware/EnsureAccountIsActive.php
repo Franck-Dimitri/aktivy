@@ -32,27 +32,11 @@ class EnsureAccountIsActive
 
         $company = $user->company;
 
-        if ($company?->isPending()) {
-            // Pending without completed onboarding → redirect to onboarding
-            if (! $company->onboardingCompleted()) {
-                if ($request->routeIs('onboarding.*', 'logout')) {
-                    return $next($request);
-                }
-                return redirect()->route('onboarding.show');
-            }
-
-            // Onboarding done, waiting for admin
-            if ($request->routeIs('onboarding.pending', 'logout')) {
+        if ($company?->isPending() || $company?->isRejected()) {
+            if ($request->routeIs('onboarding.show', 'onboarding.store', 'logout')) {
                 return $next($request);
             }
-            return redirect()->route('onboarding.pending');
-        }
-
-        if ($company?->isRejected()) {
-            if ($request->routeIs('onboarding.rejected', 'logout')) {
-                return $next($request);
-            }
-            return redirect()->route('onboarding.rejected');
+            return redirect()->route('onboarding.show');
         }
 
         // Suspended — force logout

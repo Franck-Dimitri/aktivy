@@ -26,15 +26,27 @@ class OnboardingController extends Controller
     public function show(Request $request): Response
     {
         $company = $request->user()->company;
+        $user    = $request->user();
 
         return Inertia::render('onboarding/index', [
             'company' => [
-                'name'    => $company->name,
-                'email'   => $company->email,
-                'phone'   => $company->phone,
-                'sector'  => $company->sector,
-                'city'    => $company->city,
-                'address' => $company->address,
+                'id'                       => $company->id,
+                'name'                     => $company->name,
+                'email'                    => $company->email,
+                'phone'                    => $company->phone,
+                'sector'                   => $company->sector,
+                'city'                     => $company->city,
+                'address'                  => $company->address,
+                'status'                   => $company->status->value,
+                'logo_url'                 => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
+                'onboarding_completed'     => $company->onboardingCompleted(),
+                'onboarding_completed_at'  => $company->onboarding_completed_at?->format('d/m/Y à H:i'),
+                'rejection_reason'         => $company->rejection_reason,
+            ],
+            'user' => [
+                'name'  => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
             ],
             'sectors' => self::SECTORS,
         ]);
@@ -83,6 +95,6 @@ class OnboardingController extends Controller
 
         $company->update($updates);
 
-        return redirect()->route('onboarding.pending');
+        return redirect()->route('onboarding.show');
     }
 }

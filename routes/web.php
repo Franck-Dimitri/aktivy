@@ -65,15 +65,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('password.change.update');
 
-    // Onboarding entreprise (accessible aux comptes pending)
+    // Onboarding entreprise (accessible aux comptes pending/rejected)
     Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding.show');
     Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
-    Route::inertia('/onboarding/pending', 'onboarding/pending')->name('onboarding.pending');
-    Route::get('/onboarding/rejected', function (Illuminate\Http\Request $request) {
-        return Inertia::render('onboarding/rejected', [
-            'rejection_reason' => $request->user()?->company?->rejection_reason,
-        ]);
-    })->name('onboarding.rejected');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

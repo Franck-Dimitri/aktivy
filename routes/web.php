@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -76,3 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 require __DIR__.'/terrain.php';
 require __DIR__.'/company.php';
 require __DIR__.'/settings.php';
+
+// Telegram bot webhook (CSRF exempt — voir bootstrap/app.php)
+Route::post('telegram/webhook', [TelegramWebhookController::class, 'handle'])
+    ->name('telegram.webhook');

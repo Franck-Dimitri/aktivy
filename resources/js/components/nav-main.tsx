@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -6,54 +6,103 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useCurrentUrl } from '@/hooks/use-current-url';
+import { cn, toUrl } from '@/lib/utils';
 import type { MenuGroup } from '@/types';
 
+function useActiveItem(groups: MenuGroup[]) {
+    const page = usePage();
+    const currentPath = new URL(
+        page.url,
+        typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
+    ).pathname;
+
+    // Toutes les URLs disponibles dans le menu
+    const allHrefs = groups
+        .flatMap((g) => g.items.filter((i) => i.href).map((i) => toUrl(i.href!)));
+
+    // Si un item correspond exactement → les parents ne reçoivent pas le match startsWith
+    const hasExactMatch = allHrefs.some((h) => h === currentPath);
+
+    return (href: string): boolean => {
+        if (href === currentPath) return true;
+        // Pas de fallback parent si un autre item match exactement
+        if (hasExactMatch) return false;
+        // Sinon : parent match (ex: /sites active sur /sites/1/edit)
+        const prefix = href.endsWith('/') ? href : `${href}/`;
+        return currentPath.startsWith(prefix);
+    };
+}
+
 export function NavMain({ groups }: { groups: MenuGroup[] }) {
-    const { isCurrentOrParentUrl } = useCurrentUrl();
+    const isActive = useActiveItem(groups);
 
     return (
-        <>
-            {groups.map((group) => (
-                <SidebarGroup key={group.label} className="px-3 py-2 group-data-[collapsible=icon]:px-2">
-                    <SidebarGroupLabel className="mb-1 px-3 text-xs font-semibold text-green-100/60">
-                        {group.label}
+        <div className="flex flex-col gap-4 px-3 py-3 group-data-[collapsible=icon]:px-2">
+            {groups.map((group, gi) => (
+                <SidebarGroup key={group.label} className="p-0">
+                    {gi > 0 && (
+                        <div className="mb-3 h-px bg-white/10 group-data-[collapsible=icon]:hidden" />
+                    )}
+                    <SidebarGroupLabel className="mb-1 h-6 px-2 text-[10.5px] font-semibold tracking-wider text-green-100/40 group-data-[collapsible=icon]:hidden">
+                        {group.label.toUpperCase()}
                     </SidebarGroupLabel>
-                    <SidebarMenu className="gap-1">
-                        {group.items.map((item) =>
-                            item.href ? (
+
+                    <SidebarMenu className="gap-0.5">
+                        {group.items.map((item) => {
+                            const active = item.href ? isActive(toUrl(item.href)) : false;
+                            const available = !!item.href;
+
+                            return (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton
-                                        asChild
-                                        isActive={isCurrentOrParentUrl(item.href)}
+                                        asChild={available}
                                         tooltip={{ children: item.title }}
-                                        className="h-11 rounded-xl px-3 text-[13.5px] font-medium text-green-50/90 transition-all hover:bg-white/10 hover:text-white active:bg-white/15 active:text-white data-[active=true]:bg-white data-[active=true]:font-semibold data-[active=true]:text-green-700 data-[active=true]:shadow-lg data-[active=true]:shadow-green-950/20 [&>svg]:size-[18px] data-[active=true]:[&>svg]:text-green-600"
+                                        aria-disabled={!available || undefined}
+                                        className={cn(
+                                            // Base
+                                            'h-10 rounded-xl px-3 text-[13.5px] font-medium transition-all duration-150',
+                                            '[&>svg]:size-[17px] [&>svg]:shrink-0 [&>svg]:transition-colors',
+                                            // Actif — fond blanc, texte vert, ombre
+                                            active && [
+                                                'bg-white text-green-700 shadow shadow-green-950/20',
+                                                '[&>svg]:text-green-600',
+                                                'hover:bg-white hover:text-green-700',
+                                            ],
+                                            // Disponible non actif
+                                            available && !active && [
+                                                'text-green-50/80 hover:bg-white/10 hover:text-white',
+                                                '[&>svg]:text-green-100/70 hover:[&>svg]:text-white',
+                                            ],
+                                            // Indisponible
+                                            !available && [
+                                                'cursor-default text-green-100/30',
+                                                'hover:bg-transparent hover:text-green-100/30',
+                                                '[&>svg]:text-green-100/25',
+                                                'aria-disabled:pointer-events-auto aria-disabled:opacity-100',
+                                            ],
+                                        )}
                                     >
-                                        <Link href={item.href} prefetch>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </Link>
+                                        {available ? (
+                                            <Link href={item.href!} prefetch>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </Link>
+                                        ) : (
+                                            <>
+                                                <item.icon />
+                                                <span className="flex-1 truncate">{item.title}</span>
+                                                <span className="shrink-0 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-green-100/40 group-data-[collapsible=icon]:hidden">
+                                                    bientôt
+                                                </span>
+                                            </>
+                                        )}
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
-                            ) : (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton
-                                        aria-disabled
-                                        tooltip={{ children: `${item.title} (bientôt disponible)` }}
-                                        className="h-11 cursor-default rounded-xl px-3 text-[13.5px] font-medium text-green-100/50 hover:bg-transparent hover:text-green-100/50 aria-disabled:pointer-events-auto aria-disabled:opacity-100 [&>svg]:size-[18px]"
-                                    >
-                                        <item.icon />
-                                        <span className="min-w-0 flex-1 truncate">{item.title}</span>
-                                        <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold text-green-50 group-data-[collapsible=icon]:hidden">
-                                            Bientôt
-                                        </span>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ),
-                        )}
+                            );
+                        })}
                     </SidebarMenu>
                 </SidebarGroup>
             ))}
-        </>
+        </div>
     );
 }

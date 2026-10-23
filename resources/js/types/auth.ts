@@ -28,6 +28,7 @@ export type Company = {
     name: string;
     logo_path: string | null;
     primary_color: string | null;
+    status: string | null;
 };
 
 export type Auth = {

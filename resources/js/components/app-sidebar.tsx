@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LifeBuoy } from 'lucide-react';
+import { Building2, LifeBuoy } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -12,6 +12,8 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { menuFor, roleLabels } from '@/lib/navigation';
+import { show as onboardingShow } from '@/routes/onboarding';
+import type { MenuGroup } from '@/types';
 
 function companyInitials(name: string): string {
     return name
@@ -22,10 +24,25 @@ function companyInitials(name: string): string {
         .toUpperCase();
 }
 
+function pendingMenu(normalGroups: MenuGroup[]): MenuGroup[] {
+    return [
+        {
+            label: 'Mon compte',
+            items: [{ title: 'Profil entreprise', icon: Building2, href: onboardingShow().url }],
+        },
+        ...normalGroups.map((g) => ({
+            ...g,
+            items: g.items.map((i) => ({ ...i, href: undefined })),
+        })),
+    ];
+}
+
 export function AppSidebar() {
     const { auth } = usePage().props;
-    const groups = menuFor(auth.user.role);
-    const home = groups[0].items[0].href ?? '/';
+    const isPending = auth.company?.status === 'pending' || auth.company?.status === 'rejected';
+    const normalGroups = menuFor(auth.user.role);
+    const groups = isPending ? pendingMenu(normalGroups) : normalGroups;
+    const home = isPending ? onboardingShow().url : (groups[0].items[0].href ?? '/');
     const companyName = auth.company?.name ?? 'Motriks';
     const roleName = roleLabels[auth.user.role] ?? auth.user.role;
 

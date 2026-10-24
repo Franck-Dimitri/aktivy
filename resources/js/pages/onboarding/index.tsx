@@ -5,6 +5,7 @@ import {
     CheckCircle2,
     Clock,
     FileText,
+    Loader2,
     Lock,
     MapPin,
     Phone,
@@ -14,7 +15,8 @@ import {
     Users,
     X,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { compressImage } from '@/lib/compress-image';
 import { logout } from '@/routes';
 import { store as onboardingStore } from '@/routes/onboarding';
 import { ActionButton } from '@/components/page/buttons';
@@ -53,41 +55,89 @@ function FrozenTab({ icon: Icon, label }: { icon: typeof Building2; label: strin
 // ── File picker ────────────────────────────────────────────────────────────
 
 function FilePicker({
-    label, name, required, accept, error, value, onChange, hint,
+    label, name, required, accept, error, value, onChange, hint, maxMb = 5, keepPng = false,
 }: {
     label: string; name: string; required?: boolean; accept: string;
     error?: string; value: File | null; onChange: (f: File | null) => void; hint?: string;
+    maxMb?: number; keepPng?: boolean;
 }) {
     const ref = useRef<HTMLInputElement>(null);
-    const preview = value && value.type.startsWith('image/') ? URL.createObjectURL(value) : null;
+    const [preparing, setPreparing] = useState(false);
+    const [localError, setLocalError] = useState<string>();
+
+    // Aperçu créé une seule fois par fichier, libéré quand il change
+    const preview = useMemo(() => (value && value.type.startsWith('image/') ? URL.createObjectURL(value) : null), [value]);
+    useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+    const pick = () => ref.current?.click();
+
+    async function select(file: File | null) {
+        if (ref.current) ref.current.value = ''; // permet de rechoisir le même fichier
+        if (!file) return;
+
+        setLocalError(undefined);
+        setPreparing(true);
+
+        const ready = await compressImage(file, { keepPng });
+        setPreparing(false);
+
+        if (ready.size > maxMb * 1024 * 1024) {
+            setLocalError(`Fichier trop lourd (${(ready.size / 1024 / 1024).toFixed(1)} Mo) : maximum ${maxMb} Mo. Prenez une photo plutôt qu’un scan haute définition.`);
+            return;
+        }
+
+        onChange(ready);
+    }
+
+    const shownError = localError ?? error;
+    const size = value ? (value.size > 1024 * 1024 ? `${(value.size / 1024 / 1024).toFixed(1)} Mo` : `${Math.round(value.size / 1024)} Ko`) : '';
 
     return (
-        <Field label={label} required={required} hint={hint} error={error}>
+        <Field label={label} required={required} hint={hint} error={shownError}>
             <input ref={ref} type="file" name={name} accept={accept} className="sr-only"
-                onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
+                onChange={(e) => select(e.target.files?.[0] ?? null)} />
 
-            {value ? (
-                <div className="flex items-center gap-3 rounded-xl border border-motriks/30 bg-motriks-soft px-4 py-3 ring-1 ring-motriks/10">
-                    {preview
-                        ? <img src={preview} alt="" className="h-9 w-9 rounded-lg object-cover ring-1 ring-motriks/20 shrink-0" />
-                        : <div className="flex size-9 items-center justify-center rounded-lg bg-white ring-1 ring-slate-200 shrink-0"><FileText className="size-4 text-slate-400" /></div>
-                    }
-                    <p className="min-w-0 flex-1 truncate text-sm font-medium text-motriks-deep">{value.name}</p>
-                    <button type="button"
-                        onClick={() => { onChange(null); if (ref.current) ref.current.value = ''; }}
-                        className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-white hover:text-red-500">
-                        <X className="size-3.5" />
+            {preparing ? (
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <Loader2 className="size-4 shrink-0 animate-spin text-motriks" />
+                    <p className="text-sm text-slate-500">Préparation de l’image…</p>
+                </div>
+            ) : value ? (
+                <div className={cn(
+                    'flex items-center gap-3 rounded-xl border px-3 py-2.5 ring-1',
+                    shownError ? 'border-red-200 bg-red-50/40 ring-red-100' : 'border-motriks/30 bg-motriks-soft ring-motriks/10',
+                )}>
+                    <button type="button" onClick={pick} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-label={`Changer ${label}`}>
+                        {preview
+                            ? <img src={preview} alt="" className="size-10 shrink-0 rounded-lg object-cover ring-1 ring-motriks/20" />
+                            : <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-slate-200"><FileText className="size-4 text-slate-400" /></div>
+                        }
+                        <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-medium text-motriks-deep">{value.name}</span>
+                            <span className="block text-xs text-slate-500">{size}</span>
+                        </span>
                     </button>
+                    <button type="button" onClick={pick}
+                        className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-motriks-deep ring-1 ring-motriks/25 transition hover:bg-white">
+                        Changer
+                    </button>
+                    {!required && (
+                        <button type="button" onClick={() => { onChange(null); setLocalError(undefined); }}
+                            aria-label={`Retirer ${label}`}
+                            className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-white hover:text-red-500">
+                            <X className="size-3.5" />
+                        </button>
+                    )}
                 </div>
             ) : (
-                <button type="button" onClick={() => ref.current?.click()}
+                <button type="button" onClick={pick}
                     className={cn(
                         'group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed py-6 transition-all hover:border-motriks hover:bg-motriks-soft/40',
-                        error ? 'border-red-200 bg-red-50/30' : 'border-slate-200 bg-slate-50/40',
+                        shownError ? 'border-red-200 bg-red-50/30' : 'border-slate-200 bg-slate-50/40',
                     )}>
-                    <Upload className={cn('size-5 transition', error ? 'text-red-300' : 'text-slate-300 group-hover:text-motriks')} />
-                    <span className="text-xs font-medium text-slate-500">Choisir un fichier</span>
-                    <span className="text-[11px] text-slate-400">JPG · PNG · PDF — max 5 Mo</span>
+                    <Upload className={cn('size-5 transition', shownError ? 'text-red-300' : 'text-slate-300 group-hover:text-motriks')} />
+                    <span className="text-xs font-medium text-slate-500">Choisir un fichier ou prendre une photo</span>
+                    <span className="text-[11px] text-slate-400">{accept.includes('pdf') ? 'JPG · PNG · PDF' : 'JPG · PNG · WebP'} — max {maxMb} Mo</span>
                 </button>
             )}
         </Field>
@@ -100,7 +150,7 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
     const [step, setStep] = useState(0);
     const step1Ref = useRef<HTMLDivElement>(null);
 
-    const { data, setData, post, processing, errors } = useForm<{
+    const { data, setData, post, processing, errors, clearErrors } = useForm<{
         sector: string; city: string; address: string; phone: string;
         logo: File | null; id_card_front: File | null; id_card_back: File | null; registration_doc: File | null;
     }>({
@@ -221,8 +271,10 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
                                     name="logo"
                                     accept="image/jpeg,image/png,image/webp"
                                     hint="optionnel · max 3 Mo"
+                                    maxMb={3}
+                                    keepPng
                                     value={data.logo}
-                                    onChange={(f) => setData('logo', f)}
+                                    onChange={(f) => { setData('logo', f); clearErrors('logo'); }}
                                     error={errors.logo}
                                 />
 
@@ -235,7 +287,7 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
                                             accept="image/jpeg,image/png,application/pdf"
                                             hint="CNI · Passeport · Permis"
                                             value={data.id_card_front}
-                                            onChange={(f) => setData('id_card_front', f)}
+                                            onChange={(f) => { setData('id_card_front', f); clearErrors('id_card_front'); }}
                                             error={errors.id_card_front}
                                         />
                                         <FilePicker
@@ -244,7 +296,7 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
                                             required
                                             accept="image/jpeg,image/png,application/pdf"
                                             value={data.id_card_back}
-                                            onChange={(f) => setData('id_card_back', f)}
+                                            onChange={(f) => { setData('id_card_back', f); clearErrors('id_card_back'); }}
                                             error={errors.id_card_back}
                                         />
                                     </div>
@@ -256,8 +308,9 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
                                     required
                                     accept="image/jpeg,image/png,application/pdf"
                                     hint="RCCM · Statuts · Patente"
+                                    maxMb={10}
                                     value={data.registration_doc}
-                                    onChange={(f) => setData('registration_doc', f)}
+                                    onChange={(f) => { setData('registration_doc', f); clearErrors('registration_doc'); }}
                                     error={errors.registration_doc}
                                 />
                             </div>

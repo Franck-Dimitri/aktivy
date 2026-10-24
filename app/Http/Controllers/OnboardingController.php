@@ -63,6 +63,24 @@ class OnboardingController extends Controller
             'id_card_front'    => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'id_card_back'     => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'registration_doc' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+        ], [
+            'required'   => ':attribute est obligatoire.',
+            'uploaded'   => ':attribute n’a pas pu être envoyé (fichier trop lourd ou connexion coupée). Choisissez-le à nouveau.',
+            'logo.max'             => 'Le logo dépasse 3 Mo.',
+            'id_card_front.max'    => 'La pièce d’identité (recto) dépasse 5 Mo.',
+            'id_card_back.max'     => 'La pièce d’identité (verso) dépasse 5 Mo.',
+            'registration_doc.max' => 'Le document légal dépasse 10 Mo.',
+            'mimes'      => ':attribute doit être une image JPG ou PNG, ou un PDF.',
+            'logo.image' => 'Le logo doit être une image (JPG, PNG ou WebP).',
+        ], [
+            'sector'           => 'Le secteur',
+            'city'             => 'La ville',
+            'address'          => 'L’adresse',
+            'phone'            => 'Le téléphone',
+            'logo'             => 'Le logo',
+            'id_card_front'    => 'La pièce d’identité (recto)',
+            'id_card_back'     => 'La pièce d’identité (verso)',
+            'registration_doc' => 'Le document légal',
         ]);
 
         $company = $request->user()->company;

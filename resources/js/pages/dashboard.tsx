@@ -108,7 +108,7 @@ function RingGauge({ value, label, caption, live }: { value: number; label: stri
                         strokeLinecap="round"
                         strokeDasharray={circumference}
                         strokeDashoffset={circumference * (1 - pct / 100)}
-                        className="stroke-aktivy transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none"
+                        className="stroke-motriks transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none"
                     />
                 </svg>
                 <span className="absolute inset-0 flex items-center justify-center text-2xl font-semibold tracking-tight text-ink tabular-nums">
@@ -138,7 +138,7 @@ function Compare({ label, today, average, format, unit }: { label: string; today
                     <span
                         className={cn(
                             'rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
-                            delta >= 0 ? 'bg-green-100 text-aktivy-deep' : 'bg-slate-200/70 text-slate-600',
+                            delta >= 0 ? 'bg-green-100 text-motriks-deep' : 'bg-slate-200/70 text-slate-600',
                         )}
                     >
                         {delta > 0 ? '+' : ''}
@@ -153,7 +153,7 @@ function Compare({ label, today, average, format, unit }: { label: string; today
             </p>
 
             <div className="relative mt-4 h-1.5 rounded-full bg-slate-200/70" role="img" aria-label={`${label} : ${format(today)} aujourd'hui, moyenne ${format(average)}`}>
-                <div className="h-full rounded-full bg-aktivy transition-[width] duration-700 motion-reduce:transition-none" style={{ width: `${(today / max) * 100}%` }} />
+                <div className="h-full rounded-full bg-motriks transition-[width] duration-700 motion-reduce:transition-none" style={{ width: `${(today / max) * 100}%` }} />
                 <span className="absolute top-1/2 h-3.5 w-0.5 -translate-y-1/2 rounded bg-slate-500" style={{ left: `${(average / max) * 100}%` }} />
             </div>
 
@@ -208,7 +208,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                                 onClick={() => setMetric(m)}
                                 aria-pressed={metric === m}
                                 className={cn(
-                                    'h-7 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none',
+                                    'h-7 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                     metric === m ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
                                 )}
                             >
@@ -237,7 +237,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                 {activePoint && active !== null && (
                     <>
                         <span
-                            className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-2 ring-aktivy"
+                            className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-2 ring-motriks"
                             style={{ left: `${activePoint.x}%`, top: `${activePoint.y}%` }}
                         />
                         <div
@@ -380,7 +380,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                         <ul className="divide-y divide-slate-100">
                                             {recent_visits.map((v) => (
                                                 <li key={v.id} className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-green-50/40">
-                                                    <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-xs font-bold text-aktivy-deep ring-1 ring-inset ring-green-600/10">
+                                                    <div className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-xs font-bold text-motriks-deep ring-1 ring-inset ring-green-600/10">
                                                         {initials(v.agent_name)}
                                                         {v.status === 'in_progress' && <LiveDot className="absolute -top-0.5 -right-0.5 [&>span:last-child]:ring-2 [&>span:last-child]:ring-white" />}
                                                     </div>
@@ -408,7 +408,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                 actions={
                                     <Link
                                         href={sitesIndex().url}
-                                        className="inline-flex items-center gap-1 rounded-full bg-aktivy-soft px-3 py-1 text-xs font-semibold text-aktivy-deep transition-colors hover:bg-green-100 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                        className="inline-flex items-center gap-1 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold text-motriks-deep transition-colors hover:bg-green-100 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                     >
                                         Voir tout
                                         <ArrowUpRight className="size-3" />
@@ -432,13 +432,13 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                             <li key={s.id}>
                                                 <Link
                                                     href={siteShow(s.id).url}
-                                                    className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none focus-visible:ring-inset"
+                                                    className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
                                                 >
-                                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-aktivy-deep ring-1 ring-inset ring-green-600/10 transition-colors group-hover:bg-aktivy group-hover:text-white group-hover:ring-0">
+                                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-motriks-deep ring-1 ring-inset ring-green-600/10 transition-colors group-hover:bg-motriks group-hover:text-white group-hover:ring-0">
                                                         <Store className="size-4" />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="truncate text-sm font-semibold text-ink transition-colors group-hover:text-aktivy-deep">{s.name}</p>
+                                                        <p className="truncate text-sm font-semibold text-ink transition-colors group-hover:text-motriks-deep">{s.name}</p>
                                                         <p className="truncate text-xs text-slate-500">
                                                             {s.city} · {s.type_label}
                                                         </p>

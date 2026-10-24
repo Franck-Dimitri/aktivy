@@ -24,7 +24,7 @@ function initials(name: string): string {
 
 export function NavUser() {
     const { auth } = usePage().props;
-    const { state } = useSidebar();
+    const { state, setOpenMobile } = useSidebar();
     const isMobile = useIsMobile();
     const { ask, dialog } = useLogoutDialog();
 
@@ -61,13 +61,13 @@ export function NavUser() {
                             side={isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'top'}
                         >
                             <DropdownMenuItem asChild className="rounded-lg">
-                                <Link href={profileEdit()} className="cursor-pointer">
+                                <Link href={profileEdit()} className="cursor-pointer" onClick={() => isMobile && setOpenMobile(false)}>
                                     <User className="mr-2 size-4" />
                                     Mon profil
                                 </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild className="rounded-lg">
-                                <Link href={profileEdit()} className="cursor-pointer">
+                                <Link href={profileEdit()} className="cursor-pointer" onClick={() => isMobile && setOpenMobile(false)}>
                                     <Settings className="mr-2 size-4" />
                                     Paramètres
                                 </Link>

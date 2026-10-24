@@ -10,8 +10,8 @@ function FormSection({ icon: Icon, title, children }: { icon: React.ElementType;
     return (
         <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2.5">
-                <div className="flex size-7 items-center justify-center rounded-lg bg-aktivy-soft">
-                    <Icon className="size-3.5 text-aktivy" />
+                <div className="flex size-7 items-center justify-center rounded-lg bg-motriks-soft">
+                    <Icon className="size-3.5 text-motriks" />
                 </div>
                 <span className="text-sm font-bold text-slate-700">{title}</span>
                 <div className="flex-1 border-t border-slate-100" />

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import AktivyLogo from '@/components/aktivy-logo';
+import MotriksLogo from '@/components/motriks-logo';
 import AuthShowcase from '@/components/auth/auth-showcase';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
@@ -18,7 +18,7 @@ export default function AuthShowcaseLayout({
             </aside>
 
             <main className="flex min-h-dvh flex-col">
-                <div className="h-1.5 bg-aktivy lg:hidden" />
+                <div className="h-1.5 bg-motriks lg:hidden" />
 
                 <div className="flex flex-1 flex-col px-6 py-8 sm:px-10 lg:px-12">
                     <header className="flex items-center justify-between gap-4">
@@ -26,7 +26,7 @@ export default function AuthShowcaseLayout({
                             href={home()}
                             className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:outline-none"
                         >
-                            <AktivyLogo />
+                            <MotriksLogo />
                         </Link>
 
                         {headerLink && (
@@ -36,7 +36,7 @@ export default function AuthShowcaseLayout({
                                 </span>
                                 <Link
                                     href={headerLink.href}
-                                    className="font-semibold whitespace-nowrap text-aktivy-deep underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
+                                    className="font-semibold whitespace-nowrap text-motriks-deep underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
                                 >
                                     {headerLink.label}
                                 </Link>

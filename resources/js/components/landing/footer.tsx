@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import MotriksMark from '@/components/motriks-mark';
 
 const CONTACT = {
     email: 'contact@motriks.com',
@@ -22,9 +23,7 @@ function Icon({ name, className = 'h-4 w-4' }: { name: keyof typeof ICON_PATHS; 
 function Logo({ light = false }: { light?: boolean }) {
     return (
         <Link href="/" className="flex items-center gap-2.5">
-            <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg font-extrabold ${light ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
-                M
-            </span>
+            <MotriksMark />
             <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>
                 Motriks
             </span>

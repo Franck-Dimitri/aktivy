@@ -67,12 +67,12 @@ function FilePicker({
                 onChange={(e) => onChange(e.target.files?.[0] ?? null)} />
 
             {value ? (
-                <div className="flex items-center gap-3 rounded-xl border border-aktivy/30 bg-aktivy-soft px-4 py-3 ring-1 ring-aktivy/10">
+                <div className="flex items-center gap-3 rounded-xl border border-motriks/30 bg-motriks-soft px-4 py-3 ring-1 ring-motriks/10">
                     {preview
-                        ? <img src={preview} alt="" className="h-9 w-9 rounded-lg object-cover ring-1 ring-aktivy/20 shrink-0" />
+                        ? <img src={preview} alt="" className="h-9 w-9 rounded-lg object-cover ring-1 ring-motriks/20 shrink-0" />
                         : <div className="flex size-9 items-center justify-center rounded-lg bg-white ring-1 ring-slate-200 shrink-0"><FileText className="size-4 text-slate-400" /></div>
                     }
-                    <p className="min-w-0 flex-1 truncate text-sm font-medium text-aktivy-deep">{value.name}</p>
+                    <p className="min-w-0 flex-1 truncate text-sm font-medium text-motriks-deep">{value.name}</p>
                     <button type="button"
                         onClick={() => { onChange(null); if (ref.current) ref.current.value = ''; }}
                         className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-white hover:text-red-500">
@@ -82,10 +82,10 @@ function FilePicker({
             ) : (
                 <button type="button" onClick={() => ref.current?.click()}
                     className={cn(
-                        'group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed py-6 transition-all hover:border-aktivy hover:bg-aktivy-soft/40',
+                        'group flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed py-6 transition-all hover:border-motriks hover:bg-motriks-soft/40',
                         error ? 'border-red-200 bg-red-50/30' : 'border-slate-200 bg-slate-50/40',
                     )}>
-                    <Upload className={cn('size-5 transition', error ? 'text-red-300' : 'text-slate-300 group-hover:text-aktivy')} />
+                    <Upload className={cn('size-5 transition', error ? 'text-red-300' : 'text-slate-300 group-hover:text-motriks')} />
                     <span className="text-xs font-medium text-slate-500">Choisir un fichier</span>
                     <span className="text-[11px] text-slate-400">JPG · PNG · PDF — max 5 Mo</span>
                 </button>
@@ -133,12 +133,12 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
                     <div key={label} className="flex items-center gap-2">
                         <div className={cn(
                             'flex size-7 items-center justify-center rounded-full text-xs font-bold transition-colors',
-                            i < step ? 'bg-aktivy text-white' : i === step ? 'bg-aktivy text-white ring-4 ring-aktivy/20' : 'bg-slate-100 text-slate-400',
+                            i < step ? 'bg-motriks text-white' : i === step ? 'bg-motriks text-white ring-4 ring-motriks/20' : 'bg-slate-100 text-slate-400',
                         )}>
                             {i < step ? <CheckCircle2 className="size-4" /> : i + 1}
                         </div>
                         <span className={cn('text-sm font-semibold', i === step ? 'text-ink' : 'text-slate-400')}>{label}</span>
-                        {i < STEPS.length - 1 && <div className={cn('ml-1 h-px w-8 transition-colors', i < step ? 'bg-aktivy' : 'bg-slate-200')} />}
+                        {i < STEPS.length - 1 && <div className={cn('ml-1 h-px w-8 transition-colors', i < step ? 'bg-motriks' : 'bg-slate-200')} />}
                     </div>
                 ))}
             </div>
@@ -292,8 +292,8 @@ function PendingView({ company, submittedAt }: { company: Company; submittedAt: 
             <GlowCard contentClassName="p-6">
                 <div className="flex items-start gap-4">
                     <div className="relative shrink-0">
-                        <div className="flex size-12 items-center justify-center rounded-xl bg-aktivy-soft ring-1 ring-aktivy/20">
-                            <CheckCircle2 className="size-6 text-aktivy" />
+                        <div className="flex size-12 items-center justify-center rounded-xl bg-motriks-soft ring-1 ring-motriks/20">
+                            <CheckCircle2 className="size-6 text-motriks" />
                         </div>
                         <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-amber-100 ring-2 ring-white">
                             <Clock className="size-3 text-amber-500" />
@@ -313,7 +313,7 @@ function PendingView({ company, submittedAt }: { company: Company; submittedAt: 
 
                 <div className="mt-5 grid grid-cols-3 divide-x divide-slate-100 rounded-xl bg-slate-50 text-center">
                     {[
-                        { icon: CheckCircle2, color: 'text-aktivy', label: 'Dossier reçu', done: true },
+                        { icon: CheckCircle2, color: 'text-motriks', label: 'Dossier reçu', done: true },
                         { icon: Clock, color: 'text-amber-500', label: 'Examen (24–48h)', done: false },
                         { icon: CheckCircle2, color: 'text-slate-300', label: 'Activation', done: false },
                     ].map(({ icon: Icon, color, label, done }) => (
@@ -471,7 +471,7 @@ export default function OnboardingPage({ company, user, sectors }: Props) {
                         className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white px-3.5 py-2 text-sm font-semibold text-ink shadow-sm"
                         aria-current="page"
                     >
-                        <Building2 className="size-4 text-aktivy" />
+                        <Building2 className="size-4 text-motriks" />
                         Profil
                     </button>
 

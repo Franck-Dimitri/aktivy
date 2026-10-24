@@ -42,7 +42,7 @@ const roleShort: Record<string, string> = {
 
 const avatarTone: Record<string, string> = {
     field_agent:
-        'from-green-50 to-green-100 text-aktivy-deep ring-green-600/10 group-hover:from-green-500 group-hover:to-green-600 group-hover:shadow-green-600/30',
+        'from-green-50 to-green-100 text-motriks-deep ring-green-600/10 group-hover:from-green-500 group-hover:to-green-600 group-hover:shadow-green-600/30',
     supervisor:
         'from-blue-50 to-blue-100 text-blue-700 ring-blue-600/10 group-hover:from-blue-500 group-hover:to-blue-600 group-hover:shadow-blue-600/30',
     accountant:
@@ -72,10 +72,10 @@ function initials(name: string) {
 }
 
 const iconBtn =
-    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none';
+    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 const chipBase =
-    'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none';
+    'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 function Chip({ active, onClick, count, children }: { active: boolean; onClick: () => void; count?: number; children: ReactNode }) {
     return (
@@ -85,12 +85,12 @@ function Chip({ active, onClick, count, children }: { active: boolean; onClick: 
             aria-pressed={active}
             className={`${chipBase} ${
                 active
-                    ? 'border-green-600/30 bg-green-50 text-aktivy-deep'
+                    ? 'border-green-600/30 bg-green-50 text-motriks-deep'
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
             }`}
         >
             {children}
-            {count !== undefined && <span className={`tabular-nums ${active ? 'text-aktivy-deep/70' : 'text-slate-400'}`}>{count}</span>}
+            {count !== undefined && <span className={`tabular-nums ${active ? 'text-motriks-deep/70' : 'text-slate-400'}`}>{count}</span>}
         </button>
     );
 }
@@ -219,7 +219,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                         value={sort}
                                         onChange={(e) => setSort(e.target.value as SortKey)}
                                         aria-label="Trier les membres"
-                                        className="h-10 rounded-xl border border-slate-200 bg-white pr-8 pl-9 text-sm text-slate-700 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                        className="h-10 rounded-xl border border-slate-200 bg-white pr-8 pl-9 text-sm text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                     >
                                         <option value="name">Nom (A–Z)</option>
                                         <option value="visits">Plus de visites</option>
@@ -257,7 +257,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                     <button
                                         type="button"
                                         onClick={resetFilters}
-                                        className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                        className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                     >
                                         <X className="size-3.5" />
                                         Réinitialiser
@@ -281,7 +281,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                         <button
                                             type="button"
                                             onClick={resetFilters}
-                                            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                         >
                                             Réinitialiser les filtres
                                         </button>
@@ -299,7 +299,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                                 {/* Zone cliquable : ouvre la fiche */}
                                                 <Link
                                                     href={showUrl}
-                                                    className="flex flex-1 flex-col gap-5 p-5 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none focus-visible:ring-inset"
+                                                    className="flex flex-1 flex-col gap-5 p-5 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
                                                 >
                                                     {/* En-tête */}
                                                     <div className="flex items-start gap-4">
@@ -312,7 +312,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                                         </div>
 
                                                         <div className="min-w-0 flex-1">
-                                                            <h3 className="truncate text-base font-semibold text-ink transition-colors group-hover:text-aktivy-deep">
+                                                            <h3 className="truncate text-base font-semibold text-ink transition-colors group-hover:text-motriks-deep">
                                                                 {member.name}
                                                             </h3>
                                                             <div className="mt-1.5">
@@ -332,7 +332,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                                             <dd className="truncate tabular-nums">{member.phone ?? 'Non renseigné'}</dd>
                                                         </div>
 
-                                                        <div className={`flex items-center gap-3 ${member.on_site_now ? 'font-medium text-aktivy-deep' : 'text-slate-400'}`}>
+                                                        <div className={`flex items-center gap-3 ${member.on_site_now ? 'font-medium text-motriks-deep' : 'text-slate-400'}`}>
                                                             <MapPin className="size-4 shrink-0" />
                                                             <dd className="flex min-w-0 items-center gap-2">
                                                                 {member.on_site_now && (
@@ -358,7 +358,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                                 <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-3 py-2.5">
                                                     <Link
                                                         href={showUrl}
-                                                        className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-green-50 hover:text-aktivy-deep focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                                        className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-green-50 hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                                     >
                                                         <Eye className="size-4" />
                                                         Voir la fiche
@@ -369,7 +369,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                                             href={`${showUrl}?modifier=1`}
                                                             title="Modifier"
                                                             aria-label={`Modifier ${member.name}`}
-                                                            className={`${iconBtn} hover:bg-green-50 hover:text-aktivy-deep`}
+                                                            className={`${iconBtn} hover:bg-green-50 hover:text-motriks-deep`}
                                                         >
                                                             <Pencil className="size-[18px]" />
                                                         </Link>

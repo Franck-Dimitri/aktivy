@@ -161,7 +161,7 @@ export function TabHostesses({ event, availableHostesses }: Props) {
                                 className={cn(
                                     'flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
                                     addMode === m
-                                        ? 'border-aktivy bg-aktivy-soft text-aktivy-deep'
+                                        ? 'border-motriks bg-motriks-soft text-motriks-deep'
                                         : 'border-slate-200 text-slate-500 hover:border-slate-300',
                                 )}
                             >

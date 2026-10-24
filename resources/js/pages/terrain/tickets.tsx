@@ -104,7 +104,7 @@ function NewTicketForm({ onClose }: { onClose: () => void }) {
                                     priority === p
                                         ? p === 'urgent'
                                             ? 'border-red-300 bg-red-50 text-red-700 ring-1 ring-red-200 shadow-sm'
-                                            : 'border-green-300 bg-aktivy-soft text-aktivy-deep ring-1 ring-green-200 shadow-sm'
+                                            : 'border-green-300 bg-motriks-soft text-motriks-deep ring-1 ring-green-200 shadow-sm'
                                         : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50',
                                 )}
                             >
@@ -113,7 +113,7 @@ function NewTicketForm({ onClose }: { onClose: () => void }) {
                                     priority === p
                                         ? p === 'urgent'
                                             ? 'bg-red-100 text-red-700'
-                                            : 'bg-green-100 text-aktivy-deep'
+                                            : 'bg-green-100 text-motriks-deep'
                                         : 'bg-slate-100 text-slate-400',
                                 )}>
                                     {p === 'urgent' ? <Zap className="size-4" /> : <Clock className="size-4" />}
@@ -179,7 +179,7 @@ function NewTicketForm({ onClose }: { onClose: () => void }) {
 function TicketCard({ ticket }: { ticket: Ticket }) {
     const [expanded, setExpanded] = useState(false);
 
-    const priorityLeft = ticket.priority === 'urgent' ? 'before:bg-red-500' : 'before:bg-aktivy';
+    const priorityLeft = ticket.priority === 'urgent' ? 'before:bg-red-500' : 'before:bg-motriks';
 
     return (
         <li className={cn(
@@ -190,7 +190,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
             <button
                 type="button"
                 onClick={() => setExpanded(!expanded)}
-                className="w-full px-5 py-4 pl-6 text-left transition-colors hover:bg-green-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:ring-inset"
+                className="w-full px-5 py-4 pl-6 text-left transition-colors hover:bg-green-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-inset"
             >
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -203,7 +203,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
                                 </span>
                             )}
                             {ticket.response && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-aktivy-soft px-2 py-0.5 text-[11px] font-semibold text-aktivy-deep ring-1 ring-green-200">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-motriks-soft px-2 py-0.5 text-[11px] font-semibold text-motriks-deep ring-1 ring-green-200">
                                     <Check className="size-3" />
                                     Répondu
                                 </span>
@@ -217,7 +217,7 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
                         </StatusBadge>
                         <span className={cn(
                             'flex size-6 items-center justify-center rounded-lg bg-slate-100 text-slate-400 transition-all duration-200',
-                            expanded && 'bg-aktivy-soft rotate-180 text-aktivy-deep',
+                            expanded && 'bg-motriks-soft rotate-180 text-motriks-deep',
                         )}>
                             <ChevronDown className="size-3.5" />
                         </span>
@@ -244,8 +244,8 @@ function TicketCard({ ticket }: { ticket: Ticket }) {
                         {/* Réponse — gauche */}
                         {ticket.response ? (
                             <div className="flex flex-col items-start gap-1.5">
-                                <p className="text-[11px] font-semibold text-aktivy-deep">Votre responsable</p>
-                                <div className="max-w-[85%] rounded-2xl rounded-tl-sm border border-green-100 bg-aktivy-soft px-4 py-3 shadow-sm">
+                                <p className="text-[11px] font-semibold text-motriks-deep">Votre responsable</p>
+                                <div className="max-w-[85%] rounded-2xl rounded-tl-sm border border-green-100 bg-motriks-soft px-4 py-3 shadow-sm">
                                     <p className="text-sm leading-relaxed text-green-900 whitespace-pre-wrap">
                                         {ticket.response}
                                     </p>

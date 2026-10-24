@@ -58,7 +58,7 @@ export const DEV_ACCOUNTS: DevAccount[] = [
         roleLabel: 'Super Admin',
         roleType: 'admin',
         company: 'Plateforme Motriks',
-        login: 'admin@aktivy.test',
+        login: 'admin@motriks.test',
         password: 'password',
         description: 'Administration globale du système Motriks',
         isPrimary: false,
@@ -144,18 +144,18 @@ export default function DevTestAccounts({
     return (
         <section
             aria-label="Comptes de test"
-            className="mb-6 overflow-hidden rounded-2xl border border-aktivy/30 bg-gradient-to-b from-aktivy/5 via-slate-50/50 to-white shadow-sm transition-all duration-200"
+            className="mb-6 overflow-hidden rounded-2xl border border-motriks/30 bg-gradient-to-b from-motriks/5 via-slate-50/50 to-white shadow-sm transition-all duration-200"
         >
             {/* Header bar */}
             <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 bg-white/70 px-4 py-2.5 backdrop-blur-xs">
                 <div className="flex items-center gap-2">
-                    <span className="flex size-6 items-center justify-center rounded-lg bg-aktivy/20 text-aktivy-deep">
+                    <span className="flex size-6 items-center justify-center rounded-lg bg-motriks/20 text-motriks-deep">
                         <Sparkles className="size-3.5" />
                     </span>
                     <span className="text-xs font-bold tracking-tight text-ink uppercase">
                         Comptes de test (Mode Dev)
                     </span>
-                    <span className="rounded-full bg-aktivy/15 px-2 py-0.5 text-[10px] font-bold text-aktivy-deep">
+                    <span className="rounded-full bg-motriks/15 px-2 py-0.5 text-[10px] font-bold text-motriks-deep">
                         1-clic
                     </span>
                 </div>
@@ -198,8 +198,8 @@ export default function DevTestAccounts({
                                     className={cn(
                                         'group relative cursor-pointer rounded-xl border p-3 transition-all duration-150',
                                         isSelected
-                                            ? 'border-aktivy bg-white shadow-md ring-2 ring-aktivy/20'
-                                            : 'border-slate-200/90 bg-white hover:border-aktivy/60 hover:bg-slate-50/50 hover:shadow-xs',
+                                            ? 'border-motriks bg-white shadow-md ring-2 ring-motriks/20'
+                                            : 'border-slate-200/90 bg-white hover:border-motriks/60 hover:bg-slate-50/50 hover:shadow-xs',
                                     )}
                                 >
                                     <div className="flex items-start justify-between gap-2">
@@ -252,7 +252,7 @@ export default function DevTestAccounts({
                                                         >
                                                             {copiedId ===
                                                             `${account.id}-login` ? (
-                                                                <Check className="size-3 text-aktivy-deep" />
+                                                                <Check className="size-3 text-motriks-deep" />
                                                             ) : (
                                                                 <Copy className="size-3" />
                                                             )}
@@ -306,7 +306,7 @@ export default function DevTestAccounts({
                                                         >
                                                             {copiedId ===
                                                             `${account.id}-pass` ? (
-                                                                <Check className="size-3 text-aktivy-deep" />
+                                                                <Check className="size-3 text-motriks-deep" />
                                                             ) : (
                                                                 <Copy className="size-3" />
                                                             )}
@@ -339,7 +339,7 @@ export default function DevTestAccounts({
                                                     e.stopPropagation();
                                                     handleSelect(account, false, true);
                                                 }}
-                                                className="flex cursor-pointer items-center gap-1 rounded-lg bg-aktivy px-2.5 py-1 text-[11px] font-bold text-ink shadow-xs transition-colors hover:bg-[#46b52b] active:scale-95"
+                                                className="flex cursor-pointer items-center gap-1 rounded-lg bg-motriks px-2.5 py-1 text-[11px] font-bold text-ink shadow-xs transition-colors hover:bg-[#46b52b] active:scale-95"
                                             >
                                                 <LogIn className="size-3" />
                                                 Connexion
@@ -388,7 +388,7 @@ export default function DevTestAccounts({
                                             className={cn(
                                                 'flex cursor-pointer items-center justify-between rounded-lg border p-2 text-[11px] transition-all',
                                                 isSelected
-                                                    ? 'border-aktivy bg-white ring-1 ring-aktivy'
+                                                    ? 'border-motriks bg-white ring-1 ring-motriks'
                                                     : 'border-slate-200 bg-white hover:bg-slate-50',
                                             )}
                                         >
@@ -434,7 +434,7 @@ export default function DevTestAccounts({
                                                             true,
                                                         );
                                                     }}
-                                                    className="flex cursor-pointer items-center gap-0.5 rounded bg-aktivy px-2 py-1 text-[10px] font-bold text-ink hover:bg-[#46b52b]"
+                                                    className="flex cursor-pointer items-center gap-0.5 rounded bg-motriks px-2 py-1 text-[10px] font-bold text-ink hover:bg-[#46b52b]"
                                                 >
                                                     <LogIn className="size-2.5" />
                                                     Go

@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 const control =
-    'w-full rounded-xl border border-slate-200 bg-white text-sm text-ink outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-aktivy focus:ring-4 focus:ring-aktivy/10 disabled:bg-slate-50 disabled:opacity-60';
+    'w-full rounded-xl border border-slate-200 bg-white text-sm text-ink outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:ring-4 focus:ring-motriks/10 disabled:bg-slate-50 disabled:opacity-60';
 const invalid = 'border-red-300 hover:border-red-300 focus:border-red-400 focus:ring-red-500/10';
 
 export const inputClass = `h-11 px-3.5 ${control}`;
@@ -116,14 +116,14 @@ export function ToggleField({
     description?: string;
 }) {
     return (
-        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-slate-300 has-checked:border-aktivy/40 has-checked:bg-aktivy-soft/60">
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition-colors hover:border-slate-300 has-checked:border-motriks/40 has-checked:bg-motriks-soft/60">
             <input
                 type="checkbox"
                 checked={checked}
                 onChange={(e) => onChange(e.target.checked)}
                 className="peer sr-only"
             />
-            <span className="relative mt-0.5 h-6 w-11 shrink-0 rounded-full bg-slate-200 transition-colors peer-checked:bg-aktivy peer-focus-visible:ring-4 peer-focus-visible:ring-aktivy/20 after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-5" />
+            <span className="relative mt-0.5 h-6 w-11 shrink-0 rounded-full bg-slate-200 transition-colors peer-checked:bg-motriks peer-focus-visible:ring-4 peer-focus-visible:ring-motriks/20 after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-5" />
             <span className="min-w-0">
                 <span className="block text-sm font-semibold text-ink">{label}</span>
                 {description && <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{description}</span>}

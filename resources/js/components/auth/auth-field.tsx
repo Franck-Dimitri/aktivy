@@ -5,7 +5,7 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const inputClasses =
-    'peer h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-4 pl-11 text-[15px] text-ink transition-[border-color,background-color,box-shadow] duration-150 outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-aktivy focus:bg-white focus:ring-4 focus:ring-aktivy/15 disabled:cursor-not-allowed disabled:opacity-60 read-only:cursor-default read-only:border-dashed read-only:bg-white read-only:text-slate-500 read-only:focus:ring-0 aria-invalid:border-red-400 aria-invalid:bg-red-50/40 aria-invalid:focus:ring-red-500/15 autofill:shadow-[inset_0_0_0_1000px_#f8fafc] autofill:[-webkit-text-fill-color:#0f172a] autofill:focus:shadow-[inset_0_0_0_1000px_#ffffff]';
+    'peer h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-4 pl-11 text-[15px] text-ink transition-[border-color,background-color,box-shadow] duration-150 outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:bg-white focus:ring-4 focus:ring-motriks/15 disabled:cursor-not-allowed disabled:opacity-60 read-only:cursor-default read-only:border-dashed read-only:bg-white read-only:text-slate-500 read-only:focus:ring-0 aria-invalid:border-red-400 aria-invalid:bg-red-50/40 aria-invalid:focus:ring-red-500/15 autofill:shadow-[inset_0_0_0_1000px_#f8fafc] autofill:[-webkit-text-fill-color:#0f172a] autofill:focus:shadow-[inset_0_0_0_1000px_#ffffff]';
 
 type FieldProps = Omit<ComponentProps<'input'>, 'id' | 'name'> & {
     id: string;
@@ -50,7 +50,7 @@ export function AuthField({
                 />
                 <Icon
                     aria-hidden="true"
-                    className="pointer-events-none absolute top-1/2 left-4 size-[18px] -translate-y-1/2 text-slate-400 transition-colors peer-focus:text-aktivy-deep peer-aria-invalid:text-red-500"
+                    className="pointer-events-none absolute top-1/2 left-4 size-[18px] -translate-y-1/2 text-slate-400 transition-colors peer-focus:text-motriks-deep peer-aria-invalid:text-red-500"
                 />
                 {trailing && (
                     <div className="absolute inset-y-0 right-1.5 flex items-center">
@@ -88,8 +88,8 @@ const strengthLevels = [
     { label: 'Trop court', color: 'bg-red-500' },
     { label: 'Faible', color: 'bg-red-500' },
     { label: 'Moyen', color: 'bg-amber-500' },
-    { label: 'Bon', color: 'bg-aktivy' },
-    { label: 'Excellent', color: 'bg-aktivy-deep' },
+    { label: 'Bon', color: 'bg-motriks' },
+    { label: 'Excellent', color: 'bg-motriks-deep' },
 ];
 
 function passwordScore(value: string): number {
@@ -163,7 +163,7 @@ export function AuthPasswordField({
                             : 'Afficher le mot de passe'
                     }
                     aria-pressed={visible}
-                    className="flex size-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                    className="flex size-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                 >
                     {visible ? (
                         <EyeOff className="size-[18px]" />
@@ -194,7 +194,7 @@ export function AuthPrimaryButton({
     return (
         <button
             className={cn(
-                'flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-aktivy px-5 text-[15px] font-bold text-ink shadow-[0_1px_0_rgba(15,23,42,0.08),inset_0_-2px_0_rgba(15,23,42,0.12)] transition-[background-color,transform] duration-150 hover:bg-[#46b52b] focus-visible:ring-4 focus-visible:ring-aktivy/30 focus-visible:outline-none active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60',
+                'flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-motriks px-5 text-[15px] font-bold text-ink shadow-[0_1px_0_rgba(15,23,42,0.08),inset_0_-2px_0_rgba(15,23,42,0.12)] transition-[background-color,transform] duration-150 hover:bg-[#46b52b] focus-visible:ring-4 focus-visible:ring-motriks/30 focus-visible:outline-none active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60',
                 className,
             )}
             {...props}
@@ -212,7 +212,7 @@ export function AuthSecondaryButton({
     return (
         <button
             className={cn(
-                'flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-ink transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-4 focus-visible:ring-aktivy/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60',
+                'flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-ink transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-4 focus-visible:ring-motriks/20 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60',
                 className,
             )}
             {...props}

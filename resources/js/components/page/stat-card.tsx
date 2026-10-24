@@ -18,14 +18,14 @@ export function StatCard({
         <div
             className={cn(
                 'flex items-start gap-3 rounded-2xl border p-4 shadow-xs',
-                highlight ? 'border-green-200 bg-aktivy-soft' : 'border-slate-200 bg-white',
+                highlight ? 'border-green-200 bg-motriks-soft' : 'border-slate-200 bg-white',
             )}
         >
             {Icon && (
                 <span
                     className={cn(
                         'flex size-10 shrink-0 items-center justify-center rounded-xl',
-                        highlight ? 'bg-aktivy text-white shadow-sm shadow-green-600/25' : 'bg-slate-100 text-slate-500',
+                        highlight ? 'bg-motriks text-white shadow-sm shadow-green-600/25' : 'bg-slate-100 text-slate-500',
                     )}
                 >
                     <Icon className="size-5" />

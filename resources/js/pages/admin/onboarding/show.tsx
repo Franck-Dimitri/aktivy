@@ -31,8 +31,11 @@ type CompanyData = {
     id: number; name: string; sector: string | null; city: string | null; address: string | null;
     email: string | null; phone: string | null; status: string; rejection_reason: string | null;
     onboarding_completed_at: string | null; logo_url: string | null;
-    has_id_card_front: boolean; has_id_card_back: boolean; has_registration_doc: boolean;
+    documents: Record<DocType, DocKind>;
 };
+
+type DocType = 'id_card_front' | 'id_card_back' | 'registration_doc';
+type DocKind = 'image' | 'pdf' | null;
 
 type Props = {
     company: CompanyData;
@@ -40,27 +43,43 @@ type Props = {
     flash?: { success?: string };
 };
 
-// ── Document link ─────────────────────────────────────────────────────
+// ── Document preview ──────────────────────────────────────────────────
 
-function DocLink({ label, hasFile, companyId, type, icon: Icon }: {
-    label: string; hasFile: boolean; companyId: number; type: string; icon: typeof FileText;
+function DocPreview({ label, kind, companyId, type, icon: Icon }: {
+    label: string; kind: DocKind; companyId: number; type: DocType; icon: typeof FileText;
 }) {
-    if (!hasFile) {
+    if (!kind) {
         return (
-            <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
-                <Icon className="size-4 shrink-0 text-slate-200" />
-                <p className="text-sm text-slate-300 italic">Non fourni</p>
+            <div className="flex flex-col overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                <div className="flex h-64 items-center justify-center">
+                    <Icon className="size-8 text-slate-200" />
+                </div>
+                <div className="flex items-center gap-3 border-t border-slate-100 px-4 py-3">
+                    <p className="flex-1 text-sm font-medium text-slate-400">{label}</p>
+                    <p className="text-xs text-slate-300 italic">Non fourni</p>
+                </div>
             </div>
         );
     }
 
+    const url = docRoute({ company: companyId, type }).url;
+
     return (
-        <a href={docRoute({ company: companyId, type }).url} target="_blank" rel="noopener noreferrer"
-            className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-all hover:border-blue-200 hover:bg-blue-50/50 hover:shadow-sm">
-            <Icon className="size-4 shrink-0 text-slate-400 group-hover:text-blue-500 transition-colors" />
-            <p className="flex-1 text-sm font-medium text-slate-700 group-hover:text-blue-700">{label}</p>
-            <ExternalLink className="size-3.5 shrink-0 text-slate-300 transition-opacity group-hover:text-blue-400" />
-        </a>
+        <div className="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-blue-200 hover:shadow-sm">
+            {kind === 'image' ? (
+                <a href={url} target="_blank" rel="noopener noreferrer" className="flex h-64 items-center justify-center bg-slate-50">
+                    <img src={url} alt={label} loading="lazy" className="max-h-full max-w-full object-contain" />
+                </a>
+            ) : (
+                <iframe src={`${url}#toolbar=0&view=FitH`} title={label} className="h-64 w-full bg-slate-50" />
+            )}
+            <a href={url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3 border-t border-slate-100 px-4 py-3 hover:bg-blue-50/50">
+                <Icon className="size-4 shrink-0 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                <p className="flex-1 text-sm font-medium text-slate-700 group-hover:text-blue-700">{label}</p>
+                <ExternalLink className="size-3.5 shrink-0 text-slate-300 transition-opacity group-hover:text-blue-400" />
+            </a>
+        </div>
     );
 }
 
@@ -168,11 +187,11 @@ export default function AdminOnboardingShow({ company, admin, flash }: Props) {
                     {/* Documents */}
                     <Panel title="Documents soumis" className="lg:col-span-2">
                         <div className="grid gap-3 p-5 sm:grid-cols-3">
-                            <DocLink label="Pièce d'identité — recto" hasFile={company.has_id_card_front}
+                            <DocPreview label="Pièce d'identité — recto" kind={company.documents.id_card_front}
                                 companyId={company.id} type="id_card_front" icon={FileImage} />
-                            <DocLink label="Pièce d'identité — verso" hasFile={company.has_id_card_back}
+                            <DocPreview label="Pièce d'identité — verso" kind={company.documents.id_card_back}
                                 companyId={company.id} type="id_card_back" icon={FileImage} />
-                            <DocLink label="Document légal" hasFile={company.has_registration_doc}
+                            <DocPreview label="Document légal" kind={company.documents.registration_doc}
                                 companyId={company.id} type="registration_doc" icon={FileText} />
                         </div>
                     </Panel>

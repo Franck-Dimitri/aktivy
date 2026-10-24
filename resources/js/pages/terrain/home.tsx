@@ -144,7 +144,7 @@ function RingGauge({
                         strokeLinecap="round"
                         strokeDasharray={circumference}
                         strokeDashoffset={circumference * (1 - pct / 100)}
-                        className="stroke-aktivy transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none"
+                        className="stroke-motriks transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none"
                     />
                 </svg>
                 <span className="absolute inset-0 flex items-center justify-center text-2xl font-semibold tracking-tight text-ink tabular-nums">
@@ -186,7 +186,7 @@ function Compare({
                     <span
                         className={cn(
                             'rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
-                            delta >= 0 ? 'bg-green-100 text-aktivy-deep' : 'bg-red-100 text-red-700',
+                            delta >= 0 ? 'bg-green-100 text-motriks-deep' : 'bg-red-100 text-red-700',
                         )}
                     >
                         {delta > 0 ? '+' : ''}
@@ -204,7 +204,7 @@ function Compare({
                 aria-label={`${label} : ${format(current)} ce mois, ${format(previous)} le mois dernier`}
             >
                 <div
-                    className="h-full rounded-full bg-aktivy transition-[width] duration-700 motion-reduce:transition-none"
+                    className="h-full rounded-full bg-motriks transition-[width] duration-700 motion-reduce:transition-none"
                     style={{ width: `${(current / max) * 100}%` }}
                 />
                 <span
@@ -273,7 +273,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                                 onClick={() => setMetric(m)}
                                 aria-pressed={metric === m}
                                 className={cn(
-                                    'h-7 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none',
+                                    'h-7 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                     metric === m ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
                                 )}
                             >
@@ -324,7 +324,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                 {activePoint && active !== null && (
                     <>
                         <span
-                            className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-2 ring-aktivy"
+                            className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-2 ring-motriks"
                             style={{ left: `${activePoint.x}%`, top: `${activePoint.y}%` }}
                         />
                         <div
@@ -401,7 +401,7 @@ function JourneeCard({
             {affectation && !visit && (
                 <div className="flex flex-col gap-4">
                     <div className="flex items-start gap-4 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-aktivy text-white shadow-sm shadow-green-600/25">
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-motriks text-white shadow-sm shadow-green-600/25">
                             <MapPin className="size-5" />
                         </span>
                         <div className="min-w-0">
@@ -413,7 +413,7 @@ function JourneeCard({
                                 <p className="mt-0.5 text-xs text-slate-400">{affectation.site_address}</p>
                             )}
                             {(affectation.slot_start || affectation.slot_end) && (
-                                <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-aktivy-soft px-3 py-1 text-xs font-semibold text-aktivy-deep ring-1 ring-green-100">
+                                <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold text-motriks-deep ring-1 ring-green-100">
                                     <Clock className="size-3.5" />
                                     {affectation.slot_start ?? '–'} → {affectation.slot_end ?? '–'}
                                 </p>
@@ -423,7 +423,7 @@ function JourneeCard({
 
                     {gpsStatus === 'capturing' && (
                         <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
-                            <Navigation className="size-3.5 animate-pulse text-aktivy" />
+                            <Navigation className="size-3.5 animate-pulse text-motriks" />
                             Capture de votre position GPS…
                         </p>
                     )}
@@ -448,12 +448,12 @@ function JourneeCard({
             {/* Visite en cours */}
             {visit?.status === 'in_progress' && (
                 <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between gap-3 rounded-2xl bg-aktivy-soft p-4 ring-1 ring-green-100">
+                    <div className="flex items-center justify-between gap-3 rounded-2xl bg-motriks-soft p-4 ring-1 ring-green-100">
                         <div className="flex items-center gap-3">
                             <LiveDot />
                             <div>
                                 <p className="text-xs font-medium text-green-700">En service depuis</p>
-                                <p className="text-2xl font-bold tabular-nums text-aktivy-deep">
+                                <p className="text-2xl font-bold tabular-nums text-motriks-deep">
                                     {visit.checked_in_at}
                                 </p>
                             </div>
@@ -524,12 +524,12 @@ function JourneeCard({
                         className={cn(
                             'flex items-center gap-3 rounded-2xl p-4 ring-1',
                             visit.report_status === 'submitted'
-                                ? 'bg-aktivy-soft ring-green-100'
+                                ? 'bg-motriks-soft ring-green-100'
                                 : 'bg-amber-50 ring-amber-100',
                         )}
                     >
                         {visit.report_status === 'submitted' ? (
-                            <CheckCircle2 className="size-5 shrink-0 text-aktivy" />
+                            <CheckCircle2 className="size-5 shrink-0 text-motriks" />
                         ) : (
                             <TriangleAlert className="size-5 shrink-0 text-amber-500" />
                         )}
@@ -793,7 +793,7 @@ export default function TerrainHome({
                                 </div>
                                 <Link
                                     href="/terrain/rapports"
-                                    className="inline-flex items-center gap-1 rounded-full bg-aktivy-soft px-3 py-1 text-xs font-semibold text-aktivy-deep transition-colors hover:bg-green-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy"
+                                    className="inline-flex items-center gap-1 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold text-motriks-deep transition-colors hover:bg-green-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks"
                                 >
                                     Voir tout
                                 </Link>
@@ -805,10 +805,10 @@ export default function TerrainHome({
                                         <li key={r.id}>
                                             <Link
                                                 href={reportShow({ visit: r.visit_id }).url}
-                                                className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-green-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:ring-inset"
+                                                className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-green-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-inset"
                                             >
-                                                <div className="flex size-9 shrink-0 flex-col items-center justify-center rounded-xl bg-green-50 text-center ring-1 ring-inset ring-green-600/10 transition-colors group-hover:bg-aktivy group-hover:ring-0">
-                                                    <p className="text-xs font-bold text-aktivy-deep transition-colors group-hover:text-white">
+                                                <div className="flex size-9 shrink-0 flex-col items-center justify-center rounded-xl bg-green-50 text-center ring-1 ring-inset ring-green-600/10 transition-colors group-hover:bg-motriks group-hover:ring-0">
+                                                    <p className="text-xs font-bold text-motriks-deep transition-colors group-hover:text-white">
                                                         {new Date(r.report_date_iso)
                                                             .getDate()
                                                             .toString()
@@ -822,7 +822,7 @@ export default function TerrainHome({
                                                     </p>
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-sm font-semibold text-ink transition-colors group-hover:text-aktivy-deep">
+                                                    <p className="truncate text-sm font-semibold text-ink transition-colors group-hover:text-motriks-deep">
                                                         {r.site_name}
                                                     </p>
                                                     {r.submitted_at && (

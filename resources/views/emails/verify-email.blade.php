@@ -1,4 +1,4 @@
-@extends('emails.layouts.aktivy')
+@extends('emails.layouts.motriks')
 
 @section('title', 'Confirmez votre adresse email')
 

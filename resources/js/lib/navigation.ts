@@ -4,6 +4,7 @@ import {
     ClipboardCheck,
     ClipboardList,
     CreditCard,
+    DatabaseBackup,
     FileBarChart,
     LayoutDashboard,
     MapPin,
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
+import { index as adminOnboarding } from '@/routes/admin/onboarding';
 import { home as terrainHome, stats as terrainStats, planning as terrainPlanning, sales as terrainSales } from '@/routes/terrain';
 import { index as terrainReports } from '@/routes/terrain/reports';
 import { index as terrainTickets } from '@/routes/terrain/tickets';
@@ -26,6 +28,8 @@ import { index as sitesIndex } from '@/routes/sites';
 import { index as personnelIndex } from '@/routes/personnel';
 import { index as affectationsIndex } from '@/routes/affectations';
 import { index as productsIndex } from '@/routes/products';
+import { index as reportsIndex } from '@/routes/reports';
+import { dataExport } from '@/routes/company';
 import { index as eventsIndex } from '@/routes/events';
 import type { MenuGroup, Role } from '@/types';
 
@@ -78,6 +82,11 @@ export function menuFor(role: Role): MenuGroup[] {
                         icon: LayoutDashboard,
                         href: adminDashboard(),
                     },
+                    {
+                        title: 'Demandes d’inscription',
+                        icon: ClipboardCheck,
+                        href: adminOnboarding(),
+                    },
                     { title: 'Entreprises', icon: Building2 },
                     { title: 'Abonnements', icon: CreditCard },
                     { title: 'Journal d’audit', icon: ScrollText },
@@ -100,7 +109,7 @@ export function menuFor(role: Role): MenuGroup[] {
                 ...(manages
                     ? [{ title: 'Activité du jour', icon: ClipboardCheck }]
                     : []),
-                { title: 'Rapports', icon: FileBarChart },
+                { title: 'Rapports', icon: FileBarChart, href: reportsIndex() },
             ],
         },
     ];
@@ -125,6 +134,7 @@ export function menuFor(role: Role): MenuGroup[] {
                 { title: 'Paramètres', icon: Settings2 },
                 { title: 'Utilisateurs', icon: UserCog },
                 { title: 'Abonnement', icon: CreditCard },
+                { title: 'Mes données', icon: DatabaseBackup, href: dataExport() },
             ],
         });
     }

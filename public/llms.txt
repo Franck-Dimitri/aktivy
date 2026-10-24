@@ -1,0 +1,31 @@
+# Motriks
+
+> Motriks est une plateforme web de gestion d'équipes terrain pour les entreprises de distribution, d'animation commerciale et de promotion en Afrique francophone. Elle remplace les messages WhatsApp, les tableurs et les rapports papier par un seul outil : suivi des hôtesses et commerciaux, présences, stocks, ventes, rapports PDF et analyses par intelligence artificielle.
+
+## Fonctionnalités
+
+- Suivi des équipes terrain (hôtesses, superviseurs) et de leurs affectations par site
+- Saisie des ventes, des stocks et des présences depuis un téléphone, même avec un réseau instable (mode hors-ligne)
+- Tableaux de bord en temps réel et rapports PDF / Excel
+- Gestion des événements commerciaux (animations, dégustations, lancements)
+- Assistant d'intelligence artificielle qui signale où agir
+- Espace isolé par entreprise, journal d'audit, sauvegardes quotidiennes
+
+## Offres
+
+- Gratuit : socle entreprise, statistiques de base, jusqu'à 5 utilisateurs
+- Modules payants (bientôt) : suivi terrain, reporting, exports, essai gratuit de 7 jours
+- Premium (bientôt) : IA, marque blanche, API, support prioritaire
+- Paiement par Mobile Money (MTN MoMo, Orange Money) et carte bancaire
+
+## Pages
+
+- [Accueil](https://motriks.com/): présentation, fonctionnalités, tarifs et FAQ
+- [Créer un espace entreprise](https://motriks.com/register): inscription gratuite
+- [Contact](https://motriks.com/contact): demande de démo ou question
+- [Conditions d'utilisation](https://motriks.com/conditions)
+- [Politique de confidentialité](https://motriks.com/confidentialite)
+
+## Contact
+
+- Email : contact@motriks.com

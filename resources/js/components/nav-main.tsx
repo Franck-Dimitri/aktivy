@@ -5,6 +5,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { cn, toUrl } from '@/lib/utils';
 import type { MenuGroup } from '@/types';
@@ -20,21 +21,29 @@ function useActiveItem(groups: MenuGroup[]) {
     const allHrefs = groups
         .flatMap((g) => g.items.filter((i) => i.href).map((i) => toUrl(i.href!)));
 
-    // Si un item correspond exactement → les parents ne reçoivent pas le match startsWith
-    const hasExactMatch = allHrefs.some((h) => h === currentPath);
-
-    return (href: string): boolean => {
+    // Correspondance exacte, sinon parent (ex: /sites active sur /sites/1/edit)
+    const matches = (href: string): boolean => {
         if (href === currentPath) return true;
-        // Pas de fallback parent si un autre item match exactement
-        if (hasExactMatch) return false;
-        // Sinon : parent match (ex: /sites active sur /sites/1/edit)
         const prefix = href.endsWith('/') ? href : `${href}/`;
         return currentPath.startsWith(prefix);
     };
+
+    // Seul l'item le plus spécifique est actif : /admin/onboarding l'emporte sur /admin
+    const activeHref = allHrefs
+        .filter(matches)
+        .sort((a, b) => b.length - a.length)[0];
+
+    return (href: string): boolean => href === activeHref;
 }
 
 export function NavMain({ groups }: { groups: MenuGroup[] }) {
     const isActive = useActiveItem(groups);
+    const { isMobile, setOpenMobile } = useSidebar();
+
+    // Sur mobile, le menu se referme dès qu'un onglet est choisi
+    const closeOnMobile = () => {
+        if (isMobile) setOpenMobile(false);
+    };
 
     return (
         <div className="flex flex-col gap-4 px-3 py-3 group-data-[collapsible=icon]:px-2">
@@ -83,7 +92,7 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
                                         )}
                                     >
                                         {available ? (
-                                            <Link href={item.href!} prefetch>
+                                            <Link href={item.href!} prefetch onClick={closeOnMobile}>
                                                 <item.icon />
                                                 <span>{item.title}</span>
                                             </Link>

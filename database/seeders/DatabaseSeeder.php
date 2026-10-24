@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
     {
         User::factory()->superAdmin()->create([
             'name' => 'Super Admin',
-            'email' => 'admin@aktivy.test',
+            'email' => 'admin@motriks.test',
         ]);
 
         $company = Company::factory()->create([

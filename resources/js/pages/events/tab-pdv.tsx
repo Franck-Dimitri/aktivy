@@ -25,18 +25,18 @@ function PdvCard({ site, canEdit, onDelete }: {
             {/* Top colored strip */}
             <div className={cn(
                 'absolute inset-x-0 top-0 h-1',
-                isExisting ? 'bg-aktivy' : 'bg-amber-400',
+                isExisting ? 'bg-motriks' : 'bg-amber-400',
             )} />
 
             <div className="flex items-start justify-between gap-2 pt-1">
                 <div className={cn(
                     'flex size-10 shrink-0 items-center justify-center rounded-xl ring-1',
                     isExisting
-                        ? 'bg-aktivy-soft ring-green-100'
+                        ? 'bg-motriks-soft ring-green-100'
                         : 'bg-amber-50 ring-amber-100',
                 )}>
                     {isExisting
-                        ? <Store className="size-5 text-aktivy" />
+                        ? <Store className="size-5 text-motriks" />
                         : <MapPin className="size-5 text-amber-500" />}
                 </div>
 
@@ -115,7 +115,7 @@ export function TabPdv({ event, companySites }: Props) {
                                 className={cn(
                                     'flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
                                     mode === m
-                                        ? 'border-aktivy bg-aktivy-soft text-aktivy-deep'
+                                        ? 'border-motriks bg-motriks-soft text-motriks-deep'
                                         : 'border-slate-200 text-slate-500 hover:border-slate-300',
                                 )}
                             >

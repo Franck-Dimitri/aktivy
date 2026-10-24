@@ -112,7 +112,7 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
                 <div className="flex flex-col gap-6">
                     {/* Carte profil */}
                     <div className="flex flex-col gap-5 rounded-2xl border border-slate-200/70 bg-white p-5 sm:flex-row sm:items-center">
-                        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-aktivy-soft text-lg font-semibold text-aktivy-deep ring-1 ring-green-100">
+                        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-motriks-soft text-lg font-semibold text-motriks-deep ring-1 ring-green-100">
                             {initials}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -122,13 +122,13 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
                             </div>
                             <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
                                 {member.phone ? (
-                                    <a href={`tel:${member.phone}`} className="inline-flex items-center gap-1.5 font-medium text-ink hover:text-aktivy-deep">
+                                    <a href={`tel:${member.phone}`} className="inline-flex items-center gap-1.5 font-medium text-ink hover:text-motriks-deep">
                                         <Phone className="size-3.5 text-slate-400" />
                                         {member.phone}
                                     </a>
                                 ) : null}
                                 {member.email ? (
-                                    <a href={`mailto:${member.email}`} className="inline-flex items-center gap-1.5 font-medium text-ink hover:text-aktivy-deep">
+                                    <a href={`mailto:${member.email}`} className="inline-flex items-center gap-1.5 font-medium text-ink hover:text-motriks-deep">
                                         <Mail className="size-3.5 text-slate-400" />
                                         {member.email}
                                     </a>
@@ -145,7 +145,7 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
                         <Metric label="Durée moyenne" value={formatDuration(stats.avg_duration)} sub="par visite" />
                         <Metric
                             label="Taux de complétion"
-                            value={<span className={completionRate >= 80 ? 'text-aktivy-deep' : undefined}>{completionRate}%</span>}
+                            value={<span className={completionRate >= 80 ? 'text-motriks-deep' : undefined}>{completionRate}%</span>}
                             sub={`${stats.completed_visits} complètes`}
                         />
                     </div>
@@ -193,11 +193,11 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
                                     {affectations.map((a) => (
                                         <li key={a.id}>
                                             <Link href={siteShow({ site: a.site_id }).url} className="group flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-slate-50/80">
-                                                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-aktivy-soft text-aktivy-deep">
+                                                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-motriks-soft text-motriks-deep">
                                                     <Store className="size-4" />
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-sm font-semibold text-ink group-hover:text-aktivy-deep">{a.site_name}</p>
+                                                    <p className="truncate text-sm font-semibold text-ink group-hover:text-motriks-deep">{a.site_name}</p>
                                                     <p className="flex items-center gap-1 text-xs text-slate-500">
                                                         <MapPin className="size-3" />
                                                         {a.site_city} · {a.site_type}

@@ -48,7 +48,7 @@ export function ConfirmDialog({
                     <span
                         className={cn(
                             'flex size-11 shrink-0 items-center justify-center rounded-xl border',
-                            danger ? 'border-red-100 bg-red-50 text-red-600' : 'border-green-200 bg-green-50 text-aktivy-deep',
+                            danger ? 'border-red-100 bg-red-50 text-red-600' : 'border-green-200 bg-green-50 text-motriks-deep',
                         )}
                     >
                         <Icon className="size-5" />

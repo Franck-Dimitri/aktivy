@@ -140,7 +140,7 @@ function MonthCalendar({ year, month, visits, onPrev, onNext }: {
                     <button
                         type="button"
                         onClick={onPrev}
-                        className="flex size-8 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy"
+                        className="flex size-8 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks"
                         aria-label="Mois précédent"
                     >
                         <ChevronLeft className="size-4" />
@@ -148,7 +148,7 @@ function MonthCalendar({ year, month, visits, onPrev, onNext }: {
                     <button
                         type="button"
                         onClick={onNext}
-                        className="flex size-8 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy"
+                        className="flex size-8 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks"
                         aria-label="Mois suivant"
                     >
                         <ChevronRight className="size-4" />
@@ -165,7 +165,7 @@ function MonthCalendar({ year, month, visits, onPrev, onNext }: {
                     <div className="flex items-center gap-2">
                         <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
                             <div
-                                className="h-full rounded-full bg-aktivy transition-[width] duration-700"
+                                className="h-full rounded-full bg-motriks transition-[width] duration-700"
                                 style={{ width: `${Math.min(100, (workedThisMonth / Math.max(pastDays, 1)) * 100)}%` }}
                             />
                         </div>
@@ -191,10 +191,10 @@ function MonthCalendar({ year, month, visits, onPrev, onNext }: {
                             title={day.worked && day.duration ? `${day.day} — ${formatDuration(day.duration)}` : undefined}
                             className={cn(
                                 'relative flex aspect-square flex-col items-center justify-center rounded-xl text-sm font-medium transition-colors',
-                                day.isToday && 'ring-2 ring-aktivy ring-offset-1',
-                                day.worked && 'bg-aktivy text-white shadow-sm shadow-green-500/25',
+                                day.isToday && 'ring-2 ring-motriks ring-offset-1',
+                                day.worked && 'bg-motriks text-white shadow-sm shadow-green-500/25',
                                 !day.worked && day.isPast && 'text-slate-300',
-                                !day.worked && day.isToday && 'text-aktivy-deep',
+                                !day.worked && day.isToday && 'text-motriks-deep',
                                 !day.worked && day.isFuture && 'text-slate-400',
                             )}
                         >
@@ -210,11 +210,11 @@ function MonthCalendar({ year, month, visits, onPrev, onNext }: {
             {/* Légende */}
             <div className="flex items-center gap-4 text-xs text-slate-400">
                 <span className="flex items-center gap-1.5">
-                    <span className="size-3 rounded-sm bg-aktivy" />
+                    <span className="size-3 rounded-sm bg-motriks" />
                     Jour travaillé
                 </span>
                 <span className="flex items-center gap-1.5">
-                    <span className="size-3 rounded-sm ring-2 ring-aktivy ring-offset-1" />
+                    <span className="size-3 rounded-sm ring-2 ring-motriks ring-offset-1" />
                     Aujourd'hui
                 </span>
                 <span className="flex items-center gap-1.5">
@@ -275,7 +275,7 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                     onClick={() => setPeriod(p)}
                                     aria-pressed={period === p}
                                     className={cn(
-                                        'h-8 rounded-lg px-4 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none',
+                                        'h-8 rounded-lg px-4 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                         period === p ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
                                     )}
                                 >
@@ -351,7 +351,7 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                             <div className="flex items-start gap-3">
                                                 <span className={cn(
                                                     'flex size-8 shrink-0 items-center justify-center rounded-xl text-white',
-                                                    a.is_active ? 'bg-aktivy shadow-sm shadow-green-500/25' : 'bg-slate-200',
+                                                    a.is_active ? 'bg-motriks shadow-sm shadow-green-500/25' : 'bg-slate-200',
                                                 )}>
                                                     <MapPin className={cn('size-4', !a.is_active && 'text-slate-400')} />
                                                 </span>
@@ -359,7 +359,7 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                                     <div className="flex items-center gap-2">
                                                         <p className="truncate text-sm font-semibold text-ink">{a.site_name}</p>
                                                         {a.is_active && (
-                                                            <span className="shrink-0 rounded-full bg-aktivy-soft px-2 py-0.5 text-[10px] font-semibold text-aktivy-deep ring-1 ring-green-100">
+                                                            <span className="shrink-0 rounded-full bg-motriks-soft px-2 py-0.5 text-[10px] font-semibold text-motriks-deep ring-1 ring-green-100">
                                                                 Actif
                                                             </span>
                                                         )}
@@ -407,9 +407,9 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                             {/* Date badge */}
                                             <div className={cn(
                                                 'flex size-10 shrink-0 flex-col items-center justify-center rounded-xl text-center',
-                                                isToday ? 'bg-aktivy shadow-sm shadow-green-500/25' : 'bg-green-50 ring-1 ring-inset ring-green-600/10',
+                                                isToday ? 'bg-motriks shadow-sm shadow-green-500/25' : 'bg-green-50 ring-1 ring-inset ring-green-600/10',
                                             )}>
-                                                <p className={cn('text-xs font-bold leading-none', isToday ? 'text-white' : 'text-aktivy-deep')}>
+                                                <p className={cn('text-xs font-bold leading-none', isToday ? 'text-white' : 'text-motriks-deep')}>
                                                     {new Date(v.date + 'T00:00:00').getDate().toString().padStart(2, '0')}
                                                 </p>
                                                 <p className={cn('mt-0.5 text-[10px] capitalize', isToday ? 'text-green-100' : 'text-slate-400')}>
@@ -434,7 +434,7 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                                         </>
                                                     )}
                                                     {v.status === 'in_progress' && (
-                                                        <span className="rounded-full bg-aktivy-soft px-2 py-0.5 text-[10px] font-semibold text-aktivy-deep">
+                                                        <span className="rounded-full bg-motriks-soft px-2 py-0.5 text-[10px] font-semibold text-motriks-deep">
                                                             En cours
                                                         </span>
                                                     )}

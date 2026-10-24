@@ -219,7 +219,7 @@ function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
     return (
         <div
             className={cn(
-                'flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-50 to-green-100 font-semibold text-aktivy-deep ring-1 ring-inset ring-green-600/10',
+                'flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-50 to-green-100 font-semibold text-motriks-deep ring-1 ring-inset ring-green-600/10',
                 size === 'sm' ? 'size-9 text-xs' : 'size-10 text-sm',
             )}
         >
@@ -266,7 +266,7 @@ function Tabs({
                         onClick={() => onChange(t.key)}
                         className={cn(
                             '-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors focus-visible:outline-none',
-                            selected ? 'border-aktivy text-ink' : 'border-transparent text-slate-500 hover:text-ink',
+                            selected ? 'border-motriks text-ink' : 'border-transparent text-slate-500 hover:text-ink',
                         )}
                     >
                         {t.label}
@@ -274,7 +274,7 @@ function Tabs({
                             <span
                                 className={cn(
                                     'rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
-                                    selected ? 'bg-aktivy-soft text-aktivy-deep' : 'bg-slate-100 text-slate-500',
+                                    selected ? 'bg-motriks-soft text-motriks-deep' : 'bg-slate-100 text-slate-500',
                                 )}
                             >
                                 {t.badge}
@@ -576,7 +576,7 @@ function PhotoGallery({ photos, siteId, canAdd }: { photos: string[]; siteId: nu
                 {canAdd && (
                     <label
                         className={cn(
-                            'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 transition-colors hover:border-aktivy hover:bg-aktivy-soft/40 hover:text-aktivy-deep',
+                            'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 transition-colors hover:border-motriks hover:bg-motriks-soft/40 hover:text-motriks-deep',
                             uploading && 'pointer-events-none opacity-70',
                         )}
                     >
@@ -784,7 +784,7 @@ export default function SiteShow({
                     {/* ───────────── Identité du site ───────────── */}
                     <div className="rounded-2xl border border-slate-200/70 bg-white p-5 sm:p-6">
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                            <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 text-aktivy-deep ring-1 ring-inset ring-green-600/10">
+                            <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 text-motriks-deep ring-1 ring-inset ring-green-600/10">
                                 <TypeIcon className="size-6" />
                             </div>
 
@@ -818,7 +818,7 @@ export default function SiteShow({
                                                 {site.contact_phone && (
                                                     <a
                                                         href={`tel:${site.contact_phone}`}
-                                                        className="inline-flex items-center gap-1.5 text-xs font-medium text-aktivy-deep hover:underline"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-medium text-motriks-deep hover:underline"
                                                     >
                                                         <Phone className="size-3" />
                                                         {site.contact_phone}
@@ -846,7 +846,7 @@ export default function SiteShow({
                                                     href={`https://www.google.com/maps?q=${site.latitude},${site.longitude}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-xs font-medium text-aktivy-deep hover:underline"
+                                                    className="text-xs font-medium text-motriks-deep hover:underline"
                                                 >
                                                     Voir sur la carte
                                                 </a>
@@ -878,7 +878,7 @@ export default function SiteShow({
                             { label: 'Unités vendues', value: stats.units_sold_this_month, sub: 'ce mois-ci' },
                             {
                                 label: 'Taux de complétion',
-                                value: <span className={completionRate >= 80 ? 'text-aktivy-deep' : undefined}>{completionRate}%</span>,
+                                value: <span className={completionRate >= 80 ? 'text-motriks-deep' : undefined}>{completionRate}%</span>,
                                 sub: `${stats.completed_visits} visites complètes`,
                             },
                         ]}
@@ -916,7 +916,7 @@ export default function SiteShow({
                                     title="Équipe en poste"
                                     actions={
                                         affectations.length > 0 && (
-                                            <button type="button" onClick={() => setTab('equipe')} className="text-xs font-semibold text-aktivy-deep hover:underline">
+                                            <button type="button" onClick={() => setTab('equipe')} className="text-xs font-semibold text-motriks-deep hover:underline">
                                                 Gérer
                                             </button>
                                         )
@@ -946,7 +946,7 @@ export default function SiteShow({
                                     title="Stock à surveiller"
                                     actions={
                                         inventory.length > 0 && (
-                                            <button type="button" onClick={() => setTab('inventaire')} className="text-xs font-semibold text-aktivy-deep hover:underline">
+                                            <button type="button" onClick={() => setTab('inventaire')} className="text-xs font-semibold text-motriks-deep hover:underline">
                                                 Voir l'inventaire
                                             </button>
                                         )
@@ -991,7 +991,7 @@ export default function SiteShow({
                                                 <Avatar name={a.agent_name} />
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <Link href={personnelShow({ personnel: a.agent_id }).url} className="text-sm font-semibold text-ink hover:text-aktivy-deep">
+                                                        <Link href={personnelShow({ personnel: a.agent_id }).url} className="text-sm font-semibold text-ink hover:text-motriks-deep">
                                                             {a.agent_name}
                                                         </Link>
                                                         {a.is_current && <StatusBadge tone="success">En poste</StatusBadge>}
@@ -1015,7 +1015,7 @@ export default function SiteShow({
                                                         icon={<ArrowLeftRight />}
                                                         title="Permuter"
                                                         aria-label="Permuter"
-                                                        className="hover:border-green-200 hover:bg-green-50 hover:text-aktivy-deep"
+                                                        className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
                                                         onClick={() => setAssign({ open: true, mode: 'permuter', replacingId: a.id, replacingName: a.agent_name })}
                                                     />
                                                     <ActionButton variant="icon-danger" size="icon" icon={<X />} title="Retirer" aria-label="Retirer" onClick={() => removeAffectation.ask(a)} />
@@ -1041,7 +1041,7 @@ export default function SiteShow({
                                                     <Avatar name={h.agent_name} />
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <span className="text-sm font-semibold text-ink group-hover:text-aktivy-deep">{h.agent_name}</span>
+                                                            <span className="text-sm font-semibold text-ink group-hover:text-motriks-deep">{h.agent_name}</span>
                                                             {h.is_current && <StatusBadge tone="success">Actif</StatusBadge>}
                                                         </div>
                                                         <p className="text-xs text-slate-500">
@@ -1110,7 +1110,7 @@ export default function SiteShow({
                                                         icon={<Pencil />}
                                                         title="Modifier le stock"
                                                         aria-label="Modifier le stock"
-                                                        className="hover:border-green-200 hover:bg-green-50 hover:text-aktivy-deep"
+                                                        className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
                                                         onClick={() => setStockItem(item)}
                                                     />
                                                     <ActionButton variant="icon-danger" size="icon" icon={<Trash2 />} title="Retirer" aria-label="Retirer" onClick={() => removeInventory.ask(item)} />

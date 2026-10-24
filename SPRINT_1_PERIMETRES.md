@@ -1,4 +1,4 @@
-# 🚀 Sprint 1 : Périmètres & Guide d'Équipe — Aktivy
+# 🚀 Sprint 1 : Périmètres & Guide d'Équipe — Motriks
 
 Ce document définit la répartition des rôles, les branches Git et le périmètre fonctionnel des **3 développeurs** pour le **Sprint 1 (Fondations & Socle MVP)**, conformément au **Cahier des charges fonctionnel et technique (v2.1)**.
 

@@ -1,6 +1,7 @@
 import { router, useForm } from '@inertiajs/react';
 import { ChevronDown, ChevronUp, Gift, Package, PackagePlus, Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
+import InputError from '@/components/input-error';
 import { GlowCard } from '@/components/page/surface';
 import { ActionButton } from '@/components/page/buttons';
 import { TextInput, TextArea, SelectInput } from '@/components/page/form-fields';
@@ -26,11 +27,11 @@ const PACK_TYPE_CONFIG = {
     buy_get_free: {
         icon:       Gift,
         label:      'Acheté / offert',
-        accent:     'text-aktivy',
-        bg:         'bg-aktivy-soft',
+        accent:     'text-motriks',
+        bg:         'bg-motriks-soft',
         ring:       'ring-green-100',
-        strip:      'bg-aktivy',
-        badge:      'bg-aktivy-soft text-aktivy-deep ring-green-100',
+        strip:      'bg-motriks',
+        badge:      'bg-motriks-soft text-motriks-deep ring-green-100',
     },
 };
 
@@ -144,7 +145,7 @@ export function TabPacks({ event, companyProducts }: Props) {
 
     const canEdit = !['completed', 'archived'].includes(event.status);
 
-    const { data, setData, post, processing, reset } = useForm<{
+    const { data, setData, post, processing, reset, errors, clearErrors, transform } = useForm<{
         name: string;
         description: string;
         type: 'grouped_discount' | 'buy_get_free';
@@ -167,18 +168,20 @@ export function TabPacks({ event, companyProducts }: Props) {
     }
     function submit(e: React.FormEvent) {
         e.preventDefault();
+        transform((d) => ({
+            ...d,
+            price: d.type === 'grouped_discount' && d.price !== '' ? Number(d.price) : null,
+            lines: d.lines.map((l) => ({
+                ...l,
+                product_id: l.product_id !== '' ? Number(l.product_id) : null,
+                // un bundle ne contient que des produits payants
+                role: d.type === 'grouped_discount' ? 'paid' : l.role,
+                unit_price: l.unit_price !== '' ? Number(l.unit_price) : null,
+            })),
+        }));
         post(packStore({ event: event.id }).url, {
-            // @ts-expect-error transform is supported by Inertia useForm
-            transform: (d: typeof data) => ({
-                ...d,
-                price: d.price !== '' ? Number(d.price) : null,
-                lines: d.lines.map((l) => ({
-                    ...l,
-                    product_id: Number(l.product_id),
-                    unit_price: l.unit_price !== '' ? Number(l.unit_price) : null,
-                })),
-            }),
-            onSuccess: () => { reset(); setShowForm(false); },
+            preserveScroll: true,
+            onSuccess: () => { reset(); clearErrors(); setShowForm(false); },
         });
     }
 
@@ -230,6 +233,7 @@ export function TabPacks({ event, companyProducts }: Props) {
                                     onChange={(e) => setData('name', e.target.value)}
                                     placeholder="ex. Pack Découverte"
                                 />
+                                <InputError message={errors.name} />
                             </div>
                             {data.type === 'grouped_discount' && (
                                 <div className="flex flex-col gap-1.5">
@@ -240,6 +244,7 @@ export function TabPacks({ event, companyProducts }: Props) {
                                         onChange={(e) => setData('price', e.target.value)}
                                         placeholder="0"
                                     />
+                                    <InputError message={errors.price} />
                                 </div>
                             )}
                         </div>
@@ -310,6 +315,15 @@ export function TabPacks({ event, companyProducts }: Props) {
                             >
                                 <Plus className="size-3.5" /> Ajouter un produit
                             </button>
+
+                            {/* Erreurs des produits du pack (ligne par ligne, sans doublons) */}
+                            {[...new Set(
+                                Object.entries(errors)
+                                    .filter(([key]) => key === 'lines' || key.startsWith('lines.'))
+                                    .map(([, message]) => message),
+                            )].map((message) => (
+                                <InputError key={message} message={message} />
+                            ))}
                         </div>
 
                         <div className="flex justify-end gap-2 pt-1 border-t border-slate-100">

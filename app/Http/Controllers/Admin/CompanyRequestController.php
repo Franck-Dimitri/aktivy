@@ -3,10 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\AccountStatus;
+use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Notifications\CompanyApproved;
+use App\Notifications\CompanyRejected;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Notification as BaseNotification;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -61,9 +66,11 @@ class CompanyRequestController extends Controller
                 'rejection_reason'         => $company->rejection_reason,
                 'onboarding_completed_at'  => $company->onboarding_completed_at?->format('d/m/Y H:i'),
                 'logo_url'                 => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
-                'has_id_card_front'        => (bool) $company->id_card_front_path,
-                'has_id_card_back'         => (bool) $company->id_card_back_path,
-                'has_registration_doc'     => (bool) $company->registration_doc_path,
+                'documents'                => [
+                    'id_card_front'    => $this->documentKind($company->id_card_front_path),
+                    'id_card_back'     => $this->documentKind($company->id_card_back_path),
+                    'registration_doc' => $this->documentKind($company->registration_doc_path),
+                ],
             ],
             'admin' => [
                 'name'  => $admin?->name,
@@ -82,7 +89,7 @@ class CompanyRequestController extends Controller
             'rejection_reason' => null,
         ]);
 
-        // TODO: send approval email to company admin
+        $this->notifyCompany($company, new CompanyApproved($company));
 
         return redirect()->route('admin.onboarding.index')
             ->with('success', "L'entreprise « {$company->name} » a été activée.");
@@ -99,9 +106,35 @@ class CompanyRequestController extends Controller
             'rejection_reason' => $validated['reason'],
         ]);
 
-        // TODO: send rejection email to company admin
+        $this->notifyCompany($company, new CompanyRejected($company, $validated['reason']));
 
         return redirect()->route('admin.onboarding.index')
             ->with('success', "La demande de « {$company->name} » a été rejetée.");
+    }
+
+    /**
+     * Type d'aperçu d'un document soumis : image, pdf, ou null s'il n'a pas été fourni.
+     */
+    private function documentKind(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        return strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'pdf' ? 'pdf' : 'image';
+    }
+
+    /**
+     * Envoie la notification aux gérants de l'entreprise, ou à défaut à son adresse de contact.
+     */
+    private function notifyCompany(Company $company, BaseNotification $notification): void
+    {
+        $admins = $company->users()->where('role', Role::CompanyAdmin)->get();
+
+        if ($admins->isNotEmpty()) {
+            Notification::send($admins, $notification);
+        } elseif ($company->email) {
+            Notification::route('mail', $company->email)->notify($notification);
+        }
     }
 }

@@ -22,7 +22,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
             )}
 
             <div className="mb-8 flex items-start gap-4 rounded-2xl bg-slate-50 p-5">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-aktivy text-ink">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-motriks text-ink">
                     <MailCheck className="size-5" />
                 </span>
                 <div className="min-w-0 text-sm leading-relaxed text-slate-600">

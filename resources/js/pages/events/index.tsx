@@ -22,7 +22,7 @@ type EventItem = {
 
 const STATUS_CONFIG = {
     draft:     { label: 'Brouillon', dot: 'bg-amber-400',    ring: 'ring-amber-200',    bg: 'bg-amber-50',    text: 'text-amber-700',    bar: 'from-amber-500/20 to-transparent' },
-    active:    { label: 'En cours',  dot: 'bg-aktivy',       ring: 'ring-green-200',    bg: 'bg-aktivy-soft', text: 'text-aktivy-deep',  bar: 'from-green-500/20 to-transparent' },
+    active:    { label: 'En cours',  dot: 'bg-motriks',       ring: 'ring-green-200',    bg: 'bg-motriks-soft', text: 'text-motriks-deep',  bar: 'from-green-500/20 to-transparent' },
     completed: { label: 'Terminé',   dot: 'bg-blue-400',     ring: 'ring-blue-200',     bg: 'bg-blue-50',     text: 'text-blue-700',     bar: 'from-blue-500/20 to-transparent' },
     archived:  { label: 'Archivé',   dot: 'bg-slate-300',    ring: 'ring-slate-200',    bg: 'bg-slate-50',    text: 'text-slate-500',    bar: 'from-slate-400/10 to-transparent' },
 };
@@ -68,7 +68,7 @@ function EventCard({ event }: { event: EventItem }) {
 
                     {/* Name */}
                     <div>
-                        <h3 className="text-base font-bold leading-snug text-slate-900 transition-colors group-hover:text-aktivy-deep">
+                        <h3 className="text-base font-bold leading-snug text-slate-900 transition-colors group-hover:text-motriks-deep">
                             {event.name}
                         </h3>
                         {(event.location || event.city) && (
@@ -100,8 +100,8 @@ function EventCard({ event }: { event: EventItem }) {
 function FeaturedEvent({ event }: { event: EventItem }) {
     return (
         <Link href={eventShow({ event: event.id }).url} className="group block focus-visible:outline-none">
-            <article className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-aktivy to-green-700 p-px shadow-lg shadow-green-900/20">
-                <div className="relative rounded-[15px] bg-gradient-to-br from-aktivy-deep/95 to-green-900 p-6 sm:p-8">
+            <article className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-motriks to-green-700 p-px shadow-lg shadow-green-900/20">
+                <div className="relative rounded-[15px] bg-gradient-to-br from-motriks-deep/95 to-green-900 p-6 sm:p-8">
                     {/* Background glow */}
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(134,239,172,0.15),transparent_60%)]" />
 

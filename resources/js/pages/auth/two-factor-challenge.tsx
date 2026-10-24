@@ -117,7 +117,7 @@ export default function TwoFactorChallenge() {
                                 <span>Ou </span>
                                 <button
                                     type="button"
-                                    className="cursor-pointer font-semibold text-aktivy-deep underline-offset-4 hover:underline"
+                                    className="cursor-pointer font-semibold text-motriks-deep underline-offset-4 hover:underline"
                                     onClick={() =>
                                         toggleRecoveryMode(clearErrors)
                                     }

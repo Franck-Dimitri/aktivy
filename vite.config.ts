@@ -18,7 +18,7 @@ export default defineConfig({
                 }),
             ],
         }),
-        inertia(),
+        inertia({ ssr: { port: 13715 } }),
         react(),
         babel({
             presets: [reactCompilerPreset()],

@@ -56,7 +56,7 @@ const typeIcon: Record<string, LucideIcon> = {
 };
 
 const iconBtn =
-    'flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none';
+    'flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 export default function SitesIndex({ sites, types }: Props) {
     // Fenêtre de création : montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
@@ -159,15 +159,15 @@ export default function SitesIndex({ sites, types }: Props) {
                                         <GlowCard key={site.id} contentClassName="flex flex-col">
                                             <Link
                                                 href={showUrl}
-                                                className="flex flex-1 flex-col p-5 pb-3 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none focus-visible:ring-inset"
+                                                className="flex flex-1 flex-col p-5 pb-3 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
                                             >
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div className="flex min-w-0 items-center gap-3">
-                                                        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 text-aktivy-deep ring-1 ring-inset ring-green-600/10 transition duration-300 group-hover:from-green-500 group-hover:to-green-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-green-600/30 group-hover:ring-0">
+                                                        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 text-motriks-deep ring-1 ring-inset ring-green-600/10 transition duration-300 group-hover:from-green-500 group-hover:to-green-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-green-600/30 group-hover:ring-0">
                                                             <TypeIcon className="size-5" />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="line-clamp-1 font-semibold text-ink transition-colors group-hover:text-aktivy-deep">{site.name}</p>
+                                                            <p className="line-clamp-1 font-semibold text-ink transition-colors group-hover:text-motriks-deep">{site.name}</p>
                                                             <p className="text-xs text-slate-500">{site.type_label}</p>
                                                         </div>
                                                     </div>
@@ -179,7 +179,7 @@ export default function SitesIndex({ sites, types }: Props) {
                                                 <div className="flex flex-col gap-2 text-xs text-slate-500">
                                                     <div className="flex items-center gap-2">
                                                         {site.has_coordinates ? (
-                                                            <MapPin className="size-3.5 shrink-0 text-aktivy" />
+                                                            <MapPin className="size-3.5 shrink-0 text-motriks" />
                                                         ) : (
                                                             <MapPinOff className="size-3.5 shrink-0 text-slate-300" />
                                                         )}
@@ -196,7 +196,7 @@ export default function SitesIndex({ sites, types }: Props) {
 
                                                     {site.active_affectations_count > 0 && (
                                                         <div className="flex items-center gap-2">
-                                                            <CalendarRange className="size-3.5 shrink-0 text-aktivy" />
+                                                            <CalendarRange className="size-3.5 shrink-0 text-motriks" />
                                                             <span>
                                                                 {site.active_affectations_count} hôtesse{site.active_affectations_count > 1 ? 's' : ''} affectée
                                                                 {site.active_affectations_count > 1 ? 's' : ''}
@@ -219,7 +219,7 @@ export default function SitesIndex({ sites, types }: Props) {
                                                         href={showUrl}
                                                         title="Voir la fiche"
                                                         aria-label={`Voir ${site.name}`}
-                                                        className={`${iconBtn} hover:bg-green-50 hover:text-aktivy-deep`}
+                                                        className={`${iconBtn} hover:bg-green-50 hover:text-motriks-deep`}
                                                     >
                                                         <Eye className="size-4" />
                                                     </Link>
@@ -227,7 +227,7 @@ export default function SitesIndex({ sites, types }: Props) {
                                                         href={`${showUrl}?modifier=1`}
                                                         title="Modifier"
                                                         aria-label={`Modifier ${site.name}`}
-                                                        className={`${iconBtn} hover:bg-green-50 hover:text-aktivy-deep`}
+                                                        className={`${iconBtn} hover:bg-green-50 hover:text-motriks-deep`}
                                                     >
                                                         <Pencil className="size-4" />
                                                     </Link>

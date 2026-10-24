@@ -63,7 +63,7 @@ export function MetricStrip({ items }: { items: Metric[] }) {
                     <span className="text-xs font-medium text-slate-500">{m.label}</span>
                     <span className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-ink tabular-nums">
                         {m.value}
-                        {m.live && <span className="size-2 rounded-full bg-aktivy ring-4 ring-aktivy/15" />}
+                        {m.live && <span className="size-2 rounded-full bg-motriks ring-4 ring-motriks/15" />}
                     </span>
                     {m.sub && <span className="text-xs text-slate-400">{m.sub}</span>}
                 </div>

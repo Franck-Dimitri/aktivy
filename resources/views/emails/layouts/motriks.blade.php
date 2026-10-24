@@ -8,8 +8,6 @@
     <meta name="supported-color-schemes" content="light only">
     <title>@yield('title', config('app.name'))</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap');
-
         body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
         table { border-collapse: collapse; mso-table-lspace: 0; mso-table-rspace: 0; }
         img { border: 0; line-height: 100%; outline: none; text-decoration: none; }
@@ -42,7 +40,9 @@
                         <td style="padding:0 0 24px 0;">
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td width="36" height="36" align="center" valign="middle" style="width:36px; height:36px; background-color:#0f172a; border-radius:10px; color:#ffffff; font-size:18px; font-weight:700; font-family:'Montserrat', 'Segoe UI', Helvetica, Arial, sans-serif;">A</td>
+                                    <td width="36" height="36" valign="middle" style="width:36px; height:36px;">
+                                        <img src="{{ asset('images/logo-email.png') }}" width="36" height="36" alt="" style="display:block; width:36px; height:36px; border:0;">
+                                    </td>
                                     <td style="padding-left:10px; font-size:24px; font-weight:800; letter-spacing:-0.5px; color:#0f172a; font-family:'Montserrat', 'Segoe UI', Helvetica, Arial, sans-serif;">
                                         {{ config('app.name') }}<span style="color:#4FC031;">.</span>
                                     </td>

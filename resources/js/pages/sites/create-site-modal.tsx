@@ -19,7 +19,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
         <section className="grid gap-4">
             <div>
                 <h4 className="flex items-center gap-2 text-sm font-semibold text-ink">
-                    <span className="h-3.5 w-0.5 rounded-full bg-aktivy" aria-hidden="true" />
+                    <span className="h-3.5 w-0.5 rounded-full bg-motriks" aria-hidden="true" />
                     {title}
                 </h4>
                 {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}

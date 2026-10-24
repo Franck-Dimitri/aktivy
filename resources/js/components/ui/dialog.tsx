@@ -69,11 +69,11 @@ function DialogContent({
           aria-hidden="true"
           className={cn(
             "absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r to-transparent",
-            accent === "red" ? "from-red-500 via-red-400" : "from-aktivy via-green-400"
+            accent === "red" ? "from-red-500 via-red-400" : "from-motriks via-green-400"
           )}
         />
         {children}
-        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-full p-1.5 opacity-70 transition-colors hover:bg-green-50 hover:text-aktivy-deep hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-full p-1.5 opacity-70 transition-colors hover:bg-green-50 hover:text-motriks-deep hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
           <XIcon />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

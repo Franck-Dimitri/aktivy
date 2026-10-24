@@ -1,8 +1,10 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Building2 } from 'lucide-react';
 import { EmptyState } from '@/components/page/empty-state';
 import { Page, Panel } from '@/components/page/page';
+import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes/admin';
+import { index as onboardingIndex } from '@/routes/admin/onboarding';
 
 export default function AdminDashboard() {
     return (
@@ -18,6 +20,11 @@ export default function AdminDashboard() {
                         icon={Building2}
                         title="La liste des entreprises arrive bientôt"
                         description="Vous pourrez y suivre les inscriptions, suspendre ou réactiver un espace client."
+                        action={
+                            <Button asChild>
+                                <Link href={onboardingIndex()}>Traiter les demandes d’inscription</Link>
+                            </Button>
+                        }
                     />
                 </Panel>
             </Page>

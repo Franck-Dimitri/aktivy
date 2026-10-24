@@ -16,7 +16,7 @@ class PhoneNumberTest extends TestCase
 
     public function test_the_default_country_code_is_configurable()
     {
-        config(['aktivy.phone_country_code' => '221']);
+        config(['motriks.phone_country_code' => '221']);
 
         $this->assertSame('+221771234567', PhoneNumber::normalize('77 123 45 67'));
     }

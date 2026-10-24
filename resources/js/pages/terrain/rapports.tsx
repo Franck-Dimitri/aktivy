@@ -61,25 +61,25 @@ function ReportRow({ report, maxRevenue }: { report: Report; maxRevenue: number 
             {/* Barre de proportion revenue en arrière-plan */}
             {report.status === 'submitted' && report.total_revenue > 0 && (
                 <div
-                    className="pointer-events-none absolute inset-y-0 left-0 bg-aktivy/5 transition-[width] duration-700"
+                    className="pointer-events-none absolute inset-y-0 left-0 bg-motriks/5 transition-[width] duration-700"
                     style={{ width: `${pct}%` }}
                 />
             )}
 
             <Link
                 href={reportShow({ visit: report.visit_id }).url}
-                className="group relative flex items-center gap-4 px-5 py-4 transition-colors hover:bg-green-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:ring-inset"
+                className="group relative flex items-center gap-4 px-5 py-4 transition-colors hover:bg-green-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-inset"
             >
                 {/* Badge date */}
                 <div className={cn(
                     'flex size-11 shrink-0 flex-col items-center justify-center rounded-xl text-center ring-1 ring-inset transition-all duration-200',
                     report.status === 'submitted'
-                        ? 'bg-aktivy-soft ring-green-600/10 group-hover:bg-aktivy group-hover:ring-0'
+                        ? 'bg-motriks-soft ring-green-600/10 group-hover:bg-motriks group-hover:ring-0'
                         : 'bg-amber-50 ring-amber-200/60 group-hover:bg-amber-100',
                 )}>
                     <p className={cn(
                         'text-sm font-bold leading-none transition-colors',
-                        report.status === 'submitted' ? 'text-aktivy-deep group-hover:text-white' : 'text-amber-700',
+                        report.status === 'submitted' ? 'text-motriks-deep group-hover:text-white' : 'text-amber-700',
                     )}>
                         {day}
                     </p>
@@ -94,7 +94,7 @@ function ReportRow({ report, maxRevenue }: { report: Report; maxRevenue: number 
                 {/* Contenu */}
                 <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                        <p className="truncate text-sm font-semibold text-ink transition-colors group-hover:text-aktivy-deep">
+                        <p className="truncate text-sm font-semibold text-ink transition-colors group-hover:text-motriks-deep">
                             {new Date(report.report_date_iso + 'T00:00:00').toLocaleDateString('fr-FR', {
                                 weekday: 'short', day: 'numeric', month: 'long',
                             })} · {report.site_name}
@@ -113,7 +113,7 @@ function ReportRow({ report, maxRevenue }: { report: Report; maxRevenue: number 
                         <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                             <span className={cn(
                                 'flex items-center gap-1',
-                                report.total_revenue > 0 ? 'font-semibold text-aktivy-deep' : 'text-slate-400',
+                                report.total_revenue > 0 ? 'font-semibold text-motriks-deep' : 'text-slate-400',
                             )}>
                                 <BadgeDollarSign className="size-3.5" />
                                 {formatMoney(report.total_revenue)} FCFA
@@ -138,7 +138,7 @@ function ReportRow({ report, maxRevenue }: { report: Report; maxRevenue: number 
                     )}
                 </div>
 
-                <ChevronRight className="size-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-aktivy" />
+                <ChevronRight className="size-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-motriks" />
             </Link>
         </li>
     );
@@ -253,7 +253,7 @@ export default function TerrainRapports({ reports }: { reports: Report[] }) {
                                         </p>
                                         {monthRevenue > 0 ? (
                                             <div className="flex items-center gap-2">
-                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-aktivy-soft px-3 py-1 text-xs font-semibold text-aktivy-deep ring-1 ring-green-200/60">
+                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold text-motriks-deep ring-1 ring-green-200/60">
                                                     <TrendingUp className="size-3" />
                                                     {formatMoney(monthRevenue)} FCFA
                                                 </span>

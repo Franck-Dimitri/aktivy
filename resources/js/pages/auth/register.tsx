@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import { Building2, ChevronLeft, Mail, Phone, UserRound } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
@@ -7,6 +7,7 @@ import {
     AuthPasswordField,
     AuthPrimaryButton,
 } from '@/components/auth/auth-field';
+import { Seo } from '@/components/seo';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { login } from '@/routes';
@@ -49,7 +50,11 @@ export default function Register({ passwordRules }: Props) {
 
     return (
         <>
-            <Head title="Créer un espace entreprise" />
+            <Seo
+                title="Créer un espace entreprise - Motriks"
+                description="Créez gratuitement l'espace de votre entreprise sur Motriks et pilotez vos hôtesses, vos stocks et vos ventes terrain en temps réel."
+                path="/register"
+            />
 
             <ol className="mb-8 grid grid-cols-2 gap-2" aria-label="Étapes">
                 {steps.map((label, index) => (
@@ -61,7 +66,7 @@ export default function Register({ passwordRules }: Props) {
                         <span
                             className={cn(
                                 'h-1 rounded-full transition-colors duration-300',
-                                index <= step ? 'bg-aktivy' : 'bg-slate-200',
+                                index <= step ? 'bg-motriks' : 'bg-slate-200',
                             )}
                         />
                         <span
@@ -145,7 +150,7 @@ export default function Register({ passwordRules }: Props) {
                                 <button
                                     type="button"
                                     onClick={() => setStep(0)}
-                                    className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-aktivy-deep hover:bg-white focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                    className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-motriks-deep hover:bg-white focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                 >
                                     <ChevronLeft className="size-4" />
                                     Modifier

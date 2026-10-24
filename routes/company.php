@@ -3,6 +3,7 @@
 use App\Enums\Role;
 use App\Http\Controllers\Company\AffectationController;
 use App\Http\Controllers\Company\DashboardController;
+use App\Http\Controllers\Company\DataExportController;
 use App\Http\Controllers\Company\Events\EventActivateController;
 use App\Http\Controllers\Company\Events\EventController;
 use App\Http\Controllers\Company\Events\EventHostessController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Company\Events\EventPackController;
 use App\Http\Controllers\Company\Events\EventSiteController;
 use App\Http\Controllers\Company\PersonnelController;
 use App\Http\Controllers\Company\ProductController;
+use App\Http\Controllers\Company\ReportController;
 use App\Http\Controllers\Company\SiteController;
 use App\Http\Controllers\Company\SiteInventoryController;
 use App\Http\Controllers\Company\SitePhotoController;
@@ -20,6 +22,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor, Role::Accountant))
         ->group(function () {
             Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+            // Rapports de ventes et export Excel pour la comptabilité
+            Route::get('rapports', [ReportController::class, 'index'])->name('reports.index');
+            Route::get('rapports/export', [ReportController::class, 'export'])->name('reports.export');
+        });
+
+    // Export de toutes les données de l'entreprise (gérant uniquement)
+    Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin))
+        ->group(function () {
+            Route::get('mes-donnees', [DataExportController::class, 'show'])->name('company.data-export');
+            Route::get('mes-donnees/telecharger', [DataExportController::class, 'download'])
+                ->middleware('throttle:5,1')
+                ->name('company.data-export.download');
         });
 
     Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor))

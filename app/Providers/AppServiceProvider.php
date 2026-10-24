@@ -59,7 +59,7 @@ class AppServiceProvider extends ServiceProvider
     {
         VerifyEmail::toMailUsing(fn (User $user, string $url): MailMessage => (new MailMessage)
             ->subject('Confirmez votre adresse email — '.config('app.name'))
-            ->view('emails.verify-email', [
+            ->view(['emails.verify-email', 'emails.text.verify-email'], [
                 'user' => $user,
                 'url' => $url,
                 'expire' => config('auth.verification.expire', 60),

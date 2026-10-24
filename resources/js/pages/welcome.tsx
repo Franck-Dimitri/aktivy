@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { useState, useEffect, type FormEvent } from 'react';
 import { Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import MotriksMark from '@/components/motriks-mark';
 
 interface WelcomeProps {
     targetDate?: string;
@@ -88,9 +89,7 @@ export default function Welcome({ targetDate, appName = 'Motriks' }: WelcomeProp
                     <header className="max-w-6xl w-full mx-auto px-6 py-6 flex justify-between items-center">
                         {/* Logo avec touche #4FC031 */}
                         <div className="flex items-center gap-2.5">
-                            <div className="h-9 w-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                                A
-                            </div>
+                            <MotriksMark className="rounded-xl shadow-sm" />
                             <div className="flex items-baseline">
                                 <span className="font-extrabold text-2xl tracking-tight text-slate-900">{appName}</span>
                                 <span className="text-2xl font-black leading-none ml-0.5" style={{ color: '#4FC031' }}>.</span>

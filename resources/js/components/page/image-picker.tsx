@@ -79,8 +79,8 @@ export function ImagePicker({ file, currentUrl, removed = false, onChange, onRem
                         onDragLeave={() => setDragging(false)}
                         onDrop={(e) => { e.preventDefault(); setDragging(false); pick(e.dataTransfer.files?.[0]); }}
                         className={cn(
-                            'flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-10 text-slate-400 transition-colors focus-visible:ring-4 focus-visible:ring-aktivy/15 focus-visible:outline-none',
-                            dragging ? 'border-aktivy bg-aktivy-soft text-aktivy-deep' : 'border-slate-200 hover:border-aktivy hover:bg-aktivy-soft/40 hover:text-aktivy-deep',
+                            'flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-10 text-slate-400 transition-colors focus-visible:ring-4 focus-visible:ring-motriks/15 focus-visible:outline-none',
+                            dragging ? 'border-motriks bg-motriks-soft text-motriks-deep' : 'border-slate-200 hover:border-motriks hover:bg-motriks-soft/40 hover:text-motriks-deep',
                         )}
                     >
                         <span className="flex size-11 items-center justify-center rounded-full bg-slate-100">

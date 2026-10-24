@@ -60,9 +60,9 @@
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 
-    --color-aktivy: #16a34a;
-    --color-aktivy-deep: #15803d;
-    --color-aktivy-soft: #f0fdf4;
+    --color-motriks: #16a34a;
+    --color-motriks-deep: #15803d;
+    --color-motriks-soft: #f0fdf4;
     --color-ink: var(--ink);
 }
 

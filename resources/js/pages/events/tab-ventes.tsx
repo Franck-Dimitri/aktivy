@@ -76,7 +76,7 @@ export function TabVentes({ sales }: Props) {
                                     <div className="w-16 shrink-0">
                                         <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                                             <div
-                                                className="h-full rounded-full bg-aktivy transition-all"
+                                                className="h-full rounded-full bg-motriks transition-all"
                                                 style={{
                                                     width: `${sales.revenue > 0 ? Math.round((pdv.revenue / sales.revenue) * 100) : 0}%`,
                                                 }}

@@ -34,7 +34,7 @@ type Filter = 'all' | 'active' | 'inactive';
 const FALLBACK_UNITS = ['pièce', 'carton', 'kg', 'g', 'litre', 'ml', 'sachet', 'boîte', 'palette'];
 
 const iconBtn =
-    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none';
+    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 /* ───────────────────────── Carte produit ───────────────────────── */
 
@@ -45,7 +45,7 @@ function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; 
             <button
                 type="button"
                 onClick={onEdit}
-                className="flex flex-1 cursor-pointer flex-col text-left focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none focus-visible:ring-inset"
+                className="flex flex-1 cursor-pointer flex-col text-left focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
             >
                 {/* Image : jamais rognée. Les marges blanches des photos se fondent dans le fond (mix-blend-multiply). */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50">
@@ -61,7 +61,7 @@ function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; 
                         />
                     ) : (
                         <div className="flex h-full items-center justify-center">
-                            <div className="flex size-14 items-center justify-center rounded-2xl bg-white text-slate-300 shadow-sm ring-1 ring-slate-200/70 transition-colors group-hover:text-aktivy">
+                            <div className="flex size-14 items-center justify-center rounded-2xl bg-white text-slate-300 shadow-sm ring-1 ring-slate-200/70 transition-colors group-hover:text-motriks">
                                 <Package className="size-7" strokeWidth={1.5} />
                             </div>
                         </div>
@@ -76,7 +76,7 @@ function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; 
 
                 <div className="flex w-full flex-1 flex-col gap-3 border-t border-slate-100 p-5">
                     <div className="min-w-0">
-                        <h3 className="truncate text-[15px] font-semibold text-ink transition-colors group-hover:text-aktivy-deep">
+                        <h3 className="truncate text-[15px] font-semibold text-ink transition-colors group-hover:text-motriks-deep">
                             {product.name}
                         </h3>
                         {product.sku && <p className="mt-0.5 truncate font-mono text-xs text-slate-400">{product.sku}</p>}
@@ -105,11 +105,11 @@ function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; 
                 <span
                     className={cn(
                         'flex min-w-0 items-center gap-2 text-xs',
-                        product.sites_count > 0 ? 'font-medium text-aktivy-deep' : 'text-slate-400',
+                        product.sites_count > 0 ? 'font-medium text-motriks-deep' : 'text-slate-400',
                     )}
                 >
                     {product.sites_count > 0 ? (
-                        <span className="size-1.5 shrink-0 rounded-full bg-aktivy" />
+                        <span className="size-1.5 shrink-0 rounded-full bg-motriks" />
                     ) : (
                         <Store className="size-3.5 shrink-0" />
                     )}
@@ -126,7 +126,7 @@ function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; 
                         onClick={onEdit}
                         title="Modifier"
                         aria-label={`Modifier ${product.name}`}
-                        className={cn(iconBtn, 'hover:bg-green-50 hover:text-aktivy-deep')}
+                        className={cn(iconBtn, 'hover:bg-green-50 hover:text-motriks-deep')}
                     >
                         <Pencil className="size-[18px]" />
                     </button>
@@ -151,7 +151,7 @@ const MAX_IMAGE_MB = 3;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const photoBtn =
-    'inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none';
+    'inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 type PhotoFieldProps = {
     file: File | null;
@@ -258,13 +258,13 @@ function PhotoField({ file, currentUrl, removed, onChange, onRemoveCurrent, onRe
                         onDragLeave={() => setDragging(false)}
                         onDrop={onDrop}
                         className={cn(
-                            'flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none',
+                            'flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-4 text-center transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                             dragging
-                                ? 'border-aktivy bg-green-50'
+                                ? 'border-motriks bg-green-50'
                                 : 'border-slate-200 bg-slate-50/60 hover:border-green-400 hover:bg-green-50/50',
                         )}
                     >
-                        <span className="flex size-11 items-center justify-center rounded-xl bg-white text-aktivy shadow-sm ring-1 ring-slate-200/70">
+                        <span className="flex size-11 items-center justify-center rounded-xl bg-white text-motriks shadow-sm ring-1 ring-slate-200/70">
                             <ImagePlus className="size-5" />
                         </span>
                         <span>
@@ -281,7 +281,7 @@ function PhotoField({ file, currentUrl, removed, onChange, onRemoveCurrent, onRe
                             <button
                                 type="button"
                                 onClick={onRestore}
-                                className="shrink-0 font-semibold underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                className="shrink-0 font-semibold underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                             >
                                 Annuler
                             </button>
@@ -373,7 +373,7 @@ function CreateProductDialog({ units, onClose }: CreateDialogProps) {
                                     onChange={(e) => setData('price', e.target.value)}
                                     placeholder="0"
                                     error={errors.price}
-                                    trailing={<span className="text-xs font-semibold text-aktivy/70">FCFA</span>}
+                                    trailing={<span className="text-xs font-semibold text-motriks/70">FCFA</span>}
                                 />
                             </Field>
 
@@ -695,7 +695,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                                     <button
                                         type="button"
                                         onClick={resetFilters}
-                                        className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                        className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                     >
                                         <X className="size-3.5" />
                                         Réinitialiser
@@ -713,12 +713,12 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                                                 onClick={() => setFilter(f.value)}
                                                 aria-pressed={active}
                                                 className={cn(
-                                                    'inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none',
+                                                    'inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                                     active ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
                                                 )}
                                             >
                                                 {f.label}
-                                                <span className={cn('tabular-nums', active ? 'text-aktivy-deep' : 'text-slate-400')}>{f.count}</span>
+                                                <span className={cn('tabular-nums', active ? 'text-motriks-deep' : 'text-slate-400')}>{f.count}</span>
                                             </button>
                                         );
                                     })}
@@ -736,7 +736,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                                         <button
                                             type="button"
                                             onClick={resetFilters}
-                                            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                         >
                                             Réinitialiser les filtres
                                         </button>

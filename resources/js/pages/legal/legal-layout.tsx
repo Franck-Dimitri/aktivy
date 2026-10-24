@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import LandingFooter from '@/components/landing/footer';
+import { Seo } from '@/components/seo';
+import MotriksMark from '@/components/motriks-mark';
 
 /* ------------------------------------------------------------------ */
 /*  Informations légales : à compléter UNE seule fois ici               */
@@ -66,6 +68,7 @@ export default function LegalLayout({
     otherLink: { href: string; label: string };
     paymentLogos?: PaymentLogo[];
 }) {
+    const path = usePage().url.split(/[?#]/)[0];
     const [current, setCurrent] = useState(sections[0]?.id ?? '');
 
     // met en évidence, dans le sommaire, la partie en cours de lecture
@@ -91,17 +94,14 @@ export default function LegalLayout({
 
     return (
         <>
-            <Head title={`${title} - ${LEGAL_INFO.product}`}>
-                <meta name="description" content={metaDescription} />
-                <meta name="robots" content="index,follow" />
-            </Head>
+            <Seo title={`${title} - ${LEGAL_INFO.product}`} description={metaDescription} path={path} />
 
             <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
                 {/* en-tête */}
                 <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
                         <Link href={LEGAL_INFO.homeUrl} className="flex items-center gap-2.5">
-                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-lg font-extrabold text-white">M</span>
+                            <MotriksMark />
                             <span className="text-xl font-extrabold tracking-tight text-slate-900">{LEGAL_INFO.product}</span>
                         </Link>
                         <Link

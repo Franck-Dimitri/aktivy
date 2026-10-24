@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import LandingFooter from '@/components/landing/footer';
+import { Seo } from '@/components/seo';
+import MotriksMark from '@/components/motriks-mark';
 
 /* ------------------------------------------------------------------ */
 /*  Contenu modifiable                                                 */
@@ -8,7 +10,7 @@ import LandingFooter from '@/components/landing/footer';
 
 /* Coordonnées : remplacez le numéro WhatsApp par le vrai (format international, sans + ni espaces) */
 const CONTACT = {
-    email: 'contact@aktivy.com',
+    email: 'contact@motriks.com',
     whatsapp: '237000000000',
 };
 
@@ -169,13 +171,11 @@ function Cross({ className = 'h-5 w-5 text-red-400' }: { className?: string }) {
     );
 }
 
-/* Logo : carré bleu nuit avec un A blanc. Remplacez par <img src="/logo.png"> si besoin. */
+/* Logo : carré bleu nuit avec un M blanc. Remplacez par <img src="/logo.png"> si besoin. */
 function Logo({ light = false }: { light?: boolean }) {
     return (
         <Link href="/" className="flex items-center gap-2.5">
-            <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg font-extrabold ${light ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
-                A
-            </span>
+            <MotriksMark />
             <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>
                 Motriks
             </span>
@@ -605,7 +605,7 @@ function HeroDashboard() {
             <div className="flex">
                 <aside className="hidden w-56 shrink-0 border-r border-slate-100 bg-slate-50/80 p-5 sm:block">
                     <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white">A</span>
+                        <MotriksMark className="size-9 rounded-full" />
                         <p className="text-sm font-semibold leading-tight text-slate-900">
                             Motriks
                             <span className="block text-xs font-normal text-slate-500">Démo Distribution</span>
@@ -863,7 +863,7 @@ function AssistantDemo() {
         >
             {/* en-tête */}
             <div className="flex items-center gap-3 border-b border-slate-700/80 px-5 py-4">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-base font-extrabold text-white">A</span>
+                <MotriksMark className="size-10 rounded-full" />
                 <div className="leading-tight">
                     <p className="text-sm font-semibold text-white">Assistant Motriks</p>
                     <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400">
@@ -889,7 +889,7 @@ function AssistantDemo() {
                         </div>
                     ) : (
                         <div key={m.id} className="flex max-w-[92%] items-start gap-2.5">
-                            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-500 text-[11px] font-extrabold text-white">A</span>
+                            <MotriksMark className="mt-0.5 size-7 rounded-full" />
                             <div className="min-w-0 flex-1">
                                 <div className="w-fit rounded-2xl rounded-tl-md bg-slate-700/80 px-4 py-2.5 text-sm leading-relaxed text-slate-100">
                                     {m.text}
@@ -903,7 +903,7 @@ function AssistantDemo() {
 
                 {typing && (
                     <div className="flex items-start gap-2.5">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-500 text-[11px] font-extrabold text-white">A</span>
+                        <MotriksMark className="size-7 rounded-full" />
                         <div className="flex gap-1.5 rounded-2xl rounded-tl-md bg-slate-700/80 px-4 py-3.5">
                             {[0, 1, 2].map((d) => (
                                 <span
@@ -944,6 +944,48 @@ function AssistantDemo() {
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
+
+/* Données structurées schema.org : l'éditeur, le site, le logiciel et la FAQ */
+const LANDING_JSON_LD = {
+    '@context': 'https://schema.org',
+    '@graph': [
+        {
+            '@type': 'Organization',
+            '@id': 'https://motriks.com/#organization',
+            name: 'Motriks',
+            url: 'https://motriks.com',
+            logo: 'https://motriks.com/icon-512.png',
+            email: 'contact@motriks.com',
+        },
+        {
+            '@type': 'WebSite',
+            '@id': 'https://motriks.com/#website',
+            name: 'Motriks',
+            url: 'https://motriks.com',
+            inLanguage: 'fr',
+            publisher: { '@id': 'https://motriks.com/#organization' },
+        },
+        {
+            '@type': 'SoftwareApplication',
+            name: 'Motriks',
+            url: 'https://motriks.com',
+            applicationCategory: 'BusinessApplication',
+            operatingSystem: 'Web',
+            inLanguage: 'fr',
+            description: "Plateforme de gestion d'équipes terrain : suivi des hôtesses, stocks, présences, rapports PDF et intelligence artificielle.",
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'XAF', name: 'Offre gratuite' },
+            publisher: { '@id': 'https://motriks.com/#organization' },
+        },
+        {
+            '@type': 'FAQPage',
+            mainEntity: FAQS.map((f) => ({
+                '@type': 'Question',
+                name: f.q,
+                acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
+        },
+    ],
+};
 
 export default function Landing({ paymentLogos }: { paymentLogos?: { name: string; url: string }[] }) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -991,12 +1033,12 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
 
     return (
         <>
-            <Head title="Motriks - Pilotez vos équipes terrain en temps réel">
-                <meta
-                    name="description"
-                    content="Motriks est la plateforme de gestion d'équipes terrain : suivi des hôtesses, stocks, présences, rapports PDF et intelligence artificielle."
-                />
-            </Head>
+            <Seo
+                title="Motriks - Pilotez vos équipes terrain en temps réel"
+                description="Motriks est la plateforme de gestion d'équipes terrain : suivi des hôtesses, stocks, présences, rapports PDF et intelligence artificielle."
+                path="/"
+                jsonLd={LANDING_JSON_LD}
+            />
 
             <div className="min-h-screen scroll-smooth bg-white font-sans text-slate-900 antialiased">
                 <style>{REVEAL_CSS}</style>

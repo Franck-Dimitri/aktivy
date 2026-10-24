@@ -89,11 +89,11 @@ function ProductSaleCard({ line, rank }: { line: SaleLine; rank: number }) {
     return (
         <div className={cn(
             'relative flex flex-col overflow-hidden rounded-2xl ring-1 transition-all hover:shadow-sm',
-            rank === 0 ? 'bg-aktivy-soft ring-green-200' : 'bg-white ring-slate-100',
+            rank === 0 ? 'bg-motriks-soft ring-green-200' : 'bg-white ring-slate-100',
         )}>
             {/* Badge rang #1 */}
             {rank === 0 && (
-                <span className="absolute right-2.5 top-2.5 z-10 flex size-6 items-center justify-center rounded-full bg-aktivy text-white shadow-sm">
+                <span className="absolute right-2.5 top-2.5 z-10 flex size-6 items-center justify-center rounded-full bg-motriks text-white shadow-sm">
                     <Star className="size-3.5 fill-white" />
                 </span>
             )}
@@ -142,7 +142,7 @@ function ProductSaleCard({ line, rank }: { line: SaleLine; rank: number }) {
                         <div className="text-right">
                             <p className={cn(
                                 'text-base font-bold tabular-nums',
-                                rank === 0 ? 'text-aktivy-deep' : 'text-slate-700',
+                                rank === 0 ? 'text-motriks-deep' : 'text-slate-700',
                             )}>
                                 {formatMoney(line.revenue)}
                             </p>
@@ -177,24 +177,24 @@ function DayCard({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: boo
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
-                className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-green-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:ring-inset"
+                className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-green-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-inset"
             >
                 {/* Badge date */}
                 <div className={cn(
                     'flex size-12 shrink-0 flex-col items-center justify-center rounded-2xl text-center ring-1 ring-inset transition-all',
                     day.total_revenue > 0
-                        ? 'bg-aktivy-soft ring-green-600/10'
+                        ? 'bg-motriks-soft ring-green-600/10'
                         : 'bg-slate-50 ring-slate-200',
                 )}>
                     <p className={cn(
                         'text-base font-extrabold leading-none',
-                        day.total_revenue > 0 ? 'text-aktivy-deep' : 'text-slate-400',
+                        day.total_revenue > 0 ? 'text-motriks-deep' : 'text-slate-400',
                     )}>
                         {dayNum}
                     </p>
                     <p className={cn(
                         'mt-0.5 text-[10px] font-medium capitalize',
-                        day.total_revenue > 0 ? 'text-aktivy' : 'text-slate-400',
+                        day.total_revenue > 0 ? 'text-motriks' : 'text-slate-400',
                     )}>
                         {weekday}
                     </p>
@@ -215,7 +215,7 @@ function DayCard({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: boo
                         <div className="flex shrink-0 flex-col items-end gap-1">
                             <p className={cn(
                                 'text-base font-bold tabular-nums',
-                                day.total_revenue > 0 ? 'text-aktivy-deep' : 'text-slate-300',
+                                day.total_revenue > 0 ? 'text-motriks-deep' : 'text-slate-300',
                             )}>
                                 {formatMoney(day.total_revenue)}
                                 <span className="ml-0.5 text-xs font-medium text-slate-400">FCFA</span>
@@ -250,7 +250,7 @@ function DayCard({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: boo
                 {/* Chevron */}
                 <span className={cn(
                     'flex size-7 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-all duration-200',
-                    open && 'border-green-200 bg-aktivy-soft text-aktivy-deep rotate-180',
+                    open && 'border-green-200 bg-motriks-soft text-motriks-deep rotate-180',
                 )}>
                     <ChevronDown className="size-3.5" />
                 </span>
@@ -299,7 +299,7 @@ function DayCard({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: boo
                     {/* Lien vers le rapport */}
                     <a
                         href={reportShow({ visit: day.visit_id }).url}
-                        className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-400 transition-colors hover:text-aktivy-deep"
+                        className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-400 transition-colors hover:text-motriks-deep"
                     >
                         <ClipboardList className="size-3.5" />
                         Voir le rapport complet
@@ -324,7 +324,7 @@ function MonthBlock({ month }: { month: MonthGroup }) {
                 <button
                     type="button"
                     onClick={() => setCollapsed(!collapsed)}
-                    className="w-full p-5 text-left transition-colors hover:bg-green-50/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:ring-inset"
+                    className="w-full p-5 text-left transition-colors hover:bg-green-50/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-inset"
                 >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         {/* Info mois */}
@@ -340,7 +340,7 @@ function MonthBlock({ month }: { month: MonthGroup }) {
                         <div className="flex items-center gap-4">
                             {/* CA mois */}
                             <div className="text-right">
-                                <p className="text-2xl font-extrabold tabular-nums text-aktivy-deep">
+                                <p className="text-2xl font-extrabold tabular-nums text-motriks-deep">
                                     {formatMoney(month.revenue)}
                                 </p>
                                 <p className="text-xs text-slate-400">FCFA ce mois</p>
@@ -348,7 +348,7 @@ function MonthBlock({ month }: { month: MonthGroup }) {
 
                             <span className={cn(
                                 'flex size-8 items-center justify-center rounded-xl border border-slate-200 text-slate-400 transition-all duration-200',
-                                !collapsed ? 'border-green-200 bg-aktivy-soft text-aktivy-deep rotate-180' : '',
+                                !collapsed ? 'border-green-200 bg-motriks-soft text-motriks-deep rotate-180' : '',
                             )}>
                                 <ChevronDown className="size-4" />
                             </span>
@@ -377,7 +377,7 @@ function MonthBlock({ month }: { month: MonthGroup }) {
                                                     <div
                                                         className={cn(
                                                             'h-full rounded-full',
-                                                            i === 0 ? 'bg-aktivy' : 'bg-aktivy/50',
+                                                            i === 0 ? 'bg-motriks' : 'bg-motriks/50',
                                                         )}
                                                         style={{ width: `${pct}%` }}
                                                     />
@@ -488,13 +488,13 @@ export default function TerrainVentes({ summary, months }: Props) {
                                             className="size-16 rounded-2xl object-cover shadow-sm ring-1 ring-slate-100"
                                         />
                                     ) : (
-                                        <div className="flex size-16 items-center justify-center rounded-2xl bg-aktivy-soft ring-1 ring-green-200">
-                                            <Star className="size-7 fill-aktivy text-aktivy" />
+                                        <div className="flex size-16 items-center justify-center rounded-2xl bg-motriks-soft ring-1 ring-green-200">
+                                            <Star className="size-7 fill-motriks text-motriks" />
                                         </div>
                                     )}
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2">
-                                            <p className="text-xs font-semibold uppercase tracking-wide text-aktivy">
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-motriks">
                                                 Produit star
                                             </p>
                                         </div>
@@ -502,7 +502,7 @@ export default function TerrainVentes({ summary, months }: Props) {
                                             {summary.best_product.name}
                                         </p>
                                         <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm">
-                                            <span className="flex items-center gap-1.5 font-semibold text-aktivy-deep">
+                                            <span className="flex items-center gap-1.5 font-semibold text-motriks-deep">
                                                 <BadgeDollarSign className="size-3.5" />
                                                 {formatMoney(summary.best_product.revenue)} FCFA
                                             </span>
@@ -513,7 +513,7 @@ export default function TerrainVentes({ summary, months }: Props) {
                                             </span>
                                         </div>
                                     </div>
-                                    <TrendingUp className="size-8 shrink-0 text-aktivy opacity-20" />
+                                    <TrendingUp className="size-8 shrink-0 text-motriks opacity-20" />
                                 </div>
                             </GlowCard>
                         )}
@@ -527,7 +527,7 @@ export default function TerrainVentes({ summary, months }: Props) {
                                     className={cn(
                                         'h-8 rounded-xl px-4 text-sm font-medium transition-all',
                                         filter === 'all'
-                                            ? 'bg-aktivy text-white shadow-sm shadow-aktivy/25'
+                                            ? 'bg-motriks text-white shadow-sm shadow-motriks/25'
                                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
                                     )}
                                 >
@@ -541,7 +541,7 @@ export default function TerrainVentes({ summary, months }: Props) {
                                         className={cn(
                                             'h-8 rounded-xl px-4 text-sm font-medium capitalize transition-all',
                                             filter === key
-                                                ? 'bg-aktivy text-white shadow-sm shadow-aktivy/25'
+                                                ? 'bg-motriks text-white shadow-sm shadow-motriks/25'
                                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
                                         )}
                                     >

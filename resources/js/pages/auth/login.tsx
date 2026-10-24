@@ -130,7 +130,7 @@ export default function Login({ status, canResetPassword, isDev }: Props) {
                             {canResetPassword && (
                                 <Link
                                     href={request()}
-                                    className="text-sm font-semibold text-aktivy-deep underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
+                                    className="text-sm font-semibold text-motriks-deep underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
                                 >
                                     Mot de passe oublié ?
                                 </Link>

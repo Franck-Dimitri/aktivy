@@ -1,4 +1,4 @@
-# Comptes de test — Aktivy
+# Comptes de test — Motriks
 
 URL locale : **http://localhost:8000**  
 Page de connexion : **http://localhost:8000/login**
@@ -39,7 +39,7 @@ Page de connexion : **http://localhost:8000/login**
 | Champ    | Valeur              |
 |----------|---------------------|
 | Rôle     | `super_admin`       |
-| E-mail   | admin@aktivy.test   |
+| E-mail   | admin@motriks.test   |
 | Mot de passe | password        |
 
 ---

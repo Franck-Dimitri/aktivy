@@ -98,7 +98,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                             onClick={() => setMetric(m)}
                             aria-pressed={metric === m}
                             className={cn(
-                                'h-7 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none',
+                                'h-7 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                 metric === m ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
                             )}
                         >
@@ -131,7 +131,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                 {active !== null && points[active] && (
                     <>
                         <span
-                            className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-2 ring-aktivy shadow"
+                            className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-2 ring-motriks shadow"
                             style={{ left: `${points[active].x}%`, top: `${points[active].y}%` }}
                         />
                         <div
@@ -184,7 +184,7 @@ function CompareCard({ label, current, previous, formatter, icon: Icon }: {
                 {pct !== null && (
                     <span className={cn(
                         'inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
-                        positive ? 'bg-green-100 text-aktivy-deep' : 'bg-red-50 text-red-700',
+                        positive ? 'bg-green-100 text-motriks-deep' : 'bg-red-50 text-red-700',
                     )}>
                         {positive ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
                         {pct > 0 ? '+' : ''}{pct}%
@@ -269,7 +269,7 @@ export default function TerrainStats({ stats, trend, top_products }: Props) {
                             </div>
                             <div className="grid grid-cols-2 gap-5">
                                 <div className="flex flex-col">
-                                    <div className="flex size-10 items-center justify-center rounded-xl bg-aktivy-soft text-aktivy">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-motriks-soft text-motriks">
                                         <CalendarCheck className="size-5" />
                                     </div>
                                     <p className="mt-3 text-3xl font-bold tracking-tight text-ink tabular-nums">
@@ -278,7 +278,7 @@ export default function TerrainStats({ stats, trend, top_products }: Props) {
                                     <p className="mt-0.5 text-xs text-slate-500">Visites totales</p>
                                 </div>
                                 <div className="flex flex-col">
-                                    <div className="flex size-10 items-center justify-center rounded-xl bg-aktivy-soft text-aktivy">
+                                    <div className="flex size-10 items-center justify-center rounded-xl bg-motriks-soft text-motriks">
                                         <ClipboardCheck className="size-5" />
                                     </div>
                                     <p className="mt-3 text-3xl font-bold tracking-tight text-ink tabular-nums">
@@ -348,15 +348,15 @@ export default function TerrainStats({ stats, trend, top_products }: Props) {
                                     return (
                                         <li key={p.product_name} className={cn(
                                             'flex items-center gap-4 px-6 py-4 transition-colors',
-                                            isFirst ? 'bg-aktivy-soft/50 hover:bg-aktivy-soft' : 'hover:bg-green-50/40',
+                                            isFirst ? 'bg-motriks-soft/50 hover:bg-motriks-soft' : 'hover:bg-green-50/40',
                                         )}>
                                             {/* Rang */}
                                             <span className={cn(
                                                 'flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold ring-1 ring-inset',
                                                 isFirst
-                                                    ? 'bg-aktivy text-white ring-0 shadow-sm shadow-green-500/30'
+                                                    ? 'bg-motriks text-white ring-0 shadow-sm shadow-green-500/30'
                                                     : i === 1
-                                                        ? 'bg-green-100 text-aktivy-deep ring-green-600/10'
+                                                        ? 'bg-green-100 text-motriks-deep ring-green-600/10'
                                                         : 'bg-slate-50 text-slate-500 ring-slate-200',
                                             )}>
                                                 {i + 1}
@@ -367,13 +367,13 @@ export default function TerrainStats({ stats, trend, top_products }: Props) {
                                                 <div className="flex items-center justify-between gap-2">
                                                     <p className={cn(
                                                         'truncate text-sm font-semibold',
-                                                        isFirst ? 'text-aktivy-deep' : 'text-ink',
+                                                        isFirst ? 'text-motriks-deep' : 'text-ink',
                                                     )}>
                                                         {p.product_name}
                                                     </p>
                                                     <p className={cn(
                                                         'shrink-0 text-sm font-bold tabular-nums',
-                                                        isFirst ? 'text-aktivy-deep' : 'text-slate-700',
+                                                        isFirst ? 'text-motriks-deep' : 'text-slate-700',
                                                     )}>
                                                         {formatMoney(p.revenue) + ' FCFA'}
                                                     </p>
@@ -384,7 +384,7 @@ export default function TerrainStats({ stats, trend, top_products }: Props) {
                                                         <div
                                                             className={cn(
                                                                 'h-full rounded-full transition-[width] duration-700',
-                                                                isFirst ? 'bg-aktivy' : 'bg-aktivy/60',
+                                                                isFirst ? 'bg-motriks' : 'bg-motriks/60',
                                                             )}
                                                             style={{ width: `${pct}%` }}
                                                         />

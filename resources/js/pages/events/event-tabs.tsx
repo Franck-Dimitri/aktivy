@@ -35,7 +35,7 @@ export function EventTabs({ active, onChange, counts }: Props) {
                         {count !== undefined && count > 0 && (
                             <span className={cn(
                                 'flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-semibold',
-                                active === t.id ? 'bg-aktivy text-white' : 'bg-slate-200 text-slate-500',
+                                active === t.id ? 'bg-motriks text-white' : 'bg-slate-200 text-slate-500',
                             )}>
                                 {count}
                             </span>

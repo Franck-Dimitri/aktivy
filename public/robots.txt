@@ -1,2 +1,17 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /onboarding
+Disallow: /terrain
+Disallow: /settings
+Disallow: /sites
+Disallow: /personnel
+Disallow: /affectations
+Disallow: /products
+Disallow: /events
+Disallow: /email/
+Disallow: /reset-password/
+Disallow: /password/
+
+Sitemap: https://motriks.com/sitemap.xml

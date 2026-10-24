@@ -19,7 +19,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
         <section className="grid gap-4">
             <div>
                 <h4 className="flex items-center gap-2 text-sm font-semibold text-ink">
-                    <span className="h-3.5 w-0.5 rounded-full bg-aktivy" aria-hidden="true" />
+                    <span className="h-3.5 w-0.5 rounded-full bg-motriks" aria-hidden="true" />
                     {title}
                 </h4>
                 {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
@@ -62,7 +62,7 @@ export function CreateMemberModal({ roles, onClose }: Props) {
         <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="flex size-7 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-green-50 hover:text-aktivy-deep"
+            className="flex size-7 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-green-50 hover:text-motriks-deep"
             aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
             tabIndex={-1}
         >

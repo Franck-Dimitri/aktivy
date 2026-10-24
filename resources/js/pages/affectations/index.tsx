@@ -55,7 +55,7 @@ const roleShort: Record<string, string> = {
 
 const avatarTone: Record<string, string> = {
     field_agent:
-        'from-green-50 to-green-100 text-aktivy-deep ring-green-600/10 group-hover:from-green-500 group-hover:to-green-600 group-hover:shadow-green-600/30',
+        'from-green-50 to-green-100 text-motriks-deep ring-green-600/10 group-hover:from-green-500 group-hover:to-green-600 group-hover:shadow-green-600/30',
     supervisor:
         'from-blue-50 to-blue-100 text-blue-700 ring-blue-600/10 group-hover:from-blue-500 group-hover:to-blue-600 group-hover:shadow-blue-600/30',
     accountant:
@@ -63,7 +63,7 @@ const avatarTone: Record<string, string> = {
 };
 
 const iconBtn =
-    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none';
+    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 function initials(name: string) {
     return name
@@ -101,7 +101,7 @@ function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void;
                     <div className="min-w-0 flex-1">
                         <Link
                             href={personnelShow({ personnel: a.agent_id }).url}
-                            className="block truncate text-base font-semibold text-ink transition-colors hover:text-aktivy-deep focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                            className="block truncate text-base font-semibold text-ink transition-colors hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                         >
                             {a.agent_name}
                         </Link>
@@ -116,9 +116,9 @@ function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void;
                 {/* Site */}
                 <Link
                     href={siteShow({ site: a.site_id }).url}
-                    className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-3 transition-colors hover:bg-green-50 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                    className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-3 transition-colors hover:bg-green-50 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                 >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-aktivy shadow-sm ring-1 ring-slate-200/70">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-motriks shadow-sm ring-1 ring-slate-200/70">
                         <Store className="size-4" />
                     </span>
                     <span className="min-w-0">
@@ -154,7 +154,7 @@ function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void;
 
             {/* Pied de carte */}
             <div className="flex items-center justify-between gap-2 border-t border-slate-100 py-2.5 pr-3 pl-5">
-                <span className={cn('flex items-center gap-2 text-xs', a.is_current ? 'font-medium text-aktivy-deep' : 'text-slate-400')}>
+                <span className={cn('flex items-center gap-2 text-xs', a.is_current ? 'font-medium text-motriks-deep' : 'text-slate-400')}>
                     {a.is_current ? (
                         <span className="relative flex size-2">
                             <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60 motion-reduce:animate-none" />
@@ -172,7 +172,7 @@ function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void;
                         onClick={onEdit}
                         title="Modifier"
                         aria-label={`Modifier l'affectation de ${a.agent_name}`}
-                        className={cn(iconBtn, 'hover:bg-green-50 hover:text-aktivy-deep')}
+                        className={cn(iconBtn, 'hover:bg-green-50 hover:text-motriks-deep')}
                     >
                         <Pencil className="size-[18px]" />
                     </button>
@@ -198,7 +198,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
         <section className="grid gap-4">
             <div>
                 <h4 className="flex items-center gap-2 text-sm font-semibold text-ink">
-                    <span className="h-3.5 w-0.5 rounded-full bg-aktivy" aria-hidden="true" />
+                    <span className="h-3.5 w-0.5 rounded-full bg-motriks" aria-hidden="true" />
                     {title}
                 </h4>
                 {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
@@ -663,7 +663,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                     <button
                                         type="button"
                                         onClick={resetFilters}
-                                        className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                        className="inline-flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                     >
                                         <X className="size-3.5" />
                                         Réinitialiser
@@ -675,15 +675,15 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                     onClick={() => setCurrentOnly((v) => !v)}
                                     aria-pressed={currentOnly}
                                     className={cn(
-                                        'inline-flex h-10 items-center gap-2 rounded-xl border px-3.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none',
+                                        'inline-flex h-10 items-center gap-2 rounded-xl border px-3.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                         currentOnly
-                                            ? 'border-green-600/30 bg-green-50 text-aktivy-deep'
+                                            ? 'border-green-600/30 bg-green-50 text-motriks-deep'
                                             : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50',
                                     )}
                                 >
-                                    <span className={cn('size-2 rounded-full', currentOnly ? 'bg-aktivy' : 'bg-slate-300')} />
+                                    <span className={cn('size-2 rounded-full', currentOnly ? 'bg-motriks' : 'bg-slate-300')} />
                                     En poste
-                                    <span className={cn('tabular-nums', currentOnly ? 'text-aktivy-deep/70' : 'text-slate-400')}>{stats.current}</span>
+                                    <span className={cn('tabular-nums', currentOnly ? 'text-motriks-deep/70' : 'text-slate-400')}>{stats.current}</span>
                                 </button>
 
                                 <div role="group" aria-label="Filtrer par statut" className="inline-flex rounded-xl bg-slate-100 p-1">
@@ -697,12 +697,12 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                                 onClick={() => setFilter(f.value)}
                                                 aria-pressed={active}
                                                 className={cn(
-                                                    'inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none',
+                                                    'inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                                     active ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
                                                 )}
                                             >
                                                 {f.label}
-                                                <span className={cn('tabular-nums', active ? 'text-aktivy-deep' : 'text-slate-400')}>{f.count}</span>
+                                                <span className={cn('tabular-nums', active ? 'text-motriks-deep' : 'text-slate-400')}>{f.count}</span>
                                             </button>
                                         );
                                     })}
@@ -720,7 +720,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                         <button
                                             type="button"
                                             onClick={resetFilters}
-                                            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                                            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                         >
                                             Réinitialiser les filtres
                                         </button>

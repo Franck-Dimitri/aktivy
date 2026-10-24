@@ -10,10 +10,12 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { menuFor, roleLabels } from '@/lib/navigation';
 import { show as onboardingShow } from '@/routes/onboarding';
 import type { MenuGroup } from '@/types';
+import MotriksMark from '@/components/motriks-mark';
 
 function companyInitials(name: string): string {
     return name
@@ -39,6 +41,7 @@ function pendingMenu(normalGroups: MenuGroup[]): MenuGroup[] {
 
 export function AppSidebar() {
     const { auth } = usePage().props;
+    const { isMobile, setOpenMobile } = useSidebar();
     const isPending = auth.company?.status === 'pending' || auth.company?.status === 'rejected';
     const normalGroups = menuFor(auth.user.role);
     const groups = isPending ? pendingMenu(normalGroups) : normalGroups;
@@ -58,10 +61,8 @@ export function AppSidebar() {
                                 asChild
                                 className="h-auto rounded-xl p-2 hover:bg-white/10 active:bg-white/10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center"
                             >
-                                <Link href={home} prefetch>
-                                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-[13px] font-black text-green-700 shadow shadow-green-950/20">
-                                        M
-                                    </span>
+                                <Link href={home} prefetch onClick={() => isMobile && setOpenMobile(false)}>
+                                    <MotriksMark className="size-8 rounded-lg shadow shadow-green-950/20" />
                                     <span className="text-[18px] font-extrabold tracking-tight text-white group-data-[collapsible=icon]:hidden">
                                         Motriks<span className="text-green-300">.</span>
                                     </span>

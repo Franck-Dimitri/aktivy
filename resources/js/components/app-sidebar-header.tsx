@@ -60,7 +60,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
 
                 <button
                     type="button"
-                    className="flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-aktivy/40 focus-visible:outline-none"
+                    className="flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks/40 focus-visible:outline-none"
                     aria-label="Notifications"
                 >
                     <Bell className="size-[18px]" />
@@ -71,7 +71,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                         <DropdownMenuTrigger asChild>
                             <button
                                 type="button"
-                                className="flex size-9 items-center justify-center rounded-full bg-aktivy text-xs font-bold text-white shadow-sm shadow-green-600/25 ring-2 ring-transparent ring-offset-2 transition-all hover:ring-aktivy/30 focus-visible:ring-aktivy focus-visible:outline-none"
+                                className="flex size-9 items-center justify-center rounded-full bg-motriks text-xs font-bold text-white shadow-sm shadow-green-600/25 ring-2 ring-transparent ring-offset-2 transition-all hover:ring-motriks/30 focus-visible:ring-motriks focus-visible:outline-none"
                                 aria-label="Mon compte"
                             >
                                 {initials(auth.user.name)}
@@ -81,7 +81,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                         <DropdownMenuContent align="end" className="w-60 rounded-2xl p-1.5">
                             <DropdownMenuLabel className="p-0">
                                 <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-                                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-aktivy text-sm font-bold text-white">
+                                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-motriks text-sm font-bold text-white">
                                         {initials(auth.user.name)}
                                     </div>
                                     <div className="min-w-0">

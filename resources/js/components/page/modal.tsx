@@ -44,11 +44,11 @@ export function Modal({ onClose, title, description, size = 'md', icon, children
                 className={`flex max-h-[92vh] w-full ${size === 'lg' ? 'max-w-2xl' : 'max-w-lg'} flex-col overflow-hidden rounded-t-3xl bg-white shadow-[0_24px_80px_-12px_rgba(21,128,61,0.28)] ring-1 ring-green-600/15 animate-in zoom-in-95 slide-in-from-bottom-4 duration-200 sm:rounded-3xl`}
             >
                 {/* Filet vert fin (même vert que les cartes de surface.tsx) */}
-                <div aria-hidden="true" className="h-0.5 w-full shrink-0 bg-gradient-to-r from-aktivy via-green-400 to-transparent" />
+                <div aria-hidden="true" className="h-0.5 w-full shrink-0 bg-gradient-to-r from-motriks via-green-400 to-transparent" />
                 <header className="flex items-start justify-between gap-4 px-6 pt-5 pb-2">
                     <div className="flex items-start gap-3.5">
                         {icon && (
-                            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-green-200 bg-green-50 text-aktivy-deep [&>svg]:size-5">
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-green-200 bg-green-50 text-motriks-deep [&>svg]:size-5">
                                 {icon}
                             </span>
                         )}
@@ -61,7 +61,7 @@ export function Modal({ onClose, title, description, size = 'md', icon, children
                         type="button"
                         onClick={onClose}
                         aria-label="Fermer"
-                        className="-mr-2 flex size-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-green-50 hover:text-aktivy-deep focus-visible:ring-2 focus-visible:ring-aktivy focus-visible:outline-none"
+                        className="-mr-2 flex size-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-green-50 hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                     >
                         <X className="size-5" />
                     </button>

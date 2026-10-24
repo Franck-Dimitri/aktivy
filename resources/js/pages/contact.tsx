@@ -1,6 +1,8 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import LandingFooter from '@/components/landing/footer';
+import { Seo } from '@/components/seo';
+import MotriksMark from '@/components/motriks-mark';
 
 /* ------------------------------------------------------------------ */
 /*  Contenu modifiable                                                 */
@@ -8,7 +10,7 @@ import LandingFooter from '@/components/landing/footer';
 
 /* À remplacer par vos vraies coordonnées */
 const CONTACT = {
-    email: 'contact@aktivy.com',
+    email: 'contact@motriks.com',
     whatsappLabel: '+237 000 000 000',
     whatsappUrl: 'https://wa.me/237000000000',
     hours: 'Lundi - Samedi, 8h - 18h',
@@ -64,9 +66,7 @@ function Icon({ name, className = 'h-5 w-5' }: { name: IconName; className?: str
 function Logo({ light = false }: { light?: boolean }) {
     return (
         <Link href="/" className="flex items-center gap-2.5">
-            <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg font-extrabold ${light ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
-                A
-            </span>
+            <MotriksMark />
             <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>Motriks</span>
         </Link>
     );
@@ -159,9 +159,11 @@ export default function Contact({ formToken = '', paymentLogos }: { formToken?: 
 
     return (
         <>
-            <Head title="Nous contacter - Motriks">
-                <meta name="description" content="Une question, une démo, un projet ? Contactez l'équipe Motriks, nous vous répondons sous 24 heures." />
-            </Head>
+            <Seo
+                title="Nous contacter - Motriks"
+                description="Une question, une démo, un projet ? Contactez l'équipe Motriks, nous vous répondons sous 24 heures."
+                path="/contact"
+            />
 
             <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
                 <style>{PAGE_CSS}</style>

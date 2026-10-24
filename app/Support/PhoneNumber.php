@@ -23,7 +23,7 @@ class PhoneNumber
         if ($international) {
             $digits = str_starts_with($value, '00') ? substr($digits, 2) : $digits;
         } else {
-            $digits = config('aktivy.phone_country_code').$digits;
+            $digits = config('motriks.phone_country_code').$digits;
         }
 
         return strlen($digits) >= 8 && strlen($digits) <= 15 ? '+'.$digits : null;

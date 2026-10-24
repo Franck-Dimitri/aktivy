@@ -1,8 +1,8 @@
-# 🗺️ Aktivy — Carte de l'application & interfaces MVP
+# 🗺️ Motriks — Carte de l'application & interfaces MVP
 
 > Mis à jour le 08/10/2026 · Référence : Cahier des charges v2.1 et [SPRINT_1_PERIMETRES.md](../SPRINT_1_PERIMETRES.md)
 
-Aktivy s'organise en **4 espaces** (public, back-office entreprise, terrain mobile, administration plateforme), servis par **3 gabarits de pages**. 8 interfaces sont déjà livrées. Le Sprint 1 en compte **18 à construire maintenant**, dont 2 qui n'ont pas encore de responsable.
+Motriks s'organise en **4 espaces** (public, back-office entreprise, terrain mobile, administration plateforme), servis par **3 gabarits de pages**. 8 interfaces sont déjà livrées. Le Sprint 1 en compte **18 à construire maintenant**, dont 2 qui n'ont pas encore de responsable.
 
 ---
 
@@ -93,7 +93,7 @@ Toutes les pages reposent sur 3 gabarits. Seuls le back-office et le terrain res
 
 ```
 ┌──────────────────┬──────────────────────────────────────────────────┐
-│ Aktivy.          │ Personnel › Liste            Démo Events SARL (o)│
+│ Motriks.          │ Personnel › Liste            Démo Events SARL (o)│
 │                  ├──────────────────────────────────────────────────┤
 │ Tableau de bord  │ Personnel                           [ + Ajouter ]│
 │ Activité du jour │                                                  │
@@ -150,15 +150,15 @@ Image à gauche, formulaire à droite. Sur téléphone, il ne reste que le formu
 
 ## 4. Design system
 
-On garde l'identité de la page d'accueil (Montserrat, ardoise foncée et vert Aktivy) avec les composants shadcn/ui déjà présents dans le projet. **Aucun développeur ne crée de couleur ou de style en dehors de ces jetons.**
+On garde l'identité de la page d'accueil (Montserrat, ardoise foncée et vert Motriks) avec les composants shadcn/ui déjà présents dans le projet. **Aucun développeur ne crée de couleur ou de style en dehors de ces jetons.**
 
 ### Couleurs
 
 | Jeton | Valeur | Usage |
 | --- | --- | --- |
 | Ardoise | `#0F172A` | Boutons principaux, titres, carré du logo |
-| Vert Aktivy | `#4FC031` | Accents, point du logo, état « validé », bouton principal du terrain |
-| Vert foncé | `#2F7D1C` | Liens et texte vert (le vert Aktivy est trop clair pour du petit texte) |
+| Vert Motriks | `#4FC031` | Accents, point du logo, état « validé », bouton principal du terrain |
+| Vert foncé | `#2F7D1C` | Liens et texte vert (le vert Motriks est trop clair pour du petit texte) |
 | Fond | `#F1F5F9` | Fond des pages du back-office |
 | Carte | `#FFFFFF` + bordure `#E2E8F0` | Cartes, tableaux, formulaires |
 | Texte secondaire | `#64748B` | Aides, légendes, métadonnées |

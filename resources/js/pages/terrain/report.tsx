@@ -84,7 +84,7 @@ function Notice({ tone, icon: Icon, children }: {
 }) {
     const styles = {
         warning: 'border-amber-200 bg-amber-50 text-amber-800',
-        success: 'border-green-200 bg-aktivy-soft text-green-800',
+        success: 'border-green-200 bg-motriks-soft text-green-800',
         danger: 'border-red-200 bg-red-50 text-red-800',
     };
     return (
@@ -112,15 +112,15 @@ function StepIndicator({ step, isSubmitted }: { step: Step; isSubmitted: boolean
                     <div className="flex flex-col items-center gap-1.5">
                         <div className={cn(
                             'flex size-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-300',
-                            s.num < current && 'bg-aktivy text-white',
-                            s.num === current && 'bg-aktivy text-white shadow-md shadow-aktivy/30 ring-4 ring-aktivy/15',
+                            s.num < current && 'bg-motriks text-white',
+                            s.num === current && 'bg-motriks text-white shadow-md shadow-motriks/30 ring-4 ring-motriks/15',
                             s.num > current && 'bg-slate-100 text-slate-400',
                         )}>
                             {s.num < current ? <Check className="size-3.5" /> : s.num}
                         </div>
                         <span className={cn(
                             'text-[11px] font-medium transition-colors',
-                            s.num <= current ? 'text-aktivy-deep' : 'text-slate-400',
+                            s.num <= current ? 'text-motriks-deep' : 'text-slate-400',
                         )}>
                             {s.label}
                         </span>
@@ -128,7 +128,7 @@ function StepIndicator({ step, isSubmitted }: { step: Step; isSubmitted: boolean
                     {i < steps.length - 1 && (
                         <div className={cn(
                             'mb-4 h-px flex-1 transition-all duration-500',
-                            s.num < current ? 'bg-aktivy' : 'bg-slate-200',
+                            s.num < current ? 'bg-motriks' : 'bg-slate-200',
                         )} />
                     )}
                 </Fragment>
@@ -142,7 +142,7 @@ function StepIndicator({ step, isSubmitted }: { step: Step; isSubmitted: boolean
 function StockBar({ used, total }: { used: number; total: number }) {
     const pct = total > 0 ? Math.round((used / total) * 100) : 0;
     const remaining = total - used;
-    const tone = remaining === 0 ? 'bg-red-400' : remaining <= total * 0.2 ? 'bg-amber-400' : 'bg-aktivy';
+    const tone = remaining === 0 ? 'bg-red-400' : remaining <= total * 0.2 ? 'bg-amber-400' : 'bg-motriks';
 
     return (
         <div>
@@ -177,7 +177,7 @@ function ProductCard({ line, onChange, onNoteChange, disabled }: {
         <div className={cn(
             'flex flex-col gap-3 rounded-2xl p-4 ring-1 transition-all',
             line.units_sold > 0
-                ? 'bg-aktivy-soft ring-green-200'
+                ? 'bg-motriks-soft ring-green-200'
                 : 'bg-white ring-slate-100',
         )}>
             {/* En-tête */}
@@ -255,7 +255,7 @@ function ProductCard({ line, onChange, onNoteChange, disabled }: {
                     <span className="text-xs text-green-700">
                         {line.units_sold} × {formatMoney(line.unit_price)}
                     </span>
-                    <span className="text-sm font-bold text-aktivy-deep tabular-nums">
+                    <span className="text-sm font-bold text-motriks-deep tabular-nums">
                         {formatMoney(revenueAmount)} FCFA
                     </span>
                 </div>
@@ -556,7 +556,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                             {l.unit_price > 0 && (
                                                 <p className={cn(
                                                     'shrink-0 text-sm font-bold tabular-nums',
-                                                    l.units_sold > 0 ? 'text-aktivy-deep' : 'text-slate-300',
+                                                    l.units_sold > 0 ? 'text-motriks-deep' : 'text-slate-300',
                                                 )}>
                                                     {formatMoney(l.units_sold * l.unit_price)}
                                                 </p>
@@ -571,7 +571,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                             <p className="text-xs text-slate-500">{totalSold} unité{totalSold > 1 ? 's' : ''} vendues</p>
                                             <p className="mt-0.5 text-sm font-bold text-ink">Total journée</p>
                                         </div>
-                                        <p className="text-2xl font-extrabold tabular-nums text-aktivy-deep">
+                                        <p className="text-2xl font-extrabold tabular-nums text-motriks-deep">
                                             {formatMoney(totalRevenue)}
                                             <span className="ml-1 text-sm font-medium text-slate-400">FCFA</span>
                                         </p>
@@ -620,8 +620,8 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {isSubmitted && step !== 'incident' && (
                         <>
                             {/* Confirmation */}
-                            <div className="flex flex-col items-center gap-2 rounded-2xl bg-aktivy-soft py-6 text-center ring-1 ring-green-100">
-                                <div className="flex size-12 items-center justify-center rounded-full bg-aktivy text-white shadow-lg shadow-aktivy/30">
+                            <div className="flex flex-col items-center gap-2 rounded-2xl bg-motriks-soft py-6 text-center ring-1 ring-green-100">
+                                <div className="flex size-12 items-center justify-center rounded-full bg-motriks text-white shadow-lg shadow-motriks/30">
                                     <CheckCircle2 className="size-6" />
                                 </div>
                                 <p className="font-semibold text-green-800">Rapport soumis à {report.submitted_at}</p>
@@ -654,7 +654,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                 {l.notes && <p className="mt-0.5 text-xs italic text-slate-400">{l.notes}</p>}
                                             </div>
                                             {l.unit_price > 0 && l.units_sold > 0 && (
-                                                <p className="shrink-0 font-semibold text-aktivy-deep tabular-nums">
+                                                <p className="shrink-0 font-semibold text-motriks-deep tabular-nums">
                                                     {formatMoney(l.revenue)}
                                                 </p>
                                             )}
@@ -663,7 +663,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </div>
                                 <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
                                     <p className="font-bold text-ink">Total</p>
-                                    <p className="text-xl font-extrabold tabular-nums text-aktivy-deep">
+                                    <p className="text-xl font-extrabold tabular-nums text-motriks-deep">
                                         {formatMoney(report.total_revenue)}
                                         <span className="ml-1 text-sm font-medium text-slate-400">FCFA</span>
                                     </p>

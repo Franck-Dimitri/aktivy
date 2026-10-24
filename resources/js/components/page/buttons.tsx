@@ -7,11 +7,11 @@ export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'icon
 export type ButtonSize = 'sm' | 'md' | 'icon';
 
 const base =
-    'relative inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aktivy/40 focus-visible:ring-offset-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60';
+    'relative inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-motriks/40 focus-visible:ring-offset-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60';
 
 const variants: Record<ButtonVariant, string> = {
     primary:
-        'bg-aktivy text-white shadow-sm shadow-green-600/25 hover:bg-aktivy-deep hover:shadow-md hover:shadow-green-600/30',
+        'bg-motriks text-white shadow-sm shadow-green-600/25 hover:bg-motriks-deep hover:shadow-md hover:shadow-green-600/30',
     secondary:
         'border border-slate-200 bg-white text-slate-700 shadow-xs hover:border-slate-300 hover:bg-slate-50',
     danger: 'bg-red-600 text-white shadow-sm shadow-red-600/25 hover:bg-red-700',

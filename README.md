@@ -1,5 +1,5 @@
 
-# Aktivy
+# Motriks
 
 Plateforme SaaS de gestion d'équipes terrain et de reporting journalier pour les entreprises de distribution et de promotion commerciale.
 
@@ -7,7 +7,7 @@ Plateforme SaaS de gestion d'équipes terrain et de reporting journalier pour le
 
 ## Vue d'ensemble
 
-Aktivy permet à une entreprise de piloter ses hôtesses et agents de terrain depuis un tableau de bord web, pendant que les agents saisissent leurs ventes et clôturent leur journée depuis leur smartphone.
+Motriks permet à une entreprise de piloter ses hôtesses et agents de terrain depuis un tableau de bord web, pendant que les agents saisissent leurs ventes et clôturent leur journée depuis leur smartphone.
 
 **Flux principal :**
 
@@ -88,8 +88,8 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 
 ```bash
 # 1. Cloner et installer les dépendances
-git clone <repo-url> aktivy
-cd aktivy
+git clone <repo-url> motriks
+cd motriks
 composer install
 npm install
 
@@ -99,7 +99,7 @@ php artisan key:generate
 
 # 3. Renseigner la base de données dans .env
 # DB_CONNECTION=pgsql
-# DB_DATABASE=aktivy
+# DB_DATABASE=motriks
 # DB_USERNAME=...
 # DB_PASSWORD=...
 
@@ -188,5 +188,5 @@ MAIL_ENCRYPTION=tls
 MAIL_USERNAME=...
 MAIL_PASSWORD=...
 MAIL_FROM_ADDRESS=...
-MAIL_FROM_NAME="Aktivy"
+MAIL_FROM_NAME="Motriks"
 ```

@@ -52,10 +52,10 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Bennett Lynn Trading',
                 'email' => 'franckdimitrio000@gmail.com',
-                'country' => 'SN',
-                'timezone' => 'Africa/Dakar',
+                'country' => 'CM',
+                'timezone' => 'Africa/Douala',
                 'locale' => 'fr',
-                'currency' => 'XOF',
+                'currency' => 'XAF',
                 'status' => 'active',
             ]
         );

@@ -3,9 +3,9 @@
 namespace App\Support\Reports;
 
 use App\Models\Company;
-use Illuminate\Database\Query\Builder;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -125,6 +125,149 @@ class SalesReport
             ->orderBy('l.id')
             ->when($limit, fn ($q) => $q->limit($limit))
             ->get();
+    }
+
+    /**
+     * Chiffre d'affaires par site, indexé par identifiant de site.
+     *
+     * @return array<int, float>
+     */
+    public function revenueBySite(): array
+    {
+        return $this->query()
+            ->groupBy('r.site_id')
+            ->selectRaw('r.site_id, COALESCE(SUM(l.revenue), 0) as revenue')
+            ->pluck('revenue', 'r.site_id')
+            ->map(fn ($v) => (float) $v)
+            ->all();
+    }
+
+    /** Nombre de jours couverts par la période (bornes incluses). */
+    public function days(): int
+    {
+        return (int) $this->from->startOfDay()->diffInDays($this->to->startOfDay()) + 1;
+    }
+
+    /**
+     * Même durée, juste avant : base de comparaison des chiffres clés et de la courbe.
+     */
+    public function previous(): self
+    {
+        $days = $this->days();
+
+        return new self(
+            $this->company,
+            $this->from->subDays($days)->startOfDay(),
+            $this->from->subDay()->endOfDay(),
+            $this->siteId,
+            $this->userId,
+            $this->eventId,
+        );
+    }
+
+    /**
+     * Pas de la courbe d'évolution : au jour, à la semaine ou au mois selon la durée.
+     */
+    public function granularity(): string
+    {
+        return match (true) {
+            $this->days() <= 45 => 'day',
+            $this->days() <= 200 => 'week',
+            default => 'month',
+        };
+    }
+
+    /**
+     * Courbe d'évolution du chiffre d'affaires, période précédente alignée point par point.
+     * Les jours sans vente valent zéro, pour une courbe continue.
+     */
+    public function timeline(): array
+    {
+        $granularity = $this->granularity();
+        $previous = $this->previous();
+        $current = $this->bucket($granularity);
+        $before = array_values($previous->bucket($granularity));
+
+        $points = [];
+
+        foreach (array_values($current) as $i => $point) {
+            $points[] = [
+                'date' => $point['date'],
+                'revenue' => $point['revenue'],
+                'units_sold' => $point['units_sold'],
+                'previous_date' => $before[$i]['date'] ?? null,
+                'previous_revenue' => $before[$i]['revenue'] ?? null,
+            ];
+        }
+
+        return ['granularity' => $granularity, 'points' => $points];
+    }
+
+    /**
+     * Les 12 derniers mois jusqu'au mois de fin de la période, avec la variation d'un mois sur l'autre.
+     */
+    public function monthly(int $months = 12): array
+    {
+        $year = new self(
+            $this->company,
+            $this->to->startOfMonth()->subMonths($months - 1)->startOfDay(),
+            $this->to->endOfMonth(),
+            $this->siteId,
+            $this->userId,
+            $this->eventId,
+        );
+
+        $rows = [];
+        $before = null;
+
+        foreach ($year->bucket('month') as $month) {
+            $rows[] = [
+                ...$month,
+                'variation' => $before ? ($month['revenue'] - $before) / $before * 100 : null,
+            ];
+            $before = $month['revenue'] ?: null;
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Ventes par jour regroupées en pas réguliers (jour, semaine du lundi, mois), sans trou.
+     *
+     * @return array<string, array{date: string, revenue: float, units_sold: int, reports_count: int}>
+     */
+    private function bucket(string $granularity): array
+    {
+        $start = fn (CarbonInterface $d) => match ($granularity) {
+            'week' => $d->startOfWeek(CarbonInterface::MONDAY),
+            'month' => $d->startOfMonth(),
+            default => $d->startOfDay(),
+        };
+        $step = fn (CarbonInterface $d) => match ($granularity) {
+            'week' => $d->addWeek(),
+            'month' => $d->addMonth(),
+            default => $d->addDay(),
+        };
+
+        $buckets = [];
+
+        for ($d = $start($this->from); $d->lte($this->to); $d = $step($d)) {
+            // Le premier pas peut commencer avant la période (lundi, 1er du mois) : on affiche le début réel
+            $shown = $d->lt($this->from) ? $this->from : $d;
+            $buckets[$d->toDateString()] = ['date' => $shown->toDateString(), 'revenue' => 0.0, 'units_sold' => 0, 'reports_count' => 0];
+        }
+
+        foreach ($this->byDay() as $day) {
+            $key = $start(CarbonImmutable::parse($day['label']))->toDateString();
+
+            if (isset($buckets[$key])) {
+                $buckets[$key]['revenue'] += $day['revenue'];
+                $buckets[$key]['units_sold'] += $day['units_sold'];
+                $buckets[$key]['reports_count'] += $day['reports_count'];
+            }
+        }
+
+        return $buckets;
     }
 
     /**

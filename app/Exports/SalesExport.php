@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Support\Excel\Workbook;
+use Carbon\CarbonImmutable;
 use App\Support\Reports\SalesReport;
 
 /**
@@ -17,6 +18,11 @@ class SalesExport
         $report = $this->report;
         $currency = $report->company->currency ?: 'XAF';
         $totals = $report->totals();
+        $previous = $report->previous();
+        $previousRevenue = $previous->totals()['revenue'];
+        $variation = $previousRevenue > 0
+            ? sprintf('%+.1f %%', ($totals['revenue'] - $previousRevenue) / $previousRevenue * 100)
+            : 'n.d.';
         $book = new Workbook($path);
 
         $book->sheet('Synthèse', [
@@ -28,6 +34,9 @@ class SalesExport
             ...array_map(fn ($label, $value) => [$label, $value], array_keys($filterLabels), $filterLabels),
             ['Devise', $currency],
             ["Chiffre d'affaires", number_format($totals['revenue'], 0, ',', ' ').' '.$currency],
+            ['Période précédente', $previous->from->format('d/m/Y').' au '.$previous->to->format('d/m/Y')],
+            ["Chiffre d'affaires période précédente", number_format($previousRevenue, 0, ',', ' ').' '.$currency],
+            ['Variation', $variation],
             ['Unités vendues', number_format($totals['units_sold'], 0, ',', ' ')],
             ['Rapports journaliers', $totals['reports_count']],
             ['Jours d’activité', $totals['days_count']],
@@ -73,6 +82,18 @@ class SalesExport
         $rows = fn ($items, bool $withDetail = true) => $items->map(fn ($r) => $withDetail
             ? [$r['label'], $r['detail'], $r['revenue'], $r['units_sold'], $r['reports_count']]
             : [$r['label'], $r['revenue'], $r['units_sold'], $r['reports_count']]);
+
+        $book->sheet('Par mois', [
+            'Mois' => [Workbook::TEXT, 16],
+            "Chiffre d'affaires ($currency)" => [Workbook::MONEY, 18],
+            'Unités vendues' => [Workbook::INT, 14],
+            'Rapports' => [Workbook::INT, 10],
+            'Variation vs mois précédent' => [Workbook::PERCENT, 22],
+        ], array_map(fn ($m) => [
+            ucfirst(CarbonImmutable::parse($m['date'])->locale('fr')->isoFormat('MMMM YYYY')),
+            $m['revenue'], $m['units_sold'], $m['reports_count'],
+            $m['variation'],
+        ], $report->monthly()));
 
         $book->sheet('Par jour', $summary('Date'), $rows($report->byDay(), false));
         $book->sheet('Par site', $summary('Site', 'Ville'), $rows($report->bySite()));

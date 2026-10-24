@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Company;
 
+use App\Enums\Role;
 use App\Exports\SalesExport;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Company;
+use App\Models\SalesTarget;
 use App\Support\Reports\SalesReport;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -27,6 +31,7 @@ class ReportController extends Controller
         $filters = $this->filters($request, $company);
         $report = SalesReport::fromFilters($company, $filters);
         $lines = $report->lines(self::PREVIEW_LINES + 1);
+        $previous = $report->previous();
 
         return Inertia::render('reports/index', [
             'filters' => [
@@ -39,6 +44,15 @@ class ReportController extends Controller
             'options' => $this->options($company),
             'currency' => $company->currency ?: 'XAF',
             'totals' => $report->totals(),
+            'previous' => [
+                'from' => $previous->from->toDateString(),
+                'to' => $previous->to->toDateString(),
+                'totals' => $previous->totals(),
+            ],
+            'timeline' => $report->timeline(),
+            'monthly' => $report->monthly(),
+            'targets' => $this->targets($company),
+            'canEditTargets' => in_array($request->user()->role, [Role::CompanyAdmin, Role::Supervisor], true),
             'byDay' => $report->byDay(),
             'bySite' => $report->bySite(),
             'byProduct' => $report->byProduct(),
@@ -67,6 +81,80 @@ class ReportController extends Controller
         return response()
             ->download($path, $name, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
             ->deleteFileAfterSend();
+    }
+
+    /**
+     * Fixe (ou retire, si le montant est vide ou nul) l'objectif du mois en cours, global ou d'un site.
+     */
+    public function saveTarget(Request $request): RedirectResponse
+    {
+        $company = $request->user()->company;
+
+        $data = $request->validate([
+            'site_id' => ['nullable', 'integer', "exists:sites,id,company_id,{$company->id}"],
+            'amount' => ['nullable', 'integer', 'min:0', 'max:1000000000000'],
+        ], [
+            'amount.integer' => 'L’objectif doit être un montant entier, sans décimales.',
+        ]);
+
+        $target = SalesTarget::firstOrNew([
+            'company_id' => $company->id,
+            'site_id' => $data['site_id'] ?? null,
+            'month' => $this->today($company)->startOfMonth()->toDateString(),
+        ]);
+
+        if (empty($data['amount'])) {
+            $target->exists && $target->delete();
+
+            return back()->with('success', 'Objectif retiré.');
+        }
+
+        $target->fill(['amount' => $data['amount'], 'updated_by' => $request->user()->id])->save();
+
+        return back()->with('success', 'Objectif enregistré.');
+    }
+
+    /**
+     * Objectifs du mois en cours : réalisé, progression et projection de fin de mois au rythme actuel.
+     * Indépendants des filtres de la page, ils portent toujours sur toute l'entreprise.
+     */
+    private function targets(Company $company): array
+    {
+        $today = $this->today($company);
+        $monthStart = $today->startOfMonth();
+        $month = new SalesReport($company, $monthStart, $today->endOfDay());
+        $elapsed = $today->day;
+        $length = $today->daysInMonth;
+
+        $targets = SalesTarget::where('company_id', $company->id)
+            ->whereDate('month', $monthStart->toDateString())
+            ->get()
+            ->keyBy(fn (SalesTarget $t) => $t->site_id ?? 0);
+
+        $bySite = $month->revenueBySite();
+        $line = fn (float $actual, ?SalesTarget $target) => [
+            'actual' => $actual,
+            'target' => $target?->amount,
+            'projection' => $elapsed > 0 ? $actual / $elapsed * $length : 0,
+        ];
+
+        return [
+            'month' => $monthStart->toDateString(),
+            'days_elapsed' => $elapsed,
+            'days_in_month' => $length,
+            'global' => $line($month->totals()['revenue'], $targets->get(0)),
+            'sites' => $company->sites()->orderBy('name')->get(['id', 'name'])->map(fn ($site) => [
+                'site_id' => $site->id,
+                'name' => $site->name,
+                ...$line($bySite[$site->id] ?? 0.0, $targets->get($site->id)),
+            ]),
+        ];
+    }
+
+    /** Date du jour dans le fuseau de l'entreprise. */
+    private function today(Company $company): CarbonImmutable
+    {
+        return CarbonImmutable::now($company->timezone ?: config('app.timezone'));
     }
 
     /**

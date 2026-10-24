@@ -24,6 +24,7 @@ class Workbook
     public const MONEY = 'money';
     public const DATE = 'date';
     public const DATETIME = 'datetime';
+    public const PERCENT = 'percent';
 
     private Writer $writer;
 
@@ -49,6 +50,7 @@ class Workbook
             self::MONEY => (new Style)->setFormat('#,##0'),
             self::DATE => (new Style)->setFormat('dd/mm/yyyy'),
             self::DATETIME => (new Style)->setFormat('dd/mm/yyyy hh:mm'),
+            self::PERCENT => (new Style)->setFormat('+0.0%;-0.0%;0.0%'),
         ];
     }
 
@@ -117,6 +119,8 @@ class Workbook
         return match ($type) {
             self::INT => Cell::fromValue((int) $value, $this->styles[self::INT]),
             self::MONEY => Cell::fromValue((float) $value, $this->styles[self::MONEY]),
+            // valeur en points de pourcentage (12.5 = +12,5 %), stockée en fraction pour Excel
+            self::PERCENT => Cell::fromValue((float) $value / 100, $this->styles[self::PERCENT]),
             self::DATE, self::DATETIME => Cell::fromValue(
                 $value instanceof DateTimeInterface ? $value : new \DateTimeImmutable((string) $value),
                 $this->styles[$type],

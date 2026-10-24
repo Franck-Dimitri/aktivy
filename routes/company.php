@@ -39,6 +39,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor))
         ->group(function () {
+            Route::post('rapports/objectifs', [ReportController::class, 'saveTarget'])->name('reports.targets.save');
+
             Route::resource('sites', SiteController::class);
             Route::post('sites/{site}/photos', [SitePhotoController::class, 'store'])->name('sites.photos.store');
             Route::delete('sites/{site}/photos/{index}', [SitePhotoController::class, 'destroy'])->name('sites.photos.destroy');

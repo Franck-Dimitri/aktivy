@@ -8,6 +8,10 @@ import { Page, Panel } from '@/components/page/page';
 import { MetricStrip } from '@/components/page/surface';
 import { cn } from '@/lib/utils';
 import { exportMethod as exportRoute, index as reportsIndex } from '@/routes/reports';
+import { EvolutionChart, type TimelinePoint } from './evolution-chart';
+import { day, money, number, signedPercent, variation } from './format';
+import { MonthlyTable, type MonthRow } from './monthly-table';
+import { TargetsPanel, type Targets } from './targets-panel';
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -54,13 +58,15 @@ type Props = {
     byHostess: Group[];
     lines: Line[];
     linesTruncated: boolean;
+    previous: { from: string; to: string; totals: Props['totals'] };
+    timeline: { granularity: string; points: TimelinePoint[] };
+    monthly: MonthRow[];
+    targets: Targets;
+    canEditTargets: boolean;
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
-const number = new Intl.NumberFormat('fr-FR');
-const money = (n: number | string, currency: string) => `${number.format(Math.round(Number(n)))} ${currency}`;
-const day = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
 const toIso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 /** Périodes rapides, calculées à la date du jour. */
@@ -131,7 +137,7 @@ function Breakdown({ title, icon: Icon, items, currency, dates = false }: {
 // ── Page ──────────────────────────────────────────────────────────────
 
 export default function ReportsIndex(props: Props) {
-    const { options, currency, totals, lines } = props;
+    const { options, currency, totals, lines, previous } = props;
     const [filters, setFilters] = useState<Filters>(props.filters);
 
     const apply = (next: Filters) => {
@@ -150,6 +156,15 @@ export default function ReportsIndex(props: Props) {
     const exportUrl = exportRoute({ query: query(props.filters) }).url;
     const hasSales = totals.reports_count > 0;
     const average = totals.days_count > 0 ? totals.revenue / totals.days_count : 0;
+    const previousAverage = previous.totals.days_count > 0 ? previous.totals.revenue / previous.totals.days_count : 0;
+
+    /** « +12 % vs période précédente », ou rien si la période précédente est vide. */
+    const versus = (current: number, before: number) => {
+        const v = variation(current, before);
+
+        return v === null ? 'Pas de vente la période précédente' : `${signedPercent(v)} vs période précédente`;
+    };
+    const hasHistory = hasSales || previous.totals.reports_count > 0;
 
     return (
         <>
@@ -227,12 +242,29 @@ export default function ReportsIndex(props: Props) {
                 {/* ── Chiffres clés ── */}
                 <MetricStrip
                     items={[
-                        { label: 'Chiffre d’affaires', value: money(totals.revenue, currency) },
-                        { label: 'Unités vendues', value: number.format(totals.units_sold) },
+                        { label: 'Chiffre d’affaires', value: money(totals.revenue, currency), sub: versus(totals.revenue, previous.totals.revenue) },
+                        { label: 'Unités vendues', value: number.format(totals.units_sold), sub: versus(totals.units_sold, previous.totals.units_sold) },
                         { label: 'Rapports envoyés', value: number.format(totals.reports_count), sub: `${totals.sites_count} site${totals.sites_count > 1 ? 's' : ''} · ${totals.hostesses_count} hôtesse${totals.hostesses_count > 1 ? 's' : ''}` },
-                        { label: 'Moyenne par jour', value: money(average, currency), sub: `${totals.days_count} jour${totals.days_count > 1 ? 's' : ''} d’activité` },
+                        { label: 'Moyenne par jour d’activité', value: money(average, currency), sub: versus(average, previousAverage) },
                     ]}
                 />
+
+                <p className="-mt-3 text-xs text-slate-400">
+                    Période précédente : du {day(previous.from)} au {day(previous.to)}.
+                </p>
+
+                <TargetsPanel targets={props.targets} currency={currency} canEdit={props.canEditTargets} />
+
+                {hasHistory && (
+                    <EvolutionChart
+                        points={props.timeline.points}
+                        granularity={props.timeline.granularity}
+                        currency={currency}
+                        totals={{ current: totals.revenue, previous: previous.totals.revenue }}
+                    />
+                )}
+
+                {props.monthly.some((m) => m.revenue > 0) && <MonthlyTable rows={props.monthly} currency={currency} />}
 
                 {!hasSales ? (
                     <Panel>

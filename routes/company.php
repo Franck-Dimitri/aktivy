@@ -15,6 +15,7 @@ use App\Http\Controllers\Company\ReportController;
 use App\Http\Controllers\Company\SiteController;
 use App\Http\Controllers\Company\SiteInventoryController;
 use App\Http\Controllers\Company\SitePhotoController;
+use App\Http\Controllers\Company\TicketController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +53,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::resource('products', ProductController::class)->except(['show']);
             Route::resource('sites.inventory', SiteInventoryController::class)->only(['store', 'update', 'destroy']);
+
+            // Demandes des hôtesses (tickets)
+            Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
+            Route::put('tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
 
             // Événements commerciaux
             Route::resource('events', EventController::class)->except(['edit']);

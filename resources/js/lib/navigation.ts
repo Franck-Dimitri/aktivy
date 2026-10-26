@@ -31,6 +31,7 @@ import { index as productsIndex } from '@/routes/products';
 import { index as reportsIndex } from '@/routes/reports';
 import { dataExport } from '@/routes/company';
 import { index as eventsIndex } from '@/routes/events';
+import { index as ticketsIndex } from '@/routes/tickets';
 import type { MenuGroup, Role } from '@/types';
 
 export const roleLabels: Record<Role, string> = {
@@ -123,6 +124,7 @@ export function menuFor(role: Role): MenuGroup[] {
                 { title: 'Affectations', icon: CalendarRange, href: affectationsIndex().url },
                 { title: 'Produits & prix', icon: Package, href: productsIndex().url },
                 { title: 'Événements', icon: Zap, href: eventsIndex().url },
+                { title: 'Tickets', icon: MessageSquarePlus, href: ticketsIndex().url },
             ],
         });
     }

@@ -68,7 +68,8 @@ export function ActionButton({
     );
 }
 
-type ActionLinkProps = ComponentProps<typeof Link> & {
+// `size` est retiré des props du Link : sinon il entre en conflit avec la taille du bouton
+type ActionLinkProps = Omit<ComponentProps<typeof Link>, 'size'> & {
     variant?: ButtonVariant;
     size?: ButtonSize;
     icon?: ReactNode;

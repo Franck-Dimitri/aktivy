@@ -658,7 +658,7 @@ function VisitsChart({ chart }: { chart: ChartData }) {
                             <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                             <Tooltip
                                 contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 24px rgb(15 23 42 / 0.08)' }}
-                                formatter={(v: number) => [`${v} visite${v > 1 ? 's' : ''}`, '']}
+                                formatter={(v) => [`${v} visite${Number(v) > 1 ? 's' : ''}`, '']}
                                 labelStyle={{ color: '#334155', fontWeight: 600 }}
                                 cursor={{ fill: '#f0fdf4' }}
                             />

@@ -7,7 +7,7 @@ import { Page, Panel } from '@/components/page/page';
 import { toastFormError } from '@/lib/form-toast';
 import { dashboard } from '@/routes';
 import { index as sitesIndex, show as siteShow, update as siteUpdate } from '@/routes/sites';
-import type { SiteFormData, SiteStatusOption, SiteTypeOption } from '@/types';
+import type { SiteFormData, SiteStatusOption, SiteType, SiteTypeOption } from '@/types';
 
 type Props = {
     site: SiteFormData & { id: number };
@@ -59,7 +59,7 @@ export default function SiteEdit({ site, types, statuses }: Props) {
                             </Field>
 
                             <Field label="Type de commerce" htmlFor="type" required error={errors.type}>
-                                <SelectInput id="type" value={data.type} onChange={(e) => setData('type', e.target.value)} error={errors.type}>
+                                <SelectInput id="type" value={data.type} onChange={(e) => setData('type', e.target.value as SiteType)} error={errors.type}>
                                     {types.map((t) => (
                                         <option key={t.value} value={t.value}>{t.label}</option>
                                     ))}

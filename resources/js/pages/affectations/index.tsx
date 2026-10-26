@@ -23,7 +23,7 @@ import {
 } from '@/routes/affectations';
 import { show as personnelShow } from '@/routes/personnel';
 import { show as siteShow } from '@/routes/sites';
-import type { AffectationListItem, AffectationSelectOption, AffectationStats } from '@/types';
+import type { AffectationListItem, AffectationSelectOption, AffectationStats, AffectationStatus } from '@/types';
 
 type StatusOption = { value: string; label: string };
 
@@ -447,7 +447,7 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
                                 <SelectInput
                                     id="edit-status"
                                     value={data.status}
-                                    onChange={(e) => setData('status', e.target.value)}
+                                    onChange={(e) => setData('status', e.target.value as AffectationStatus)}
                                     error={errors.status}
                                     required
                                 >

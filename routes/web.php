@@ -6,8 +6,6 @@ use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OnboardingController;
-use App\Http\Controllers\PersonnelController;
-use App\Http\Controllers\SiteController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\File;
@@ -38,7 +36,8 @@ Route::get('/', function () use ($paymentLogos) {
     ]);
 })->name('home');
 
-Route::redirect('/accueil', '/', 301)->name('landing');
+// GET uniquement : Route::redirect accepte toutes les méthodes (dont QUERY), que Wayfinder ne sait pas typer
+Route::get('/accueil', fn () => redirect('/', 301))->name('landing');
 
 // Pages légales (accessibles sans connexion)
 Route::get('/conditions', function () use ($paymentLogos) {

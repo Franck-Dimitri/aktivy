@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Company;
 use App\Http\Controllers\Controller;
 
 use App\Enums\AccountStatus;
+use App\Enums\AffectationStatus;
 use App\Enums\Role;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -21,6 +23,12 @@ class PersonnelController extends Controller
         Role::Supervisor,
         Role::FieldAgent,
         Role::Accountant,
+    ];
+
+    /** Statuts qu'un responsable peut donner à un membre. */
+    private const MANAGEABLE_STATUSES = [
+        AccountStatus::Active,
+        AccountStatus::Suspended,
     ];
 
     public function index(Request $request): Response
@@ -74,10 +82,14 @@ class PersonnelController extends Controller
             return back()->withErrors(['phone' => 'Au moins un identifiant (téléphone ou e-mail) est requis.'])->withInput();
         }
 
+        if ($errors = $this->identifierErrors($validated)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         $member = $request->user()->company->users()->create([
             'name'                  => $validated['name'],
             'phone'                 => $validated['phone'] ?? null,
-            'email'                 => $validated['email'] ?? null,
+            'email'                 => isset($validated['email']) ? strtolower($validated['email']) : null,
             'role'                  => $validated['role'],
             'password'              => Hash::make($validated['password']),
             'status'                => AccountStatus::Active,
@@ -193,7 +205,7 @@ class PersonnelController extends Controller
             'phone'    => ['nullable', 'string', 'max:25'],
             'email'    => ['nullable', 'email', 'max:255'],
             'role'     => ['required', 'string', 'in:'.implode(',', array_column(self::MANAGEABLE_ROLES, 'value'))],
-            'status'   => ['required', 'string', 'in:'.implode(',', array_column(AccountStatus::cases(), 'value'))],
+            'status'   => ['required', 'string', 'in:'.implode(',', array_column(self::MANAGEABLE_STATUSES, 'value'))],
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
 
@@ -201,10 +213,14 @@ class PersonnelController extends Controller
             return back()->withErrors(['phone' => 'Au moins un identifiant (téléphone ou e-mail) est requis.'])->withInput();
         }
 
+        if ($errors = $this->identifierErrors($validated, $personnel)) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         $personnel->fill([
             'name'   => $validated['name'],
             'phone'  => $validated['phone'] ?? null,
-            'email'  => $validated['email'] ?? null,
+            'email'  => isset($validated['email']) ? strtolower($validated['email']) : null,
             'role'   => $validated['role'],
             'status' => $validated['status'],
         ]);
@@ -224,6 +240,10 @@ class PersonnelController extends Controller
     {
         $this->authorizeCompany($request, $personnel);
 
+        $personnel->affectations()
+            ->where('status', AffectationStatus::Active)
+            ->update(['status' => AffectationStatus::Completed, 'ends_on' => now()->toDateString()]);
+
         $personnel->delete();
 
         return redirect()->route('personnel.index')
@@ -233,6 +253,32 @@ class PersonnelController extends Controller
     private function authorizeCompany(Request $request, User $personnel): void
     {
         abort_if($personnel->company_id !== $request->user()->company_id, 403);
+
+        // Le gérant n'est pas un membre « gérable » : un superviseur ne doit pas pouvoir le modifier.
+        abort_unless($personnel->hasRole(...self::MANAGEABLE_ROLES), 403);
+    }
+
+    /**
+     * Erreurs si le téléphone ou l'e-mail est déjà pris par un autre compte.
+     * Le téléphone est comparé sous sa forme normalisée, celle qui est enregistrée ;
+     * les comptes supprimés comptent aussi, l'index unique les inclut.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array<string, string>
+     */
+    private function identifierErrors(array $validated, ?User $ignore = null): array
+    {
+        $taken = fn (string $column, ?string $value) => $value !== null && User::withTrashed()
+            ->where($column, $value)
+            ->when($ignore, fn ($q) => $q->whereKeyNot($ignore->id))
+            ->exists();
+
+        return array_filter([
+            'phone' => $taken('phone', PhoneNumber::normalize($validated['phone'] ?? null))
+                ? 'Ce numéro est déjà utilisé par un autre compte.' : null,
+            'email' => $taken('email', isset($validated['email']) ? strtolower($validated['email']) : null)
+                ? 'Cette adresse e-mail est déjà utilisée par un autre compte.' : null,
+        ]);
     }
 
     /** @return array<int, array{value: string, label: string}> */

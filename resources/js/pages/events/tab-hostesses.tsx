@@ -222,7 +222,7 @@ export function TabHostesses({ event, availableHostesses }: Props) {
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
                                         error={errors.password}
-                                        placeholder="Min. 6 caractères"
+                                        placeholder="12 caractères min. (maj., chiffre, symbole)"
                                     />
                                 </div>
                             </>

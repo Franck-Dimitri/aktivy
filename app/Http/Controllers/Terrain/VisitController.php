@@ -37,8 +37,12 @@ class VisitController extends Controller
             'longitude'      => ['nullable', 'numeric'],
         ]);
 
+        // Seule une affectation active et en cours aujourd'hui permet de pointer (même règle que l'accueil)
         $affectation = Affectation::where('id', $validated['affectation_id'])
             ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where('starts_on', '<=', $today)
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', $today))
             ->firstOrFail();
 
         $visit = $user->company->visits()->create([

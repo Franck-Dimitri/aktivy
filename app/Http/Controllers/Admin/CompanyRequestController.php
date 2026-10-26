@@ -97,6 +97,8 @@ class CompanyRequestController extends Controller
 
     public function reject(Request $request, Company $company): RedirectResponse
     {
+        abort_unless($company->isPending(), 422, 'Cette demande ne peut pas être rejetée.');
+
         $validated = $request->validate([
             'reason' => ['required', 'string', 'max:500'],
         ]);

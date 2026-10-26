@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Actions\Fortify\CreateNewUser;
 /* @end-chisel-registration */
 use App\Actions\Fortify\ResetUserPassword;
+use App\Enums\AccountStatus;
 use App\Http\Responses\LoginResponse;
 use App\Http\Responses\PasskeyLoginResponse;
 use App\Models\AuditLog;
@@ -77,7 +78,12 @@ class FortifyServiceProvider extends ServiceProvider
                 return null;
             }
 
-            if (! $user->isActive()) {
+            // Une entreprise en attente ou rejetée peut se connecter : le middleware
+            // EnsureAccountIsActive la renvoie vers l'onboarding pour (re)déposer son dossier.
+            $companyAwaitingReview = $user->status === AccountStatus::Active
+                && ($user->company?->isPending() || $user->company?->isRejected());
+
+            if (! $user->isActive() && ! $companyAwaitingReview) {
                 throw ValidationException::withMessages([
                     Fortify::username() => __('Ce compte est suspendu. Contactez votre administrateur.'),
                 ]);

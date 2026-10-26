@@ -16,7 +16,7 @@ class EventSiteController extends Controller
         abort_if($event->isFinished(), 403);
 
         $data = $request->validate([
-            'site_id' => 'nullable|integer|exists:sites,id',
+            'site_id' => ['nullable', 'integer', "exists:sites,id,company_id,{$event->company_id}"],
             'name'    => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'city'    => 'nullable|string|max:100',

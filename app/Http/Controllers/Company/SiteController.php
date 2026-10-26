@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Company;
 
 use App\Http\Controllers\Controller;
 
+use App\Enums\AffectationStatus;
 use App\Enums\Role;
 use App\Enums\SiteStatus;
 use App\Enums\SiteType;
@@ -393,6 +394,11 @@ class SiteController extends Controller
     public function destroy(Request $request, Site $site): RedirectResponse
     {
         $this->authorizeCompany($request, $site);
+
+        // Plus personne ne doit pouvoir pointer sur un site supprimé
+        $site->affectations()
+            ->where('status', AffectationStatus::Active)
+            ->update(['status' => AffectationStatus::Completed, 'ends_on' => now()->toDateString()]);
 
         $site->delete();
 

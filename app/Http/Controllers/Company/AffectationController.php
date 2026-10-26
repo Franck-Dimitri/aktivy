@@ -112,8 +112,8 @@ class AffectationController extends Controller
         $company = $request->user()->company;
 
         $validated = $request->validate([
-            'site_id'    => ['required', 'integer', 'exists:sites,id'],
-            'user_id'    => ['required', 'integer', 'exists:users,id'],
+            'site_id'    => ['required', 'integer', "exists:sites,id,company_id,{$company->id}"],
+            'user_id'    => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
             'starts_on'  => ['required', 'date'],
             'ends_on'    => ['nullable', 'date', 'after_or_equal:starts_on'],
             'slot_start' => ['nullable', 'date_format:H:i'],
@@ -182,9 +182,11 @@ class AffectationController extends Controller
     {
         $this->authorizeCompany($request, $affectation);
 
+        $company = $request->user()->company;
+
         $validated = $request->validate([
-            'site_id'    => ['required', 'integer', 'exists:sites,id'],
-            'user_id'    => ['required', 'integer', 'exists:users,id'],
+            'site_id'    => ['required', 'integer', "exists:sites,id,company_id,{$company->id}"],
+            'user_id'    => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
             'starts_on'  => ['required', 'date'],
             'ends_on'    => ['nullable', 'date', 'after_or_equal:starts_on'],
             'slot_start' => ['nullable', 'date_format:H:i'],
@@ -219,7 +221,7 @@ class AffectationController extends Controller
         $company = $request->user()->company;
 
         $validated = $request->validate([
-            'user_id'    => ['required', 'integer', 'exists:users,id'],
+            'user_id'    => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
             'starts_on'  => ['required', 'date'],
             'ends_on'    => ['nullable', 'date', 'after_or_equal:starts_on'],
             'slot_start' => ['nullable', 'date_format:H:i'],

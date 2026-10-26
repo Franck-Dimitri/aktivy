@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Company\Events;
 
+use App\Enums\AccountStatus;
 use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
@@ -17,11 +18,17 @@ class EventActivateController extends Controller
     public function __invoke(Request $request, Event $event): RedirectResponse
     {
         abort_unless($event->company_id === $request->user()->company_id, 403);
-        abort_unless($event->isDraft(), 422, 'L\'événement est déjà lancé ou terminé.');
 
         $data = $request->validate([
             'action' => 'required|in:activate,complete',
         ]);
+
+        // On lance un brouillon, on clôture un événement en cours
+        if ($data['action'] === 'activate') {
+            abort_unless($event->isDraft(), 422, 'L\'événement est déjà lancé ou terminé.');
+        } else {
+            abort_unless($event->isActive(), 422, 'Seul un événement en cours peut être clôturé.');
+        }
 
         DB::transaction(function () use ($event, $data, $request) {
             if ($data['action'] === 'activate') {
@@ -95,7 +102,7 @@ class EventActivateController extends Controller
         if ($recruitedIds->isNotEmpty()) {
             DB::table('users')
                 ->whereIn('id', $recruitedIds)
-                ->update(['status' => 'inactive', 'updated_at' => now()]);
+                ->update(['status' => AccountStatus::Suspended->value, 'updated_at' => now()]);
 
             $event->hostesses()
                 ->where('recruited_for_event', true)

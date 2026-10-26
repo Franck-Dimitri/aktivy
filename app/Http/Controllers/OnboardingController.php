@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AccountStatus;
+use App\Enums\Role;
+use App\Models\Company;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -25,7 +28,7 @@ class OnboardingController extends Controller
 
     public function show(Request $request): Response
     {
-        $company = $request->user()->company;
+        $company = $this->company($request);
         $user    = $request->user();
 
         return Inertia::render('onboarding/index', [
@@ -54,6 +57,9 @@ class OnboardingController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $company = $this->company($request);
+        abort_if($company->isActive(), 403, 'Votre entreprise est déjà validée.');
+
         $validated = $request->validate([
             'sector'           => ['required', 'string', 'max:100'],
             'city'             => ['required', 'string', 'max:100'],
@@ -83,7 +89,6 @@ class OnboardingController extends Controller
             'registration_doc' => 'Le document légal',
         ]);
 
-        $company = $request->user()->company;
         $dir     = 'onboarding/' . $company->id;
 
         $updates = [
@@ -92,6 +97,8 @@ class OnboardingController extends Controller
             'address' => $validated['address'] ?? null,
             'phone'   => $validated['phone'] ?? $company->phone,
             'onboarding_completed_at' => now(),
+            // Un dossier rejeté puis renvoyé repart en validation
+            'status'  => AccountStatus::Pending,
         ];
 
         // Logo → public storage
@@ -114,5 +121,17 @@ class OnboardingController extends Controller
         $company->update($updates);
 
         return redirect()->route('onboarding.show');
+    }
+
+    /**
+     * Seul le gérant remplit le dossier de son entreprise.
+     */
+    private function company(Request $request): Company
+    {
+        $user = $request->user();
+
+        abort_unless($user->hasRole(Role::CompanyAdmin) && $user->company, 403);
+
+        return $user->company;
     }
 }

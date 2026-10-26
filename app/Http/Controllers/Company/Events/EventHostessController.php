@@ -7,9 +7,12 @@ use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventHostess;
+use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class EventHostessController extends Controller
 {
@@ -35,8 +38,8 @@ class EventHostessController extends Controller
     private function storeExisting(Request $request, Event $event): RedirectResponse
     {
         $data = $request->validate([
-            'user_id'       => 'required|integer|exists:users,id',
-            'event_site_id' => 'nullable|integer|exists:event_sites,id',
+            'user_id'       => ['required', 'integer', "exists:users,id,company_id,{$event->company_id}"],
+            'event_site_id' => ['nullable', 'integer', "exists:event_sites,id,event_id,{$event->id}"],
         ]);
 
         abort_if(
@@ -58,10 +61,19 @@ class EventHostessController extends Controller
     {
         $data = $request->validate([
             'name'          => 'required|string|max:255',
-            'phone'         => 'required|string|max:25|unique:users,phone',
-            'password'      => 'required|string|min:6',
-            'event_site_id' => 'nullable|integer|exists:event_sites,id',
+            'phone'         => 'required|string|max:25',
+            'password'      => ['required', 'string', Password::defaults()],
+            'event_site_id' => ['nullable', 'integer', "exists:event_sites,id,event_id,{$event->id}"],
         ]);
+
+        // Le numéro est enregistré normalisé : c'est sous cette forme qu'on vérifie le doublon
+        $phone = PhoneNumber::normalize($data['phone']);
+        if ($phone === null) {
+            return back()->withErrors(['phone' => 'Ce numéro de téléphone n’est pas valide.'])->withInput();
+        }
+        if (User::withTrashed()->where('phone', $phone)->exists()) {
+            return back()->withErrors(['phone' => 'Ce numéro est déjà utilisé par un autre compte.'])->withInput();
+        }
 
         $user = $event->company->users()->create([
             'name'     => $data['name'],
@@ -69,6 +81,7 @@ class EventHostessController extends Controller
             'password' => Hash::make($data['password']),
             'role'     => Role::FieldAgent->value,
             'status'   => AccountStatus::Active->value,
+            'must_change_password' => true,
         ]);
 
         $event->hostesses()->create([
@@ -86,7 +99,7 @@ class EventHostessController extends Controller
         abort_unless($hostess->event_id === $event->id, 403);
 
         $data = $request->validate([
-            'event_site_id' => 'nullable|integer|exists:event_sites,id',
+            'event_site_id' => ['nullable', 'integer', "exists:event_sites,id,event_id,{$event->id}"],
         ]);
 
         $hostess->update($data);

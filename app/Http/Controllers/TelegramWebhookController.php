@@ -14,9 +14,10 @@ class TelegramWebhookController extends Controller
 
     public function handle(Request $request): Response
     {
-        // Verify Telegram secret token
-        $secret = $request->header('X-Telegram-Bot-Api-Secret-Token');
-        if ($secret !== config('services.telegram.webhook_secret')) {
+        // Verify Telegram secret token (refusé si aucun secret n'est configuré)
+        $expected = (string) config('services.telegram.webhook_secret');
+        $secret = (string) $request->header('X-Telegram-Bot-Api-Secret-Token');
+        if ($expected === '' || ! hash_equals($expected, $secret)) {
             return response('Unauthorized', 401);
         }
 
@@ -31,9 +32,9 @@ class TelegramWebhookController extends Controller
         $userId  = (string) $message['from']['id'];
         $text    = trim($message['text']);
 
-        // Check authorization
-        $allowed = array_filter(array_map('trim', explode(',', config('services.telegram.allowed_ids', ''))));
-        if (!empty($allowed) && !in_array($userId, $allowed, true)) {
+        // Check authorization : sans liste blanche, personne n'a accès (/backup envoie la base entière)
+        $allowed = array_filter(array_map('trim', explode(',', (string) config('services.telegram.allowed_ids', ''))));
+        if (!in_array($userId, $allowed, true)) {
             $this->telegram->sendMessage($chatId, '⛔ Accès non autorisé.');
             return response('OK');
         }

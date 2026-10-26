@@ -8,9 +8,11 @@ use App\Enums\Role;
 use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -25,11 +27,13 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         $input['email'] = Str::lower($input['email'] ?? '');
+        // Normalisé avant validation, pour comparer le numéro tel qu'il est enregistré
+        $input['phone'] = PhoneNumber::normalize($input['phone'] ?? null);
 
         Validator::make($input, [
             'company_name' => ['required', 'string', 'max:255'],
             ...$this->profileRules(),
-            'phone'    => ['nullable', 'string', 'max:20'],
+            'phone'    => ['nullable', 'string', 'max:20', Rule::unique(User::class)],
             'password' => $this->passwordRules(),
         ])->validate();
 

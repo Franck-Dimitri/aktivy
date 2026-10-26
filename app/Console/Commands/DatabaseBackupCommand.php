@@ -30,10 +30,11 @@ class DatabaseBackupCommand extends Command
         $filename = 'motriks_' . now()->format('Y-m-d_H-i-s') . '.sql.gz';
         $filepath = $backupDir . '/' . $filename;
 
-        // pg_dump piped through gzip
+        // pg_dump compresse lui-même (-Z) : le code de sortie est bien celui de pg_dump,
+        // alors qu'avec « | gzip » un échec du dump passait pour un succès.
         $command = sprintf(
-            'PGPASSWORD=%s pg_dump -h %s -p %s -U %s --no-password %s | gzip > %s 2>&1',
-            escapeshellarg($password),
+            'PGPASSWORD=%s pg_dump -h %s -p %s -U %s --no-password -Z 6 %s -f %s 2>&1',
+            escapeshellarg((string) $password),
             escapeshellarg($host),
             escapeshellarg((string) $port),
             escapeshellarg($user),
@@ -44,6 +45,7 @@ class DatabaseBackupCommand extends Command
         exec($command, $output, $exitCode);
 
         if ($exitCode !== 0 || !file_exists($filepath) || filesize($filepath) === 0) {
+            @unlink($filepath); // ne pas garder un dump partiel parmi les sauvegardes
             $this->error("Backup failed (exit {$exitCode}).");
             if ($chatId) {
                 $telegram->sendMessage($chatId, "❌ *Backup échoué !*\nExit code `{$exitCode}`\n" . implode("\n", $output));

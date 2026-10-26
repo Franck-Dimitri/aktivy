@@ -42,10 +42,10 @@ class SiteInventoryController extends Controller
     }
 
     /** Update stock or thresholds. */
-    public function update(Request $request, Site $site, SiteProduct $siteProduct): RedirectResponse
+    public function update(Request $request, Site $site, SiteProduct $inventory): RedirectResponse
     {
         $this->authorizeSite($request, $site);
-        abort_if($siteProduct->site_id !== $site->id, 404);
+        abort_if($inventory->site_id !== $site->id, 404);
 
         $validated = $request->validate([
             'current_stock'      => ['required', 'integer', 'min:0'],
@@ -53,7 +53,7 @@ class SiteInventoryController extends Controller
             'critical_threshold' => ['required', 'integer', 'min:0', 'lte:alert_threshold'],
         ]);
 
-        $siteProduct->update([
+        $inventory->update([
             ...$validated,
             'updated_by' => $request->user()->id,
         ]);
@@ -62,12 +62,12 @@ class SiteInventoryController extends Controller
     }
 
     /** Remove a product from a site. */
-    public function destroy(Request $request, Site $site, SiteProduct $siteProduct): RedirectResponse
+    public function destroy(Request $request, Site $site, SiteProduct $inventory): RedirectResponse
     {
         $this->authorizeSite($request, $site);
-        abort_if($siteProduct->site_id !== $site->id, 404);
+        abort_if($inventory->site_id !== $site->id, 404);
 
-        $siteProduct->delete();
+        $inventory->delete();
 
         return back()->with('success', 'Produit retiré de l\'inventaire.');
     }

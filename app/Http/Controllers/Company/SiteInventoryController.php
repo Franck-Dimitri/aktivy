@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Company;
 
 use App\Http\Controllers\Controller;
+use App\Models\DailyReportLine;
 use App\Models\Site;
 use App\Models\SiteProduct;
 use Illuminate\Http\RedirectResponse;
@@ -66,6 +67,11 @@ class SiteInventoryController extends Controller
     {
         $this->authorizeSite($request, $site);
         abort_if($inventory->site_id !== $site->id, 404);
+
+        // Les rapports journaliers référencent la ligne d'inventaire (clé étrangère restrictive)
+        if (DailyReportLine::where('site_product_id', $inventory->id)->exists()) {
+            return back()->withErrors(['inventory' => 'Ce produit figure dans des rapports de vente : il ne peut pas être retiré. Mettez son stock à 0.']);
+        }
 
         $inventory->delete();
 

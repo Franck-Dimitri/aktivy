@@ -117,7 +117,11 @@ export function useDeleteDialog<T>({
                 toast.success(getSuccessMessage(target));
                 setOpen(false);
             },
-            onError: () => toast.error('Action impossible', { description: 'Une erreur est survenue. Réessayez.' }),
+            onError: (errors) =>
+                toast.error('Action impossible', {
+                    // Le serveur explique pourquoi (ex. produit présent dans des rapports) : on l'affiche
+                    description: Object.values(errors)[0] ?? 'Une erreur est survenue. Réessayez.',
+                }),
             onFinish: () => setProcessing(false),
         });
     };

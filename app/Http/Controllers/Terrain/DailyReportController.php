@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Terrain;
 use App\Http\Controllers\Controller;
 use App\Models\DailyReport;
 use App\Models\DailyReportLine;
+use App\Models\SiteProduct;
 use App\Models\Visit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -118,7 +119,7 @@ class DailyReportController extends Controller
     {
         abort_if($visit->user_id !== $request->user()->id, 403);
 
-        $report = $visit->dailyReport()->with('lines.siteProduct')->firstOrFail();
+        $report = $visit->dailyReport()->with('lines')->firstOrFail();
         abort_if($report->isSubmitted(), 422, 'Ce rapport a déjà été soumis.');
 
         $validated = $request->validate([
@@ -152,8 +153,11 @@ class DailyReportController extends Controller
                     'notes'         => $lineData['notes'] ?? null,
                 ]);
 
-                // Mettre à jour le stock courant du site
-                $line->siteProduct->update(['current_stock' => $closing]);
+                // Retirer les ventes du stock *actuel* du site, et non le remplacer par le stock
+                // d'ouverture du rapport : un réassort pendant la journée ou les ventes d'une
+                // autre hôtesse sur le même site seraient sinon perdus.
+                $siteProduct = SiteProduct::whereKey($line->site_product_id)->lockForUpdate()->first();
+                $siteProduct?->update(['current_stock' => max(0, $siteProduct->current_stock - $sold)]);
             }
 
             $report->update([

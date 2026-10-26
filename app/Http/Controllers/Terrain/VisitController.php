@@ -41,8 +41,8 @@ class VisitController extends Controller
         $affectation = Affectation::where('id', $validated['affectation_id'])
             ->where('user_id', $user->id)
             ->where('status', 'active')
-            ->where('starts_on', '<=', $today)
-            ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', $today))
+            ->whereDate('starts_on', '<=', $today)
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', $today))
             ->firstOrFail();
 
         $visit = $user->company->visits()->create([

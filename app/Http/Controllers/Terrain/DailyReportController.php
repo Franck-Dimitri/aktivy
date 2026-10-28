@@ -42,25 +42,25 @@ class DailyReportController extends Controller
                 ]);
             }
 
-            $report->load('lines');
+            $report->load(['lines', 'lines.siteProduct.product:id,image']);
         }
 
         return Inertia::render('terrain/report', [
             'visit' => [
-                'id'            => $visit->id,
-                'checked_in_at' => $visit->checked_in_at->format('H:i'),
+                'id'             => $visit->id,
+                'checked_in_at'  => $visit->checked_in_at->format('H:i'),
                 'checked_out_at' => $visit->checked_out_at?->format('H:i'),
-                'status'        => $visit->status->value,
+                'status'         => $visit->status->value,
             ],
             'report' => [
-                'id'              => $report->id,
-                'status'          => $report->status,
-                'report_date'     => $report->report_date->translatedFormat('l d MMMM Y'),
-                'site_name'       => $visit->site->name,
-                'notes'           => $report->notes,
-                'incident_notes'  => $report->incident_notes,
-                'submitted_at'    => $report->submitted_at?->format('H:i'),
-                'total_revenue'   => $report->totalRevenue(),
+                'id'               => $report->id,
+                'status'           => $report->status,
+                'report_date'      => $report->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
+                'site_name'        => $visit->site->name,
+                'notes'            => $report->notes,
+                'incident_notes'   => $report->incident_notes,
+                'submitted_at'     => $report->submitted_at?->format('H:i'),
+                'total_revenue'    => $report->totalRevenue(),
                 'total_units_sold' => $report->totalUnitsSold(),
                 'lines' => $report->lines->map(fn ($l) => [
                     'id'            => $l->id,
@@ -89,11 +89,11 @@ class DailyReportController extends Controller
         abort_if($report->isSubmitted(), 422, 'Ce rapport a déjà été soumis.');
 
         $validated = $request->validate([
-            'notes'  => ['nullable', 'string', 'max:2000'],
-            'lines'  => ['required', 'array'],
-            'lines.*.id'          => ['required', 'integer'],
-            'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
-            'lines.*.notes'       => ['nullable', 'string', 'max:500'],
+            'notes'              => ['nullable', 'string', 'max:2000'],
+            'lines'              => ['required', 'array'],
+            'lines.*.id'         => ['required', 'integer'],
+            'lines.*.units_sold' => ['required', 'integer', 'min:0'],
+            'lines.*.notes'      => ['nullable', 'string', 'max:500'],
         ]);
 
         $report->update(['notes' => $validated['notes'] ?? null]);
@@ -122,12 +122,12 @@ class DailyReportController extends Controller
         abort_if($report->isSubmitted(), 422, 'Ce rapport a déjà été soumis.');
 
         $validated = $request->validate([
-            'notes'          => ['nullable', 'string', 'max:2000'],
-            'incident_notes' => ['nullable', 'string', 'max:2000'],
-            'lines'          => ['required', 'array'],
-            'lines.*.id'          => ['required', 'integer'],
-            'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
-            'lines.*.notes'       => ['nullable', 'string', 'max:500'],
+            'notes'              => ['nullable', 'string', 'max:2000'],
+            'incident_notes'     => ['nullable', 'string', 'max:2000'],
+            'lines'              => ['required', 'array'],
+            'lines.*.id'         => ['required', 'integer'],
+            'lines.*.units_sold' => ['required', 'integer', 'min:0'],
+            'lines.*.notes'      => ['nullable', 'string', 'max:500'],
         ]);
 
         DB::transaction(function () use ($report, $validated) {

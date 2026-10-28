@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\DailyReportLine;
 use App\Models\Site;
 use App\Models\SiteProduct;
+use App\Models\StockMovement;
+use App\Support\Stock\StockLedger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SiteInventoryController extends Controller
 {
@@ -32,12 +35,14 @@ class SiteInventoryController extends Controller
             return back()->withErrors(['product_id' => 'Ce produit est déjà dans l\'inventaire de ce site.']);
         }
 
-        SiteProduct::create([
+        $stock = SiteProduct::create([
             ...$validated,
-            'company_id' => $company->id,
-            'site_id'    => $site->id,
-            'updated_by' => $request->user()->id,
+            'current_stock' => 0,
+            'company_id'    => $company->id,
+            'site_id'       => $site->id,
+            'updated_by'    => $request->user()->id,
         ]);
+        StockLedger::set($stock, $validated['current_stock'], StockMovement::INITIAL, $request->user());
 
         return back()->with('success', 'Produit ajouté à l\'inventaire.');
     }
@@ -52,14 +57,38 @@ class SiteInventoryController extends Controller
             'current_stock'      => ['required', 'integer', 'min:0'],
             'alert_threshold'    => ['required', 'integer', 'min:0'],
             'critical_threshold' => ['required', 'integer', 'min:0', 'lte:alert_threshold'],
+            'notes'              => ['nullable', 'string', 'max:500'],
         ]);
 
-        $inventory->update([
-            ...$validated,
-            'updated_by' => $request->user()->id,
-        ]);
+        DB::transaction(function () use ($inventory, $validated, $request) {
+            $inventory->update([
+                'alert_threshold'    => $validated['alert_threshold'],
+                'critical_threshold' => $validated['critical_threshold'],
+            ]);
+
+            // Un stock saisi à la main est un inventaire : l'écart est tracé dans le journal
+            StockLedger::set($inventory, $validated['current_stock'], StockMovement::ADJUSTMENT, $request->user(), $validated['notes'] ?? null);
+        });
 
         return back()->with('success', 'Stock mis à jour.');
+    }
+
+    /** Réassort : ajoute une livraison au stock du site. */
+    public function restock(Request $request, Site $site, SiteProduct $inventory): RedirectResponse
+    {
+        $this->authorizeSite($request, $site);
+        abort_if($inventory->site_id !== $site->id, 404);
+
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
+            'notes'    => ['nullable', 'string', 'max:500'],
+        ], [
+            'quantity.min' => 'Indiquez au moins une unité livrée.',
+        ]);
+
+        StockLedger::move($inventory->id, $validated['quantity'], StockMovement::RESTOCK, $request->user(), notes: $validated['notes'] ?? null);
+
+        return back()->with('success', "Réassort de {$validated['quantity']} enregistré.");
     }
 
     /** Remove a product from a site. */

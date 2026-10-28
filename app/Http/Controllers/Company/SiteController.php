@@ -9,6 +9,7 @@ use App\Enums\Role;
 use App\Enums\SiteStatus;
 use App\Enums\SiteType;
 use App\Models\Site;
+use App\Models\StockMovement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -310,6 +311,24 @@ class SiteController extends Controller
             'hostess_history'   => $hostessHistory,
             'available_staff'   => $availableStaff,
             'inventory'         => $inventory,
+            // Journal des mouvements de stock du site (les plus récents)
+            'stock_movements'   => StockMovement::where('site_id', $site->id)
+                ->with(['siteProduct.product:id,name', 'author:id,name', 'dailyReport:id'])
+                ->latest('id')
+                ->limit(50)
+                ->get()
+                ->map(fn (StockMovement $m) => [
+                    'id'              => $m->id,
+                    'date'            => $m->created_at->format('d/m/Y H:i'),
+                    'product_name'    => $m->siteProduct?->product?->name,
+                    'type'            => $m->type,
+                    'type_label'      => StockMovement::LABELS[$m->type] ?? $m->type,
+                    'quantity'        => $m->quantity,
+                    'stock_after'     => $m->stock_after,
+                    'author'          => $m->author?->name,
+                    'notes'           => $m->notes,
+                    'daily_report_id' => $m->daily_report_id,
+                ]),
             'available_products'=> $availableProducts,
             // Options du modal « Modifier »
             'types'    => collect(SiteType::cases())->map(fn ($t) => [

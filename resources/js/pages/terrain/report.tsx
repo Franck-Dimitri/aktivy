@@ -38,11 +38,22 @@ type ReportLine = {
     unit: string;
     unit_price: number;
     opening_stock: number;
+    /** Unités vendues à l'unité (saisie de l'hôtesse) ; les packs s'y ajoutent. */
     units_sold: number;
+    pack_units: number;
     closing_stock: number;
     revenue: number;
     notes: string | null;
     image_url: string | null;
+};
+
+/** Pack de l'événement en cours, avec les produits du site qu'il consomme. */
+type PackOffer = {
+    id: number;
+    name: string;
+    value: number;
+    quantity: number;
+    items: { line_id: number | null; name: string; quantity: number; free: boolean }[];
 };
 
 type Report = {
@@ -55,7 +66,10 @@ type Report = {
     submitted_at: string | null;
     total_revenue: number;
     total_units_sold: number;
+    validated: boolean;
+    corrected: boolean;
     lines: ReportLine[];
+    packs: PackOffer[];
 };
 
 type VisitInfo = {
@@ -164,13 +178,17 @@ function StockBar({ used, total }: { used: number; total: number }) {
 
 /* ─── ProductCard ─── */
 
-function ProductCard({ line, onChange, onNoteChange, disabled }: {
+function ProductCard({ line, reserved, onChange, onNoteChange, disabled }: {
     line: ReportLine;
+    /** Unités déjà prises par les packs saisis. */
+    reserved: number;
     onChange: (sold: number) => void;
     onNoteChange: (note: string) => void;
     disabled: boolean;
 }) {
-    const remaining = Math.max(0, line.opening_stock - line.units_sold);
+    // Le stock disponible pour les ventes à l'unité tient compte des packs
+    const max = Math.max(0, line.opening_stock - reserved);
+    const remaining = Math.max(0, max - line.units_sold);
     const revenueAmount = line.units_sold * line.unit_price;
 
     return (
@@ -226,17 +244,17 @@ function ProductCard({ line, onChange, onNoteChange, disabled }: {
                     type="number"
                     inputMode="numeric"
                     min={0}
-                    max={line.opening_stock}
+                    max={max}
                     value={line.units_sold}
                     disabled={disabled}
-                    onChange={(e) => onChange(Math.max(0, Math.min(line.opening_stock, Number(e.target.value))))}
+                    onChange={(e) => onChange(Math.max(0, Math.min(max, Number(e.target.value))))}
                     aria-label={`Unités vendues — ${line.product_name}`}
                     className="h-10 text-center text-lg font-bold tabular-nums"
                 />
                 <button
                     type="button"
-                    disabled={disabled || line.units_sold >= line.opening_stock}
-                    onClick={() => onChange(Math.min(line.opening_stock, line.units_sold + 1))}
+                    disabled={disabled || line.units_sold >= max}
+                    onClick={() => onChange(Math.min(max, line.units_sold + 1))}
                     className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-90 disabled:opacity-40"
                     aria-label="Ajouter une unité"
                 >
@@ -246,7 +264,10 @@ function ProductCard({ line, onChange, onNoteChange, disabled }: {
 
             {/* Stock bar */}
             {line.opening_stock > 0 && (
-                <StockBar used={line.units_sold} total={line.opening_stock} />
+                <StockBar used={line.units_sold + reserved} total={line.opening_stock} />
+            )}
+            {reserved > 0 && (
+                <p className="text-xs text-slate-500">dont {reserved} {line.unit} vendus dans des packs</p>
             )}
 
             {/* Revenue badge */}
@@ -284,9 +305,34 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     const [step, setStep] = useState<Step>('edit');
     const [confirmCheckout, setConfirmCheckout] = useState(false);
 
-    const totalSold = lines.reduce((s, l) => s + l.units_sold, 0);
-    const totalRevenue = lines.reduce((s, l) => s + l.units_sold * l.unit_price, 0);
+    const [packCounts, setPackCounts] = useState<Record<number, number>>(
+        () => Object.fromEntries(report.packs.map((p) => [p.id, p.quantity])),
+    );
+
+    // Unités de chaque produit consommées par les packs saisis
+    const packUnits: Record<number, number> = {};
+    for (const pack of report.packs) {
+        for (const item of pack.items) {
+            if (item.line_id !== null) {
+                packUnits[item.line_id] = (packUnits[item.line_id] ?? 0) + (packCounts[pack.id] ?? 0) * item.quantity;
+            }
+        }
+    }
+
+    const totalSold = lines.reduce((s, l) => s + l.units_sold + (packUnits[l.id] ?? 0), 0);
+    const totalRevenue =
+        lines.reduce((s, l) => s + l.units_sold * l.unit_price, 0) +
+        report.packs.reduce((s, p) => s + (packCounts[p.id] ?? 0) * p.value, 0);
     const payloadLines = () => lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes }));
+    const payloadPacks = () => report.packs.map((p) => ({ id: p.id, quantity: packCounts[p.id] ?? 0 }));
+
+    /** Un pack de plus est possible si chacun de ses produits a encore assez de stock. */
+    const canAddPack = (pack: PackOffer) =>
+        pack.items.every((item) => {
+            const line = lines.find((l) => l.id === item.line_id);
+
+            return line !== undefined && line.opening_stock - line.units_sold - (packUnits[line.id] ?? 0) >= item.quantity;
+        });
 
     function updateLine(id: number, sold: number) {
         setLines((prev) => prev.map((l) =>
@@ -301,7 +347,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     }
 
     function saveDraft() {
-        router.put(reportUpdate({ visit: visit.id }).url, { notes, lines: payloadLines() }, {
+        router.put(reportUpdate({ visit: visit.id }).url, { notes, lines: payloadLines(), packs: payloadPacks() }, {
             preserveScroll: true,
             onStart: () => setBusy('draft'),
             onSuccess: () => toast.success('Brouillon enregistré'),
@@ -311,7 +357,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     }
 
     function submitReport() {
-        router.post(reportSubmit({ visit: visit.id }).url, { notes, incident_notes: incidentNotes || null, lines: payloadLines() }, {
+        router.post(reportSubmit({ visit: visit.id }).url, { notes, incident_notes: incidentNotes || null, lines: payloadLines(), packs: payloadPacks() }, {
             onStart: () => setBusy('submit'),
             onSuccess: () => toast.success('Rapport soumis !', { description: `${formatMoney(totalRevenue)} FCFA enregistrés.` }),
             onError: toastFormError,
@@ -448,6 +494,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                             <ProductCard
                                                 key={line.id}
                                                 line={line}
+                                                reserved={packUnits[line.id] ?? 0}
                                                 onChange={(sold) => updateLine(line.id, sold)}
                                                 onNoteChange={(note) => updateLineNote(line.id, note)}
                                                 disabled={busy !== null}
@@ -456,6 +503,53 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </div>
                                 )}
                             </GlowCard>
+
+                            {report.packs.length > 0 && (
+                                <GlowCard contentClassName="p-5">
+                                    <h3 className="text-base font-semibold text-ink">Packs de l'événement</h3>
+                                    <p className="mt-0.5 mb-4 text-sm text-slate-500">
+                                        Comptez ici les packs vendus : leurs produits sont retirés du stock automatiquement.
+                                    </p>
+                                    <div className="flex flex-col gap-3">
+                                        {report.packs.map((pack) => {
+                                            const count = packCounts[pack.id] ?? 0;
+
+                                            return (
+                                                <div key={pack.id} className={cn('flex flex-wrap items-center gap-3 rounded-2xl p-4 ring-1', count > 0 ? 'bg-motriks-soft ring-green-200' : 'bg-white ring-slate-100')}>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-semibold text-ink">{pack.name}</p>
+                                                        <p className="text-xs text-slate-500">
+                                                            {pack.items.map((i) => `${i.quantity} × ${i.name}${i.free ? ' (offert)' : ''}`).join(' + ')}
+                                                        </p>
+                                                        <p className="text-xs text-slate-400">{formatMoney(pack.value)} FCFA le pack</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            disabled={busy !== null || count <= 0}
+                                                            onClick={() => setPackCounts({ ...packCounts, [pack.id]: count - 1 })}
+                                                            className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 active:scale-90 disabled:opacity-40"
+                                                            aria-label={`Retirer un pack ${pack.name}`}
+                                                        >
+                                                            <Minus className="size-4" />
+                                                        </button>
+                                                        <span className="w-10 text-center text-lg font-bold tabular-nums">{count}</span>
+                                                        <button
+                                                            type="button"
+                                                            disabled={busy !== null || !canAddPack(pack)}
+                                                            onClick={() => setPackCounts({ ...packCounts, [pack.id]: count + 1 })}
+                                                            className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 active:scale-90 disabled:opacity-40"
+                                                            aria-label={`Ajouter un pack ${pack.name}`}
+                                                        >
+                                                            <Plus className="size-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </GlowCard>
+                            )}
 
                             {/* Notes */}
                             <GlowCard contentClassName="p-5">
@@ -563,6 +657,22 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                             )}
                                         </div>
                                     ))}
+                                    {report.packs.filter((p) => (packCounts[p.id] ?? 0) > 0).map((p) => (
+                                        <div key={`pack-${p.id}`} className="flex items-center gap-3 px-6 py-3">
+                                            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-motriks-soft">
+                                                <Package className="size-4 text-motriks-deep" />
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium text-ink">{p.name}</p>
+                                                <p className="text-xs text-slate-400">
+                                                    {packCounts[p.id]} pack{(packCounts[p.id] ?? 0) > 1 ? 's' : ''} · {formatMoney(p.value)} / pack
+                                                </p>
+                                            </div>
+                                            <p className="shrink-0 text-sm font-bold tabular-nums text-motriks-deep">
+                                                {formatMoney((packCounts[p.id] ?? 0) * p.value)}
+                                            </p>
+                                        </div>
+                                    ))}
                                 </div>
 
                                 <div className="border-t border-dashed border-slate-200 px-6 py-4">
@@ -624,7 +734,12 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 <div className="flex size-12 items-center justify-center rounded-full bg-motriks text-white shadow-lg shadow-motriks/30">
                                     <CheckCircle2 className="size-6" />
                                 </div>
-                                <p className="font-semibold text-green-800">Rapport soumis à {report.submitted_at}</p>
+                                <p className="font-semibold text-green-800">
+                                    {report.validated ? 'Rapport validé par votre responsable' : `Rapport soumis à ${report.submitted_at}`}
+                                </p>
+                                {report.corrected && (
+                                    <p className="text-xs text-green-700">Les quantités ont été corrigées par votre responsable.</p>
+                                )}
                                 <p className="text-sm text-green-700">
                                     {formatMoney(report.total_revenue)} FCFA enregistrés
                                 </p>
@@ -649,11 +764,12 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                 <p className="font-medium text-ink">{l.product_name}</p>
                                                 <p className="text-xs text-slate-500">
                                                     Ouv. {l.opening_stock} → Clôt. {l.closing_stock} {l.unit}
-                                                    {l.units_sold > 0 && ` · ${l.units_sold} vendus`}
+                                                    {l.units_sold + l.pack_units > 0 && ` · ${l.units_sold + l.pack_units} vendus`}
+                                                    {l.pack_units > 0 && ` (dont ${l.pack_units} en packs)`}
                                                 </p>
                                                 {l.notes && <p className="mt-0.5 text-xs italic text-slate-400">{l.notes}</p>}
                                             </div>
-                                            {l.unit_price > 0 && l.units_sold > 0 && (
+                                            {l.revenue > 0 && (
                                                 <p className="shrink-0 font-semibold text-motriks-deep tabular-nums">
                                                     {formatMoney(l.revenue)}
                                                 </p>

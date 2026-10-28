@@ -5,6 +5,7 @@ import {
     ChevronLeft,
     ChevronRight,
     ClipboardList,
+    MapPin,
     MapPinOff,
     Phone,
     UserX,
@@ -32,6 +33,9 @@ type ReportRow = {
     revenue: number;
     units_sold: number;
     has_incident: boolean;
+    validated: boolean;
+    checkin_distance_m: number | null;
+    off_site: boolean;
 };
 
 type MissingRow = {
@@ -182,7 +186,7 @@ export default function DailyReportsIndex({
                                 {
                                     label: 'Rapports soumis',
                                     value: submitted.length,
-                                    sub: 'rendus et verrouillés',
+                                    sub: `dont ${submitted.filter((r) => !r.validated).length} à valider`,
                                 },
                                 {
                                     label: is_today ? 'En cours' : 'Non soumis',
@@ -242,6 +246,13 @@ export default function DailyReportsIndex({
                                                                 Incident
                                                             </span>
                                                         )}
+                                                        {r.off_site && (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">
+                                                                <MapPin className="size-3" />
+                                                                Pointage hors
+                                                                site
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <p className="mt-0.5 text-xs text-slate-500">
                                                         {r.site_name ?? '—'} ·
@@ -285,9 +296,15 @@ export default function DailyReportsIndex({
                                                     )}
                                                     {r.status ===
                                                     'submitted' ? (
-                                                        <StatusBadge tone="success">
-                                                            Soumis
-                                                        </StatusBadge>
+                                                        r.validated ? (
+                                                            <StatusBadge tone="success">
+                                                                Validé
+                                                            </StatusBadge>
+                                                        ) : (
+                                                            <StatusBadge tone="info">
+                                                                À valider
+                                                            </StatusBadge>
+                                                        )
                                                     ) : (
                                                         <StatusBadge
                                                             tone={

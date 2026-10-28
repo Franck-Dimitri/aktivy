@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property Carbon $checked_in_at
  * @property Carbon|null $checked_out_at
  * @property float|null $checkin_latitude
+ * @property int|null $checkin_distance_m
  * @property float|null $checkin_longitude
  * @property float|null $checkout_latitude
  * @property float|null $checkout_longitude
@@ -35,13 +36,24 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable([
     'site_id', 'user_id', 'affectation_id',
     'checked_in_at', 'checked_out_at',
-    'checkin_latitude', 'checkin_longitude',
+    'checkin_latitude', 'checkin_longitude', 'checkin_distance_m',
     'checkout_latitude', 'checkout_longitude',
     'duration_minutes', 'status', 'notes',
 ])]
 class Visit extends Model
 {
     use HasFactory;
+
+    /** Au-delà de cette distance du site (en mètres), le pointage est signalé « hors site ». */
+    public const OFF_SITE_METERS = 300;
+
+    /**
+     * Pointage fait loin du site : null si la distance n'est pas connue.
+     */
+    public function isOffSite(): ?bool
+    {
+        return $this->checkin_distance_m === null ? null : $this->checkin_distance_m > self::OFF_SITE_METERS;
+    }
 
     protected $attributes = [
         'status' => 'in_progress',

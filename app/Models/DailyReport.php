@@ -25,7 +25,10 @@ use Illuminate\Support\Carbon;
  * @property-read Visit $visit
  * @property-read \Illuminate\Database\Eloquent\Collection<int, DailyReportLine> $lines
  */
-#[Fillable(['company_id', 'site_id', 'user_id', 'visit_id', 'report_date', 'status', 'notes', 'incident_notes', 'submitted_at'])]
+#[Fillable([
+    'company_id', 'site_id', 'user_id', 'visit_id', 'event_id', 'report_date', 'status', 'notes', 'incident_notes',
+    'submitted_at', 'corrected_at', 'corrected_by', 'validated_at', 'validated_by',
+])]
 class DailyReport extends Model
 {
     protected function casts(): array
@@ -33,12 +36,22 @@ class DailyReport extends Model
         return [
             'report_date' => 'date',
             'submitted_at' => 'datetime',
+            'corrected_at' => 'datetime',
+            'validated_at' => 'datetime',
         ];
     }
 
     public function isSubmitted(): bool
     {
         return $this->status === 'submitted';
+    }
+
+    /**
+     * Validé par le responsable : le rapport est figé, plus aucune correction possible.
+     */
+    public function isValidated(): bool
+    {
+        return $this->validated_at !== null;
     }
 
     /** Chiffre d'affaires total de la journée */
@@ -76,5 +89,25 @@ class DailyReport extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(DailyReportLine::class);
+    }
+
+    public function packs(): HasMany
+    {
+        return $this->hasMany(DailyReportPack::class);
+    }
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class)->withTrashed();
+    }
+
+    public function corrector(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'corrected_by')->withTrashed();
+    }
+
+    public function validator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'validated_by')->withTrashed();
     }
 }

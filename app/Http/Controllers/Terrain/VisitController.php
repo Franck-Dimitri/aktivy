@@ -33,8 +33,8 @@ class VisitController extends Controller
 
         $validated = $request->validate([
             'affectation_id' => ['required', 'integer'],
-            'latitude'       => ['nullable', 'numeric'],
-            'longitude'      => ['nullable', 'numeric'],
+            'latitude'       => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude'      => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         // Seule une affectation active et en cours aujourd'hui permet de pointer (même règle que l'accueil)
@@ -52,6 +52,10 @@ class VisitController extends Controller
             'checked_in_at'      => now(),
             'checkin_latitude'   => $validated['latitude'] ?? null,
             'checkin_longitude'  => $validated['longitude'] ?? null,
+            // Distance au site, pour signaler au responsable un pointage fait ailleurs
+            'checkin_distance_m' => isset($validated['latitude'], $validated['longitude'])
+                ? $affectation->site->distanceTo((float) $validated['latitude'], (float) $validated['longitude'])
+                : null,
             'status'             => 'in_progress',
         ]);
 
@@ -61,6 +65,8 @@ class VisitController extends Controller
             'site_id'     => $affectation->site_id,
             'user_id'     => $user->id,
             'visit_id'    => $visit->id,
+            // Les ventes d'un événement sont retrouvées par ce lien
+            'event_id'    => $affectation->event_id,
             'report_date' => $today,
             'status'      => 'draft',
         ]);

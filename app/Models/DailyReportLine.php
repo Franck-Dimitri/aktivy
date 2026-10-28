@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'daily_report_id', 'site_product_id',
     'product_name', 'unit', 'unit_price',
-    'opening_stock', 'units_sold', 'closing_stock', 'revenue',
+    'opening_stock', 'single_units', 'units_sold', 'closing_stock', 'revenue',
     'notes',
 ])]
 class DailyReportLine extends Model

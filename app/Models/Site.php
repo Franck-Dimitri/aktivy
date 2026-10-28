@@ -105,4 +105,23 @@ class Site extends Model
     {
         return $this->latitude !== null && $this->longitude !== null;
     }
+
+    /**
+     * Distance en mètres entre le site et une position (formule de haversine),
+     * ou null si le site n'a pas de coordonnées.
+     */
+    public function distanceTo(float $latitude, float $longitude): ?int
+    {
+        if (! $this->hasCoordinates()) {
+            return null;
+        }
+
+        $earthRadius = 6371000;
+        $dLat = deg2rad($latitude - (float) $this->latitude);
+        $dLng = deg2rad($longitude - (float) $this->longitude);
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad((float) $this->latitude)) * cos(deg2rad($latitude)) * sin($dLng / 2) ** 2;
+
+        return (int) round($earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a)));
+    }
 }

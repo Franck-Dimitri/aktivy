@@ -69,6 +69,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('sites/{site}/photos', [SitePhotoController::class, 'store'])->name('sites.photos.store');
             Route::delete('sites/{site}/photos/{index}', [SitePhotoController::class, 'destroy'])->name('sites.photos.destroy');
             Route::resource('sites.inventory', SiteInventoryController::class)->only(['store', 'update', 'destroy']);
+            // Relecture des rapports journaliers : correction puis validation
+            Route::put('rapports-journaliers/{dailyReport}', [DailyReportController::class, 'update'])->name('daily-reports.update');
+            Route::post('rapports-journaliers/{dailyReport}/valider', [DailyReportController::class, 'validateReport'])->name('daily-reports.validate');
+
+            Route::post('sites/{site}/inventory/{inventory}/reassort', [SiteInventoryController::class, 'restock'])->name('sites.inventory.restock');
 
             Route::resource('personnel', PersonnelController::class);
 

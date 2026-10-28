@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Terrain;
 use App\Http\Controllers\Controller;
 use App\Models\DailyReport;
 use App\Models\DailyReportLine;
-use App\Models\SiteProduct;
+use App\Models\StockMovement;
+use App\Support\Reports\ReportSales;
+use App\Support\Stock\StockLedger;
 use App\Models\Visit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,13 +65,18 @@ class DailyReportController extends Controller
                 'submitted_at'    => $report->submitted_at?->format('H:i'),
                 'total_revenue'   => $report->totalRevenue(),
                 'total_units_sold' => $report->totalUnitsSold(),
+                'validated'        => $report->isValidated(),
+                'corrected'        => $report->corrected_at !== null,
+                'packs'            => $this->packs($report),
                 'lines' => $report->lines->map(fn ($l) => [
                     'id'            => $l->id,
                     'product_name'  => $l->product_name,
                     'unit'          => $l->unit,
                     'unit_price'    => $l->unit_price,
                     'opening_stock' => $l->opening_stock,
-                    'units_sold'    => $l->units_sold,
+                    // Saisie de l'hôtesse : la part vendue à l'unité ; les packs s'y ajoutent
+                    'units_sold'    => $l->single_units,
+                    'pack_units'    => $l->units_sold - $l->single_units,
                     'closing_stock' => $l->closing_stock,
                     'revenue'       => $l->revenue,
                     'notes'         => $l->notes,
@@ -81,6 +88,32 @@ class DailyReportController extends Controller
         ]);
     }
 
+    /**
+     * Packs de l'événement que l'hôtesse peut vendre, avec la quantité déjà saisie.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function packs(DailyReport $report): array
+    {
+        $sold = $report->packs()->pluck('quantity', 'event_pack_id');
+        $names = $report->lines->mapWithKeys(fn ($l) => [$l->siteProduct?->product_id => $l->product_name]);
+        $prices = $report->lines->mapWithKeys(fn ($l) => [$l->siteProduct?->product_id => $l]);
+
+        return ReportSales::availablePacks($report)->map(fn ($pack) => [
+            'id'       => $pack->id,
+            'name'     => $pack->name,
+            'value'    => ReportSales::packValue($pack, $prices),
+            'quantity' => (int) ($sold[$pack->id] ?? 0),
+            // Lignes du rapport consommées par un pack : pour plafonner la saisie au stock
+            'items'    => $pack->lines->map(fn ($l) => [
+                'line_id'  => $prices[$l->product_id]?->id,
+                'name'     => $names[$l->product_id] ?? '',
+                'quantity' => $l->quantity,
+                'free'     => $l->role === 'free',
+            ])->values(),
+        ])->values()->all();
+    }
+
     /** Sauvegarder le brouillon (quantités vendues). */
     public function update(Request $request, Visit $visit): RedirectResponse
     {
@@ -89,27 +122,12 @@ class DailyReportController extends Controller
         $report = $visit->dailyReport()->firstOrFail();
         abort_if($report->isSubmitted(), 422, 'Ce rapport a déjà été soumis.');
 
-        $validated = $request->validate([
-            'notes'  => ['nullable', 'string', 'max:2000'],
-            'lines'  => ['required', 'array'],
-            'lines.*.id'          => ['required', 'integer'],
-            'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
-            'lines.*.notes'       => ['nullable', 'string', 'max:500'],
-        ]);
+        $validated = $this->validateSales($request);
 
-        $report->update(['notes' => $validated['notes'] ?? null]);
-
-        foreach ($validated['lines'] as $lineData) {
-            $line = $report->lines()->findOrFail($lineData['id']);
-            $sold = (int) $lineData['units_sold'];
-
-            $line->update([
-                'units_sold'    => $sold,
-                'closing_stock' => max(0, $line->opening_stock - $sold),
-                'revenue'       => round($sold * $line->unit_price, 2),
-                'notes'         => $lineData['notes'] ?? null,
-            ]);
-        }
+        DB::transaction(function () use ($report, $validated) {
+            $report->update(['notes' => $validated['notes'] ?? null]);
+            $this->applySales($report, $validated);
+        });
 
         return back()->with('success', 'Brouillon sauvegardé.');
     }
@@ -119,45 +137,24 @@ class DailyReportController extends Controller
     {
         abort_if($visit->user_id !== $request->user()->id, 403);
 
-        $report = $visit->dailyReport()->with('lines')->firstOrFail();
+        $report = $visit->dailyReport()->firstOrFail();
         abort_if($report->isSubmitted(), 422, 'Ce rapport a déjà été soumis.');
 
-        $validated = $request->validate([
-            'notes'          => ['nullable', 'string', 'max:2000'],
+        $validated = $this->validateSales($request, [
             'incident_notes' => ['nullable', 'string', 'max:2000'],
-            'lines'          => ['required', 'array'],
-            'lines.*.id'          => ['required', 'integer'],
-            'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
-            'lines.*.notes'       => ['nullable', 'string', 'max:500'],
         ]);
 
-        DB::transaction(function () use ($report, $validated) {
+        DB::transaction(function () use ($report, $validated, $request) {
             $report->update([
                 'notes'          => $validated['notes'] ?? null,
                 'incident_notes' => $validated['incident_notes'] ?? null,
             ]);
 
-            foreach ($validated['lines'] as $lineData) {
-                $line = $report->lines->firstWhere('id', $lineData['id']);
-                if (! $line) {
-                    continue;
-                }
+            $this->applySales($report, $validated);
 
-                $sold = (int) $lineData['units_sold'];
-                $closing = max(0, $line->opening_stock - $sold);
-
-                $line->update([
-                    'units_sold'    => $sold,
-                    'closing_stock' => $closing,
-                    'revenue'       => round($sold * $line->unit_price, 2),
-                    'notes'         => $lineData['notes'] ?? null,
-                ]);
-
-                // Retirer les ventes du stock *actuel* du site, et non le remplacer par le stock
-                // d'ouverture du rapport : un réassort pendant la journée ou les ventes d'une
-                // autre hôtesse sur le même site seraient sinon perdus.
-                $siteProduct = SiteProduct::whereKey($line->site_product_id)->lockForUpdate()->first();
-                $siteProduct?->update(['current_stock' => max(0, $siteProduct->current_stock - $sold)]);
+            // Les unités vendues (à l'unité et en packs) sortent du stock actuel du site
+            foreach ($report->lines()->get() as $line) {
+                StockLedger::move($line->site_product_id, -$line->units_sold, StockMovement::SALE, $request->user(), $report->id);
             }
 
             $report->update([
@@ -168,6 +165,42 @@ class DailyReportController extends Controller
 
         return redirect()->route('terrain.home')
             ->with('success', 'Rapport soumis avec succès. Bonne fin de journée !');
+    }
+
+    /**
+     * Ventes saisies : unités vendues à l'unité par ligne et packs vendus.
+     *
+     * @param  array<string, mixed>  $extraRules
+     * @return array<string, mixed>
+     */
+    private function validateSales(Request $request, array $extraRules = []): array
+    {
+        return $request->validate([
+            'notes'               => ['nullable', 'string', 'max:2000'],
+            'lines'               => ['required', 'array'],
+            'lines.*.id'          => ['required', 'integer'],
+            'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
+            'lines.*.notes'       => ['nullable', 'string', 'max:500'],
+            'packs'               => ['nullable', 'array'],
+            'packs.*.id'          => ['required', 'integer'],
+            'packs.*.quantity'    => ['required', 'integer', 'min:0'],
+            ...$extraRules,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function applySales(DailyReport $report, array $validated): void
+    {
+        $lines = collect($validated['lines']);
+
+        ReportSales::apply(
+            $report,
+            $lines->pluck('units_sold', 'id')->all(),
+            collect($validated['packs'] ?? [])->pluck('quantity', 'id')->all(),
+            $lines->mapWithKeys(fn ($l) => [$l['id'] => $l['notes'] ?? null])->all(),
+        );
     }
 
     /** Ajouter un signalement après soumission. */

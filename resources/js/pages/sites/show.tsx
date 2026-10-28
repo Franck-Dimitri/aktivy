@@ -8,6 +8,7 @@ import {
     ImagePlus,
     MapPin,
     Package,
+    PackagePlus,
     Pencil,
     Phone,
     Pill,
@@ -41,7 +42,8 @@ import { dashboard } from '@/routes';
 import { store as affectationStore, destroy as affectationDestroy, permuter as affectationPermuter } from '@/routes/affectations';
 import { show as personnelShow } from '@/routes/personnel';
 import { index as sitesIndex, destroy as siteDestroy } from '@/routes/sites';
-import { store as inventoryStore, update as inventoryUpdate, destroy as inventoryDestroy } from '@/routes/sites/inventory';
+import { store as inventoryStore, update as inventoryUpdate, destroy as inventoryDestroy, restock as inventoryRestock } from '@/routes/sites/inventory';
+import { show as dailyReportShow } from '@/routes/daily-reports';
 import type { SiteAffectation, SiteDetail, SiteStatusOption, SiteTypeOption, SiteVisit } from '@/types';
 import { EditSiteModal } from './edit-site-modal';
 
@@ -93,6 +95,19 @@ type InventoryItem = {
 
 type ProductOption = { value: number; label: string; unit: string };
 
+type StockMovementItem = {
+    id: number;
+    date: string;
+    product_name: string | null;
+    type: 'initial' | 'restock' | 'sale' | 'adjustment' | 'correction';
+    type_label: string;
+    quantity: number;
+    stock_after: number;
+    author: string | null;
+    notes: string | null;
+    daily_report_id: number | null;
+};
+
 type Props = {
     site: SiteDetail & {
         photos: string[];
@@ -105,6 +120,7 @@ type Props = {
     hostess_history: HostessRecord[];
     available_staff: StaffOption[];
     inventory: InventoryItem[];
+    stock_movements: StockMovementItem[];
     available_products: ProductOption[];
     types: SiteTypeOption[];
     statuses: SiteStatusOption[];
@@ -370,6 +386,7 @@ function StockModal({ siteId, item, onClose }: { siteId: number; item: Inventory
     const [current, setCurrent] = useState(String(item.current_stock));
     const [alert, setAlert] = useState(String(item.alert_threshold));
     const [critical, setCritical] = useState(String(item.critical_threshold));
+    const [notes, setNotes] = useState('');
     const [saving, setSaving] = useState(false);
 
     const submit = (e: React.FormEvent) => {
@@ -380,6 +397,7 @@ function StockModal({ siteId, item, onClose }: { siteId: number; item: Inventory
                 current_stock: Number(current),
                 alert_threshold: Number(alert),
                 critical_threshold: Number(critical),
+                notes: notes || null,
             },
             {
                 preserveScroll: true,
@@ -395,12 +413,17 @@ function StockModal({ siteId, item, onClose }: { siteId: number; item: Inventory
     };
 
     return (
-        <Modal onClose={() => !saving && onClose()} title="Modifier le stock" description={item.product_name}>
+        <Modal onClose={() => !saving && onClose()} title="Inventaire et seuils" description={`${item.product_name} · pour une livraison, utilisez plutôt « Réassort ».`}>
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-                    <Field label={`Stock actuel (${item.product_unit})`} htmlFor="stk_current">
+                    <Field label={`Stock compté (${item.product_unit})`} htmlFor="stk_current" hint="l'écart avec le stock actuel est inscrit dans le journal">
                         <TextInput id="stk_current" type="number" min="0" value={current} onChange={(e) => setCurrent(e.target.value)} required autoFocus />
                     </Field>
+                    {Number(current) !== item.current_stock && (
+                        <Field label="Motif de l'écart" htmlFor="stk_notes">
+                            <TextInput id="stk_notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder="Ex. inventaire mensuel, casse, vol…" />
+                        </Field>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                         <Field label="Seuil d'alerte" htmlFor="stk_alert" hint="en dessous : orange">
                             <TextInput id="stk_alert" type="number" min="0" value={alert} onChange={(e) => setAlert(e.target.value)} required />
@@ -413,6 +436,88 @@ function StockModal({ siteId, item, onClose }: { siteId: number; item: Inventory
                 <ModalFooter onCancel={onClose} saving={saving} submitLabel="Enregistrer" savingLabel="Enregistrement…" />
             </form>
         </Modal>
+    );
+}
+
+function RestockModal({ siteId, item, onClose }: { siteId: number; item: InventoryItem; onClose: () => void }) {
+    const [quantity, setQuantity] = useState('');
+    const [notes, setNotes] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.post(
+            inventoryRestock({ site: siteId, inventory: item.id }).url,
+            { quantity: Number(quantity), notes: notes || null },
+            {
+                preserveScroll: true,
+                onStart: () => setSaving(true),
+                onSuccess: () => {
+                    toast.success('Réassort enregistré', { description: `${item.product_name} : +${quantity}` });
+                    onClose();
+                },
+                onError: toastFormError,
+                onFinish: () => setSaving(false),
+            },
+        );
+    };
+
+    const after = item.current_stock + (Number(quantity) || 0);
+
+    return (
+        <Modal onClose={() => !saving && onClose()} title="Réassort" description={`${item.product_name} · stock actuel ${item.current_stock} ${item.product_unit}`}>
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+                    <Field label={`Quantité livrée (${item.product_unit})`} htmlFor="rst_qty" hint={quantity ? `nouveau stock : ${after}` : undefined}>
+                        <TextInput id="rst_qty" type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} required autoFocus />
+                    </Field>
+                    <Field label="Note" htmlFor="rst_notes">
+                        <TextInput id="rst_notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder="Ex. bon de livraison n° 1245" />
+                    </Field>
+                </div>
+                <ModalFooter onCancel={onClose} saving={saving} submitLabel="Ajouter au stock" savingLabel="Enregistrement…" disabled={!(Number(quantity) > 0)} />
+            </form>
+        </Modal>
+    );
+}
+
+/** Journal des mouvements de stock du site. */
+function StockMovements({ movements }: { movements: StockMovementItem[] }) {
+    if (movements.length === 0) {
+        return null;
+    }
+
+    return (
+        <Section title="Mouvements de stock" description="Les 50 derniers changements du stock de ce site, du plus récent au plus ancien.">
+            <ul className="divide-y divide-slate-100">
+                {movements.map((m) => (
+                    <li key={m.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm">
+                        <div className="min-w-0 flex-1">
+                            <p className="font-medium text-ink">
+                                {m.product_name ?? 'Produit retiré'} <span className="font-normal text-slate-500">· {m.type_label}</span>
+                            </p>
+                            <p className="mt-0.5 text-xs text-slate-500">
+                                {m.date}
+                                {m.author && <> · {m.author}</>}
+                                {m.notes && <> · {m.notes}</>}
+                                {m.daily_report_id && (
+                                    <>
+                                        {' · '}
+                                        <Link href={dailyReportShow({ dailyReport: m.daily_report_id }).url} className="font-semibold text-motriks-deep hover:underline">
+                                            voir le rapport
+                                        </Link>
+                                    </>
+                                )}
+                            </p>
+                        </div>
+                        <span className={cn('w-16 text-right font-semibold tabular-nums', m.quantity > 0 ? 'text-motriks-deep' : m.quantity < 0 ? 'text-red-600' : 'text-slate-400')}>
+                            {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                        </span>
+                        <span className="w-20 text-right text-xs text-slate-500 tabular-nums">stock {m.stock_after}</span>
+                    </li>
+                ))}
+            </ul>
+        </Section>
     );
 }
 
@@ -684,6 +789,7 @@ export default function SiteShow({
     hostess_history,
     available_staff,
     inventory,
+    stock_movements,
     available_products,
     types = [],
     statuses = [],
@@ -694,6 +800,7 @@ export default function SiteShow({
     const [assign, setAssign] = useState<AssignState>({ open: false });
     const [showInventoryModal, setShowInventoryModal] = useState(false);
     const [stockItem, setStockItem] = useState<InventoryItem | null>(null);
+    const [restockItem, setRestockItem] = useState<InventoryItem | null>(null);
     // Ouvre directement le modal quand on arrive depuis l'icône « Modifier » de la liste (?modifier=1)
     const [editingSite, setEditingSite] = useState(
         () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('modifier'),
@@ -1111,6 +1218,15 @@ export default function SiteShow({
                                                     <ActionButton
                                                         variant="secondary"
                                                         size="icon"
+                                                        icon={<PackagePlus />}
+                                                        title="Réassort"
+                                                        aria-label="Réassort"
+                                                        className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
+                                                        onClick={() => setRestockItem(item)}
+                                                    />
+                                                    <ActionButton
+                                                        variant="secondary"
+                                                        size="icon"
                                                         icon={<Pencil />}
                                                         title="Modifier le stock"
                                                         aria-label="Modifier le stock"
@@ -1126,6 +1242,7 @@ export default function SiteShow({
                             )}
                         </Section>
                     )}
+                    {tab === 'inventaire' && <StockMovements movements={stock_movements} />}
 
                     {/* ───────────── Visites ───────────── */}
                     {tab === 'visites' && (
@@ -1176,6 +1293,7 @@ export default function SiteShow({
             {editingSite && <EditSiteModal site={site} types={types} statuses={statuses} onClose={closeEditSite} />}
             {showInventoryModal && <InventoryAddModal siteId={site.id} products={available_products} onClose={() => setShowInventoryModal(false)} />}
             {stockItem && <StockModal siteId={site.id} item={stockItem} onClose={() => setStockItem(null)} />}
+            {restockItem && <RestockModal siteId={site.id} item={restockItem} onClose={() => setRestockItem(null)} />}
             {assign.open && <AssignModal modal={assign} siteId={site.id} staff={available_staff} onClose={() => setAssign({ open: false })} />}
 
             {deleteSite.dialog}

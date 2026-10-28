@@ -22,3 +22,9 @@ Schedule::call(function () {
     $msg .= $telegram->buildStatsMessage();
     $telegram->sendMessage($chatId, $msg);
 })->dailyAt('08:00');
+
+// Hôtesses attendues qui n'ont pas pointé : vérifié toutes les 30 minutes le matin
+Schedule::command('notifications:attendance')->everyThirtyMinutes()->between('7:00', '14:00')->withoutOverlapping();
+
+// Rappel aux hôtesses dont le rapport du jour est encore en brouillon
+Schedule::command('notifications:report-reminders')->dailyAt('19:00');

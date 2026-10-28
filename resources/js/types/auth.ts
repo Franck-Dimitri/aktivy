@@ -42,6 +42,8 @@ export type Auth = {
     };
     /** Hôtesse ou superviseur rattaché à aucun point de vente. */
     noSite: boolean;
+    /** Notifications non lues (cloche). */
+    unreadNotifications: number;
 };
 
 /* @chisel-passkeys */

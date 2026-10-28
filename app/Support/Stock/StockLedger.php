@@ -5,6 +5,8 @@ namespace App\Support\Stock;
 use App\Models\SiteProduct;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Notifications\StockCritical;
+use App\Support\Notifications\Notify;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -49,7 +51,8 @@ class StockLedger
 
     private static function apply(SiteProduct $stock, int $after, string $type, ?User $by, ?int $dailyReportId, ?string $notes): ?StockMovement
     {
-        $change = $after - $stock->current_stock;
+        $before = $stock->current_stock;
+        $change = $after - $before;
 
         // Un inventaire qui confirme le stock n'est pas un mouvement ; le stock initial, si
         if ($change === 0 && $type !== StockMovement::INITIAL) {
@@ -57,6 +60,15 @@ class StockLedger
         }
 
         $stock->update(['current_stock' => $after, 'updated_by' => $by?->id ?? $stock->updated_by]);
+
+        // Passage sous le seuil critique : les responsables du site sont prévenus (une fois, au franchissement)
+        if ($before > $stock->critical_threshold && $after <= $stock->critical_threshold) {
+            $stock->loadMissing(['product:id,name,unit', 'site:id,name']);
+            Notify::send(
+                Notify::siteManagers($stock->company_id, [$stock->site_id]),
+                new StockCritical($stock, $after, $stock->critical_threshold),
+            );
+        }
 
         return StockMovement::create([
             'company_id' => $stock->company_id,

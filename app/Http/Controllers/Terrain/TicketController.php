@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Terrain;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use App\Notifications\TicketCreated;
+use App\Support\Notifications\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,11 +48,13 @@ class TicketController extends Controller
             'priority' => ['required', 'in:normal,urgent'],
         ]);
 
-        Ticket::create([
+        $ticket = Ticket::create([
             'company_id' => $user->company_id,
             'user_id'    => $user->id,
             ...$validated,
         ]);
+
+        Notify::send(Notify::managersOf($user), new TicketCreated($ticket->setRelation('agent', $user)));
 
         return back()->with('success', 'Votre demande a été envoyée à votre responsable.');
     }

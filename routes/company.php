@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Role;
+use App\Http\Controllers\Company\ActivityController;
 use App\Http\Controllers\Company\AffectationController;
 use App\Http\Controllers\Company\DailyReportController;
 use App\Http\Controllers\Company\DashboardController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Company\ReportController;
 use App\Http\Controllers\Company\SiteController;
 use App\Http\Controllers\Company\SiteInventoryController;
 use App\Http\Controllers\Company\SitePhotoController;
+use App\Http\Controllers\Company\StockAlertController;
 use App\Http\Controllers\Company\TicketController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +81,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::resource('affectations', AffectationController::class)->except(['show']);
             Route::post('affectations/{affectation}/permuter', [AffectationController::class, 'permuter'])->name('affectations.permuter');
+
+            // Suivi en direct : activité du jour et produits sous leur seuil
+            Route::get('activite', ActivityController::class)->name('activity.index');
+            Route::get('stock/alertes', StockAlertController::class)->name('stock-alerts.index');
 
             // Demandes des hôtesses (tickets)
             Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');

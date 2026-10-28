@@ -13,6 +13,7 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useLogoutDialog } from '@/components/logout-dialog';
 import { roleLabels } from '@/lib/navigation';
+import { index as notificationsIndex } from '@/routes/notifications';
 import { edit as profileEdit } from '@/routes/profile';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
@@ -58,13 +59,18 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                     {todayLabel()}
                 </p>
 
-                <button
-                    type="button"
-                    className="flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks/40 focus-visible:outline-none"
-                    aria-label="Notifications"
+                <Link
+                    href={notificationsIndex().url}
+                    className="relative flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks/40 focus-visible:outline-none"
+                    aria-label={auth.unreadNotifications > 0 ? `Notifications (${auth.unreadNotifications} non lues)` : 'Notifications'}
                 >
                     <Bell className="size-[18px]" />
-                </button>
+                    {auth.unreadNotifications > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+                            {auth.unreadNotifications > 9 ? '9+' : auth.unreadNotifications}
+                        </span>
+                    )}
+                </Link>
 
                 {auth.user && (
                     <DropdownMenu modal={false}>

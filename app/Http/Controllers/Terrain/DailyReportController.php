@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\DailyReport;
 use App\Models\DailyReportLine;
 use App\Models\StockMovement;
+use App\Notifications\IncidentReported;
+use App\Support\Notifications\Notify;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
 use App\Models\Visit;
@@ -161,10 +163,24 @@ class DailyReportController extends Controller
                 'status'       => 'submitted',
                 'submitted_at' => now(),
             ]);
+
+            if (filled($report->incident_notes)) {
+                $this->notifyIncident($report);
+            }
         });
 
         return redirect()->route('terrain.home')
             ->with('success', 'Rapport soumis avec succès. Bonne fin de journée !');
+    }
+
+    /**
+     * Prévient les responsables du site qu'un incident a été signalé.
+     */
+    private function notifyIncident(DailyReport $report): void
+    {
+        $report->loadMissing(['site:id,name', 'agent:id,name']);
+
+        Notify::send(Notify::siteManagers($report->company_id, [$report->site_id]), new IncidentReported($report));
     }
 
     /**
@@ -216,6 +232,7 @@ class DailyReportController extends Controller
         ]);
 
         $report->update(['incident_notes' => $validated['incident_notes']]);
+        $this->notifyIncident($report);
 
         return back()->with('success', 'Signalement enregistré.');
     }

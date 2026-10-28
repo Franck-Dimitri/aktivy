@@ -67,6 +67,8 @@ class HandleInertiaRequests extends Middleware
                 ],
                 // Hôtesse ou superviseur rattaché à aucun point de vente : un bandeau le lui dit
                 'noSite' => fn () => $this->hasNoSite($request->user()),
+                // Compteur de la cloche
+                'unreadNotifications' => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

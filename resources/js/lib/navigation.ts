@@ -10,6 +10,7 @@ import {
     MapPin,
     MessageSquarePlus,
     Package,
+    PackageX,
     ScrollText,
     Settings2,
     ShoppingCart,
@@ -33,6 +34,8 @@ import { index as dailyReportsIndex } from '@/routes/daily-reports';
 import { dataExport } from '@/routes/company';
 import { index as eventsIndex } from '@/routes/events';
 import { index as ticketsIndex } from '@/routes/tickets';
+import { index as activityIndex } from '@/routes/activity';
+import { index as stockAlertsIndex } from '@/routes/stock-alerts';
 import type { MenuGroup, Role } from '@/types';
 
 export const roleLabels: Record<Role, string> = {
@@ -109,7 +112,7 @@ export function menuFor(role: Role): MenuGroup[] {
                     href: dashboard(),
                 },
                 ...(manages
-                    ? [{ title: 'Activité du jour', icon: ClipboardCheck }]
+                    ? [{ title: 'Activité du jour', icon: ClipboardCheck, href: activityIndex().url }]
                     : []),
                 { title: 'Rapports journaliers', icon: ClipboardList, href: dailyReportsIndex().url },
                 { title: 'Ventes & objectifs', icon: FileBarChart, href: reportsIndex() },
@@ -131,6 +134,7 @@ export function menuFor(role: Role): MenuGroup[] {
                           { title: 'Événements', icon: Zap, href: eventsIndex().url },
                       ]
                     : []),
+                { title: 'Alertes de stock', icon: PackageX, href: stockAlertsIndex().url },
                 { title: 'Tickets', icon: MessageSquarePlus, href: ticketsIndex().url },
             ],
         });

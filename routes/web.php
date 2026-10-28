@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CompanyRequestController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Middleware\EnsureUserHasRole;
@@ -70,6 +71,11 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Notifications (cloche), pour tous les rôles
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/{notification}', [NotificationController::class, 'open'])->name('notifications.open');
+    Route::post('notifications/tout-lu', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+
     Route::middleware(EnsureUserHasRole::using(Role::SuperAdmin))
         ->prefix('admin')
         ->name('admin.')

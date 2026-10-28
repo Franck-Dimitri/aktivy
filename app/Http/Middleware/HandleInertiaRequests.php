@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\Role;
+use App\Models\Affectation;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -33,6 +36,15 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
+    private function hasNoSite(?User $user): bool
+    {
+        return match ($user?->role) {
+            Role::FieldAgent => ! Affectation::where('user_id', $user->id)->ongoing()->exists(),
+            Role::Supervisor => $user->managedSiteIds() === [],
+            default => false,
+        };
+    }
+
     public function share(Request $request): array
     {
         return [
@@ -47,6 +59,14 @@ class HandleInertiaRequests extends Middleware
                         'status' => $request->user()->company->status?->value,
                     ]
                     : null,
+                'can' => fn () => [
+                    // Catalogue, création de sites, événements, export : toute l'entreprise
+                    'manageCompany' => $request->user()?->hasRole(Role::CompanyAdmin) ?? false,
+                    // Équipe, affectations, objectifs (le superviseur sur ses sites)
+                    'manageTeam' => $request->user()?->hasRole(Role::CompanyAdmin, Role::Supervisor) ?? false,
+                ],
+                // Hôtesse ou superviseur rattaché à aucun point de vente : un bandeau le lui dit
+                'noSite' => fn () => $this->hasNoSite($request->user()),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

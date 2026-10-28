@@ -22,12 +22,14 @@ class SalesReport
         public readonly ?int $siteId = null,
         public readonly ?int $userId = null,
         public readonly ?int $eventId = null,
+        // Sites visibles (superviseur) ; null = toute l'entreprise
+        public readonly ?array $allowedSiteIds = null,
     ) {}
 
     /**
      * Construit le rapport depuis les filtres de la requête ; par défaut, le mois en cours.
      */
-    public static function fromFilters(Company $company, array $filters): self
+    public static function fromFilters(Company $company, array $filters, ?array $allowedSiteIds = null): self
     {
         $from = isset($filters['from']) ? CarbonImmutable::parse($filters['from']) : CarbonImmutable::now()->startOfMonth();
         $to = isset($filters['to']) ? CarbonImmutable::parse($filters['to']) : CarbonImmutable::now();
@@ -43,6 +45,7 @@ class SalesReport
             isset($filters['site_id']) ? (int) $filters['site_id'] : null,
             isset($filters['user_id']) ? (int) $filters['user_id'] : null,
             isset($filters['event_id']) ? (int) $filters['event_id'] : null,
+            $allowedSiteIds,
         );
     }
 
@@ -58,7 +61,9 @@ class SalesReport
             ->leftJoin('events as e', 'e.id', '=', 'r.event_id')
             ->where('r.company_id', $this->company->id)
             ->where('r.status', 'submitted')
-            ->whereBetween('r.report_date', [$this->from->toDateString(), $this->to->toDateString()])
+            ->whereDate('r.report_date', '>=', $this->from->toDateString())
+            ->whereDate('r.report_date', '<=', $this->to->toDateString())
+            ->when($this->allowedSiteIds !== null, fn ($q) => $q->whereIn('r.site_id', $this->allowedSiteIds))
             ->when($this->siteId, fn ($q) => $q->where('r.site_id', $this->siteId))
             ->when($this->userId, fn ($q) => $q->where('r.user_id', $this->userId))
             ->when($this->eventId, fn ($q) => $q->where('r.event_id', $this->eventId));
@@ -142,6 +147,17 @@ class SalesReport
             ->all();
     }
 
+    /** Chiffre d'affaires par hôtesse, indexé par user_id. */
+    public function revenueByHostess(): array
+    {
+        return $this->query()
+            ->groupBy('r.user_id')
+            ->selectRaw('r.user_id, COALESCE(SUM(l.revenue), 0) as revenue')
+            ->pluck('revenue', 'r.user_id')
+            ->map(fn ($v) => (float) $v)
+            ->all();
+    }
+
     /** Nombre de jours couverts par la période (bornes incluses). */
     public function days(): int
     {
@@ -162,6 +178,7 @@ class SalesReport
             $this->siteId,
             $this->userId,
             $this->eventId,
+            $this->allowedSiteIds,
         );
     }
 
@@ -215,6 +232,7 @@ class SalesReport
             $this->siteId,
             $this->userId,
             $this->eventId,
+            $this->allowedSiteIds,
         );
 
         $rows = [];

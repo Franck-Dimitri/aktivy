@@ -51,9 +51,9 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 | ----------------- | -------------------- | --------------------------------------------------- |
 | `super_admin`   | Super administrateur | Administration globale de la plateforme             |
 | `company_admin` | Gérant              | Tableau de bord, équipe, sites, produits, rapports |
-| `supervisor`    | Superviseur          | Même périmètre que le gérant, sans modifier le gérant ni exporter les données |
+| `supervisor`    | Superviseur          | Uniquement les points de vente où il est affecté : leurs hôtesses, affectations, rapports, ventes, objectifs et tickets. Ne crée ni ne supprime de site, ne gère ni catalogue ni événements |
 | `field_agent`   | Hôtesse             | Interface terrain mobile uniquement                 |
-| `accountant`    | Comptable            | Lecture des rapports financiers                     |
+| `accountant`    | Comptable            | Lecture des rapports journaliers et des ventes, export Excel |
 
 ---
 
@@ -68,7 +68,8 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 - Catalogue produits et prix par site
 - Statistiques détaillées par site (visites, CA, taux de complétion, graphique 7j / 30j / 12 mois)
 - Événements commerciaux : points de vente, packs promotionnels, hôtesses recrutées pour l'occasion, lancement puis clôture
-- Rapports de ventes : comparaison de périodes, évolution mois par mois, objectifs mensuels, export Excel
+- Rapports journaliers : par jour, qui a soumis, qui est en service, qui n'a pas pointé, et le détail de chaque rapport (ventes, notes, incidents)
+- Ventes & objectifs : comparaison de périodes, évolution mois par mois, objectifs mensuels (entreprise, site, hôtesse), export Excel
 - Tickets : réponse aux demandes des hôtesses et suivi de leur statut (ouvert → en cours → résolu)
 - Export de toutes les données de l'entreprise (gérant uniquement)
 
@@ -91,6 +92,8 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 - Signalement d'incident post-soumission
 - Stats personnelles du mois (visites, CA, unités vendues, rapports soumis)
 - Tickets : demandes envoyées au responsable
+- Objectif de chiffre d'affaires du mois, s'il a été fixé, avec sa progression
+- Sans point de vente, un bandeau le lui indique sur toutes les pages
 
 ### Authentification
 

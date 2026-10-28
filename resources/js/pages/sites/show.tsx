@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowLeftRight,
     Building2,
@@ -688,6 +688,8 @@ export default function SiteShow({
     types = [],
     statuses = [],
 }: Props) {
+    // Supprimer un site : réservé au gérant
+    const { manageCompany } = usePage().props.auth.can;
     const [tab, setTabState] = useState<TabKey>(tabFromHash);
     const [assign, setAssign] = useState<AssignState>({ open: false });
     const [showInventoryModal, setShowInventoryModal] = useState(false);
@@ -769,14 +771,16 @@ export default function SiteShow({
                         <ActionButton variant="secondary" icon={<Pencil />} onClick={() => setEditingSite(true)}>
                             Modifier
                         </ActionButton>
-                        <ActionButton
-                            variant="secondary"
-                            icon={<Trash2 />}
-                            onClick={() => deleteSite.ask(site)}
-                            className="border-transparent bg-transparent text-red-600 shadow-none hover:bg-red-50"
-                        >
-                            Supprimer
-                        </ActionButton>
+                        {manageCompany && (
+                            <ActionButton
+                                variant="secondary"
+                                icon={<Trash2 />}
+                                onClick={() => deleteSite.ask(site)}
+                                className="border-transparent bg-transparent text-red-600 shadow-none hover:bg-red-50"
+                            >
+                                Supprimer
+                            </ActionButton>
+                        )}
                     </>
                 }
             >

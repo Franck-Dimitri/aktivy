@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Terrain;
 use App\Http\Controllers\Controller;
 use App\Models\Affectation;
 use App\Models\DailyReport;
+use App\Models\SalesTarget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -23,6 +24,14 @@ class HomeController extends Controller
             ->where('status', 'active')
             ->where('starts_on', '<=', $today)
             ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', $today))
+            ->first();
+
+        // Pas d'affectation aujourd'hui : la prochaine, pour dire à l'hôtesse quand elle commence
+        $nextAffectation = $affectation ? null : Affectation::with('site:id,name')
+            ->where('user_id', $user->id)
+            ->ongoing()
+            ->whereDate('starts_on', '>', $today)
+            ->orderBy('starts_on')
             ->first();
 
         // Visite en cours (in_progress) ou terminée aujourd'hui
@@ -58,6 +67,14 @@ class HomeController extends Controller
             'reports_submitted'     => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->count(),
             'reports_this_month'    => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->where('report_date', '>=', $thisMonthStart)->count(),
         ];
+
+        // Objectif de CA du mois fixé par le responsable, s'il y en a un
+        $targetAmount = SalesTarget::where('user_id', $user->id)
+            ->whereDate('month', now()->startOfMonth()->toDateString())
+            ->value('amount');
+        $myTarget = $targetAmount === null
+            ? null
+            : SalesTarget::progress($myStats['revenue_this_month'], (int) $targetAmount, now());
 
         // Tendance 7 derniers jours (2 requêtes)
         $visitsByDate = $user->visits()
@@ -114,6 +131,10 @@ class HomeController extends Controller
                 'slot_start'   => $affectation->slot_start,
                 'slot_end'     => $affectation->slot_end,
             ] : null,
+            'next_affectation' => $nextAffectation ? [
+                'site_name' => $nextAffectation->site?->name,
+                'starts_on' => $nextAffectation->starts_on->translatedFormat('l j F'),
+            ] : null,
             'visit' => $visit ? [
                 'id'               => $visit->id,
                 'status'           => $visit->status->value,
@@ -124,6 +145,7 @@ class HomeController extends Controller
                 'report_status'    => $visit->dailyReport?->status,
             ] : null,
             'my_stats'       => $myStats,
+            'my_target'      => $myTarget,
             'recent_reports' => $recentReports,
         ]);
     }

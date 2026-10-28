@@ -36,7 +36,8 @@ class PersonnelController extends Controller
         $company = $request->user()->company;
 
         $staff = $company->users()
-            ->whereIn('role', array_column(self::MANAGEABLE_ROLES, 'value'))
+            ->whereIn('role', array_column($this->manageableRoles($request->user()), 'value'))
+            ->visibleTo($request->user())
             ->withCount('visits')
             ->with(['activeVisit.site:id,name'])
             ->orderBy('name')
@@ -56,14 +57,14 @@ class PersonnelController extends Controller
         return Inertia::render('personnel/index', [
             'staff' => $staff,
             // Options du modal « Nouveau membre » (même source que create()).
-            'roles' => $this->roleOptions(),
+            'roles' => $this->roleOptions($request->user()),
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
         return Inertia::render('personnel/create', [
-            'roles' => $this->roleOptions(),
+            'roles' => $this->roleOptions($request->user()),
         ]);
     }
 
@@ -73,7 +74,7 @@ class PersonnelController extends Controller
             'name'     => ['required', 'string', 'max:255'],
             'phone'    => ['nullable', 'string', 'max:25'],
             'email'    => ['nullable', 'email', 'max:255'],
-            'role'     => ['required', 'string', 'in:'.implode(',', array_column(self::MANAGEABLE_ROLES, 'value'))],
+            'role'     => ['required', 'string', 'in:'.implode(',', array_column($this->manageableRoles($request->user()), 'value'))],
             'password' => ['required', 'confirmed', Password::defaults()],
             'notes'    => ['nullable', 'string', 'max:500'],
         ]);
@@ -167,7 +168,7 @@ class PersonnelController extends Controller
             'affectations' => $affectations,
             'recent_visits'=> $recentVisits,
             // Options du modal « Modifier »
-            'roles'        => $this->roleOptions(),
+            'roles'        => $this->roleOptions($request->user()),
             'statuses'     => [
                 ['value' => AccountStatus::Active->value,    'label' => 'Actif'],
                 ['value' => AccountStatus::Suspended->value, 'label' => 'Suspendu'],
@@ -188,7 +189,7 @@ class PersonnelController extends Controller
                 'role'   => $personnel->role->value,
                 'status' => $personnel->status->value,
             ],
-            'roles'    => $this->roleOptions(),
+            'roles'    => $this->roleOptions($request->user()),
             'statuses' => [
                 ['value' => AccountStatus::Active->value,    'label' => 'Actif'],
                 ['value' => AccountStatus::Suspended->value, 'label' => 'Suspendu'],
@@ -204,7 +205,7 @@ class PersonnelController extends Controller
             'name'     => ['required', 'string', 'max:255'],
             'phone'    => ['nullable', 'string', 'max:25'],
             'email'    => ['nullable', 'email', 'max:255'],
-            'role'     => ['required', 'string', 'in:'.implode(',', array_column(self::MANAGEABLE_ROLES, 'value'))],
+            'role'     => ['required', 'string', 'in:'.implode(',', array_column($this->manageableRoles($request->user()), 'value'))],
             'status'   => ['required', 'string', 'in:'.implode(',', array_column(self::MANAGEABLE_STATUSES, 'value'))],
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ]);
@@ -255,7 +256,9 @@ class PersonnelController extends Controller
         abort_if($personnel->company_id !== $request->user()->company_id, 403);
 
         // Le gérant n'est pas un membre « gérable » : un superviseur ne doit pas pouvoir le modifier.
-        abort_unless($personnel->hasRole(...self::MANAGEABLE_ROLES), 403);
+        // Le superviseur ne gère que les hôtesses de ses sites et celles qui ne sont pas encore affectées.
+        abort_unless($personnel->hasRole(...$this->manageableRoles($request->user())), 403);
+        abort_unless(User::visibleTo($request->user())->whereKey($personnel->id)->exists(), 403);
     }
 
     /**
@@ -281,12 +284,22 @@ class PersonnelController extends Controller
         ]);
     }
 
+    /**
+     * Rôles que $viewer peut attribuer : le superviseur ne gère que des hôtesses.
+     *
+     * @return array<int, Role>
+     */
+    private function manageableRoles(User $viewer): array
+    {
+        return $viewer->hasRole(Role::Supervisor) ? [Role::FieldAgent] : self::MANAGEABLE_ROLES;
+    }
+
     /** @return array<int, array{value: string, label: string}> */
-    private function roleOptions(): array
+    private function roleOptions(User $viewer): array
     {
         return array_map(
             fn (Role $r) => ['value' => $r->value, 'label' => $r->label()],
-            self::MANAGEABLE_ROLES,
+            $this->manageableRoles($viewer),
         );
     }
 }

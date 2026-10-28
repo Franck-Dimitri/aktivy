@@ -9,6 +9,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -60,6 +61,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'status' => 'active',
         'must_change_password' => false,
     ];
+
+    /** Résultat de managedSiteIds(), calculé une fois par requête. */
+    private ?array $managedSiteIdsCache = null;
 
     /**
      * Bootstrap the model and its traits.
@@ -146,6 +150,56 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         }
 
         return ! $this->role->belongsToCompany() || ($this->company?->isActive() ?? false);
+    }
+
+    /**
+     * Sites que l'utilisateur pilote, ou null s'il voit toute l'entreprise (gérant, comptable).
+     * Un superviseur ne pilote que les sites où il a une affectation en cours.
+     *
+     * @return array<int, int>|null
+     */
+    public function managedSiteIds(): ?array
+    {
+        if (! $this->hasRole(Role::Supervisor)) {
+            return null;
+        }
+
+        return $this->managedSiteIdsCache ??= Affectation::query()
+            ->where('user_id', $this->id)
+            ->ongoing()
+            ->distinct()
+            ->pluck('site_id')
+            ->all();
+    }
+
+    /**
+     * Determine if the user may manage the given site.
+     */
+    public function managesSite(int $siteId): bool
+    {
+        $ids = $this->managedSiteIds();
+
+        return $ids === null || in_array($siteId, $ids, true);
+    }
+
+    /**
+     * Membres visibles par $viewer. Le superviseur voit les hôtesses de ses sites, ainsi que
+     * celles qui n'ont encore aucune affectation, pour pouvoir les affecter.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeVisibleTo(Builder $query, User $viewer): void
+    {
+        $siteIds = $viewer->managedSiteIds();
+
+        if ($siteIds === null) {
+            return;
+        }
+
+        $query->where('role', Role::FieldAgent)
+            ->where(fn ($q) => $q
+                ->whereHas('affectations', fn ($a) => $a->ongoing()->whereIn('site_id', $siteIds))
+                ->orWhereDoesntHave('affectations', fn ($a) => $a->ongoing()));
     }
 
     /**

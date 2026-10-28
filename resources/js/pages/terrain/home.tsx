@@ -71,10 +71,14 @@ type RecentReport = {
     submitted_at: string | null;
 };
 
+type MonthTarget = { actual: number; target: number; projection: number };
+
 type Props = {
     affectation: Affectation | null;
+    next_affectation: { site_name: string | null; starts_on: string } | null;
     visit: VisitInfo | null;
     my_stats: MyStats;
+    my_target: MonthTarget | null;
     recent_reports: RecentReport[];
     weekly_trend: TrendPoint[];
 };
@@ -352,10 +356,41 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
     );
 }
 
+/* ─────────────────────── Objectif du mois ─────────────────────── */
+
+/** Objectif de chiffre d'affaires fixé par le responsable : réalisé et projection de fin de mois. */
+function TargetProgress({ target }: { target: MonthTarget }) {
+    const percent = Math.min(100, (target.actual / target.target) * 100);
+    const reached = target.actual >= target.target;
+    const onTrack = target.projection >= target.target;
+
+    return (
+        <div className="border-t border-slate-100 pt-4">
+            <div className="flex items-baseline justify-between gap-2">
+                <p className="text-sm font-semibold text-ink">Objectif du mois</p>
+                <p className="text-xs tabular-nums text-slate-500">
+                    <span className="font-semibold text-ink">{formatCurrency(target.actual)}</span> / {formatCurrency(target.target)} FCFA
+                </p>
+            </div>
+            <div className="mt-2 h-2 rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-motriks" style={{ width: `${percent}%` }} />
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+                {reached
+                    ? 'Objectif atteint, bravo !'
+                    : onTrack
+                      ? 'En bonne voie pour l’atteindre à ce rythme.'
+                      : `Il reste ${formatCurrency(target.target - target.actual)} FCFA à réaliser.`}
+            </p>
+        </div>
+    );
+}
+
 /* ─────────────────────── JourneeCard ─────────────────────── */
 
 function JourneeCard({
     affectation,
+    nextAffectation,
     visit,
     onCheckin,
     onCheckout,
@@ -363,6 +398,7 @@ function JourneeCard({
     gpsStatus,
 }: {
     affectation: Affectation | null;
+    nextAffectation: Props['next_affectation'];
     visit: VisitInfo | null;
     onCheckin: () => void;
     onCheckout: () => void;
@@ -392,8 +428,12 @@ function JourneeCard({
             {!affectation && (
                 <EmptyState
                     icon={CalendarOff}
-                    title="Pas de site affecté aujourd'hui"
-                    description="Contactez votre responsable si vous pensez qu'il y a une erreur."
+                    title="Pas de point de vente aujourd'hui"
+                    description={
+                        nextAffectation
+                            ? `Votre prochaine affectation : ${nextAffectation.site_name ?? 'un point de vente'}, à partir du ${nextAffectation.starts_on}.`
+                            : "Vous n'êtes affectée à aucun point de vente. Contactez votre responsable."
+                    }
                 />
             )}
 
@@ -565,8 +605,10 @@ function JourneeCard({
 
 export default function TerrainHome({
     affectation,
+    next_affectation,
     visit,
     my_stats,
+    my_target,
     recent_reports,
     weekly_trend,
 }: Props) {
@@ -723,6 +765,7 @@ export default function TerrainHome({
                     <div className="grid gap-6 lg:grid-cols-3">
                         <JourneeCard
                             affectation={affectation}
+                            nextAffectation={next_affectation}
                             visit={visit}
                             onCheckin={checkin}
                             onCheckout={() => setConfirmCheckout(true)}
@@ -750,6 +793,7 @@ export default function TerrainHome({
                                     live={visit?.status === 'in_progress'}
                                 />
                             </div>
+                            {my_target && <TargetProgress target={my_target} />}
                         </GlowCard>
                     </div>
 

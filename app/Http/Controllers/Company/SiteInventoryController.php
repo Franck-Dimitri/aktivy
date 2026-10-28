@@ -81,5 +81,6 @@ class SiteInventoryController extends Controller
     private function authorizeSite(Request $request, Site $site): void
     {
         abort_if($site->company_id !== $request->user()->company_id, 403);
+        abort_unless($request->user()->managesSite($site->id), 403);
     }
 }

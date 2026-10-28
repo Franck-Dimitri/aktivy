@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Activity, ArrowUpRight, Plus, Store, Users } from 'lucide-react';
 import { useId, useState, type MouseEvent } from 'react';
 import { ActionLink } from '@/components/page/buttons';
@@ -265,6 +265,8 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
 export default function Dashboard({ stats, recent_visits, recent_sites, trend, auth }: Props) {
     const firstName = auth?.user?.name?.split(' ')[0] ?? '';
     const companyName = auth?.company?.name;
+    // Le comptable consulte seulement ; le superviseur ajoute des membres mais pas de sites
+    const { manageCompany, manageTeam } = usePage().props.auth.can;
     const todayRaw = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     const today = todayRaw.charAt(0).toUpperCase() + todayRaw.slice(1);
 
@@ -283,12 +285,16 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                 description={description}
                 actions={
                     <div className="flex flex-wrap items-center gap-2">
-                        <ActionLink href={personnelCreate().url} variant="secondary" icon={<Users />}>
-                            Nouveau membre
-                        </ActionLink>
-                        <ActionLink href={siteCreate().url} icon={<Plus />}>
-                            Nouveau site
-                        </ActionLink>
+                        {manageTeam && (
+                            <ActionLink href={personnelCreate().url} variant="secondary" icon={<Users />}>
+                                Nouveau membre
+                            </ActionLink>
+                        )}
+                        {manageCompany && (
+                            <ActionLink href={siteCreate().url} icon={<Plus />}>
+                                Nouveau site
+                            </ActionLink>
+                        )}
                     </div>
                 }
             >
@@ -421,9 +427,11 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                         title="Aucun site"
                                         description="Créez votre premier point de vente."
                                         action={
-                                            <ActionLink href={siteCreate().url} icon={<Plus />}>
-                                                Créer un site
-                                            </ActionLink>
+                                            manageCompany ? (
+                                                <ActionLink href={siteCreate().url} icon={<Plus />}>
+                                                    Créer un site
+                                                </ActionLink>
+                                            ) : undefined
                                         }
                                     />
                                 ) : (

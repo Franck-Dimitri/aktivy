@@ -7,6 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Enums\AffectationStatus;
 use App\Enums\Role;
 use App\Models\Affectation;
+use App\Models\Company;
+use App\Models\Site;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +25,10 @@ class AffectationController extends Controller
     {
         $company = $request->user()->company;
 
+        $siteIds = $request->user()->managedSiteIds();
+
         $affectations = $company->affectations()
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds))
             ->with(['agent:id,name,role,phone', 'site:id,name,city,type'])
             ->orderByRaw("CASE status WHEN 'active' THEN 0 ELSE 1 END")
             ->orderByDesc('starts_on')
@@ -59,12 +66,11 @@ class AffectationController extends Controller
 
             // Listes en lecture seule pour la modification dans la fenêtre flottante
             // (mêmes requêtes que edit()).
-            'sites' => $company->sites()
+            'sites' => $this->sites($request)
                 ->orderBy('name')
                 ->get(['id', 'name', 'city'])
                 ->map(fn ($s) => ['value' => $s->id, 'label' => "{$s->name} ({$s->city})"]),
-            'staff' => $company->users()
-                ->whereIn('role', array_column(self::ASSIGNABLE_ROLES, 'value'))
+            'staff' => $this->staff($request)
                 ->orderBy('name')
                 ->get(['id', 'name', 'role', 'phone'])
                 ->map(fn ($u) => [
@@ -83,7 +89,7 @@ class AffectationController extends Controller
         $company = $request->user()->company;
 
         return Inertia::render('affectations/create', [
-            'sites' => $company->sites()
+            'sites' => $this->sites($request)
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'city', 'type'])
@@ -91,8 +97,7 @@ class AffectationController extends Controller
                     'value' => $s->id,
                     'label' => "{$s->name} ({$s->city})",
                 ]),
-            'staff' => $company->users()
-                ->whereIn('role', array_column(self::ASSIGNABLE_ROLES, 'value'))
+            'staff' => $this->staff($request)
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'role', 'phone'])
@@ -121,15 +126,7 @@ class AffectationController extends Controller
             'notes'      => ['nullable', 'string', 'max:500'],
         ]);
 
-        // Verify site and agent belong to this company
-        abort_if(
-            ! $company->sites()->where('id', $validated['site_id'])->exists(),
-            403,
-        );
-        abort_if(
-            ! $company->users()->where('id', $validated['user_id'])->exists(),
-            403,
-        );
+        $this->authorizeChoice($request, $validated['site_id'], $validated['user_id']);
 
         $company->affectations()->create([
             ...$validated,
@@ -159,12 +156,11 @@ class AffectationController extends Controller
                 'status'     => $affectation->status->value,
                 'notes'      => $affectation->notes,
             ],
-            'sites' => $company->sites()
+            'sites' => $this->sites($request)
                 ->orderBy('name')
                 ->get(['id', 'name', 'city'])
                 ->map(fn ($s) => ['value' => $s->id, 'label' => "{$s->name} ({$s->city})"]),
-            'staff' => $company->users()
-                ->whereIn('role', array_column(self::ASSIGNABLE_ROLES, 'value'))
+            'staff' => $this->staff($request)
                 ->orderBy('name')
                 ->get(['id', 'name', 'role', 'phone'])
                 ->map(fn ($u) => [
@@ -194,6 +190,8 @@ class AffectationController extends Controller
             'status'     => ['required', 'string', 'in:'.implode(',', array_column(AffectationStatus::cases(), 'value'))],
             'notes'      => ['nullable', 'string', 'max:500'],
         ]);
+
+        $this->authorizeChoice($request, $validated['site_id'], $validated['user_id']);
 
         $affectation->update($validated);
 
@@ -229,10 +227,7 @@ class AffectationController extends Controller
             'notes'      => ['nullable', 'string', 'max:500'],
         ]);
 
-        abort_if(
-            ! $company->users()->where('id', $validated['user_id'])->exists(),
-            403,
-        );
+        $this->authorizeChoice($request, $affectation->site_id, $validated['user_id']);
 
         DB::transaction(function () use ($affectation, $validated, $request, $company) {
             $affectation->update([
@@ -256,8 +251,46 @@ class AffectationController extends Controller
         return back()->with('success', 'Hôtesse permutée avec succès.');
     }
 
+    /**
+     * Sites que l'utilisateur peut choisir : tous pour le gérant, les siens pour le superviseur.
+     *
+     * @return HasMany<Site, Company>
+     */
+    private function sites(Request $request): HasMany
+    {
+        $siteIds = $request->user()->managedSiteIds();
+
+        return $request->user()->company->sites()
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('id', $siteIds));
+    }
+
+    /**
+     * Membres que l'utilisateur peut affecter : le superviseur n'affecte que des hôtesses.
+     *
+     * @return HasMany<User, Company>
+     */
+    private function staff(Request $request): HasMany
+    {
+        $viewer = $request->user();
+        $roles = $viewer->hasRole(Role::Supervisor) ? [Role::FieldAgent] : self::ASSIGNABLE_ROLES;
+
+        return $viewer->company->users()
+            ->whereIn('role', array_column($roles, 'value'))
+            ->visibleTo($viewer);
+    }
+
+    /**
+     * Le site et le membre choisis doivent faire partie de ce que l'utilisateur peut affecter.
+     */
+    private function authorizeChoice(Request $request, int $siteId, int $userId): void
+    {
+        abort_unless($this->sites($request)->whereKey($siteId)->exists(), 403);
+        abort_unless($this->staff($request)->whereKey($userId)->exists(), 403);
+    }
+
     private function authorizeCompany(Request $request, Affectation $affectation): void
     {
         abort_if($affectation->company_id !== $request->user()->company_id, 403);
+        abort_unless($request->user()->managesSite($affectation->site_id), 403);
     }
 }

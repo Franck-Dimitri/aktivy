@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AffectationStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -76,6 +77,23 @@ class Affectation extends Model
     public function visits(): HasMany
     {
         return $this->hasMany(Visit::class);
+    }
+
+    /**
+     * Affectations actives et pas encore terminées, y compris celles qui commencent plus tard.
+     */
+    public function scopeOngoing(Builder $query): void
+    {
+        $query->where('status', AffectationStatus::Active)
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhereDate('ends_on', '>=', today()));
+    }
+
+    /**
+     * Affectations actives qui couvrent aujourd'hui.
+     */
+    public function scopeCurrent(Builder $query): void
+    {
+        $query->ongoing()->whereDate('starts_on', '<=', today());
     }
 
     /**

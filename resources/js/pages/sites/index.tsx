@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import {
     Building2,
     CalendarRange,
@@ -59,13 +59,16 @@ const iconBtn =
     'flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 export default function SitesIndex({ sites, types }: Props) {
+    // Créer ou supprimer un site : réservé au gérant
+    const { manageCompany } = usePage().props.auth.can;
+
     // Fenêtre de création : montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
     const [creating, setCreating] = useState(false);
     const closeCreate = useCallback(() => setCreating(false), []);
 
     // Bouton « nouveau site » : ouvre la fenêtre si les types sont fournis, sinon l'ancienne page.
     const newButton = (label: string) =>
-        types ? (
+        !manageCompany ? undefined : types ? (
             <ActionButton type="button" onClick={() => setCreating(true)}>
                 <span className="inline-flex items-center gap-2">
                     <Plus className="size-4" />
@@ -231,15 +234,17 @@ export default function SitesIndex({ sites, types }: Props) {
                                                     >
                                                         <Pencil className="size-4" />
                                                     </Link>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => ask(site)}
-                                                        title="Supprimer"
-                                                        aria-label={`Supprimer ${site.name}`}
-                                                        className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
-                                                    >
-                                                        <Trash2 className="size-4" />
-                                                    </button>
+                                                    {manageCompany && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => ask(site)}
+                                                            title="Supprimer"
+                                                            aria-label={`Supprimer ${site.name}`}
+                                                            className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
+                                                        >
+                                                            <Trash2 className="size-4" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </GlowCard>

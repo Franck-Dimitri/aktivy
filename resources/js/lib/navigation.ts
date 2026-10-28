@@ -29,6 +29,7 @@ import { index as personnelIndex } from '@/routes/personnel';
 import { index as affectationsIndex } from '@/routes/affectations';
 import { index as productsIndex } from '@/routes/products';
 import { index as reportsIndex } from '@/routes/reports';
+import { index as dailyReportsIndex } from '@/routes/daily-reports';
 import { dataExport } from '@/routes/company';
 import { index as eventsIndex } from '@/routes/events';
 import { index as ticketsIndex } from '@/routes/tickets';
@@ -110,7 +111,8 @@ export function menuFor(role: Role): MenuGroup[] {
                 ...(manages
                     ? [{ title: 'Activité du jour', icon: ClipboardCheck }]
                     : []),
-                { title: 'Rapports', icon: FileBarChart, href: reportsIndex() },
+                { title: 'Rapports journaliers', icon: ClipboardList, href: dailyReportsIndex().url },
+                { title: 'Ventes & objectifs', icon: FileBarChart, href: reportsIndex() },
             ],
         },
     ];
@@ -122,8 +124,13 @@ export function menuFor(role: Role): MenuGroup[] {
                 { title: 'Personnel', icon: Users, href: personnelIndex().url },
                 { title: 'Sites', icon: MapPin, href: sitesIndex().url },
                 { title: 'Affectations', icon: CalendarRange, href: affectationsIndex().url },
-                { title: 'Produits & prix', icon: Package, href: productsIndex().url },
-                { title: 'Événements', icon: Zap, href: eventsIndex().url },
+                // Catalogue et événements concernent toute l'entreprise : réservés au gérant
+                ...(role === 'company_admin'
+                    ? [
+                          { title: 'Produits & prix', icon: Package, href: productsIndex().url },
+                          { title: 'Événements', icon: Zap, href: eventsIndex().url },
+                      ]
+                    : []),
                 { title: 'Tickets', icon: MessageSquarePlus, href: ticketsIndex().url },
             ],
         });

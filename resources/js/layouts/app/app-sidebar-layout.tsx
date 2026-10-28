@@ -2,6 +2,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { NoSiteBanner } from '@/components/no-site-banner';
 import type { AppLayoutProps } from '@/types';
 
 export default function AppSidebarLayout({
@@ -16,6 +17,7 @@ export default function AppSidebarLayout({
                 className="min-w-0 overflow-x-clip bg-slate-100 dark:bg-background"
             >
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                <NoSiteBanner />
                 {children}
             </AppContent>
         </AppShell>

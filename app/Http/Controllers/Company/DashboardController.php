@@ -22,22 +22,27 @@ class DashboardController extends Controller
             return Inertia::render('dashboard', ['stats' => null, 'recent' => []]);
         }
 
+        // Le superviseur ne voit que ses sites (null = toute l'entreprise)
+        $siteIds = $user->managedSiteIds();
+        $inScope = fn ($q, string $column = 'site_id') => $q->when($siteIds !== null, fn ($q) => $q->whereIn($column, $siteIds));
+
         // ── KPIs ──────────────────────────────────────────────────────────────
-        $sitesTotal   = $company->sites()->count();
-        $sitesActive  = $company->sites()->where('status', 'active')->count();
+        $sitesTotal   = $inScope($company->sites(), 'id')->count();
+        $sitesActive  = $inScope($company->sites(), 'id')->where('status', 'active')->count();
 
         $staffRoles   = [Role::Supervisor->value, Role::FieldAgent->value, Role::Accountant->value];
-        $staffTotal   = $company->users()->whereIn('role', $staffRoles)->count();
+        $staffTotal   = $company->users()->whereIn('role', $staffRoles)->visibleTo($user)->count();
         $staffOnSite  = $company->users()
             ->whereIn('role', $staffRoles)
+            ->visibleTo($user)
             ->whereHas('activeVisit')
             ->count();
 
-        $visitsToday  = $company->visits()
+        $visitsToday  = $inScope($company->visits())
             ->whereDate('checked_in_at', today())
             ->count();
 
-        $visitsWeek   = $company->visits()
+        $visitsWeek   = $inScope($company->visits())
             ->where('checked_in_at', '>=', now()->startOfWeek())
             ->count();
 
@@ -45,15 +50,16 @@ class DashboardController extends Controller
         $salesBase = fn () => DB::table('daily_report_lines')
             ->join('daily_reports', 'daily_reports.id', '=', 'daily_report_lines.daily_report_id')
             ->where('daily_reports.company_id', $company->id)
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('daily_reports.site_id', $siteIds))
             ->where('daily_reports.status', 'submitted');
 
         $revenueToday   = (float) $salesBase()->whereDate('daily_reports.report_date', today())->sum('daily_report_lines.revenue');
         $revenueWeek    = (float) $salesBase()->where('daily_reports.report_date', '>=', now()->startOfWeek()->toDateString())->sum('daily_report_lines.revenue');
         $unitsSoldToday = (int)   $salesBase()->whereDate('daily_reports.report_date', today())->sum('daily_report_lines.units_sold');
-        $reportsToday   = $company->dailyReports()->where('status', 'submitted')->whereDate('report_date', today())->count();
+        $reportsToday   = $inScope($company->dailyReports())->where('status', 'submitted')->whereDate('report_date', today())->count();
 
         // ── Activité récente ─────────────────────────────────────────────────
-        $recentVisits = $company->visits()
+        $recentVisits = $inScope($company->visits())
             ->with(['agent:id,name', 'site:id,name'])
             ->latest('checked_in_at')
             ->limit(8)
@@ -68,7 +74,7 @@ class DashboardController extends Controller
             ]);
 
         // ── Sites récents ─────────────────────────────────────────────────────
-        $recentSites = $company->sites()
+        $recentSites = $inScope($company->sites(), 'id')
             ->withCount(['affectations' => fn ($q) => $q->where('status', 'active')])
             ->latest()
             ->limit(5)

@@ -21,8 +21,10 @@ class SiteController extends Controller
     public function index(Request $request): Response
     {
         $company = $request->user()->company;
+        $siteIds = $request->user()->managedSiteIds();
 
         $sites = $company->sites()
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('id', $siteIds))
             ->withCount(['affectations' => fn ($q) => $q->where('status', 'active')])
             ->orderBy('name')
             ->get()
@@ -255,6 +257,7 @@ class SiteController extends Controller
         // ── Personnel affectable ──────────────────────────────────────────────
         $availableStaff = $request->user()->company->users()
             ->whereIn('role', [Role::Supervisor->value, Role::FieldAgent->value])
+            ->visibleTo($request->user())
             ->where('status', 'active')
             ->orderBy('name')
             ->get(['id', 'name', 'role'])
@@ -426,5 +429,6 @@ class SiteController extends Controller
     private function authorizeCompany(Request $request, Site $site): void
     {
         abort_if($site->company_id !== $request->user()->company_id, 403);
+        abort_unless($request->user()->managesSite($site->id), 403);
     }
 }

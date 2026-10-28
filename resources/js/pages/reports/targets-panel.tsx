@@ -16,9 +16,14 @@ export type Targets = {
     month: string;
     days_elapsed: number;
     days_in_month: number;
-    global: TargetLine;
+    /** Absent pour un superviseur : il ne voit que ses sites et ses hôtesses. */
+    global: TargetLine | null;
     sites: (TargetLine & { site_id: number; name: string })[];
+    hostesses: (TargetLine & { user_id: number; name: string })[];
 };
+
+/** Ce sur quoi porte un objectif : l'entreprise (vide), un site ou une hôtesse. */
+type TargetScope = { site_id?: number; user_id?: number };
 
 /** Statut d'un objectif : atteint, en bonne voie (projection suffisante) ou en retard. */
 function status(line: TargetLine) {
@@ -29,10 +34,10 @@ function status(line: TargetLine) {
     return <StatusBadge tone="warning">En retard</StatusBadge>;
 }
 
-function TargetRow({ label, line, siteId, currency, canEdit, prominent = false }: {
+function TargetRow({ label, line, scope, currency, canEdit, prominent = false }: {
     label: string;
     line: TargetLine;
-    siteId: number | null;
+    scope: TargetScope;
     currency: string;
     canEdit: boolean;
     prominent?: boolean;
@@ -49,13 +54,13 @@ function TargetRow({ label, line, siteId, currency, canEdit, prominent = false }
         e.preventDefault();
         router.post(
             saveTarget().url,
-            { site_id: siteId, amount: amount === '' ? null : Number(amount) },
+            { ...scope, amount: amount === '' ? null : Number(amount) },
             {
                 preserveScroll: true,
                 onStart: () => setSaving(true),
                 onFinish: () => setSaving(false),
                 onSuccess: () => { setEditing(false); setError(undefined); },
-                onError: (errors) => setError(errors.amount ?? errors.site_id),
+                onError: (errors) => setError(errors.amount ?? errors.site_id ?? errors.user_id),
             },
         );
     };
@@ -135,17 +140,28 @@ function TargetRow({ label, line, siteId, currency, canEdit, prominent = false }
     );
 }
 
+function SectionTitle({ children }: { children: string }) {
+    return <li className="bg-slate-50/70 px-5 py-2 text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{children}</li>;
+}
+
 export function TargetsPanel({ targets, currency, canEdit }: { targets: Targets; currency: string; canEdit: boolean }) {
     return (
         <Panel
             title={`Objectifs de ${monthName(targets.month).toLowerCase()}`}
-            description={`Jour ${targets.days_elapsed} sur ${targets.days_in_month} · toute l’entreprise, indépendamment des filtres.`}
+            description={`Jour ${targets.days_elapsed} sur ${targets.days_in_month} · indépendamment des filtres.`}
             actions={<Target className="size-4 text-slate-300" />}
         >
             <ul className="divide-y divide-slate-100">
-                <TargetRow label="Entreprise" line={targets.global} siteId={null} currency={currency} canEdit={canEdit} prominent />
+                {targets.global && (
+                    <TargetRow label="Entreprise" line={targets.global} scope={{}} currency={currency} canEdit={canEdit} prominent />
+                )}
+                {targets.sites.length > 0 && <SectionTitle>Points de vente</SectionTitle>}
                 {targets.sites.map((s) => (
-                    <TargetRow key={s.site_id} label={s.name} line={s} siteId={s.site_id} currency={currency} canEdit={canEdit} />
+                    <TargetRow key={`site-${s.site_id}`} label={s.name} line={s} scope={{ site_id: s.site_id }} currency={currency} canEdit={canEdit} />
+                ))}
+                {targets.hostesses.length > 0 && <SectionTitle>Hôtesses</SectionTitle>}
+                {targets.hostesses.map((h) => (
+                    <TargetRow key={`hostess-${h.user_id}`} label={h.name} line={h} scope={{ user_id: h.user_id }} currency={currency} canEdit={canEdit} />
                 ))}
             </ul>
         </Panel>

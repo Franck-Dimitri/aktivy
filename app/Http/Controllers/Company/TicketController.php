@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Company;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,7 +20,7 @@ class TicketController extends Controller
 
     public function index(Request $request): Response
     {
-        $tickets = Ticket::where('company_id', $request->user()->company_id)
+        $tickets = $this->visibleTickets($request)
             ->with(['agent' => fn ($q) => $q->withTrashed()->select('id', 'name', 'phone'), 'responder:id,name'])
             // Les demandes à traiter d'abord, les urgentes en tête
             ->orderByRaw("CASE status WHEN 'open' THEN 0 WHEN 'in_review' THEN 1 ELSE 2 END")
@@ -48,7 +49,7 @@ class TicketController extends Controller
 
     public function update(Request $request, Ticket $ticket): RedirectResponse
     {
-        abort_if($ticket->company_id !== $request->user()->company_id, 403);
+        abort_unless($this->visibleTickets($request)->whereKey($ticket->id)->exists(), 403);
 
         $validated = $request->validate([
             'status'   => ['required', 'string', 'in:'.implode(',', self::STATUSES)],
@@ -70,5 +71,21 @@ class TicketController extends Controller
         $ticket->save();
 
         return back()->with('success', 'Demande mise à jour.');
+    }
+
+    /**
+     * Tickets de l'entreprise ; le superviseur ne voit que ceux des hôtesses affectées à ses sites.
+     *
+     * @return Builder<Ticket>
+     */
+    private function visibleTickets(Request $request): Builder
+    {
+        $siteIds = $request->user()->managedSiteIds();
+
+        return Ticket::where('company_id', $request->user()->company_id)
+            ->when($siteIds !== null, fn ($q) => $q->whereHas(
+                'agent',
+                fn ($agent) => $agent->whereHas('affectations', fn ($a) => $a->ongoing()->whereIn('site_id', $siteIds)),
+            ));
     }
 }

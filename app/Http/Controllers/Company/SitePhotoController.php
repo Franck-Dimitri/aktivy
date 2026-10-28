@@ -14,6 +14,7 @@ class SitePhotoController extends Controller
     public function store(Request $request, Site $site): RedirectResponse
     {
         abort_if($site->company_id !== $request->user()->company_id, 403);
+        abort_unless($request->user()->managesSite($site->id), 403);
 
         $request->validate([
             'photo' => ['required', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
@@ -36,6 +37,7 @@ class SitePhotoController extends Controller
     public function destroy(Request $request, Site $site, int $index): RedirectResponse
     {
         abort_if($site->company_id !== $request->user()->company_id, 403);
+        abort_unless($request->user()->managesSite($site->id), 403);
 
         $photos = $site->photos ?? [];
 

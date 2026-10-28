@@ -462,7 +462,7 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
                                 className="tl-line"
                                 d={geo.d}
                                 fill="none"
-                                stroke="#22c55e"
+                                stroke="#12b76a"
                                 strokeWidth="2.25"
                                 strokeLinecap="round"
                             />
@@ -1322,7 +1322,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         <div className="relative mt-16">
                             {/* ligne qui relie les étapes (ordinateur) */}
                             <div className="pointer-events-none absolute left-[16.66%] right-[16.66%] top-6 hidden h-px md:block" aria-hidden="true">
-                                <div className="h-full w-full bg-[linear-gradient(to_right,#16a34a_0,#16a34a_6px,transparent_6px,transparent_12px)] bg-[length:12px_1px] opacity-40" />
+                                <div className="h-full w-full bg-[linear-gradient(to_right,#039855_0,#039855_6px,transparent_6px,transparent_12px)] bg-[length:12px_1px] opacity-40" />
                             </div>
                             {/* ligne verticale (mobile) */}
                             <div className="pointer-events-none absolute bottom-10 left-6 top-6 w-px bg-green-200 md:hidden" aria-hidden="true" />

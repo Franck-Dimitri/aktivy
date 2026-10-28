@@ -765,9 +765,9 @@ function VisitsChart({ chart }: { chart: ChartData }) {
                                 contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 24px rgb(15 23 42 / 0.08)' }}
                                 formatter={(v) => [`${v} visite${Number(v) > 1 ? 's' : ''}`, '']}
                                 labelStyle={{ color: '#334155', fontWeight: 600 }}
-                                cursor={{ fill: '#f0fdf4' }}
+                                cursor={{ fill: '#ecfdf3' }}
                             />
-                            <Bar dataKey="count" fill="#16a34a" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                            <Bar dataKey="count" fill="#039855" radius={[6, 6, 0, 0]} maxBarSize={36} />
                         </BarChart>
                     </ResponsiveContainer>
                 )}

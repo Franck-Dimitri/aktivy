@@ -297,8 +297,8 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                 >
                     <defs>
                         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.22" />
-                            <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+                            <stop offset="0%" stopColor="#12b76a" stopOpacity="0.22" />
+                            <stop offset="100%" stopColor="#12b76a" stopOpacity="0" />
                         </linearGradient>
                     </defs>
                     {[14, 52, 90].map((y) => (
@@ -318,7 +318,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                     <path
                         d={line}
                         fill="none"
-                        stroke="#16a34a"
+                        stroke="#039855"
                         strokeWidth="2"
                         strokeLinecap="round"
                         vectorEffect="non-scaling-stroke"

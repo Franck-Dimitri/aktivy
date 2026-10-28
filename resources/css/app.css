@@ -8,6 +8,24 @@
 /* `.theme-light` keeps a subtree in the light theme, whatever the user preference. */
 @custom-variant dark (&:is(.dark *):not(:is(.theme-light, .theme-light *)));
 
+/*
+ * Vert Motriks : une palette émeraude profonde et saturée remplace le vert standard
+ * de Tailwind, trop clair. Toutes les classes green-* (et les jetons motriks) la suivent.
+ */
+@theme {
+    --color-green-50: #ecfdf3;
+    --color-green-100: #d1fadf;
+    --color-green-200: #a6f4c5;
+    --color-green-300: #6ce9a6;
+    --color-green-400: #32d583;
+    --color-green-500: #12b76a;
+    --color-green-600: #039855;
+    --color-green-700: #027a48;
+    --color-green-800: #05603a;
+    --color-green-900: #054f31;
+    --color-green-950: #022c1c;
+}
+
 @theme inline {
     --font-sans:
         'Montserrat', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
@@ -60,9 +78,9 @@
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 
-    --color-motriks: #16a34a;
-    --color-motriks-deep: #15803d;
-    --color-motriks-soft: #f0fdf4;
+    --color-motriks: #039855;
+    --color-motriks-deep: #027a48;
+    --color-motriks-soft: #ecfdf3;
     --color-ink: var(--ink);
 }
 
@@ -75,7 +93,7 @@
     --card-foreground: #0f172a;
     --popover: #ffffff;
     --popover-foreground: #0f172a;
-    --primary: #16a34a;
+    --primary: #039855;
     --primary-foreground: #ffffff;
     --secondary: #f1f5f9;
     --secondary-foreground: #0f172a;
@@ -87,21 +105,21 @@
     --destructive-foreground: #dc2626;
     --border: #e2e8f0;
     --input: #e2e8f0;
-    --ring: #16a34a;
-    --chart-1: #16a34a;
+    --ring: #039855;
+    --chart-1: #039855;
     --chart-2: #0f172a;
-    --chart-3: #15803d;
+    --chart-3: #027a48;
     --chart-4: #f59e0b;
     --chart-5: #94a3b8;
     --radius: 0.75rem;
-    --sidebar: #15803d;
-    --sidebar-foreground: #f0fdf4;
+    --sidebar: #027a48;
+    --sidebar-foreground: #ecfdf3;
     --sidebar-primary: #ffffff;
-    --sidebar-primary-foreground: #15803d;
+    --sidebar-primary-foreground: #027a48;
     --sidebar-accent: rgb(255 255 255 / 0.12);
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: rgb(255 255 255 / 0.16);
-    --sidebar-ring: #16a34a;
+    --sidebar-ring: #039855;
 }
 
 .dark {
@@ -112,7 +130,7 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.145 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: #22c55e;
+    --primary: #12b76a;
     --primary-foreground: #052e16;
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
@@ -124,20 +142,20 @@
     --destructive-foreground: oklch(0.637 0.237 25.331);
     --border: oklch(0.269 0 0);
     --input: oklch(0.269 0 0);
-    --ring: #16a34a;
+    --ring: #039855;
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.696 0.17 162.48);
     --chart-3: oklch(0.769 0.188 70.08);
     --chart-4: oklch(0.627 0.265 303.9);
     --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: #15803d;
-    --sidebar-foreground: #f0fdf4;
+    --sidebar: #027a48;
+    --sidebar-foreground: #ecfdf3;
     --sidebar-primary: #ffffff;
-    --sidebar-primary-foreground: #15803d;
+    --sidebar-primary-foreground: #027a48;
     --sidebar-accent: rgb(255 255 255 / 0.12);
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: rgb(255 255 255 / 0.16);
-    --sidebar-ring: #16a34a;
+    --sidebar-ring: #039855;
 }
 
 /* Lets the browser draw autofill, scrollbars and native controls in light mode too. */
@@ -147,7 +165,7 @@
 
 /* Sidebar : dégradé vert profond (la couleur de base reste --sidebar). */
 [data-slot='sidebar-inner'] {
-    background-image: linear-gradient(180deg, #16a34a 0%, #15803d 55%, #166534 100%);
+    background-image: linear-gradient(180deg, #027a48 0%, #05603a 55%, #054f31 100%);
 }
 
 /* Zone de contenu : toujours blanche (même si un layout parent ajoute un fond gris). */

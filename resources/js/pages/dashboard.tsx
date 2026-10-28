@@ -223,15 +223,15 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                 <svg className="absolute inset-0 size-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                     <defs>
                         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.22" />
-                            <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+                            <stop offset="0%" stopColor="#12b76a" stopOpacity="0.22" />
+                            <stop offset="100%" stopColor="#12b76a" stopOpacity="0" />
                         </linearGradient>
                     </defs>
                     {[14, 52, 90].map((y) => (
                         <line key={y} x1="0" x2="100" y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1" strokeDasharray="3 4" vectorEffect="non-scaling-stroke" />
                     ))}
                     <path d={area} fill={`url(#${gradientId})`} />
-                    <path d={line} fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    <path d={line} fill="none" stroke="#039855" strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
                 </svg>
 
                 {activePoint && active !== null && (

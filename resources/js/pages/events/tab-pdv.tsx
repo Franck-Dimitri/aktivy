@@ -65,7 +65,7 @@ function PdvCard({ site, canEdit, onDelete }: {
                 <span className="font-medium text-slate-600 tabular-nums">{site.hostesses_count}</span>
                 <span className="text-slate-400">hôtesse{site.hostesses_count > 1 ? 's' : ''}</span>
                 <span className="ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
-                    style={{ background: isExisting ? '#f0fdf4' : '#fffbeb', color: isExisting ? '#16a34a' : '#b45309' }}>
+                    style={{ background: isExisting ? '#ecfdf3' : '#fffbeb', color: isExisting ? '#039855' : '#b45309' }}>
                     {isExisting ? 'PDV lié' : 'Stand'}
                 </span>
             </div>

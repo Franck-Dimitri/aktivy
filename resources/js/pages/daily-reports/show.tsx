@@ -3,6 +3,7 @@ import {
     AlertTriangle,
     ArrowLeft,
     BadgeCheck,
+    FileDown,
     MapPin,
     MessageSquareText,
     Pencil,
@@ -12,16 +13,18 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { ActionButton, ActionLink } from '@/components/page/buttons';
+import { ActionButton, ActionLink, buttonClass } from '@/components/page/buttons';
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
 import { GlowStyles, MetricStrip } from '@/components/page/surface';
+import { ReportPhotos, type ReportPhoto } from '@/components/report-photos';
 import { toastFormError } from '@/lib/form-toast';
 import {
     index as dailyReportsIndex,
     update as dailyReportUpdate,
     validate as dailyReportValidate,
+    pdf as dailyReportPdf,
 } from '@/routes/daily-reports';
 import { money, number } from '../reports/format';
 
@@ -70,6 +73,7 @@ type Report = {
     total_units_sold: number;
     lines: Line[];
     packs: Pack[];
+    photos: ReportPhoto[];
 };
 
 function duration(minutes: number | null): string {
@@ -212,6 +216,10 @@ export default function DailyReportShow({
                         >
                             Rapports du jour
                         </ActionLink>
+                        <a href={dailyReportPdf({ dailyReport: report.id }).url} className={buttonClass('secondary', 'md')}>
+                            <FileDown className="size-4" />
+                            PDF
+                        </a>
                         {can_correct && !editing && (
                             <>
                                 <ActionButton
@@ -337,6 +345,14 @@ export default function DailyReportShow({
                                 </p>
                             </div>
                         </div>
+                    )}
+
+                    {report.photos.length > 0 && (
+                        <Panel title="Photos" description="Prises par l’hôtesse sur le point de vente.">
+                            <div className="p-5">
+                                <ReportPhotos photos={report.photos} />
+                            </div>
+                        </Panel>
                     )}
 
                     <Panel

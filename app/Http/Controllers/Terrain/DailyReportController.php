@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Terrain;
 use App\Http\Controllers\Controller;
 use App\Models\DailyReport;
 use App\Models\DailyReportLine;
+use App\Models\DailyReportPhoto;
 use App\Models\StockMovement;
 use App\Notifications\IncidentReported;
 use App\Support\Notifications\Notify;
@@ -70,6 +71,8 @@ class DailyReportController extends Controller
                 'validated'        => $report->isValidated(),
                 'corrected'        => $report->corrected_at !== null,
                 'packs'            => $this->packs($report),
+                'photos'           => $report->photos()->oldest()->get()->map->toView(),
+                'max_photos'       => DailyReportPhoto::MAX_PER_REPORT,
                 'lines' => $report->lines->map(fn ($l) => [
                     'id'            => $l->id,
                     'product_name'  => $l->product_name,

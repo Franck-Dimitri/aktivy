@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\ReportPhotoController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\File;
@@ -75,6 +76,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('notifications/{notification}', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('notifications/tout-lu', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+
+    // Photos des rapports journaliers (fichiers privés, accès contrôlé)
+    Route::get('rapports/photos/{photo}', [ReportPhotoController::class, 'show'])->name('report-photos.show');
 
     Route::middleware(EnsureUserHasRole::using(Role::SuperAdmin))
         ->prefix('admin')

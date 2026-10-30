@@ -30,10 +30,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Rapports de ventes et export Excel pour la comptabilité
             Route::get('rapports', [ReportController::class, 'index'])->name('reports.index');
             Route::get('rapports/export', [ReportController::class, 'export'])->name('reports.export');
+            Route::get('rapports/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
 
             // Rapports journaliers des hôtesses
             Route::get('rapports-journaliers', [DailyReportController::class, 'index'])->name('daily-reports.index');
             Route::get('rapports-journaliers/{dailyReport}', [DailyReportController::class, 'show'])->name('daily-reports.show');
+            Route::get('rapports-journaliers/{dailyReport}/pdf', [DailyReportController::class, 'pdf'])->name('daily-reports.pdf');
         });
 
     // Réservé au gérant : export des données, catalogue, création des sites, événements

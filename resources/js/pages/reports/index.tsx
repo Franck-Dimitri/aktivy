@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { CalendarRange, FileSpreadsheet, MapPin, Package, UserRound, Zap } from 'lucide-react';
+import { CalendarRange, FileDown, FileSpreadsheet, MapPin, Package, UserRound, Zap } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { buttonClass } from '@/components/page/buttons';
 import { EmptyState } from '@/components/page/empty-state';
@@ -7,7 +7,7 @@ import { SelectInput, TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { MetricStrip } from '@/components/page/surface';
 import { cn } from '@/lib/utils';
-import { exportMethod as exportRoute, index as reportsIndex } from '@/routes/reports';
+import { exportMethod as exportRoute, index as reportsIndex, pdf as pdfRoute } from '@/routes/reports';
 import { EvolutionChart, type TimelinePoint } from './evolution-chart';
 import { day, money, number, signedPercent, variation } from './format';
 import { MonthlyTable, type MonthRow } from './monthly-table';
@@ -154,6 +154,7 @@ export default function ReportsIndex(props: Props) {
         apply({ ...filters, [key]: key === 'from' || key === 'to' ? value : value === '' ? null : Number(value) });
 
     const exportUrl = exportRoute({ query: query(props.filters) }).url;
+    const pdfUrl = pdfRoute({ query: query(props.filters) }).url;
     const hasSales = totals.reports_count > 0;
     const average = totals.days_count > 0 ? totals.revenue / totals.days_count : 0;
     const previousAverage = previous.totals.days_count > 0 ? previous.totals.revenue / previous.totals.days_count : 0;
@@ -174,10 +175,16 @@ export default function ReportsIndex(props: Props) {
                 title="Rapports"
                 description="Ventes déclarées par vos hôtesses dans leurs rapports journaliers envoyés. Exportez-les en Excel pour votre comptabilité."
                 actions={
-                    <a href={exportUrl} className={buttonClass('primary', 'md')}>
-                        <FileSpreadsheet className="size-4" />
-                        Exporter en Excel
-                    </a>
+                    <div className="flex flex-wrap gap-2">
+                        <a href={pdfUrl} className={buttonClass('secondary', 'md')}>
+                            <FileDown className="size-4" />
+                            Synthèse PDF
+                        </a>
+                        <a href={exportUrl} className={buttonClass('primary', 'md')}>
+                            <FileSpreadsheet className="size-4" />
+                            Exporter en Excel
+                        </a>
+                    </div>
                 }
             >
                 {/* ── Filtres ── */}

@@ -96,6 +96,11 @@ class DailyReport extends Model
         return $this->hasMany(DailyReportPack::class);
     }
 
+    public function photos(): HasMany
+    {
+        return $this->hasMany(DailyReportPhoto::class);
+    }
+
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class)->withTrashed();

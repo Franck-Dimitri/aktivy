@@ -9,9 +9,11 @@ use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\SalesTarget;
 use App\Models\User;
+use App\Support\Pdf\PdfDocument;
 use App\Support\Reports\SalesReport;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -82,6 +84,38 @@ class ReportController extends Controller
         return response()
             ->download($path, $name, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
             ->deleteFileAfterSend();
+    }
+
+    /**
+     * Synthèse des ventes en PDF, avec les filtres de la page : à envoyer à une marque cliente.
+     */
+    public function pdf(Request $request): HttpResponse
+    {
+        $company = $request->user()->company;
+        $report = SalesReport::fromFilters($company, $this->filters($request, $company), $request->user()->managedSiteIds());
+
+        AuditLog::record('reports.exported', $company, new: [
+            'format' => 'pdf',
+            'from' => $report->from->toDateString(),
+            'to' => $report->to->toDateString(),
+        ]);
+
+        return PdfDocument::download('pdf.sales-report', [
+            'title' => 'Synthèse des ventes',
+            'subtitle' => 'Du '.$report->from->format('d/m/Y').' au '.$report->to->format('d/m/Y'),
+            'company' => $company,
+            'logo' => PdfDocument::logo($company),
+            'currency' => $company->currency ?: 'XAF',
+            'report' => $report,
+            'filters' => $this->filterLabels($report),
+            'totals' => $report->totals(),
+            'previous' => $report->previous()->totals(),
+            'bySite' => $report->bySite(),
+            'byProduct' => $report->byProduct(),
+            // Document destiné aux marques clientes : sans le numéro personnel des hôtesses
+            'byHostess' => $report->byHostess()->map(fn (array $row) => [...$row, 'detail' => null]),
+            'byDay' => $report->byDay(),
+        ], sprintf('ventes-%s-%s-au-%s.pdf', Str::slug($company->name), $report->from->format('Y-m-d'), $report->to->format('Y-m-d')));
     }
 
     /**

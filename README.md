@@ -72,6 +72,7 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 - Ventes & objectifs : comparaison de périodes, évolution mois par mois, objectifs mensuels (entreprise, site, hôtesse), export Excel
 - Tickets : réponse aux demandes des hôtesses et suivi de leur statut (ouvert → en cours → résolu)
 - Export de toutes les données de l'entreprise (gérant uniquement)
+- Documents PDF : rapport journalier avec photos, synthèse des ventes d'une période pour les marques clientes
 
 ### Inscription d'une entreprise
 
@@ -92,6 +93,8 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 - Signalement d'incident post-soumission
 - Stats personnelles du mois (visites, CA, unités vendues, rapports soumis)
 - Tickets : demandes envoyées au responsable
+- Photos jointes au rapport (6 maximum), réduites sur le téléphone avant l'envoi
+- Saisie du rapport gardée sur le téléphone sans réseau, et envoyée comme brouillon au retour du réseau (la soumission reste manuelle)
 - Objectif de chiffre d'affaires du mois, s'il a été fixé, avec sa progression
 - Sans point de vente, un bandeau le lui indique sur toutes les pages
 
@@ -237,10 +240,11 @@ il faut reconstruire ces caches pour que les changements s'appliquent.
 php artisan down
 git pull
 composer install --no-dev --optimize-autoloader
-npm ci && npm run build
+npm ci && npm run build:ssr    # build:ssr : le site utilise le rendu serveur
 php artisan config:cache       # avant migrate : la migration du fuseau horaire le vérifie
 php artisan migrate --force
 php artisan route:cache
+php artisan inertia:stop-ssr   # supervisor relance le SSR avec le nouveau bundle
 php artisan up
 ```
 

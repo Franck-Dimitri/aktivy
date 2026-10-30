@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Role;
+use App\Http\Controllers\ReportPhotoController;
 use App\Http\Controllers\Terrain\DailyReportController;
 use App\Http\Controllers\Terrain\HomeController;
 use App\Http\Controllers\Terrain\PlanningController;
@@ -27,6 +28,8 @@ Route::middleware(['auth', 'verified', EnsureUserHasRole::using(Role::FieldAgent
         Route::put('rapport/{visit}', [DailyReportController::class, 'update'])->name('report.update');
         Route::post('rapport/{visit}/soumettre', [DailyReportController::class, 'submit'])->name('report.submit');
         Route::post('rapport/{visit}/signaler', [DailyReportController::class, 'flag'])->name('report.flag');
+        Route::post('rapport/{visit}/photos', [ReportPhotoController::class, 'store'])->name('report.photos.store');
+        Route::delete('rapport/{visit}/photos/{photo}', [ReportPhotoController::class, 'destroy'])->name('report.photos.destroy');
 
         // Statistiques personnelles
         Route::get('stats', StatsController::class)->name('stats');

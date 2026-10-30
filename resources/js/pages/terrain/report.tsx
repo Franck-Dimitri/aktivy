@@ -15,8 +15,10 @@ import {
     Save,
     Send,
     TriangleAlert,
+    WifiOff,
+    CloudUpload,
 } from 'lucide-react';
-import { Fragment, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
@@ -29,6 +31,8 @@ import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
 import { update as reportUpdate, submit as reportSubmit, flag as reportFlag } from '@/routes/terrain/report';
 import { checkout as visitCheckout } from '@/routes/terrain/visit';
+import { store as photoStore, destroy as photoDestroy } from '@/routes/terrain/report/photos';
+import { ReportPhotos, type ReportPhoto } from '@/components/report-photos';
 
 /* ─── Types ─── */
 
@@ -70,6 +74,8 @@ type Report = {
     corrected: boolean;
     lines: ReportLine[];
     packs: PackOffer[];
+    photos: ReportPhoto[];
+    max_photos: number;
 };
 
 type VisitInfo = {
@@ -294,20 +300,109 @@ function ProductCard({ line, reserved, onChange, onNoteChange, disabled }: {
     );
 }
 
+/* ─── Saisie gardée sur le téléphone ─── */
+
+/** Saisie en cours, gardée sur le téléphone tant qu'elle n'est pas enregistrée sur le serveur. */
+type LocalDraft = {
+    lines: { id: number; units_sold: number; notes: string | null }[];
+    packs: Record<number, number>;
+    notes: string;
+    incident: string;
+};
+
+const draftKey = (reportId: number) => `motriks:rapport:${reportId}`;
+
+// Le stockage peut être indisponible (navigation privée, mémoire pleine) : la page fonctionne sans
+function readDraft(reportId: number): LocalDraft | null {
+    try {
+        const raw = window.localStorage.getItem(draftKey(reportId));
+
+        return raw ? (JSON.parse(raw) as LocalDraft) : null;
+    } catch {
+        return null;
+    }
+}
+
+function writeDraft(reportId: number, draft: LocalDraft) {
+    try {
+        window.localStorage.setItem(draftKey(reportId), JSON.stringify(draft));
+    } catch {
+        // stockage indisponible : la saisie reste seulement à l'écran
+    }
+}
+
+function clearDraft(reportId: number) {
+    try {
+        window.localStorage.removeItem(draftKey(reportId));
+    } catch {
+        // rien à effacer
+    }
+}
+
+/** En ligne ou non, d'après le navigateur. */
+function useOnline(): boolean {
+    const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+
+    useEffect(() => {
+        const update = () => setOnline(navigator.onLine);
+        window.addEventListener('online', update);
+        window.addEventListener('offline', update);
+
+        return () => {
+            window.removeEventListener('online', update);
+            window.removeEventListener('offline', update);
+        };
+    }, []);
+
+    return online;
+}
+
 /* ─── Page ─── */
 
 export default function TerrainReport({ visit, report }: { visit: VisitInfo; report: Report }) {
     const isSubmitted = report.status === 'submitted';
-    const [lines, setLines] = useState<ReportLine[]>(report.lines);
-    const [notes, setNotes] = useState(report.notes ?? '');
-    const [incidentNotes, setIncidentNotes] = useState(report.incident_notes ?? '');
+    const online = useOnline();
+
+    // Saisie restée sur le téléphone (réseau coupé, page fermée) : elle reprend là où elle en était
+    const [restored] = useState<LocalDraft | null>(() => (isSubmitted || typeof window === 'undefined' ? null : readDraft(report.id)));
+    const [unsynced, setUnsynced] = useState(restored !== null);
+    const [lines, setLines] = useState<ReportLine[]>(() =>
+        restored
+            ? report.lines.map((l) => {
+                  const saved = restored.lines.find((d) => d.id === l.id);
+
+                  return saved ? { ...l, units_sold: saved.units_sold, notes: saved.notes } : l;
+              })
+            : report.lines,
+    );
+    const [notes, setNotes] = useState(restored?.notes ?? report.notes ?? '');
+    const [incidentNotes, setIncidentNotes] = useState(restored?.incident ?? report.incident_notes ?? '');
     const [busy, setBusy] = useState<Busy>(null);
     const [step, setStep] = useState<Step>('edit');
     const [confirmCheckout, setConfirmCheckout] = useState(false);
 
     const [packCounts, setPackCounts] = useState<Record<number, number>>(
-        () => Object.fromEntries(report.packs.map((p) => [p.id, p.quantity])),
+        () => restored?.packs ?? Object.fromEntries(report.packs.map((p) => [p.id, p.quantity])),
     );
+
+    // Chaque changement est gardé sur le téléphone jusqu'à son enregistrement sur le serveur
+    const firstRender = useRef(true);
+    useEffect(() => {
+        if (firstRender.current) {
+            firstRender.current = false;
+
+            return;
+        }
+        if (isSubmitted) return;
+
+        writeDraft(report.id, {
+            lines: lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes })),
+            packs: packCounts,
+            notes,
+            incident: incidentNotes,
+        });
+        setUnsynced(true);
+    }, [lines, packCounts, notes, incidentNotes, isSubmitted, report.id]);
 
     // Unités de chaque produit consommées par les packs saisis
     const packUnits: Record<number, number> = {};
@@ -346,20 +441,49 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         setLines((prev) => prev.map((l) => (l.id === id ? { ...l, notes: note } : l)));
     }
 
-    function saveDraft() {
+    function saveDraft({ silent = false } = {}) {
+        if (!navigator.onLine) {
+            if (!silent) toast.info('Pas de réseau', { description: 'Votre saisie est gardée sur ce téléphone. Elle sera envoyée au retour du réseau.' });
+
+            return;
+        }
+
         router.put(reportUpdate({ visit: visit.id }).url, { notes, lines: payloadLines(), packs: payloadPacks() }, {
+            // La saisie reste à l'écran : rien n'est rechargé
+            preserveState: true,
             preserveScroll: true,
             onStart: () => setBusy('draft'),
-            onSuccess: () => toast.success('Brouillon enregistré'),
+            onSuccess: () => {
+                clearDraft(report.id);
+                setUnsynced(false);
+                toast.success(silent ? 'Saisie envoyée au retour du réseau' : 'Brouillon enregistré');
+            },
             onError: toastFormError,
             onFinish: () => setBusy(null),
         });
     }
 
+    // Retour du réseau : la saisie gardée sur le téléphone part toute seule
+    useEffect(() => {
+        if (online && unsynced && !isSubmitted) {
+            saveDraft({ silent: true });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [online]);
+
     function submitReport() {
+        if (!navigator.onLine) {
+            toast.error('Pas de réseau', { description: 'Votre saisie est gardée sur ce téléphone. Soumettez le rapport dès que le réseau revient.' });
+
+            return;
+        }
+
         router.post(reportSubmit({ visit: visit.id }).url, { notes, incident_notes: incidentNotes || null, lines: payloadLines(), packs: payloadPacks() }, {
             onStart: () => setBusy('submit'),
-            onSuccess: () => toast.success('Rapport soumis !', { description: `${formatMoney(totalRevenue)} FCFA enregistrés.` }),
+            onSuccess: () => {
+                clearDraft(report.id);
+                toast.success('Rapport soumis !', { description: `${formatMoney(totalRevenue)} FCFA enregistrés.` });
+            },
             onError: toastFormError,
             onFinish: () => setBusy(null),
         });
@@ -437,6 +561,17 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
 
                     {/* ── Indicateur de progression ── */}
                     <StepIndicator step={step} isSubmitted={isSubmitted} />
+
+                    {!isSubmitted && !online && (
+                        <Notice tone="warning" icon={WifiOff}>
+                            <strong>Pas de réseau.</strong> Continuez votre saisie : elle est gardée sur ce téléphone et sera envoyée au retour du réseau.
+                        </Notice>
+                    )}
+                    {!isSubmitted && online && restored && unsynced && (
+                        <Notice tone="warning" icon={CloudUpload}>
+                            Votre dernière saisie, restée sur ce téléphone, a été reprise. Pensez à l’enregistrer.
+                        </Notice>
+                    )}
 
                     {/* ── Résumé CA + unités ── */}
                     <MetricStrip
@@ -551,6 +686,19 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </GlowCard>
                             )}
 
+                            <GlowCard contentClassName="p-5">
+                                <h3 className="text-base font-semibold text-ink">Photos</h3>
+                                <p className="mt-0.5 mb-4 text-sm text-slate-500">
+                                    Stand, rayon, rupture de stock… elles accompagnent votre rapport.
+                                </p>
+                                <ReportPhotos
+                                    photos={report.photos}
+                                    max={report.max_photos}
+                                    uploadUrl={photoStore({ visit: visit.id }).url}
+                                    deleteUrl={(photo) => photoDestroy({ visit: visit.id, photo }).url}
+                                />
+                            </GlowCard>
+
                             {/* Notes */}
                             <GlowCard contentClassName="p-5">
                                 <h3 className="mb-1 text-base font-semibold text-ink">Notes du jour</h3>
@@ -577,7 +725,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </ActionButton>
                                 <ActionButton
                                     variant="secondary"
-                                    onClick={saveDraft}
+                                    onClick={() => saveDraft()}
                                     loading={busy === 'draft'}
                                     disabled={busy !== null}
                                     icon={<Save />}
@@ -785,6 +933,17 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </p>
                                 </div>
                             </GlowCard>
+
+                            {(report.photos.length > 0 || !report.validated) && (
+                                <GlowCard contentClassName="p-5">
+                                    <h3 className="mb-3 text-sm font-semibold text-slate-500">Photos</h3>
+                                    <ReportPhotos
+                                        photos={report.photos}
+                                        max={report.max_photos}
+                                        uploadUrl={report.validated ? undefined : photoStore({ visit: visit.id }).url}
+                                    />
+                                </GlowCard>
+                            )}
 
                             {report.notes && (
                                 <GlowCard contentClassName="p-5">

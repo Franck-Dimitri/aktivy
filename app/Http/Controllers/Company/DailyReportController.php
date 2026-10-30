@@ -10,12 +10,15 @@ use App\Models\DailyReport;
 use App\Models\AuditLog;
 use App\Models\DailyReportLine;
 use App\Models\StockMovement;
+use App\Support\Pdf\PdfDocument;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -144,6 +147,7 @@ class DailyReportController extends Controller
                 'validated_by' => $dailyReport->validator?->name,
                 'notes' => $dailyReport->notes,
                 'incident_notes' => $dailyReport->incident_notes,
+                'photos' => $dailyReport->photos()->oldest()->get()->map->toView(),
                 'total_revenue' => $dailyReport->totalRevenue(),
                 'total_units_sold' => $dailyReport->totalUnitsSold(),
                 'lines' => $dailyReport->lines->map(fn (DailyReportLine $l) => [
@@ -173,6 +177,38 @@ class DailyReportController extends Controller
                     ->values(),
             ],
         ]);
+    }
+
+    /**
+     * Rapport en PDF, à transmettre à la marque cliente.
+     */
+    public function pdf(Request $request, DailyReport $dailyReport): HttpResponse
+    {
+        $this->authorizeReport($request, $dailyReport);
+
+        $dailyReport->load(['agent:id,name', 'site:id,name,city', 'visit', 'lines', 'packs', 'event:id,name', 'validator:id,name', 'photos']);
+        $company = $request->user()->company;
+
+        $filename = sprintf(
+            'rapport-%s-%s-%s.pdf',
+            Str::slug($dailyReport->agent?->name ?? 'hotesse'),
+            Str::slug($dailyReport->site?->name ?? 'site'),
+            $dailyReport->report_date->format('Y-m-d'),
+        );
+
+        return PdfDocument::download('pdf.daily-report', [
+            'title' => 'Rapport journalier',
+            'subtitle' => $dailyReport->site?->name,
+            'company' => $company,
+            'logo' => PdfDocument::logo($company),
+            'currency' => $company->currency ?: 'XAF',
+            'report' => $dailyReport,
+            'photos' => $dailyReport->photos
+                ->map(fn ($photo) => ['src' => PdfDocument::image('local', $photo->path), 'caption' => $photo->caption])
+                ->filter(fn ($photo) => $photo['src'] !== null)
+                ->values()
+                ->all(),
+        ], $filename);
     }
 
     /**

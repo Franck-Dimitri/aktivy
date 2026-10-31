@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Terrain;
 
 use App\Http\Controllers\Controller;
+use App\Models\DailyReportLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -58,6 +59,20 @@ class StatsController extends Controller
             ->orderByDesc('revenue')
             ->limit(5)
             ->get();
+
+        // Image de chaque produit du classement (via la relation déjà utilisée ailleurs)
+        $images = DailyReportLine::with('siteProduct.product:id,image')
+            ->whereIn('product_name', $topProducts->pluck('product_name'))
+            ->get()
+            ->groupBy('product_name')
+            ->map(fn ($lines) => $lines->map(fn ($l) => $l->siteProduct?->product?->image)->filter()->first());
+
+        $topProducts = $topProducts->map(fn ($p) => [
+            'product_name' => $p->product_name,
+            'units'        => (int) $p->units,
+            'revenue'      => (float) $p->revenue,
+            'image_url'    => ($img = $images->get($p->product_name)) ? asset('storage/' . $img) : null,
+        ])->values();
 
         return Inertia::render('terrain/stats', [
             'stats' => [

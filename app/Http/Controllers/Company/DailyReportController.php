@@ -10,6 +10,7 @@ use App\Models\DailyReport;
 use App\Models\AuditLog;
 use App\Models\DailyReportLine;
 use App\Models\StockMovement;
+use App\Support\Incident;
 use App\Support\Pdf\PdfDocument;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
@@ -100,7 +101,7 @@ class DailyReportController extends Controller
                 'submitted_at' => $r->submitted_at?->format('H:i'),
                 'revenue' => (float) $r->lines_sum_revenue,
                 'units_sold' => (int) $r->lines_sum_units_sold,
-                'has_incident' => filled($r->incident_notes),
+                'has_incident' => Incident::meaningful($r->incident_notes) !== null,
                 'validated' => $r->isValidated(),
                 'checkin_distance_m' => $r->visit?->checkin_distance_m,
                 'off_site' => $r->visit?->isOffSite() ?? false,
@@ -146,7 +147,7 @@ class DailyReportController extends Controller
                 'validated_at' => $dailyReport->validated_at?->format('d/m/Y H:i'),
                 'validated_by' => $dailyReport->validator?->name,
                 'notes' => $dailyReport->notes,
-                'incident_notes' => $dailyReport->incident_notes,
+                'incident_notes' => Incident::meaningful($dailyReport->incident_notes),
                 'photos' => $dailyReport->photos()->oldest()->get()->map->toView(),
                 'total_revenue' => $dailyReport->totalRevenue(),
                 'total_units_sold' => $dailyReport->totalUnitsSold(),

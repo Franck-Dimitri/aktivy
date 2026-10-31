@@ -72,4 +72,16 @@ class TicketTest extends TestCase
             ->get(route('tickets.index'))
             ->assertForbidden();
     }
+
+    public function test_a_ticket_withdrawn_by_the_hostess_disappears_for_the_manager()
+    {
+        $manager = User::factory()->create();
+        $agent = User::factory()->fieldAgent()->create(['company_id' => $manager->company_id]);
+        $ticket = $this->ticket($agent);
+
+        $this->actingAs($agent)->delete(route('terrain.tickets.cancel', $ticket))->assertSessionHasNoErrors();
+
+        $this->withoutVite()->actingAs($manager)->get(route('tickets.index'))
+            ->assertInertia(fn ($page) => $page->has('tickets', 0));
+    }
 }

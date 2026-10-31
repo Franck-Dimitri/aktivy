@@ -8,6 +8,7 @@ use App\Models\Affectation;
 use App\Models\DailyReport;
 use App\Models\SiteProduct;
 use App\Models\Visit;
+use App\Support\Incident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -81,7 +82,7 @@ class ActivityController extends Controller
                         'report_status' => $report?->status,
                         'revenue' => (float) ($report?->lines_sum_revenue ?? 0),
                         'units_sold' => (int) ($report?->lines_sum_units_sold ?? 0),
-                        'has_incident' => filled($report?->incident_notes),
+                        'has_incident' => Incident::meaningful($report?->incident_notes) !== null,
                     ];
                 })->sortBy('name')->values(),
             ];

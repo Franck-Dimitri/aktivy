@@ -83,6 +83,8 @@ class TicketController extends Controller
         $siteIds = $request->user()->managedSiteIds();
 
         return Ticket::where('company_id', $request->user()->company_id)
+            // Une demande retirée par l'hôtesse n'est plus à traiter
+            ->where('status', '!=', 'cancelled')
             ->when($siteIds !== null, fn ($q) => $q->whereHas(
                 'agent',
                 fn ($agent) => $agent->whereHas('affectations', fn ($a) => $a->ongoing()->whereIn('site_id', $siteIds)),

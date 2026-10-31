@@ -86,7 +86,7 @@
         </table>
     @endif
 
-    @if ($report->incident_notes)
+    @if (\App\Support\Incident::meaningful($report->incident_notes))
         <div class="box incident"><strong>Incident signalé</strong><br>{!! nl2br(e($report->incident_notes)) !!}</div>
     @endif
     @if ($report->notes)

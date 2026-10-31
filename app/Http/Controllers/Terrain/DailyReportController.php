@@ -8,6 +8,7 @@ use App\Models\DailyReportLine;
 use App\Models\DailyReportPhoto;
 use App\Models\StockMovement;
 use App\Notifications\IncidentReported;
+use App\Support\Incident;
 use App\Support\Notifications\Notify;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
@@ -48,25 +49,25 @@ class DailyReportController extends Controller
                 ]);
             }
 
-            $report->load('lines');
+            $report->load(['lines', 'lines.siteProduct.product:id,image']);
         }
 
         return Inertia::render('terrain/report', [
             'visit' => [
-                'id'            => $visit->id,
-                'checked_in_at' => $visit->checked_in_at->format('H:i'),
+                'id'             => $visit->id,
+                'checked_in_at'  => $visit->checked_in_at->format('H:i'),
                 'checked_out_at' => $visit->checked_out_at?->format('H:i'),
-                'status'        => $visit->status->value,
+                'status'         => $visit->status->value,
             ],
             'report' => [
-                'id'              => $report->id,
-                'status'          => $report->status,
-                'report_date'     => $report->report_date->translatedFormat('l d MMMM Y'),
-                'site_name'       => $visit->site->name,
-                'notes'           => $report->notes,
-                'incident_notes'  => $report->incident_notes,
-                'submitted_at'    => $report->submitted_at?->format('H:i'),
-                'total_revenue'   => $report->totalRevenue(),
+                'id'               => $report->id,
+                'status'           => $report->status,
+                'report_date'      => $report->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
+                'site_name'        => $visit->site->name,
+                'notes'            => $report->notes,
+                'incident_notes'   => $report->incident_notes,
+                'submitted_at'     => $report->submitted_at?->format('H:i'),
+                'total_revenue'    => $report->totalRevenue(),
                 'total_units_sold' => $report->totalUnitsSold(),
                 'validated'        => $report->isValidated(),
                 'corrected'        => $report->corrected_at !== null,
@@ -167,7 +168,8 @@ class DailyReportController extends Controller
                 'submitted_at' => now(),
             ]);
 
-            if (filled($report->incident_notes)) {
+            // « RAS », « aucun »… ne sont pas des incidents
+            if (Incident::meaningful($report->incident_notes) !== null) {
                 $this->notifyIncident($report);
             }
         });
@@ -235,7 +237,10 @@ class DailyReportController extends Controller
         ]);
 
         $report->update(['incident_notes' => $validated['incident_notes']]);
-        $this->notifyIncident($report);
+
+        if (Incident::meaningful($report->incident_notes) !== null) {
+            $this->notifyIncident($report);
+        }
 
         return back()->with('success', 'Signalement enregistré.');
     }

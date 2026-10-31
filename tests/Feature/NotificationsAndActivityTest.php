@@ -115,6 +115,17 @@ class NotificationsAndActivityTest extends TestCase
         Notification::assertNotSentTo([$this->otherSupervisor, $this->agent], IncidentReported::class);
     }
 
+    public function test_nothing_to_report_is_not_an_incident()
+    {
+        Notification::fake();
+
+        $this->submit($this->checkIn(), 1, 'RAS');
+
+        Notification::assertNotSentTo($this->manager, IncidentReported::class);
+        $this->actingAs($this->manager)->get(route('daily-reports.index'))
+            ->assertInertia(fn ($page) => $page->where('reports.0.has_incident', false));
+    }
+
     public function test_critical_stock_is_reported_once_when_the_threshold_is_crossed()
     {
         Notification::fake();

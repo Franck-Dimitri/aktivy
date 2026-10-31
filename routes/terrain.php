@@ -46,4 +46,5 @@ Route::middleware(['auth', 'verified', EnsureUserHasRole::using(Role::FieldAgent
         // Tickets / demandes
         Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
         Route::post('tickets', [TicketController::class, 'store'])->name('tickets.store');
+        Route::delete('tickets/{ticket}', [TicketController::class, 'cancel'])->name('tickets.cancel');
     });

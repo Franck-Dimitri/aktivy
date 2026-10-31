@@ -19,6 +19,7 @@ class TicketController extends Controller
 
         $tickets = Ticket::where('user_id', $user->id)
             ->where('company_id', $user->company_id)
+            ->where('status', '!=', 'cancelled')
             ->latest()
             ->get()
             ->map(fn (Ticket $t) => [
@@ -31,6 +32,7 @@ class TicketController extends Controller
                 'responded_at' => $t->responded_at?->diffForHumans(),
                 'created_at'   => $t->created_at->diffForHumans(),
                 'created_date' => $t->created_at->format('d/m/Y'),
+                'can_cancel'   => $t->status === 'open' && $t->response === null,
             ]);
 
         return Inertia::render('terrain/tickets', [
@@ -57,5 +59,18 @@ class TicketController extends Controller
         Notify::send(Notify::managersOf($user), new TicketCreated($ticket->setRelation('agent', $user)));
 
         return back()->with('success', 'Votre demande a été envoyée à votre responsable.');
+    }
+
+    /** Retirer une demande : possible uniquement tant qu'elle est ouverte et sans réponse. */
+    public function cancel(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $user = $request->user();
+
+        abort_if($ticket->user_id !== $user->id || $ticket->company_id !== $user->company_id, 403);
+        abort_unless($ticket->status === 'open' && $ticket->response === null, 422, 'Cette demande ne peut plus être retirée.');
+
+        $ticket->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Demande retirée.');
     }
 }

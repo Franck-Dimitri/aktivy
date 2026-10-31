@@ -3,14 +3,13 @@ import {
     AlertTriangle,
     ArrowLeft,
     ArrowRight,
-    BadgeDollarSign,
-    Check,
     CheckCircle2,
     Clock,
     Flag,
     Megaphone,
     Minus,
     Package,
+    Pencil,
     Plus,
     Save,
     Send,
@@ -18,14 +17,14 @@ import {
     WifiOff,
     CloudUpload,
 } from 'lucide-react';
-import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { TextArea, TextInput } from '@/components/page/form-fields';
 import { Page } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
-import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
+import { GlowCard, GlowStyles } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
@@ -88,12 +87,16 @@ type VisitInfo = {
 type Busy = 'draft' | 'submit' | 'flag' | 'checkout' | null;
 type Step = 'edit' | 'review' | 'incident';
 
+/* ─── Mise en page : contenu principal + panneau latéral ─── */
+
+const twoCol =
+    'grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_25rem]';
+
 /* ─── Formatters ─── */
 
 function formatMoney(amount: number): string {
     return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 }
-
 
 /* ─── Notice ─── */
 
@@ -115,76 +118,54 @@ function Notice({ tone, icon: Icon, children }: {
     );
 }
 
-/* ─── Indicateur de progression ─── */
+/* ─── Progression : 3 fines barres ─── */
 
-function StepIndicator({ step, isSubmitted }: { step: Step; isSubmitted: boolean }) {
-    const steps = [
-        { label: 'Saisie', num: 1 },
-        { label: 'Révision', num: 2 },
-        { label: 'Soumis', num: 3 },
-    ];
-    const current = isSubmitted ? 3 : step === 'review' ? 2 : 1;
-
+function Steps({ current }: { current: 1 | 2 | 3 }) {
+    const labels = ['Saisie', 'Révision', 'Envoyé'];
     return (
-        <div className="flex items-center">
-            {steps.map((s, i) => (
-                <Fragment key={s.label}>
-                    <div className="flex flex-col items-center gap-1.5">
-                        <div className={cn(
-                            'flex size-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-300',
-                            s.num < current && 'bg-motriks text-white',
-                            s.num === current && 'bg-motriks text-white shadow-md shadow-motriks/30 ring-4 ring-motriks/15',
-                            s.num > current && 'bg-slate-100 text-slate-400',
-                        )}>
-                            {s.num < current ? <Check className="size-3.5" /> : s.num}
-                        </div>
-                        <span className={cn(
-                            'text-[11px] font-medium transition-colors',
-                            s.num <= current ? 'text-motriks-deep' : 'text-slate-400',
-                        )}>
-                            {s.label}
-                        </span>
-                    </div>
-                    {i < steps.length - 1 && (
-                        <div className={cn(
-                            'mb-4 h-px flex-1 transition-all duration-500',
-                            s.num < current ? 'bg-motriks' : 'bg-slate-200',
-                        )} />
-                    )}
-                </Fragment>
-            ))}
-        </div>
+        <ol className="grid grid-cols-3 gap-2" aria-label="Progression du rapport">
+            {labels.map((label, i) => {
+                const n = i + 1;
+                return (
+                    <li key={label} aria-current={n === current ? 'step' : undefined}>
+                        <div
+                            className={cn(
+                                'h-1 rounded-full transition-colors duration-500',
+                                n <= current ? 'bg-motriks' : 'bg-slate-200',
+                            )}
+                        />
+                        <p
+                            className={cn(
+                                'mt-2 text-xs font-medium transition-colors',
+                                n === current ? 'text-motriks-deep' : n < current ? 'text-slate-500' : 'text-slate-400',
+                            )}
+                        >
+                            {label}
+                        </p>
+                    </li>
+                );
+            })}
+        </ol>
     );
 }
 
-/* ─── StockBar ─── */
+/* ─── Barre de stock ─── */
 
 function StockBar({ used, total }: { used: number; total: number }) {
-    const pct = total > 0 ? Math.round((used / total) * 100) : 0;
+    const pct = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
     const remaining = total - used;
     const tone = remaining === 0 ? 'bg-red-400' : remaining <= total * 0.2 ? 'bg-amber-400' : 'bg-motriks';
 
     return (
-        <div>
-            <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                <div className={cn('h-full rounded-full transition-[width] duration-300', tone)} style={{ width: `${pct}%` }} />
-            </div>
-            <div className="mt-1 flex justify-between text-[11px] text-slate-400">
-                <span>Vendu : {used}</span>
-                <span className={cn(
-                    'font-medium',
-                    remaining === 0 ? 'text-red-600' : remaining <= total * 0.2 ? 'text-amber-600' : 'text-slate-500',
-                )}>
-                    Reste : {remaining}
-                </span>
-            </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className={cn('h-full rounded-full transition-[width] duration-300', tone)} style={{ width: `${pct}%` }} />
         </div>
     );
 }
 
-/* ─── ProductCard ─── */
+/* ─── Ligne produit (pleine largeur) ─── */
 
-function ProductCard({ line, reserved, onChange, onNoteChange, disabled }: {
+function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
     line: ReportLine;
     /** Unités déjà prises par les packs saisis. */
     reserved: number;
@@ -192,111 +173,255 @@ function ProductCard({ line, reserved, onChange, onNoteChange, disabled }: {
     onNoteChange: (note: string) => void;
     disabled: boolean;
 }) {
+    const [noteOpen, setNoteOpen] = useState(Boolean(line.notes));
+    const active = line.units_sold > 0;
     // Le stock disponible pour les ventes à l'unité tient compte des packs
     const max = Math.max(0, line.opening_stock - reserved);
     const remaining = Math.max(0, max - line.units_sold);
-    const revenueAmount = line.units_sold * line.unit_price;
+    const soldOut = line.opening_stock > 0 && remaining === 0;
+    const lowStock = !soldOut && line.opening_stock > 0 && remaining <= line.opening_stock * 0.2;
+    const amount = line.units_sold * line.unit_price;
 
     return (
-        <div className={cn(
-            'flex flex-col gap-3 rounded-2xl p-4 ring-1 transition-all',
-            line.units_sold > 0
-                ? 'bg-motriks-soft ring-green-200'
-                : 'bg-white ring-slate-100',
-        )}>
-            {/* En-tête */}
-            <div className="flex items-start gap-3">
-                {line.image_url ? (
-                    <img
-                        src={line.image_url}
-                        alt={line.product_name}
-                        className="size-14 shrink-0 rounded-xl object-cover ring-1 ring-slate-100"
-                    />
-                ) : (
-                    <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-300">
-                        <Package className="size-6" />
-                    </span>
-                )}
-                <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-ink leading-tight">{line.product_name}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">
-                        Stock : {line.opening_stock} {line.unit}
-                    </p>
-                    {line.unit_price > 0 && (
-                        <p className="text-xs text-slate-400">
-                            {formatMoney(line.unit_price)} FCFA / {line.unit}
-                        </p>
+        <li className={cn('p-4 transition-colors sm:p-5', active && 'bg-motriks-soft/40')}>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
+                {/* Identité */}
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                    {line.image_url ? (
+                        <img
+                            src={line.image_url}
+                            alt={line.product_name}
+                            className="size-16 shrink-0 rounded-2xl object-cover ring-1 ring-slate-100"
+                        />
+                    ) : (
+                        <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-300">
+                            <Package className="size-6" />
+                        </span>
                     )}
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                            <p className="truncate font-semibold text-ink">{line.product_name}</p>
+                            {soldOut && (
+                                <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-red-600/15 ring-inset">
+                                    Épuisé
+                                </span>
+                            )}
+                        </div>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                            {line.unit_price > 0 && <>{formatMoney(line.unit_price)} FCFA / {line.unit} · </>}
+                            stock {line.opening_stock}
+                        </p>
+                        {line.opening_stock > 0 && (
+                            <div className="mt-2.5 flex items-center gap-3">
+                                <StockBar used={line.units_sold + reserved} total={line.opening_stock} />
+                                <span
+                                    className={cn(
+                                        'shrink-0 text-[11px] font-medium tabular-nums',
+                                        soldOut ? 'text-red-600' : lowStock ? 'text-amber-600' : 'text-slate-400',
+                                    )}
+                                >
+                                    Reste {remaining}
+                                    {reserved > 0 && ` · ${reserved} en packs`}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                {remaining === 0 && line.opening_stock > 0 && (
-                    <span className="shrink-0 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/15">
-                        Épuisé
-                    </span>
+
+                {/* Stepper + montant */}
+                <div className="flex items-center justify-between gap-4 md:justify-end">
+                    <div className="inline-flex items-center rounded-2xl bg-slate-100 p-1">
+                        <button
+                            type="button"
+                            disabled={disabled || line.units_sold <= 0}
+                            onClick={() => onChange(Math.max(0, line.units_sold - 1))}
+                            className="flex size-11 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm transition-all hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none active:scale-90 disabled:opacity-40 disabled:shadow-none"
+                            aria-label="Retirer une unité"
+                        >
+                            <Minus className="size-4" />
+                        </button>
+                        <input
+                            type="number"
+                            inputMode="numeric"
+                            min={0}
+                            max={max}
+                            value={line.units_sold}
+                            disabled={disabled}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) =>
+                                onChange(Math.max(0, Math.min(max, Number(e.target.value) || 0)))
+                            }
+                            aria-label={`Unités vendues — ${line.product_name}`}
+                            className="h-11 w-16 bg-transparent text-center text-lg font-bold text-ink tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
+                        <button
+                            type="button"
+                            disabled={disabled || line.units_sold >= max}
+                            onClick={() => onChange(Math.min(max, line.units_sold + 1))}
+                            className="flex size-11 items-center justify-center rounded-xl bg-motriks text-white shadow-sm shadow-green-600/25 transition-all hover:bg-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-offset-2 focus-visible:outline-none active:scale-90 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+                            aria-label="Ajouter une unité"
+                        >
+                            <Plus className="size-4" />
+                        </button>
+                    </div>
+
+                    <p
+                        className={cn(
+                            'min-w-24 text-right text-base font-bold tabular-nums md:w-32',
+                            amount > 0 ? 'text-motriks-deep' : 'text-slate-300',
+                        )}
+                    >
+                        {amount > 0 ? formatMoney(amount) : '—'}
+                        <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
+                    </p>
+                </div>
+            </div>
+
+            {/* Actions discrètes */}
+            <div className="mt-3 flex items-center gap-4 text-xs md:pl-20">
+                {!soldOut && line.opening_stock > 0 && (
+                    <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => onChange(max)}
+                        className="font-semibold text-motriks-deep hover:underline focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
+                    >
+                        Tout vendu
+                    </button>
                 )}
-            </div>
-
-            {/* Stepper */}
-            <div className="flex items-center gap-2">
+                {active && (
+                    <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => onChange(0)}
+                        className="font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
+                    >
+                        Remettre à 0
+                    </button>
+                )}
                 <button
                     type="button"
-                    disabled={disabled || line.units_sold <= 0}
-                    onClick={() => onChange(Math.max(0, line.units_sold - 1))}
-                    className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-90 disabled:opacity-40"
-                    aria-label="Retirer une unité"
+                    onClick={() => setNoteOpen((o) => !o)}
+                    className="inline-flex items-center gap-1 font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                 >
-                    <Minus className="size-4" />
-                </button>
-                <TextInput
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    max={max}
-                    value={line.units_sold}
-                    disabled={disabled}
-                    onChange={(e) => onChange(Math.max(0, Math.min(max, Number(e.target.value))))}
-                    aria-label={`Unités vendues — ${line.product_name}`}
-                    className="h-10 text-center text-lg font-bold tabular-nums"
-                />
-                <button
-                    type="button"
-                    disabled={disabled || line.units_sold >= max}
-                    onClick={() => onChange(Math.min(max, line.units_sold + 1))}
-                    className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 active:scale-90 disabled:opacity-40"
-                    aria-label="Ajouter une unité"
-                >
-                    <Plus className="size-4" />
+                    <Pencil className="size-3" />
+                    Note
                 </button>
             </div>
 
-            {/* Stock bar */}
-            {line.opening_stock > 0 && (
-                <StockBar used={line.units_sold + reserved} total={line.opening_stock} />
-            )}
-            {reserved > 0 && (
-                <p className="text-xs text-slate-500">dont {reserved} {line.unit} vendus dans des packs</p>
-            )}
-
-            {/* Revenue badge */}
-            {revenueAmount > 0 && (
-                <div className="flex items-center justify-between rounded-xl bg-white/70 px-3 py-2 ring-1 ring-green-200/60">
-                    <span className="text-xs text-green-700">
-                        {line.units_sold} × {formatMoney(line.unit_price)}
-                    </span>
-                    <span className="text-sm font-bold text-motriks-deep tabular-nums">
-                        {formatMoney(revenueAmount)} FCFA
-                    </span>
+            {noteOpen && (
+                <div className="md:pl-20">
+                    <TextInput
+                        placeholder="Note sur ce produit (optionnel)"
+                        value={line.notes ?? ''}
+                        disabled={disabled}
+                        onChange={(e) => onNoteChange(e.target.value)}
+                        className="mt-2.5 h-9 bg-white text-xs"
+                    />
                 </div>
             )}
+        </li>
+    );
+}
 
-            {/* Note */}
-            <TextInput
-                placeholder={`Note (optionnel)`}
-                value={line.notes ?? ''}
-                disabled={disabled}
-                onChange={(e) => onNoteChange(e.target.value)}
-                className="h-9 text-xs bg-white/70"
-            />
-        </div>
+/* ─── Panneau récapitulatif (colonne de droite) ─── */
+
+function SummaryPanel({
+    totalSold,
+    totalRevenue,
+    filledCount,
+    totalLines,
+    remainingStock,
+    notes,
+    onNotes,
+    busy,
+    onSave,
+    onReview,
+}: {
+    totalSold: number;
+    totalRevenue: number;
+    filledCount: number;
+    totalLines: number;
+    remainingStock: number;
+    notes: string;
+    onNotes: (v: string) => void;
+    busy: Busy;
+    onSave: () => void;
+    onReview: () => void;
+}) {
+    const pct = totalLines > 0 ? Math.round((filledCount / totalLines) * 100) : 0;
+
+    return (
+        <GlowCard contentClassName="flex flex-col gap-5 p-5 sm:p-6">
+            <div>
+                <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Total de la journée</p>
+                <p className="mt-1.5 text-4xl font-extrabold tracking-tight text-ink tabular-nums">
+                    {formatMoney(totalRevenue)}
+                    <span className="ml-1.5 text-base font-medium text-slate-400">FCFA</span>
+                </p>
+            </div>
+
+            <div>
+                <div className="mb-2 flex items-center justify-between text-xs">
+                    <span className="font-medium text-slate-500">Produits saisis</span>
+                    <span className="font-semibold text-ink tabular-nums">
+                        {filledCount}/{totalLines}
+                    </span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                        className="h-full rounded-full bg-motriks transition-[width] duration-500"
+                        style={{ width: `${pct}%` }}
+                    />
+                </div>
+            </div>
+
+            <dl className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+                    <dt className="text-xs text-slate-500">Unités vendues</dt>
+                    <dd className="mt-1 text-xl font-bold text-ink tabular-nums">{totalSold}</dd>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+                    <dt className="text-xs text-slate-500">Stock restant</dt>
+                    <dd className="mt-1 text-xl font-bold text-ink tabular-nums">{remainingStock}</dd>
+                </div>
+            </dl>
+
+            <div className="border-t border-slate-100 pt-5">
+                <label htmlFor="day-notes" className="text-sm font-semibold text-ink">
+                    Notes du jour <span className="font-normal text-slate-400">(facultatif)</span>
+                </label>
+                <TextArea
+                    id="day-notes"
+                    rows={3}
+                    value={notes}
+                    onChange={(e) => onNotes(e.target.value)}
+                    placeholder="Événements particuliers, remarques clients…"
+                    className="mt-2"
+                />
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+                <ActionButton
+                    onClick={onReview}
+                    disabled={busy !== null}
+                    icon={<ArrowRight className="order-last" />}
+                    className="h-12 w-full rounded-2xl text-base"
+                >
+                    Réviser et soumettre
+                </ActionButton>
+                <ActionButton
+                    variant="secondary"
+                    onClick={onSave}
+                    loading={busy === 'draft'}
+                    disabled={busy !== null}
+                    icon={<Save />}
+                    className="h-11 w-full rounded-2xl"
+                >
+                    {busy === 'draft' ? 'Sauvegarde…' : 'Enregistrer le brouillon'}
+                </ActionButton>
+            </div>
+        </GlowCard>
     );
 }
 
@@ -377,13 +502,12 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     );
     const [notes, setNotes] = useState(restored?.notes ?? report.notes ?? '');
     const [incidentNotes, setIncidentNotes] = useState(restored?.incident ?? report.incident_notes ?? '');
-    const [busy, setBusy] = useState<Busy>(null);
-    const [step, setStep] = useState<Step>('edit');
-    const [confirmCheckout, setConfirmCheckout] = useState(false);
-
     const [packCounts, setPackCounts] = useState<Record<number, number>>(
         () => restored?.packs ?? Object.fromEntries(report.packs.map((p) => [p.id, p.quantity])),
     );
+    const [busy, setBusy] = useState<Busy>(null);
+    const [step, setStep] = useState<Step>('edit');
+    const [confirmCheckout, setConfirmCheckout] = useState(false);
 
     // Chaque changement est gardé sur le téléphone jusqu'à son enregistrement sur le serveur
     const firstRender = useRef(true);
@@ -418,7 +542,8 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     const totalRevenue =
         lines.reduce((s, l) => s + l.units_sold * l.unit_price, 0) +
         report.packs.reduce((s, p) => s + (packCounts[p.id] ?? 0) * p.value, 0);
-    const payloadLines = () => lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes }));
+    const filledCount = lines.filter((l) => l.units_sold + (packUnits[l.id] ?? 0) > 0).length;
+    const remainingStock = lines.reduce((s, l) => s + Math.max(0, l.opening_stock - l.units_sold - (packUnits[l.id] ?? 0)), 0);
     const payloadPacks = () => report.packs.map((p) => ({ id: p.id, quantity: packCounts[p.id] ?? 0 }));
 
     /** Un pack de plus est possible si chacun de ses produits a encore assez de stock. */
@@ -428,6 +553,8 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
 
             return line !== undefined && line.opening_stock - line.units_sold - (packUnits[line.id] ?? 0) >= item.quantity;
         });
+    const soldLines = lines.filter((l) => l.units_sold > 0);
+    const payloadLines = () => lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes }));
 
     function updateLine(id: number, sold: number) {
         setLines((prev) => prev.map((l) =>
@@ -520,6 +647,9 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         }
     }
 
+    const isEditing = !isSubmitted && step === 'edit';
+    const current: 1 | 2 | 3 = isSubmitted ? 3 : step === 'review' ? 2 : 1;
+
     return (
         <>
             <Head title="Rapport journalier" />
@@ -534,33 +664,31 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     </ActionLink>
                 }
             >
-                <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+                <div className="flex w-full flex-col gap-6">
 
-                    {/* ── En-tête visite ── */}
-                    <GlowCard contentClassName="px-5 py-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
-                                    <Clock className="size-3.5" />
-                                    Arrivée {visit.checked_in_at}
+                    {/* ── Méta + progression ── */}
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8">
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-500">
+                            <span className="inline-flex items-center gap-1.5">
+                                <Clock className="size-4 text-slate-400" />
+                                Arrivée {visit.checked_in_at}
+                            </span>
+                            {visit.checked_out_at && (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <Flag className="size-4 text-slate-400" />
+                                    Départ {visit.checked_out_at}
                                 </span>
-                                {visit.checked_out_at && (
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">
-                                        <Flag className="size-3.5" />
-                                        Départ {visit.checked_out_at}
-                                    </span>
-                                )}
-                            </div>
+                            )}
                             {isSubmitted ? (
                                 <StatusBadge tone="success">Soumis à {report.submitted_at}</StatusBadge>
                             ) : (
                                 <StatusBadge tone="warning">Brouillon</StatusBadge>
                             )}
                         </div>
-                    </GlowCard>
-
-                    {/* ── Indicateur de progression ── */}
-                    <StepIndicator step={step} isSubmitted={isSubmitted} />
+                        <div className="w-full md:w-96">
+                            <Steps current={current} />
+                        </div>
+                    </div>
 
                     {!isSubmitted && !online && (
                         <Notice tone="warning" icon={WifiOff}>
@@ -573,437 +701,401 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                         </Notice>
                     )}
 
-                    {/* ── Résumé CA + unités ── */}
-                    <MetricStrip
-                        items={[
-                            {
-                                label: 'Unités vendues',
-                                value: isSubmitted ? report.total_units_sold : totalSold,
-                                sub: `sur ${lines.reduce((s, l) => s + l.opening_stock, 0)} en stock`,
-                                live: !isSubmitted && totalSold > 0,
-                            },
-                            {
-                                label: "Chiffre d'affaires",
-                                value: (
-                                    <>
-                                        {isSubmitted
-                                            ? formatMoney(report.total_revenue)
-                                            : formatMoney(totalRevenue)}
-                                        <span className="text-sm font-medium text-slate-400">FCFA</span>
-                                    </>
-                                ),
-                                sub: 'journée en cours',
-                            },
-                            { label: 'Produits', value: lines.length, sub: 'ce point de vente' },
-                            {
-                                label: 'Statut',
-                                value: isSubmitted ? 'Soumis' : step === 'review' ? 'En révision' : 'Brouillon',
-                                sub: 'état du rapport',
-                            },
-                        ]}
-                    />
-
-                    {/* ══════ ÉTAPE SAISIE ══════ */}
-                    {!isSubmitted && step === 'edit' && (
+                    {/* ══════ SAISIE ══════ */}
+                    {isEditing && (
                         <>
-                            {/* Grille produits */}
-                            <GlowCard contentClassName="p-5">
-                                <div className="mb-4">
-                                    <h3 className="text-base font-semibold text-ink">Ventes par produit</h3>
-                                    <p className="mt-0.5 text-sm text-slate-500">
-                                        Entrez le nombre d'unités vendues pour chaque produit.
-                                    </p>
-                                </div>
-
-                                {lines.length === 0 ? (
-                                    <div className="flex flex-col items-center gap-2 py-8 text-center">
-                                        <Package className="size-10 text-slate-200" />
-                                        <p className="text-sm font-medium text-slate-500">Aucun produit configuré</p>
-                                        <p className="text-xs text-slate-400">
-                                            Votre responsable doit d'abord ajouter des produits à ce site.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="grid gap-3 sm:grid-cols-2">
-                                        {lines.map((line) => (
-                                            <ProductCard
-                                                key={line.id}
-                                                line={line}
-                                                reserved={packUnits[line.id] ?? 0}
-                                                onChange={(sold) => updateLine(line.id, sold)}
-                                                onNoteChange={(note) => updateLineNote(line.id, note)}
-                                                disabled={busy !== null}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </GlowCard>
-
-                            {report.packs.length > 0 && (
-                                <GlowCard contentClassName="p-5">
-                                    <h3 className="text-base font-semibold text-ink">Packs de l'événement</h3>
-                                    <p className="mt-0.5 mb-4 text-sm text-slate-500">
-                                        Comptez ici les packs vendus : leurs produits sont retirés du stock automatiquement.
-                                    </p>
-                                    <div className="flex flex-col gap-3">
-                                        {report.packs.map((pack) => {
-                                            const count = packCounts[pack.id] ?? 0;
-
-                                            return (
-                                                <div key={pack.id} className={cn('flex flex-wrap items-center gap-3 rounded-2xl p-4 ring-1', count > 0 ? 'bg-motriks-soft ring-green-200' : 'bg-white ring-slate-100')}>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="font-semibold text-ink">{pack.name}</p>
-                                                        <p className="text-xs text-slate-500">
-                                                            {pack.items.map((i) => `${i.quantity} × ${i.name}${i.free ? ' (offert)' : ''}`).join(' + ')}
-                                                        </p>
-                                                        <p className="text-xs text-slate-400">{formatMoney(pack.value)} FCFA le pack</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            disabled={busy !== null || count <= 0}
-                                                            onClick={() => setPackCounts({ ...packCounts, [pack.id]: count - 1 })}
-                                                            className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 active:scale-90 disabled:opacity-40"
-                                                            aria-label={`Retirer un pack ${pack.name}`}
-                                                        >
-                                                            <Minus className="size-4" />
-                                                        </button>
-                                                        <span className="w-10 text-center text-lg font-bold tabular-nums">{count}</span>
-                                                        <button
-                                                            type="button"
-                                                            disabled={busy !== null || !canAddPack(pack)}
-                                                            onClick={() => setPackCounts({ ...packCounts, [pack.id]: count + 1 })}
-                                                            className="flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 active:scale-90 disabled:opacity-40"
-                                                            aria-label={`Ajouter un pack ${pack.name}`}
-                                                        >
-                                                            <Plus className="size-4" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </GlowCard>
-                            )}
-
-                            <GlowCard contentClassName="p-5">
-                                <h3 className="text-base font-semibold text-ink">Photos</h3>
-                                <p className="mt-0.5 mb-4 text-sm text-slate-500">
-                                    Stand, rayon, rupture de stock… elles accompagnent votre rapport.
-                                </p>
-                                <ReportPhotos
-                                    photos={report.photos}
-                                    max={report.max_photos}
-                                    uploadUrl={photoStore({ visit: visit.id }).url}
-                                    deleteUrl={(photo) => photoDestroy({ visit: visit.id, photo }).url}
-                                />
-                            </GlowCard>
-
-                            {/* Notes */}
-                            <GlowCard contentClassName="p-5">
-                                <h3 className="mb-1 text-base font-semibold text-ink">Notes du jour</h3>
-                                <p className="mb-3 text-sm text-slate-500">
-                                    Observations sur la journée (facultatif).
-                                </p>
-                                <TextArea
-                                    rows={3}
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Événements particuliers, remarques clients, problèmes…"
-                                />
-                            </GlowCard>
-
-                            {/* Actions */}
-                            <div className="flex flex-col gap-3">
-                                <ActionButton
-                                    onClick={() => setStep('review')}
-                                    disabled={busy !== null}
-                                    className="h-14 w-full rounded-2xl text-base"
-                                    icon={<ArrowRight className="order-last" />}
-                                >
-                                    Revoir et soumettre
-                                </ActionButton>
-                                <ActionButton
-                                    variant="secondary"
-                                    onClick={() => saveDraft()}
-                                    loading={busy === 'draft'}
-                                    disabled={busy !== null}
-                                    icon={<Save />}
-                                    className="h-11 w-full rounded-2xl"
-                                >
-                                    {busy === 'draft' ? 'Sauvegarde…' : 'Sauvegarder le brouillon'}
-                                </ActionButton>
-                            </div>
-
-                            {/* Barre de total flottante */}
-                            {totalSold > 0 && (
-                                <div className="sticky bottom-4 z-10">
-                                    <div className="rounded-2xl bg-slate-900 px-5 py-3.5 shadow-2xl shadow-slate-900/30 ring-1 ring-slate-700">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <p className="text-xs font-medium text-slate-400">
-                                                    {totalSold} unité{totalSold > 1 ? 's' : ''} vendues
-                                                </p>
-                                                <p className="text-xl font-bold tabular-nums text-white">
-                                                    {formatMoney(totalRevenue)}
-                                                    <span className="ml-1.5 text-sm font-medium text-slate-400">FCFA</span>
-                                                </p>
-                                            </div>
-                                            <ActionButton
-                                                onClick={() => setStep('review')}
-                                                disabled={busy !== null}
-                                                className="h-10 shrink-0 rounded-xl text-sm"
-                                            >
-                                                Réviser →
-                                            </ActionButton>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </>
-                    )}
-
-                    {/* ══════ ÉTAPE RÉVISION ══════ */}
-                    {!isSubmitted && step === 'review' && (
-                        <>
-                            <Notice tone="warning" icon={TriangleAlert}>
-                                Vérifiez vos données avant de soumettre.{' '}
-                                <strong>Le rapport ne pourra plus être modifié.</strong>
-                            </Notice>
-
-                            {/* Reçu style */}
-                            <GlowCard contentClassName="p-0">
-                                <div className="border-b border-dashed border-slate-200 px-6 py-4">
-                                    <h3 className="text-base font-semibold text-ink">Récapitulatif</h3>
-                                    <p className="mt-0.5 text-sm text-slate-500">{report.site_name} · {report.report_date}</p>
-                                </div>
-
-                                <div className="divide-y divide-dashed divide-slate-200">
-                                    {lines.map((l) => (
-                                        <div key={l.id} className="flex items-center gap-3 px-6 py-3">
-                                            {l.image_url ? (
-                                                <img src={l.image_url} alt={l.product_name} className="size-9 shrink-0 rounded-lg object-cover" />
-                                            ) : (
-                                                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                                                    <Package className="size-4 text-slate-300" />
-                                                </span>
-                                            )}
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium text-ink">{l.product_name}</p>
-                                                <p className="text-xs text-slate-400">
-                                                    {l.units_sold} {l.unit} vendu{l.units_sold > 1 ? 's' : ''}
-                                                    {l.unit_price > 0 && ` · ${formatMoney(l.unit_price)} / u`}
-                                                </p>
-                                            </div>
-                                            {l.unit_price > 0 && (
-                                                <p className={cn(
-                                                    'shrink-0 text-sm font-bold tabular-nums',
-                                                    l.units_sold > 0 ? 'text-motriks-deep' : 'text-slate-300',
-                                                )}>
-                                                    {formatMoney(l.units_sold * l.unit_price)}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                    {report.packs.filter((p) => (packCounts[p.id] ?? 0) > 0).map((p) => (
-                                        <div key={`pack-${p.id}`} className="flex items-center gap-3 px-6 py-3">
-                                            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-motriks-soft">
-                                                <Package className="size-4 text-motriks-deep" />
-                                            </span>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium text-ink">{p.name}</p>
-                                                <p className="text-xs text-slate-400">
-                                                    {packCounts[p.id]} pack{(packCounts[p.id] ?? 0) > 1 ? 's' : ''} · {formatMoney(p.value)} / pack
-                                                </p>
-                                            </div>
-                                            <p className="shrink-0 text-sm font-bold tabular-nums text-motriks-deep">
-                                                {formatMoney((packCounts[p.id] ?? 0) * p.value)}
+                            <div className={twoCol}>
+                                <div className="flex min-w-0 flex-col gap-6">
+                                <GlowCard contentClassName="p-0">
+                                    <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
+                                        <div>
+                                            <h3 className="text-base font-semibold text-ink">Ventes par produit</h3>
+                                            <p className="mt-0.5 text-sm text-slate-500">
+                                                Saisissez les unités vendues pour chaque produit.
                                             </p>
                                         </div>
-                                    ))}
+                                        {lines.length > 0 && (
+                                            <span className="shrink-0 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold text-motriks-deep ring-1 ring-green-200/60">
+                                                {filledCount}/{lines.length}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {lines.length === 0 ? (
+                                        <div className="flex flex-col items-center gap-2 px-5 py-14 text-center">
+                                            <Package className="size-10 text-slate-200" />
+                                            <p className="text-sm font-medium text-slate-500">Aucun produit configuré</p>
+                                            <p className="text-xs text-slate-400">
+                                                Votre responsable doit d'abord ajouter des produits à ce site.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <ul className="divide-y divide-slate-100">
+                                            {lines.map((line) => (
+                                                <ProductRow
+                                                    key={line.id}
+                                                    line={line}
+                                                    reserved={packUnits[line.id] ?? 0}
+                                                    onChange={(sold) => updateLine(line.id, sold)}
+                                                    onNoteChange={(note) => updateLineNote(line.id, note)}
+                                                    disabled={busy !== null}
+                                                />
+                                            ))}
+                                        </ul>
+                                    )}
+                                </GlowCard>
+
+                                {report.packs.length > 0 && (
+                                    <GlowCard contentClassName="p-5">
+                                        <h3 className="text-base font-semibold text-ink">Packs de l'événement</h3>
+                                        <p className="mt-0.5 mb-4 text-sm text-slate-500">
+                                            Comptez ici les packs vendus : leurs produits sont retirés du stock automatiquement.
+                                        </p>
+                                        <div className="flex flex-col gap-3">
+                                            {report.packs.map((pack) => {
+                                                const count = packCounts[pack.id] ?? 0;
+
+                                                return (
+                                                    <div key={pack.id} className={cn('flex flex-wrap items-center gap-3 rounded-2xl p-4 ring-1', count > 0 ? 'bg-motriks-soft ring-green-200' : 'bg-white ring-slate-100')}>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="font-semibold text-ink">{pack.name}</p>
+                                                            <p className="text-xs text-slate-500">
+                                                                {pack.items.map((i) => `${i.quantity} × ${i.name}${i.free ? ' (offert)' : ''}`).join(' + ')}
+                                                            </p>
+                                                            <p className="text-xs text-slate-400">{formatMoney(pack.value)} FCFA le pack</p>
+                                                        </div>
+                                                        <div className="inline-flex items-center rounded-2xl bg-slate-100 p-1">
+                                                            <button
+                                                                type="button"
+                                                                disabled={busy !== null || count <= 0}
+                                                                onClick={() => setPackCounts({ ...packCounts, [pack.id]: count - 1 })}
+                                                                className="flex size-11 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm active:scale-90 disabled:opacity-40"
+                                                                aria-label={`Retirer un pack ${pack.name}`}
+                                                            >
+                                                                <Minus className="size-4" />
+                                                            </button>
+                                                            <span className="w-12 text-center text-lg font-bold text-ink tabular-nums">{count}</span>
+                                                            <button
+                                                                type="button"
+                                                                disabled={busy !== null || !canAddPack(pack)}
+                                                                onClick={() => setPackCounts({ ...packCounts, [pack.id]: count + 1 })}
+                                                                className="flex size-11 items-center justify-center rounded-xl bg-motriks text-white shadow-sm active:scale-90 disabled:bg-slate-200 disabled:text-slate-400"
+                                                                aria-label={`Ajouter un pack ${pack.name}`}
+                                                            >
+                                                                <Plus className="size-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </GlowCard>
+                                )}
+
+                                <GlowCard contentClassName="p-5">
+                                    <h3 className="text-base font-semibold text-ink">Photos</h3>
+                                    <p className="mt-0.5 mb-4 text-sm text-slate-500">
+                                        Stand, rayon, rupture de stock… elles accompagnent votre rapport.
+                                    </p>
+                                    <ReportPhotos
+                                        photos={report.photos}
+                                        max={report.max_photos}
+                                        uploadUrl={photoStore({ visit: visit.id }).url}
+                                        deleteUrl={(photo) => photoDestroy({ visit: visit.id, photo }).url}
+                                    />
+                                </GlowCard>
                                 </div>
 
-                                <div className="border-t border-dashed border-slate-200 px-6 py-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-xs text-slate-500">{totalSold} unité{totalSold > 1 ? 's' : ''} vendues</p>
-                                            <p className="mt-0.5 text-sm font-bold text-ink">Total journée</p>
-                                        </div>
-                                        <p className="text-2xl font-extrabold tabular-nums text-motriks-deep">
+                                <div className="lg:sticky lg:top-6">
+                                    <SummaryPanel
+                                        totalSold={totalSold}
+                                        totalRevenue={totalRevenue}
+                                        filledCount={filledCount}
+                                        totalLines={lines.length}
+                                        remainingStock={remainingStock}
+                                        notes={notes}
+                                        onNotes={setNotes}
+                                        busy={busy}
+                                        onSave={() => saveDraft()}
+                                        onReview={() => setStep('review')}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Barre fixe — mobile uniquement */}
+                            <div className="sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 lg:hidden">
+                                <div className="flex items-center gap-3 rounded-2xl bg-white/90 p-2.5 pl-5 shadow-xl shadow-slate-900/10 ring-1 ring-slate-200 backdrop-blur-md">
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-xs text-slate-500">
+                                            {totalSold} unité{totalSold > 1 ? 's' : ''} · {filledCount} produit{filledCount > 1 ? 's' : ''}
+                                        </p>
+                                        <p className="truncate text-xl font-bold text-ink tabular-nums">
                                             {formatMoney(totalRevenue)}
-                                            <span className="ml-1 text-sm font-medium text-slate-400">FCFA</span>
+                                            <span className="ml-1.5 text-sm font-medium text-slate-400">FCFA</span>
                                         </p>
                                     </div>
+                                    <ActionButton
+                                        onClick={() => setStep('review')}
+                                        disabled={busy !== null}
+                                        icon={<ArrowRight className="order-last" />}
+                                        className="h-12 shrink-0 rounded-xl px-5 text-sm"
+                                    >
+                                        Réviser
+                                    </ActionButton>
                                 </div>
-                            </GlowCard>
-
-                            {/* Signalement incident */}
-                            <GlowCard contentClassName="p-5">
-                                <h3 className="mb-1 text-base font-semibold text-ink">Signaler un incident</h3>
-                                <p className="mb-3 text-sm text-slate-500">
-                                    Optionnel — rupture de stock, problème client, matériel manquant…
-                                </p>
-                                <TextArea
-                                    rows={3}
-                                    value={incidentNotes}
-                                    onChange={(e) => setIncidentNotes(e.target.value)}
-                                    placeholder="Décrivez l'incident…"
-                                />
-                            </GlowCard>
-
-                            <div className="flex flex-col gap-3">
-                                <ActionButton
-                                    onClick={submitReport}
-                                    loading={busy === 'submit'}
-                                    disabled={busy !== null}
-                                    icon={<Send />}
-                                    className="h-14 w-full rounded-2xl text-base"
-                                >
-                                    {busy === 'submit' ? 'Soumission…' : 'Soumettre le rapport'}
-                                </ActionButton>
-                                <ActionButton
-                                    variant="secondary"
-                                    onClick={() => setStep('edit')}
-                                    disabled={busy !== null}
-                                    icon={<ArrowLeft />}
-                                    className="h-11 w-full rounded-2xl"
-                                >
-                                    Modifier mes saisies
-                                </ActionButton>
                             </div>
                         </>
                     )}
 
-                    {/* ══════ SOUMIS — Lecture seule ══════ */}
-                    {isSubmitted && step !== 'incident' && (
-                        <>
-                            {/* Confirmation */}
-                            <div className="flex flex-col items-center gap-2 rounded-2xl bg-motriks-soft py-6 text-center ring-1 ring-green-100">
-                                <div className="flex size-12 items-center justify-center rounded-full bg-motriks text-white shadow-lg shadow-motriks/30">
-                                    <CheckCircle2 className="size-6" />
-                                </div>
-                                <p className="font-semibold text-green-800">
-                                    {report.validated ? 'Rapport validé par votre responsable' : `Rapport soumis à ${report.submitted_at}`}
-                                </p>
-                                {report.corrected && (
-                                    <p className="text-xs text-green-700">Les quantités ont été corrigées par votre responsable.</p>
-                                )}
-                                <p className="text-sm text-green-700">
-                                    {formatMoney(report.total_revenue)} FCFA enregistrés
-                                </p>
-                            </div>
-
-                            {/* Détail produits */}
+                    {/* ══════ RÉVISION ══════ */}
+                    {!isSubmitted && step === 'review' && (
+                        <div className={twoCol}>
+                            {/* Ticket */}
                             <GlowCard contentClassName="p-0">
-                                <div className="border-b border-slate-100 px-6 py-4">
-                                    <h3 className="text-base font-semibold text-ink">Détail par produit</h3>
+                                <div className="border-b border-dashed border-slate-200 px-5 py-4 sm:px-6">
+                                    <h3 className="text-base font-semibold text-ink">Récapitulatif</h3>
+                                    <p className="mt-0.5 text-sm text-slate-500">
+                                        {report.site_name} · {report.report_date}
+                                    </p>
                                 </div>
-                                <div className="divide-y divide-slate-100">
-                                    {report.lines.map((l) => (
-                                        <div key={l.id} className="flex items-center gap-3 px-6 py-3.5">
-                                            {l.image_url ? (
-                                                <img src={l.image_url} alt={l.product_name} className="size-10 shrink-0 rounded-xl object-cover" />
-                                            ) : (
-                                                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-50">
-                                                    <Package className="size-4 text-slate-300" />
-                                                </span>
-                                            )}
-                                            <div className="min-w-0 flex-1">
-                                                <p className="font-medium text-ink">{l.product_name}</p>
-                                                <p className="text-xs text-slate-500">
-                                                    Ouv. {l.opening_stock} → Clôt. {l.closing_stock} {l.unit}
-                                                    {l.units_sold + l.pack_units > 0 && ` · ${l.units_sold + l.pack_units} vendus`}
-                                                    {l.pack_units > 0 && ` (dont ${l.pack_units} en packs)`}
+
+                                {soldLines.length === 0 ? (
+                                    <p className="px-5 py-10 text-center text-sm text-slate-400">Aucune vente saisie.</p>
+                                ) : (
+                                    <ul className="divide-y divide-dashed divide-slate-200">
+                                        {soldLines.map((l) => (
+                                            <li key={l.id} className="flex items-center gap-4 px-5 py-3.5 sm:px-6">
+                                                {l.image_url ? (
+                                                    <img src={l.image_url} alt={l.product_name} className="size-11 shrink-0 rounded-xl object-cover" />
+                                                ) : (
+                                                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                                                        <Package className="size-4 text-slate-300" />
+                                                    </span>
+                                                )}
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-sm font-medium text-ink">{l.product_name}</p>
+                                                    <p className="text-xs text-slate-400">
+                                                        {l.units_sold} × {formatMoney(l.unit_price)} FCFA
+                                                    </p>
+                                                </div>
+                                                <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">
+                                                    {formatMoney(l.units_sold * l.unit_price)}
                                                 </p>
-                                                {l.notes && <p className="mt-0.5 text-xs italic text-slate-400">{l.notes}</p>}
-                                            </div>
-                                            {l.revenue > 0 && (
-                                                <p className="shrink-0 font-semibold text-motriks-deep tabular-nums">
-                                                    {formatMoney(l.revenue)}
-                                                </p>
-                                            )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                                {report.packs.filter((p) => (packCounts[p.id] ?? 0) > 0).map((p) => (
+                                    <div key={`pack-${p.id}`} className="flex items-center gap-4 border-t border-dashed border-slate-200 px-5 py-3.5 sm:px-6">
+                                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-motriks-soft">
+                                            <Package className="size-4 text-motriks-deep" />
+                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-medium text-ink">{p.name}</p>
+                                            <p className="text-xs text-slate-400">
+                                                {packCounts[p.id]} pack{(packCounts[p.id] ?? 0) > 1 ? 's' : ''} × {formatMoney(p.value)} FCFA
+                                            </p>
                                         </div>
-                                    ))}
-                                </div>
-                                <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
-                                    <p className="font-bold text-ink">Total</p>
-                                    <p className="text-xl font-extrabold tabular-nums text-motriks-deep">
-                                        {formatMoney(report.total_revenue)}
+                                        <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">
+                                            {formatMoney((packCounts[p.id] ?? 0) * p.value)}
+                                        </p>
+                                    </div>
+                                ))}
+
+                                <div className="flex items-center justify-between border-t border-dashed border-slate-200 px-5 py-5 sm:px-6">
+                                    <div>
+                                        <p className="text-sm font-bold text-ink">Total journée</p>
+                                        <p className="text-xs text-slate-500">
+                                            {totalSold} unité{totalSold > 1 ? 's' : ''} vendues
+                                        </p>
+                                    </div>
+                                    <p className="text-3xl font-extrabold text-motriks-deep tabular-nums">
+                                        {formatMoney(totalRevenue)}
                                         <span className="ml-1 text-sm font-medium text-slate-400">FCFA</span>
                                     </p>
                                 </div>
                             </GlowCard>
 
-                            {(report.photos.length > 0 || !report.validated) && (
+                            <div className="flex flex-col gap-6 lg:sticky lg:top-6">
+                                <Notice tone="warning" icon={TriangleAlert}>
+                                    Vérifiez vos données avant de soumettre.{' '}
+                                    <strong>Le rapport ne pourra plus être modifié.</strong>
+                                </Notice>
+
                                 <GlowCard contentClassName="p-5">
-                                    <h3 className="mb-3 text-sm font-semibold text-slate-500">Photos</h3>
-                                    <ReportPhotos
-                                        photos={report.photos}
-                                        max={report.max_photos}
-                                        uploadUrl={report.validated ? undefined : photoStore({ visit: visit.id }).url}
+                                    <label htmlFor="incident" className="text-base font-semibold text-ink">
+                                        Signaler un incident
+                                    </label>
+                                    <p className="mt-0.5 mb-3 text-sm text-slate-500">
+                                        Optionnel : rupture de stock, problème client, matériel manquant…
+                                    </p>
+                                    <TextArea
+                                        id="incident"
+                                        rows={4}
+                                        value={incidentNotes}
+                                        onChange={(e) => setIncidentNotes(e.target.value)}
+                                        placeholder="Décrivez l'incident…"
                                     />
                                 </GlowCard>
-                            )}
 
-                            {report.notes && (
-                                <GlowCard contentClassName="p-5">
-                                    <h3 className="mb-2 text-sm font-semibold text-slate-500">Notes du jour</h3>
-                                    <p className="text-sm leading-relaxed text-ink">{report.notes}</p>
-                                </GlowCard>
-                            )}
-
-                            {report.incident_notes && (
-                                <GlowCard contentClassName="p-5">
-                                    <h3 className="mb-2 text-sm font-semibold text-amber-600">Incident signalé</h3>
-                                    <p className="text-sm leading-relaxed text-amber-800">{report.incident_notes}</p>
-                                </GlowCard>
-                            )}
-
-                            <div className="flex flex-col gap-3">
-                                {visit.status === 'in_progress' && (
+                                <div className="flex flex-col gap-2.5">
+                                    <ActionButton
+                                        onClick={submitReport}
+                                        loading={busy === 'submit'}
+                                        disabled={busy !== null}
+                                        icon={<Send />}
+                                        className="h-12 w-full rounded-2xl text-base"
+                                    >
+                                        {busy === 'submit' ? 'Soumission…' : 'Soumettre le rapport'}
+                                    </ActionButton>
                                     <ActionButton
                                         variant="secondary"
-                                        icon={<Flag />}
-                                        onClick={() => setConfirmCheckout(true)}
-                                        className="h-12 w-full rounded-2xl border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50"
+                                        onClick={() => setStep('edit')}
+                                        disabled={busy !== null}
+                                        icon={<ArrowLeft />}
+                                        className="h-11 w-full rounded-2xl"
                                     >
-                                        Terminer mon service
+                                        Modifier mes saisies
                                     </ActionButton>
-                                )}
-                                <ActionButton
-                                    variant="secondary"
-                                    icon={<AlertTriangle />}
-                                    onClick={() => setStep('incident')}
-                                    className="h-11 w-full rounded-2xl border-amber-200 text-amber-700 hover:border-amber-300 hover:bg-amber-50"
-                                >
-                                    Signaler une erreur
-                                </ActionButton>
+                                </div>
                             </div>
-                        </>
+                        </div>
+                    )}
+
+                    {/* ══════ SOUMIS : lecture seule ══════ */}
+                    {isSubmitted && step !== 'incident' && (
+                        <div className={twoCol}>
+                            <GlowCard contentClassName="p-0">
+                                <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
+                                    <h3 className="text-base font-semibold text-ink">Détail par produit</h3>
+                                </div>
+                                <ul className="divide-y divide-slate-100">
+                                    {report.lines.map((l) => (
+                                        <li key={l.id} className="flex items-center gap-4 px-5 py-4 sm:px-6">
+                                            {l.image_url ? (
+                                                <img src={l.image_url} alt={l.product_name} className="size-12 shrink-0 rounded-xl object-cover" />
+                                            ) : (
+                                                <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-slate-50">
+                                                    <Package className="size-4 text-slate-300" />
+                                                </span>
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate font-medium text-ink">{l.product_name}</p>
+                                                <p className="text-xs text-slate-500">
+                                                    Stock {l.opening_stock} → {l.closing_stock} {l.unit}
+                                                    {l.units_sold + l.pack_units > 0 && ` · ${l.units_sold + l.pack_units} vendus`}
+                                                    {l.pack_units > 0 && ` (dont ${l.pack_units} en packs)`}
+                                                </p>
+                                                {l.notes && <p className="mt-0.5 text-xs text-slate-400 italic">{l.notes}</p>}
+                                            </div>
+                                            {l.revenue > 0 && (
+                                                <p className="shrink-0 font-semibold text-motriks-deep tabular-nums">
+                                                    {formatMoney(l.revenue)}
+                                                    <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
+                                                </p>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </GlowCard>
+
+                            <div className="flex flex-col gap-6 lg:sticky lg:top-6">
+                                <div className="flex items-center gap-4 rounded-2xl bg-motriks-soft p-5 ring-1 ring-green-100">
+                                    <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-motriks text-white shadow-lg shadow-motriks/30">
+                                        <CheckCircle2 className="size-6" />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-green-900">
+                                            {report.validated ? 'Validé par votre responsable' : `Soumis à ${report.submitted_at}`}
+                                        </p>
+                                        {report.corrected && (
+                                            <p className="text-xs text-green-700">Quantités corrigées par votre responsable.</p>
+                                        )}
+                                        <p className="text-2xl font-extrabold text-motriks-deep tabular-nums">
+                                            {formatMoney(report.total_revenue)}
+                                            <span className="ml-1 text-sm font-medium text-green-700/70">FCFA</span>
+                                        </p>
+                                        <p className="text-xs text-green-700">
+                                            {report.total_units_sold} unité{report.total_units_sold > 1 ? 's' : ''} vendues
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {(report.photos.length > 0 || !report.validated) && (
+                                    <GlowCard contentClassName="p-5">
+                                        <h3 className="mb-3 text-sm font-semibold text-slate-500">Photos</h3>
+                                        <ReportPhotos
+                                            photos={report.photos}
+                                            max={report.max_photos}
+                                            uploadUrl={report.validated ? undefined : photoStore({ visit: visit.id }).url}
+                                        />
+                                    </GlowCard>
+                                )}
+
+                                {report.notes && (
+                                    <GlowCard contentClassName="p-5">
+                                        <h3 className="mb-1.5 text-sm font-semibold text-slate-500">Notes du jour</h3>
+                                        <p className="text-sm leading-relaxed text-ink">{report.notes}</p>
+                                    </GlowCard>
+                                )}
+
+                                {report.incident_notes && (
+                                    <GlowCard contentClassName="p-5">
+                                        <h3 className="mb-1.5 text-sm font-semibold text-amber-600">Incident signalé</h3>
+                                        <p className="text-sm leading-relaxed text-amber-800">{report.incident_notes}</p>
+                                    </GlowCard>
+                                )}
+
+                                <div className="flex flex-col gap-2.5">
+                                    {visit.status === 'in_progress' && (
+                                        <ActionButton
+                                            variant="secondary"
+                                            icon={<Flag />}
+                                            onClick={() => setConfirmCheckout(true)}
+                                            className="h-12 w-full rounded-2xl border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50"
+                                        >
+                                            Terminer mon service
+                                        </ActionButton>
+                                    )}
+                                    <ActionButton
+                                        variant="secondary"
+                                        icon={<AlertTriangle />}
+                                        onClick={() => setStep('incident')}
+                                        className="h-11 w-full rounded-2xl border-amber-200 text-amber-700 hover:border-amber-300 hover:bg-amber-50"
+                                    >
+                                        Signaler une erreur
+                                    </ActionButton>
+                                </div>
+                            </div>
+                        </div>
                     )}
 
                     {/* ══════ SIGNALEMENT POST-SOUMISSION ══════ */}
                     {isSubmitted && step === 'incident' && (
-                        <>
-                            <GlowCard contentClassName="p-5">
-                                <h3 className="mb-1 text-base font-semibold text-ink">Signalement / Correction</h3>
-                                <p className="mb-3 text-sm text-slate-500">
+                        <div className={twoCol}>
+                            <GlowCard contentClassName="p-5 sm:p-6">
+                                <label htmlFor="flag" className="text-base font-semibold text-ink">
+                                    Signalement / Correction
+                                </label>
+                                <p className="mt-0.5 mb-3 text-sm text-slate-500">
                                     Décrivez le problème. Votre responsable en sera informé.
                                 </p>
                                 <TextArea
-                                    rows={5}
+                                    id="flag"
+                                    rows={7}
                                     value={incidentNotes}
                                     onChange={(e) => setIncidentNotes(e.target.value)}
                                     placeholder="Erreur de saisie, rupture non signalée, problème client…"
                                 />
                             </GlowCard>
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-2.5 lg:sticky lg:top-6">
                                 <ActionButton
                                     onClick={submitFlag}
                                     loading={busy === 'flag'}
                                     disabled={busy !== null || !incidentNotes.trim()}
                                     icon={<Megaphone />}
-                                    className="h-14 w-full rounded-2xl bg-amber-500 text-base shadow-amber-400/30 hover:bg-amber-600"
+                                    className="h-12 w-full rounded-2xl bg-amber-500 text-base shadow-amber-400/30 hover:bg-amber-600"
                                 >
                                     {busy === 'flag' ? 'Envoi…' : 'Envoyer le signalement'}
                                 </ActionButton>
@@ -1016,7 +1108,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     Retour
                                 </ActionButton>
                             </div>
-                        </>
+                        </div>
                     )}
                 </div>
             </Page>

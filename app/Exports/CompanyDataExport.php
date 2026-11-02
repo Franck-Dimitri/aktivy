@@ -71,7 +71,7 @@ class CompanyDataExport
     {
         $id = $this->company->id;
         $c = $this->company;
-        $book = new Workbook($path);
+        $book = new Workbook($path, $this->company->documentColor());
         $T = Workbook::TEXT;
         $I = Workbook::INT;
         $M = Workbook::MONEY;

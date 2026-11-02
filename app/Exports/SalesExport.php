@@ -23,7 +23,7 @@ class SalesExport
         $variation = $previousRevenue > 0
             ? sprintf('%+.1f %%', ($totals['revenue'] - $previousRevenue) / $previousRevenue * 100)
             : 'n.d.';
-        $book = new Workbook($path);
+        $book = new Workbook($path, $this->report->company->documentColor());
 
         $book->sheet('Synthèse', [
             'Indicateur' => [Workbook::TEXT, 34],

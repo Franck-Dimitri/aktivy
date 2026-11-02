@@ -3,6 +3,7 @@
 use App\Enums\Role;
 use App\Http\Controllers\Company\ActivityController;
 use App\Http\Controllers\Company\AffectationController;
+use App\Http\Controllers\Company\CompanySettingsController;
 use App\Http\Controllers\Company\DailyReportController;
 use App\Http\Controllers\Company\DashboardController;
 use App\Http\Controllers\Company\DataExportController;
@@ -41,6 +42,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Réservé au gérant : export des données, suppression des sites, événements
     Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin))
         ->group(function () {
+            Route::get('entreprise', [CompanySettingsController::class, 'edit'])->name('company.settings.edit');
+            // POST : le formulaire peut contenir un fichier (logo)
+            Route::post('entreprise', [CompanySettingsController::class, 'update'])->name('company.settings.update');
+
             Route::get('mes-donnees', [DataExportController::class, 'show'])->name('company.data-export');
             Route::get('mes-donnees/telecharger', [DataExportController::class, 'download'])
                 ->middleware('throttle:5,1')

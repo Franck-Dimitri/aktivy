@@ -49,6 +49,8 @@ class Company extends Model
     /** @use HasFactory<CompanyFactory> */
     use HasFactory, SoftDeletes;
 
+    private const DEFAULT_DOCUMENT_COLOR = '#027a48';
+
     /**
      * The model's default values for attributes.
      *
@@ -147,6 +149,23 @@ class Company extends Model
     public function onboardingCompleted(): bool
     {
         return $this->onboarding_completed_at !== null;
+    }
+
+    /**
+     * Couleur des documents : celle de l'entreprise, sauf si elle est trop claire pour
+     * rester lisible (titres sur fond blanc, texte blanc sur l'en-tête Excel).
+     */
+    public function documentColor(): string
+    {
+        $color = (string) $this->primary_color;
+
+        if (preg_match('/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i', $color, $m) !== 1) {
+            return self::DEFAULT_DOCUMENT_COLOR;
+        }
+
+        $luminance = (0.299 * hexdec($m[1]) + 0.587 * hexdec($m[2]) + 0.114 * hexdec($m[3])) / 255;
+
+        return $luminance > 0.65 ? self::DEFAULT_DOCUMENT_COLOR : $color;
     }
 
     /**

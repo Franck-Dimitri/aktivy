@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/page/empty-state';
 import { Page, Panel } from '@/components/page/page';
 import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes/admin';
+import { index as companiesIndex } from '@/routes/admin/companies';
 import { index as onboardingIndex } from '@/routes/admin/onboarding';
 
 export default function AdminDashboard() {
@@ -18,12 +19,17 @@ export default function AdminDashboard() {
                 <Panel title="Entreprises clientes">
                     <EmptyState
                         icon={Building2}
-                        title="La liste des entreprises arrive bientôt"
-                        description="Vous pourrez y suivre les inscriptions, suspendre ou réactiver un espace client."
+                        title="Vos entreprises clientes"
+                        description="Suivez les inscriptions, suspendez ou réactivez un espace client."
                         action={
-                            <Button asChild>
-                                <Link href={onboardingIndex()}>Traiter les demandes d’inscription</Link>
-                            </Button>
+                            <div className="flex flex-wrap justify-center gap-2">
+                                <Button asChild>
+                                    <Link href={companiesIndex()}>Voir les entreprises</Link>
+                                </Button>
+                                <Button asChild variant="outline">
+                                    <Link href={onboardingIndex()}>Traiter les demandes d’inscription</Link>
+                                </Button>
+                            </div>
                         }
                     />
                 </Panel>

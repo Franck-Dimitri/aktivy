@@ -35,7 +35,7 @@ class Workbook
     /** @var array<string, Style> */
     private array $styles;
 
-    public function __construct(string $path)
+    public function __construct(string $path, string $headerColor = '#3B6D11')
     {
         $this->writer = new Writer(new Options);
         $this->writer->openToFile($path);
@@ -43,7 +43,7 @@ class Workbook
         $this->header = (new Style)
             ->setFontBold()
             ->setFontColor(Color::WHITE)
-            ->setBackgroundColor('3B6D11');
+            ->setBackgroundColor(ltrim($headerColor, '#'));
 
         $this->styles = [
             self::INT => (new Style)->setFormat('#,##0'),

@@ -151,6 +151,12 @@ class DailyReportController extends Controller
         abort_if($visit->user_id !== $request->user()->id, 403);
 
         $report = $visit->dailyReport()->firstOrFail();
+
+        // Renvoi automatique après une coupure : la première tentative a pu aboutir sans que le téléphone le sache
+        if ($report->isSubmitted() && $request->boolean('queued')) {
+            return redirect()->route('terrain.home');
+        }
+
         abort_if($report->isSubmitted(), 422, 'Ce rapport a déjà été soumis.');
 
         $validated = $this->validateSales($request, [

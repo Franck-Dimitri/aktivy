@@ -99,6 +99,18 @@ class ClosingAndBackupTest extends TestCase
         $this->assertSame(6, $stock->fresh()->current_stock);
     }
 
+    public function test_a_report_resent_after_a_network_cut_is_not_refused()
+    {
+        [, $agent, , $stock, $report] = $this->report();
+        $payload = ['lines' => [['id' => $report->lines->first()->id, 'units_sold' => 2]], 'queued' => true];
+
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), $payload)->assertRedirect(route('terrain.home'));
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), $payload)->assertRedirect(route('terrain.home'));
+
+        // Le renvoi ne décompte pas le stock une seconde fois
+        $this->assertSame(8, $stock->fresh()->current_stock);
+    }
+
     private function fakeDump(): void
     {
         Process::fake(function ($process) {

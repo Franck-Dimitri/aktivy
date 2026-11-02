@@ -42,14 +42,16 @@ class TelegramService
         }
 
         try {
-            Http::timeout(120)
+            $response = Http::timeout(120)
                 ->attach('document', file_get_contents($filePath), basename($filePath))
                 ->post("{$this->apiBase}/sendDocument", [
                     'chat_id' => $chatId,
                     'caption' => $caption,
                     'parse_mode' => 'Markdown',
                 ]);
-            return true;
+
+            // Telegram répond par une erreur HTTP sans lever d'exception : l'envoi doit être vérifié
+            return $response->successful();
         } catch (Throwable $e) {
             $this->sendMessage($chatId, "❌ Erreur envoi fichier : " . $e->getMessage());
             return false;

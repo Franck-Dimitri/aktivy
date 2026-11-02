@@ -92,10 +92,21 @@ class SiteController extends Controller
             }
         }
 
-        $company->sites()->create([
+        $site = $company->sites()->create([
             ...$validated,
             'created_by' => $request->user()->id,
         ]);
+
+        // Un superviseur ne voit que ses sites : celui qu'il crée lui est affecté
+        if ($request->user()->hasRole(Role::Supervisor)) {
+            $company->affectations()->create([
+                'site_id' => $site->id,
+                'user_id' => $request->user()->id,
+                'assigned_by' => $request->user()->id,
+                'starts_on' => today()->toDateString(),
+                'status' => AffectationStatus::Active,
+            ]);
+        }
 
         return redirect()->route('sites.index')
             ->with('success', 'Site créé avec succès.');

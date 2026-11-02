@@ -225,6 +225,7 @@ MAIL_FROM_NAME="Motriks"
 # Bot Telegram (facultatif) : sans secret ni liste d'identifiants, le webhook refuse tout
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_CHAT_ID=...            # reçoit la sauvegarde et le rapport du matin
+BACKUP_PASSPHRASE=...           # chiffre les sauvegardes ; à garder aussi hors du serveur
 TELEGRAM_WEBHOOK_SECRET=...     # chaîne aléatoire, transmise à Telegram lors du setWebhook
 TELEGRAM_ALLOWED_IDS=123,456    # identifiants Telegram autorisés à utiliser les commandes
 ```

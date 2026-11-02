@@ -33,6 +33,8 @@ class StockMovement extends Model
 
     public const CORRECTION = 'correction';
 
+    public const CLOSING_GAP = 'closing_gap';
+
     /** Libellés affichés au responsable. */
     public const LABELS = [
         self::INITIAL => 'Stock initial',
@@ -40,6 +42,7 @@ class StockMovement extends Model
         self::SALE => 'Ventes',
         self::ADJUSTMENT => 'Inventaire',
         self::CORRECTION => 'Correction de rapport',
+        self::CLOSING_GAP => 'Écart de clôture',
     ];
 
     protected function casts(): array

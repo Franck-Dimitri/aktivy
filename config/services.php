@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+    // Clé de chiffrement des sauvegardes : à garder aussi hors du serveur, sans elle elles sont illisibles
+    'backup' => [
+        'passphrase' => env('BACKUP_PASSPHRASE'),
+    ],
+
     'telegram' => [
         'bot_token'      => env('TELEGRAM_BOT_TOKEN'),
         'chat_id'        => env('TELEGRAM_CHAT_ID'),

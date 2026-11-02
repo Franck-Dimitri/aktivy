@@ -37,6 +37,8 @@ type Line = {
     single_units: number;
     units_sold: number;
     closing_stock: number;
+    stock_gap: number;
+    gap_reason: string | null;
     revenue: number;
     notes: string | null;
 };
@@ -401,6 +403,11 @@ export default function DailyReportShow({
                                                 {l.notes && (
                                                     <p className="mt-0.5 text-xs text-slate-500">
                                                         {l.notes}
+                                                    </p>
+                                                )}
+                                                {l.stock_gap !== 0 && (
+                                                    <p className="mt-0.5 text-xs font-medium text-amber-700">
+                                                        Écart de clôture {l.stock_gap > 0 ? '+' : ''}{l.stock_gap} : {l.gap_reason}
                                                     </p>
                                                 )}
                                             </td>

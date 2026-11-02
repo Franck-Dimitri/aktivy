@@ -7,7 +7,9 @@ use App\Models\DailyReport;
 use App\Models\DailyReportLine;
 use App\Models\EventPack;
 use App\Models\SiteProduct;
+use App\Models\StockMovement;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Ventes d'un rapport journalier : à l'unité, produit par produit, et en packs d'événement.
@@ -73,6 +75,7 @@ class ReportSales
         $byProduct = self::linesByProduct($report, $lines);
         $packs = self::availablePacks($report)->keyBy('id');
 
+        $restocked = self::restocked($report, $lines);
         $packUnits = [];
         $packRevenue = [];
         $soldPacks = [];
@@ -101,11 +104,19 @@ class ReportSales
         foreach ($lines as $line) {
             $single = max(0, (int) ($singleUnits[$line->id] ?? $line->single_units));
             $units = $single + ($packUnits[$line->id] ?? 0);
+            $available = $line->opening_stock + ($restocked[$line->id] ?? 0);
+
+            // Saisie impossible : on ne vend pas plus que ce qu'il y avait sur le site
+            if ($units > $available) {
+                throw ValidationException::withMessages([
+                    'lines' => "{$line->product_name} : {$units} unités déclarées pour {$available} disponibles.",
+                ]);
+            }
 
             $line->fill([
                 'single_units' => $single,
                 'units_sold' => $units,
-                'closing_stock' => max(0, $line->opening_stock - $units),
+                'closing_stock' => max(0, $available - $units + $line->stock_gap),
                 'revenue' => round($single * $line->unit_price + ($packRevenue[$line->id] ?? 0), 2),
             ]);
 
@@ -129,6 +140,32 @@ class ReportSales
                 ],
             );
         }
+    }
+
+    /**
+     * Unités livrées sur le site pendant le service, par id de ligne : elles s'ajoutent au stock d'ouverture.
+     *
+     * @param  Collection<int, DailyReportLine>|null  $lines
+     * @return array<int, int>
+     */
+    public static function restocked(DailyReport $report, ?Collection $lines = null): array
+    {
+        $lines ??= $report->lines()->get();
+        $since = $report->visit?->checked_in_at;
+
+        if (! $since) {
+            return [];
+        }
+
+        $bySiteProduct = StockMovement::where('type', StockMovement::RESTOCK)
+            ->whereIn('site_product_id', $lines->pluck('site_product_id'))
+            ->where('created_at', '>=', $since)
+            ->when($report->submitted_at, fn ($q) => $q->where('created_at', '<=', $report->submitted_at))
+            ->selectRaw('site_product_id, SUM(quantity) as total')
+            ->groupBy('site_product_id')
+            ->pluck('total', 'site_product_id');
+
+        return $lines->mapWithKeys(fn (DailyReportLine $l) => [$l->id => (int) ($bySiteProduct[$l->site_product_id] ?? 0)])->all();
     }
 
     /**

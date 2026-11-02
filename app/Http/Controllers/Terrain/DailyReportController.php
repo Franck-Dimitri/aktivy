@@ -16,6 +16,7 @@ use App\Models\Visit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,6 +53,9 @@ class DailyReportController extends Controller
             $report->load(['lines', 'lines.siteProduct.product:id,image']);
         }
 
+        $report->setRelation('visit', $visit);
+        $restocked = ReportSales::restocked($report, $report->lines);
+
         return Inertia::render('terrain/report', [
             'visit' => [
                 'id'             => $visit->id,
@@ -75,6 +79,9 @@ class DailyReportController extends Controller
                 'photos'           => $report->photos()->oldest()->get()->map->toView(),
                 'max_photos'       => DailyReportPhoto::MAX_PER_REPORT,
                 'lines' => $report->lines->map(fn ($l) => [
+                    'restocked'     => $restocked[$l->id] ?? 0,
+                    'stock_gap'     => $l->stock_gap,
+                    'gap_reason'    => $l->gap_reason,
                     'id'            => $l->id,
                     'product_name'  => $l->product_name,
                     'unit'          => $l->unit,
@@ -157,10 +164,13 @@ class DailyReportController extends Controller
             ]);
 
             $this->applySales($report, $validated);
+            $counts = collect($validated['lines'])->keyBy('id');
 
-            // Les unités vendues (à l'unité et en packs) sortent du stock actuel du site
             foreach ($report->lines()->get() as $line) {
+                // Les unités vendues (à l'unité et en packs) sortent du stock actuel du site
                 StockLedger::move($line->site_product_id, -$line->units_sold, StockMovement::SALE, $request->user(), $report->id);
+
+                $this->recordClosingCount($report, $line, $counts->get($line->id, []), $request);
             }
 
             $report->update([
@@ -176,6 +186,36 @@ class DailyReportController extends Controller
 
         return redirect()->route('terrain.home')
             ->with('success', 'Rapport soumis avec succès. Bonne fin de journée !');
+    }
+
+    /**
+     * Clôture : le stock compté est comparé au stock théorique ; tout écart exige un motif
+     * et passe dans le journal de stock.
+     *
+     * @param  array<string, mixed>  $count
+     */
+    private function recordClosingCount(DailyReport $report, DailyReportLine $line, array $count, Request $request): void
+    {
+        if (! isset($count['counted_stock'])) {
+            return;
+        }
+
+        $gap = (int) $count['counted_stock'] - $line->closing_stock;
+
+        if ($gap === 0) {
+            return;
+        }
+
+        $reason = trim((string) ($count['gap_reason'] ?? ''));
+
+        if ($reason === '') {
+            throw ValidationException::withMessages([
+                'lines' => "{$line->product_name} : indiquez le motif de l’écart de stock.",
+            ]);
+        }
+
+        $line->update(['stock_gap' => $gap, 'gap_reason' => $reason, 'closing_stock' => (int) $count['counted_stock']]);
+        StockLedger::move($line->site_product_id, $gap, StockMovement::CLOSING_GAP, $request->user(), $report->id, $reason);
     }
 
     /**
@@ -202,6 +242,8 @@ class DailyReportController extends Controller
             'lines.*.id'          => ['required', 'integer'],
             'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
             'lines.*.notes'       => ['nullable', 'string', 'max:500'],
+            'lines.*.counted_stock' => ['nullable', 'integer', 'min:0'],
+            'lines.*.gap_reason'  => ['nullable', 'string', 'max:300'],
             'packs'               => ['nullable', 'array'],
             'packs.*.id'          => ['required', 'integer'],
             'packs.*.quantity'    => ['required', 'integer', 'min:0'],

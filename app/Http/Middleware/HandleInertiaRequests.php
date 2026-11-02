@@ -60,9 +60,9 @@ class HandleInertiaRequests extends Middleware
                     ]
                     : null,
                 'can' => fn () => [
-                    // Catalogue, création de sites, événements, export : toute l'entreprise
+                    // Suppression de sites, événements, export : toute l'entreprise
                     'manageCompany' => $request->user()?->hasRole(Role::CompanyAdmin) ?? false,
-                    // Équipe, affectations, objectifs (le superviseur sur ses sites)
+                    // Équipe, sites, catalogue, affectations, objectifs (le superviseur sur ses sites)
                     'manageTeam' => $request->user()?->hasRole(Role::CompanyAdmin, Role::Supervisor) ?? false,
                 ],
                 // Hôtesse ou superviseur rattaché à aucun point de vente : un bandeau le lui dit

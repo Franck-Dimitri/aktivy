@@ -34,6 +34,7 @@ type ReportRow = {
     units_sold: number;
     has_incident: boolean;
     validated: boolean;
+    has_gap: boolean;
     checkin_distance_m: number | null;
     off_site: boolean;
 };
@@ -240,6 +241,12 @@ export default function DailyReportsIndex({
                                                             {r.agent_name ??
                                                                 'Compte supprimé'}
                                                         </p>
+                                                        {r.has_gap && (
+                                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">
+                                                                <AlertTriangle className="size-3" />
+                                                                Écart de stock
+                                                            </span>
+                                                        )}
                                                         {r.has_incident && (
                                                             <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-red-200">
                                                                 <AlertTriangle className="size-3" />

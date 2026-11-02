@@ -55,6 +55,7 @@ class DailyReportController extends Controller
             ->with(['agent:id,name,phone', 'site:id,name', 'visit:id,checked_in_at,checked_out_at,status,checkin_distance_m'])
             ->withSum('lines', 'revenue')
             ->withSum('lines', 'units_sold')
+            ->withExists(['lines as has_gap' => fn ($q) => $q->where('stock_gap', '!=', 0)])
             ->orderByRaw("CASE status WHEN 'submitted' THEN 1 ELSE 0 END")
             ->get();
 
@@ -103,6 +104,7 @@ class DailyReportController extends Controller
                 'units_sold' => (int) $r->lines_sum_units_sold,
                 'has_incident' => Incident::meaningful($r->incident_notes) !== null,
                 'validated' => $r->isValidated(),
+                'has_gap' => (bool) $r->has_gap,
                 'checkin_distance_m' => $r->visit?->checkin_distance_m,
                 'off_site' => $r->visit?->isOffSite() ?? false,
             ]),
@@ -160,6 +162,8 @@ class DailyReportController extends Controller
                     'single_units' => $l->single_units,
                     'units_sold' => $l->units_sold,
                     'closing_stock' => $l->closing_stock,
+                    'stock_gap' => $l->stock_gap,
+                    'gap_reason' => $l->gap_reason,
                     'revenue' => (float) $l->revenue,
                     'notes' => $l->notes,
                 ]),

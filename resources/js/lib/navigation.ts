@@ -22,6 +22,8 @@ import {
 import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as adminOnboarding } from '@/routes/admin/onboarding';
+import { index as adminCompanies } from '@/routes/admin/companies';
+import { edit as companySettings } from '@/routes/company/settings';
 import { home as terrainHome, stats as terrainStats, planning as terrainPlanning, sales as terrainSales } from '@/routes/terrain';
 import { index as terrainReports } from '@/routes/terrain/reports';
 import { index as terrainTickets } from '@/routes/terrain/tickets';
@@ -92,7 +94,7 @@ export function menuFor(role: Role): MenuGroup[] {
                         icon: ClipboardCheck,
                         href: adminOnboarding(),
                     },
-                    { title: 'Entreprises', icon: Building2 },
+                    { title: 'Entreprises', icon: Building2, href: adminCompanies().url },
                     { title: 'Abonnements', icon: CreditCard },
                     { title: 'Journal d’audit', icon: ScrollText },
                 ],
@@ -140,7 +142,7 @@ export function menuFor(role: Role): MenuGroup[] {
         groups.push({
             label: 'Entreprise',
             items: [
-                { title: 'Paramètres', icon: Settings2 },
+                { title: 'Paramètres', icon: Settings2, href: companySettings().url },
                 { title: 'Utilisateurs', icon: UserCog },
                 { title: 'Abonnement', icon: CreditCard },
                 { title: 'Mes données', icon: DatabaseBackup, href: dataExport() },

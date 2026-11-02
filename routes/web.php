@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Role;
+use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\CompanyRequestController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -85,6 +86,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::inertia('/', 'admin/dashboard')->name('dashboard');
+
+            // Entreprises clientes
+            Route::get('entreprises', [AdminCompanyController::class, 'index'])->name('companies.index');
+            Route::post('entreprises/{company}/suspendre', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
+            Route::post('entreprises/{company}/reactiver', [AdminCompanyController::class, 'reactivate'])->name('companies.reactivate');
 
             // Demandes d'inscription entreprises
             Route::prefix('onboarding')->name('onboarding.')->group(function () {

@@ -421,7 +421,7 @@ function DayBar({
                         {affectation?.site_name ?? 'Site du jour'}
                     </p>
                 </div>
-                <div className="flex w-full items-center gap-2 sm:w-auto">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
                     <Link href={reportShow({ visit: visit.id }).url} className={cn(primaryBtn, 'flex-1 sm:flex-none')}>
                         <ClipboardList className="size-4" />
                         {visit.report_status === 'submitted' ? 'Voir mon rapport' : 'Saisir mes ventes'}
@@ -429,7 +429,7 @@ function DayBar({
                     <button
                         type="button"
                         onClick={onCheckout}
-                        className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-white px-3.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none"
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-200 sm:flex-none bg-white px-3.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none"
                     >
                         <Flag className="size-4" />
                         Terminer

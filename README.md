@@ -94,7 +94,7 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 - Stats personnelles du mois (visites, CA, unités vendues, rapports soumis)
 - Tickets : demandes envoyées au responsable
 - Photos jointes au rapport (6 maximum), réduites sur le téléphone avant l'envoi
-- Saisie du rapport gardée sur le téléphone sans réseau, et envoyée comme brouillon au retour du réseau (la soumission reste manuelle)
+- Hors ligne (Service Worker `public/sw.js`) : l'espace hôtesse déjà visité se rouvre sans réseau, la saisie reste sur le téléphone, et un rapport soumis part seul au retour du réseau. La prise de service, la fin de service et les photos demandent du réseau
 - Objectif de chiffre d'affaires du mois, s'il a été fixé, avec sa progression
 - Sans point de vente, un bandeau le lui indique sur toutes les pages
 

@@ -3,6 +3,7 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { NoSiteBanner } from '@/components/no-site-banner';
+import { OfflineSync } from '@/components/offline-sync';
 import type { AppLayoutProps } from '@/types';
 
 export default function AppSidebarLayout({
@@ -18,6 +19,7 @@ export default function AppSidebarLayout({
             >
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 <NoSiteBanner />
+                <OfflineSync />
                 {children}
             </AppContent>
         </AppShell>

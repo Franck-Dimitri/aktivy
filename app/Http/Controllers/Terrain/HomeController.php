@@ -21,9 +21,7 @@ class HomeController extends Controller
         // Affectation active aujourd'hui
         $affectation = Affectation::with('site:id,name,address,city,type')
             ->where('user_id', $user->id)
-            ->where('status', 'active')
-            ->where('starts_on', '<=', $today)
-            ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', $today))
+            ->current()
             ->first();
 
         // Pas d'affectation aujourd'hui : la prochaine, pour dire à l'hôtesse quand elle commence

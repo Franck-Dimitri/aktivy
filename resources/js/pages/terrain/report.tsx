@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -32,6 +32,7 @@ import { update as reportUpdate, submit as reportSubmit, flag as reportFlag } fr
 import { checkout as visitCheckout } from '@/routes/terrain/visit';
 import { store as photoStore, destroy as photoDestroy } from '@/routes/terrain/report/photos';
 import { ReportPhotos, type ReportPhoto } from '@/components/report-photos';
+import { queuedReports, queueReport, unqueueReport } from '@/lib/offline';
 
 /* ─── Types ─── */
 
@@ -495,6 +496,9 @@ function useOnline(): boolean {
 export default function TerrainReport({ visit, report }: { visit: VisitInfo; report: Report }) {
     const isSubmitted = report.status === 'submitted';
     const online = useOnline();
+    const { auth } = usePage().props;
+    // Soumis sans réseau : le rapport attend la connexion pour partir tout seul
+    const [queued, setQueued] = useState(() => typeof window !== 'undefined' && queuedReports().some((q) => q.reportId === report.id));
 
     // Saisie restée sur le téléphone (réseau coupé, page fermée) : elle reprend là où elle en était
     const [restored] = useState<LocalDraft | null>(() => (isSubmitted || typeof window === 'undefined' ? null : readDraft(report.id)));
@@ -603,31 +607,56 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                 toast.success(silent ? 'Saisie envoyée au retour du réseau' : 'Brouillon enregistré');
             },
             onError: toastFormError,
+            // Réseau faible : la saisie reste gardée sur le téléphone
+            onNetworkError: () => {
+                if (!silent) toast.info('Réseau instable', { description: 'Votre saisie est gardée sur ce téléphone et repartira toute seule.' });
+
+                return false;
+            },
             onFinish: () => setBusy(null),
         });
     }
 
     // Retour du réseau : la saisie gardée sur le téléphone part toute seule
     useEffect(() => {
-        if (online && unsynced && !isSubmitted) {
+        if (online && unsynced && !isSubmitted && !queued) {
             saveDraft({ silent: true });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [online]);
 
     function submitReport() {
-        if (!navigator.onLine) {
-            toast.error('Pas de réseau', { description: 'Votre saisie est gardée sur ce téléphone. Soumettez le rapport dès que le réseau revient.' });
-
-            return;
-        }
-
-        router.post(reportSubmit({ visit: visit.id }).url, {
+        const payload = {
             notes,
             incident_notes: incidentNotes || null,
             lines: lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes, counted_stock: countOf(l), gap_reason: hasGap(l) ? reasons[l.id] : null })),
             packs: payloadPacks(),
-        }, {
+        };
+
+        const queueForLater = () => {
+            queueReport({
+                reportId: report.id,
+                userId: auth.user.id,
+                url: reportSubmit({ visit: visit.id }).url,
+                payload: { ...payload, queued: true },
+                siteName: report.site_name,
+            });
+            setQueued(true);
+            toast.success('Rapport prêt', { description: 'Il partira tout seul dès que le réseau revient.' });
+        };
+
+        if (!navigator.onLine) {
+            queueForLater();
+
+            return;
+        }
+
+        router.post(reportSubmit({ visit: visit.id }).url, payload, {
+            onNetworkError: () => {
+                queueForLater();
+
+                return false;
+            },
             onStart: () => setBusy('submit'),
             onSuccess: () => {
                 clearDraft(report.id);
@@ -712,7 +741,24 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                         </div>
                     </div>
 
-                    {!isSubmitted && !online && (
+                    {!isSubmitted && queued && (
+                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+                            <p className="min-w-0 flex-1">
+                                <strong>Rapport prêt.</strong> Il partira tout seul au retour du réseau, même si vous fermez cette page.
+                            </p>
+                            <ActionButton
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                    unqueueReport(report.id);
+                                    setQueued(false);
+                                }}
+                            >
+                                Modifier
+                            </ActionButton>
+                        </div>
+                    )}
+                    {!isSubmitted && !online && !queued && (
                         <Notice tone="warning" icon={WifiOff}>
                             <strong>Pas de réseau.</strong> Continuez votre saisie : elle est gardée sur ce téléphone et sera envoyée au retour du réseau.
                         </Notice>
@@ -1013,7 +1059,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     <ActionButton
                                         onClick={submitReport}
                                         loading={busy === 'submit'}
-                                        disabled={busy !== null || missingReason}
+                                        disabled={busy !== null || missingReason || queued}
                                         icon={<Send />}
                                         className="h-12 w-full rounded-2xl text-base"
                                     >

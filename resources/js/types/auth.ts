@@ -35,9 +35,9 @@ export type Auth = {
     user: User;
     company: Company | null;
     can: {
-        /** Gérant : catalogue, création de sites, événements, export. */
+        /** Gérant : suppression de sites, événements, export. */
         manageCompany: boolean;
-        /** Gérant ou superviseur : équipe, affectations, objectifs. */
+        /** Gérant ou superviseur : équipe, sites, catalogue, affectations, objectifs. */
         manageTeam: boolean;
     };
     /** Hôtesse ou superviseur rattaché à aucun point de vente. */

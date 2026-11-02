@@ -265,8 +265,8 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
 export default function Dashboard({ stats, recent_visits, recent_sites, trend, auth }: Props) {
     const firstName = auth?.user?.name?.split(' ')[0] ?? '';
     const companyName = auth?.company?.name;
-    // Le comptable consulte seulement ; le superviseur ajoute des membres mais pas de sites
-    const { manageCompany, manageTeam } = usePage().props.auth.can;
+    // Le comptable consulte seulement
+    const { manageTeam } = usePage().props.auth.can;
     const todayRaw = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     const today = todayRaw.charAt(0).toUpperCase() + todayRaw.slice(1);
 
@@ -290,7 +290,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                 Nouveau membre
                             </ActionLink>
                         )}
-                        {manageCompany && (
+                        {manageTeam && (
                             <ActionLink href={siteCreate().url} icon={<Plus />}>
                                 Nouveau site
                             </ActionLink>
@@ -427,7 +427,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                         title="Aucun site"
                                         description="Créez votre premier point de vente."
                                         action={
-                                            manageCompany ? (
+                                            manageTeam ? (
                                                 <ActionLink href={siteCreate().url} icon={<Plus />}>
                                                     Créer un site
                                                 </ActionLink>

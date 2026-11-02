@@ -44,6 +44,10 @@ type ReportLine = {
     /** Unités vendues à l'unité (saisie de l'hôtesse) ; les packs s'y ajoutent. */
     units_sold: number;
     pack_units: number;
+    /** Unités livrées pendant le service : elles s'ajoutent au stock d'ouverture. */
+    restocked: number;
+    stock_gap: number;
+    gap_reason: string | null;
     closing_stock: number;
     revenue: number;
     notes: string | null;
@@ -176,10 +180,11 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
     const [noteOpen, setNoteOpen] = useState(Boolean(line.notes));
     const active = line.units_sold > 0;
     // Le stock disponible pour les ventes à l'unité tient compte des packs
-    const max = Math.max(0, line.opening_stock - reserved);
+    const available = line.opening_stock + line.restocked;
+    const max = Math.max(0, available - reserved);
     const remaining = Math.max(0, max - line.units_sold);
-    const soldOut = line.opening_stock > 0 && remaining === 0;
-    const lowStock = !soldOut && line.opening_stock > 0 && remaining <= line.opening_stock * 0.2;
+    const soldOut = line.opening_stock + line.restocked > 0 && remaining === 0;
+    const lowStock = !soldOut && line.opening_stock > 0 && remaining <= (line.opening_stock + line.restocked) * 0.2;
     const amount = line.units_sold * line.unit_price;
 
     return (
@@ -210,10 +215,11 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                         <p className="mt-0.5 text-xs text-slate-500">
                             {line.unit_price > 0 && <>{formatMoney(line.unit_price)} FCFA / {line.unit} · </>}
                             stock {line.opening_stock}
+                            {line.restocked > 0 && ` + ${line.restocked} livrés`}
                         </p>
                         {line.opening_stock > 0 && (
                             <div className="mt-2.5 flex items-center gap-3">
-                                <StockBar used={line.units_sold + reserved} total={line.opening_stock} />
+                                <StockBar used={line.units_sold + reserved} total={available} />
                                 <span
                                     className={cn(
                                         'shrink-0 text-[11px] font-medium tabular-nums',
@@ -433,6 +439,8 @@ type LocalDraft = {
     packs: Record<number, number>;
     notes: string;
     incident: string;
+    counted?: Record<number, string>;
+    reasons?: Record<number, string>;
 };
 
 const draftKey = (reportId: number) => `motriks:rapport:${reportId}`;
@@ -505,6 +513,9 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     const [packCounts, setPackCounts] = useState<Record<number, number>>(
         () => restored?.packs ?? Object.fromEntries(report.packs.map((p) => [p.id, p.quantity])),
     );
+    // Clôture : stock compté (par défaut le stock théorique) et motif d'écart
+    const [counted, setCounted] = useState<Record<number, string>>(restored?.counted ?? {});
+    const [reasons, setReasons] = useState<Record<number, string>>(restored?.reasons ?? {});
     const [busy, setBusy] = useState<Busy>(null);
     const [step, setStep] = useState<Step>('edit');
     const [confirmCheckout, setConfirmCheckout] = useState(false);
@@ -524,9 +535,11 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             packs: packCounts,
             notes,
             incident: incidentNotes,
+            counted,
+            reasons,
         });
         setUnsynced(true);
-    }, [lines, packCounts, notes, incidentNotes, isSubmitted, report.id]);
+    }, [lines, packCounts, notes, incidentNotes, counted, reasons, isSubmitted, report.id]);
 
     // Unités de chaque produit consommées par les packs saisis
     const packUnits: Record<number, number> = {};
@@ -543,7 +556,11 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         lines.reduce((s, l) => s + l.units_sold * l.unit_price, 0) +
         report.packs.reduce((s, p) => s + (packCounts[p.id] ?? 0) * p.value, 0);
     const filledCount = lines.filter((l) => l.units_sold + (packUnits[l.id] ?? 0) > 0).length;
-    const remainingStock = lines.reduce((s, l) => s + Math.max(0, l.opening_stock - l.units_sold - (packUnits[l.id] ?? 0)), 0);
+    const theoretical = (l: ReportLine) => Math.max(0, l.opening_stock + l.restocked - l.units_sold - (packUnits[l.id] ?? 0));
+    const countOf = (l: ReportLine) => (counted[l.id] === undefined || counted[l.id] === '' ? theoretical(l) : Number(counted[l.id]));
+    const hasGap = (l: ReportLine) => countOf(l) !== theoretical(l);
+    const missingReason = lines.some((l) => hasGap(l) && !reasons[l.id]?.trim());
+    const remainingStock = lines.reduce((s, l) => s + theoretical(l), 0);
     const payloadPacks = () => report.packs.map((p) => ({ id: p.id, quantity: packCounts[p.id] ?? 0 }));
 
     /** Un pack de plus est possible si chacun de ses produits a encore assez de stock. */
@@ -551,7 +568,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         pack.items.every((item) => {
             const line = lines.find((l) => l.id === item.line_id);
 
-            return line !== undefined && line.opening_stock - line.units_sold - (packUnits[line.id] ?? 0) >= item.quantity;
+            return line !== undefined && line.opening_stock + line.restocked - line.units_sold - (packUnits[line.id] ?? 0) >= item.quantity;
         });
     const soldLines = lines.filter((l) => l.units_sold > 0);
     const payloadLines = () => lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes }));
@@ -605,7 +622,12 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             return;
         }
 
-        router.post(reportSubmit({ visit: visit.id }).url, { notes, incident_notes: incidentNotes || null, lines: payloadLines(), packs: payloadPacks() }, {
+        router.post(reportSubmit({ visit: visit.id }).url, {
+            notes,
+            incident_notes: incidentNotes || null,
+            lines: lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes, counted_stock: countOf(l), gap_reason: hasGap(l) ? reasons[l.id] : null })),
+            packs: payloadPacks(),
+        }, {
             onStart: () => setBusy('submit'),
             onSuccess: () => {
                 clearDraft(report.id);
@@ -850,6 +872,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {/* ══════ RÉVISION ══════ */}
                     {!isSubmitted && step === 'review' && (
                         <div className={twoCol}>
+                            <div className="flex min-w-0 flex-col gap-6">
                             {/* Ticket */}
                             <GlowCard contentClassName="p-0">
                                 <div className="border-b border-dashed border-slate-200 px-5 py-4 sm:px-6">
@@ -917,6 +940,50 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </div>
                             </GlowCard>
 
+                            {lines.length > 0 && (
+                                <GlowCard contentClassName="p-0">
+                                    <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
+                                        <h3 className="text-base font-semibold text-ink">Contrôle du stock</h3>
+                                        <p className="mt-0.5 text-sm text-slate-500">
+                                            Comptez ce qu’il reste. Si le chiffre diffère, indiquez pourquoi.
+                                        </p>
+                                    </div>
+                                    <ul className="divide-y divide-slate-100">
+                                        {lines.map((l) => (
+                                            <li key={l.id} className="px-5 py-3.5 sm:px-6">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-sm font-medium text-ink">{l.product_name}</p>
+                                                        <p className="text-xs text-slate-400">Attendu : {theoretical(l)} {l.unit}</p>
+                                                    </div>
+                                                    <input
+                                                        type="number"
+                                                        inputMode="numeric"
+                                                        min={0}
+                                                        value={counted[l.id] ?? theoretical(l)}
+                                                        onFocus={(e) => e.target.select()}
+                                                        onChange={(e) => setCounted({ ...counted, [l.id]: e.target.value })}
+                                                        aria-label={`Stock compté — ${l.product_name}`}
+                                                        className={cn('h-12 w-20 shrink-0 rounded-xl border bg-white text-center text-lg font-bold tabular-nums outline-none', hasGap(l) ? 'border-amber-400' : 'border-slate-200')}
+                                                    />
+                                                </div>
+                                                {hasGap(l) && (
+                                                    <TextInput
+                                                        value={reasons[l.id] ?? ''}
+                                                        onChange={(e) => setReasons({ ...reasons, [l.id]: e.target.value })}
+                                                        maxLength={300}
+                                                        placeholder={`Motif de l’écart (${countOf(l) - theoretical(l) > 0 ? '+' : ''}${countOf(l) - theoretical(l)}) : casse, vol, erreur…`}
+                                                        aria-label={`Motif de l’écart — ${l.product_name}`}
+                                                        className="mt-2.5 h-10 bg-white text-sm"
+                                                    />
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </GlowCard>
+                            )}
+                            </div>
+
                             <div className="flex flex-col gap-6 lg:sticky lg:top-6">
                                 <Notice tone="warning" icon={TriangleAlert}>
                                     Vérifiez vos données avant de soumettre.{' '}
@@ -940,10 +1007,13 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </GlowCard>
 
                                 <div className="flex flex-col gap-2.5">
+                                    {missingReason && (
+                                        <p className="text-sm font-medium text-amber-700">Indiquez le motif de chaque écart de stock pour soumettre.</p>
+                                    )}
                                     <ActionButton
                                         onClick={submitReport}
                                         loading={busy === 'submit'}
-                                        disabled={busy !== null}
+                                        disabled={busy !== null || missingReason}
                                         icon={<Send />}
                                         className="h-12 w-full rounded-2xl text-base"
                                     >
@@ -988,6 +1058,11 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                     {l.pack_units > 0 && ` (dont ${l.pack_units} en packs)`}
                                                 </p>
                                                 {l.notes && <p className="mt-0.5 text-xs text-slate-400 italic">{l.notes}</p>}
+                                                {l.stock_gap !== 0 && (
+                                                    <p className="mt-0.5 text-xs font-medium text-amber-700">
+                                                        Écart {l.stock_gap > 0 ? '+' : ''}{l.stock_gap} : {l.gap_reason}
+                                                    </p>
+                                                )}
                                             </div>
                                             {l.revenue > 0 && (
                                                 <p className="shrink-0 font-semibold text-motriks-deep tabular-nums">

@@ -59,8 +59,8 @@ const iconBtn =
     'flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 export default function SitesIndex({ sites, types }: Props) {
-    // Créer ou supprimer un site : réservé au gérant
-    const { manageCompany } = usePage().props.auth.can;
+    // Le superviseur crée des sites ; seul le gérant les supprime
+    const { manageCompany, manageTeam } = usePage().props.auth.can;
 
     // Fenêtre de création : montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
     const [creating, setCreating] = useState(false);
@@ -68,7 +68,7 @@ export default function SitesIndex({ sites, types }: Props) {
 
     // Bouton « nouveau site » : ouvre la fenêtre si les types sont fournis, sinon l'ancienne page.
     const newButton = (label: string) =>
-        !manageCompany ? undefined : types ? (
+        !manageTeam ? undefined : types ? (
             <ActionButton type="button" onClick={() => setCreating(true)}>
                 <span className="inline-flex items-center gap-2">
                     <Plus className="size-4" />

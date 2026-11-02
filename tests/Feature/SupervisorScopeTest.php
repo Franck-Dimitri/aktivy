@@ -78,12 +78,21 @@ class SupervisorScopeTest extends TestCase
         $this->actingAs($this->supervisor)->get(route('sites.show', $this->otherSite))->assertForbidden();
     }
 
-    public function test_creating_sites_products_and_events_is_left_to_the_manager()
+    public function test_deleting_sites_and_events_are_left_to_the_manager()
     {
-        $this->actingAs($this->supervisor)->post(route('sites.store'), ['name' => 'X', 'type' => 'autre', 'city' => 'Douala'])->assertForbidden();
         $this->actingAs($this->supervisor)->delete(route('sites.destroy', $this->mySite))->assertForbidden();
-        $this->actingAs($this->supervisor)->get(route('products.index'))->assertForbidden();
         $this->actingAs($this->supervisor)->get(route('events.index'))->assertForbidden();
+    }
+
+    public function test_a_supervisor_manages_products_and_supervises_the_site_he_creates()
+    {
+        $this->actingAs($this->supervisor)->get(route('products.index'))->assertOk();
+
+        $this->actingAs($this->supervisor)->post(route('sites.store'), ['name' => 'Deido', 'type' => 'autre', 'city' => 'Douala'])
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($this->supervisor->fresh())->get(route('sites.index'))
+            ->assertInertia(fn ($page) => $page->has('sites', 2));
     }
 
     public function test_a_supervisor_manages_the_hostesses_of_his_sites_and_unassigned_ones_only()

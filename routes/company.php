@@ -38,7 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('rapports-journaliers/{dailyReport}/pdf', [DailyReportController::class, 'pdf'])->name('daily-reports.pdf');
         });
 
-    // Réservé au gérant : export des données, catalogue, création des sites, événements
+    // Réservé au gérant : export des données, suppression des sites, événements
     Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin))
         ->group(function () {
             Route::get('mes-donnees', [DataExportController::class, 'show'])->name('company.data-export');
@@ -46,10 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware('throttle:5,1')
                 ->name('company.data-export.download');
 
-            // Déclarées avant sites/{site} : sinon « sites/create » serait pris pour un site
-            Route::resource('sites', SiteController::class)->only(['create', 'store', 'destroy']);
-
-            Route::resource('products', ProductController::class)->except(['show']);
+            Route::resource('sites', SiteController::class)->only(['destroy']);
 
             // Événements commerciaux
             Route::resource('events', EventController::class)->except(['edit']);
@@ -69,7 +66,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->group(function () {
             Route::post('rapports/objectifs', [ReportController::class, 'saveTarget'])->name('reports.targets.save');
 
-            Route::resource('sites', SiteController::class)->only(['index', 'show', 'edit', 'update']);
+            Route::resource('sites', SiteController::class)->except(['destroy']);
+            Route::resource('products', ProductController::class)->except(['show']);
             Route::post('sites/{site}/photos', [SitePhotoController::class, 'store'])->name('sites.photos.store');
             Route::delete('sites/{site}/photos/{index}', [SitePhotoController::class, 'destroy'])->name('sites.photos.destroy');
             Route::resource('sites.inventory', SiteInventoryController::class)->only(['store', 'update', 'destroy']);

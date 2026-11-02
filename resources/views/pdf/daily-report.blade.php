@@ -49,7 +49,8 @@
         <tbody>
             @foreach ($report->lines as $line)
                 <tr>
-                    <td>{{ $line->product_name }}@if ($line->notes)<br><span class="muted">{{ $line->notes }}</span>@endif</td>
+                    <td>{{ $line->product_name }}@if ($line->notes)<br><span class="muted">{{ $line->notes }}</span>@endif
+                        @if ($line->stock_gap)<br><span class="badge warn">Écart {{ $line->stock_gap > 0 ? '+' : '' }}{{ $line->stock_gap }} : {{ $line->gap_reason }}</span>@endif</td>
                     <td class="num">{{ $money($line->unit_price) }}</td>
                     <td class="num">{{ $line->opening_stock }}</td>
                     <td class="num"><strong>{{ $line->units_sold }}</strong></td>

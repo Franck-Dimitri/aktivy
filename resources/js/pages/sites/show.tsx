@@ -99,7 +99,7 @@ type StockMovementItem = {
     id: number;
     date: string;
     product_name: string | null;
-    type: 'initial' | 'restock' | 'sale' | 'adjustment' | 'correction';
+    type: 'initial' | 'restock' | 'sale' | 'adjustment' | 'correction' | 'closing_gap';
     type_label: string;
     quantity: number;
     stock_after: number;

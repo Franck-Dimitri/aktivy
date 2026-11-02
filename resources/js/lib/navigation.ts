@@ -127,13 +127,9 @@ export function menuFor(role: Role): MenuGroup[] {
                 { title: 'Personnel', icon: Users, href: personnelIndex().url },
                 { title: 'Sites', icon: MapPin, href: sitesIndex().url },
                 { title: 'Affectations', icon: CalendarRange, href: affectationsIndex().url },
-                // Catalogue et événements concernent toute l'entreprise : réservés au gérant
-                ...(role === 'company_admin'
-                    ? [
-                          { title: 'Produits & prix', icon: Package, href: productsIndex().url },
-                          { title: 'Événements', icon: Zap, href: eventsIndex().url },
-                      ]
-                    : []),
+                { title: 'Produits & prix', icon: Package, href: productsIndex().url },
+                // Les événements concernent toute l'entreprise : réservés au gérant
+                ...(role === 'company_admin' ? [{ title: 'Événements', icon: Zap, href: eventsIndex().url }] : []),
                 { title: 'Alertes de stock', icon: PackageX, href: stockAlertsIndex().url },
                 { title: 'Tickets', icon: MessageSquarePlus, href: ticketsIndex().url },
             ],

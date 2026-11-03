@@ -288,6 +288,10 @@ class CompanyDataExport
             }
         }
 
+        foreach (DB::table('staff_documents as d')->join('users as u', 'u.id', '=', 'd.user_id')->where('d.company_id', $c->id)->orderBy('d.id')->get(['d.path', 'd.user_id', 'u.name']) as $d) {
+            yield ['local', $d->path, 'documents-personnel/'.$d->user_id.'-'.Str::slug($d->name).'/'.basename($d->path)];
+        }
+
         foreach (DB::table('products')->where('company_id', $c->id)->whereNotNull('image')->orderBy('id')->get(['id', 'name', 'image']) as $p) {
             yield ['public', $p->image, 'images-produits/'.$p->id.'-'.Str::slug($p->name).'.'.pathinfo($p->image, PATHINFO_EXTENSION)];
         }

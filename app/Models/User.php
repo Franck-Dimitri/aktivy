@@ -203,6 +203,35 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
+     * Rôles que $viewer peut gérer : le superviseur ne gère que des hôtesses ;
+     * le gérant, lui, n'est géré par personne de son entreprise.
+     *
+     * @return array<int, Role>
+     */
+    public static function manageableRolesFor(User $viewer): array
+    {
+        return $viewer->hasRole(Role::Supervisor)
+            ? [Role::FieldAgent]
+            : [Role::Supervisor, Role::FieldAgent, Role::Accountant];
+    }
+
+    /**
+     * Ce membre peut-il être géré par $viewer (fiche, documents, modification) ?
+     */
+    public function isManageableBy(User $viewer): bool
+    {
+        return $this->company_id === $viewer->company_id
+            && $viewer->hasRole(Role::CompanyAdmin, Role::Supervisor)
+            && $this->hasRole(...self::manageableRolesFor($viewer))
+            && self::visibleTo($viewer)->whereKey($this->id)->exists();
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(StaffDocument::class);
+    }
+
+    /**
      * Get the URL the user lands on after logging in.
      */
     public function homeUrl(): string

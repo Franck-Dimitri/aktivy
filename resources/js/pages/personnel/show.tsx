@@ -11,6 +11,7 @@ import { index as personnelIndex, destroy as personnelDestroy } from '@/routes/p
 import { show as siteShow } from '@/routes/sites';
 import type { RoleOption, StaffAffectation, StaffMemberDetail, StaffStats, StaffVisit, StatusOption } from '@/types';
 import { EditMemberModal } from './edit-member-modal';
+import { StaffDocuments, type StaffDocumentItem } from './staff-documents';
 
 type Props = {
     member: StaffMemberDetail;
@@ -19,6 +20,8 @@ type Props = {
     recent_visits: StaffVisit[];
     roles: RoleOption[];
     statuses: StatusOption[];
+    documents: StaffDocumentItem[];
+    document_types: { value: string; label: string }[];
 };
 
 const visitStatusTone: Record<string, StatusTone> = {
@@ -58,7 +61,7 @@ function Metric({ label, value, sub }: { label: string; value: React.ReactNode; 
     );
 }
 
-export default function PersonnelShow({ member, stats, affectations = [], recent_visits = [], roles = [], statuses = [] }: Props) {
+export default function PersonnelShow({ member, stats, affectations = [], recent_visits = [], roles = [], statuses = [], documents = [], document_types = [] }: Props) {
     // Ouvre directement le modal quand on arrive depuis l'icône « Modifier » de la liste (?modifier=1)
     const [editing, setEditing] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('modifier'));
 
@@ -220,6 +223,12 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
                                 </ul>
                             )}
                         </Card>
+
+                        <div className="lg:col-span-3">
+                            <Card title="Documents" aside={<span className="text-xs font-medium text-slate-400">{documents.length}</span>}>
+                                <StaffDocuments memberId={member.id} documents={documents} types={document_types} />
+                            </Card>
+                        </div>
                     </div>
                 </div>
             </Page>

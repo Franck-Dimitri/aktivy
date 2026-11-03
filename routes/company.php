@@ -13,6 +13,7 @@ use App\Http\Controllers\Company\Events\EventHostessController;
 use App\Http\Controllers\Company\Events\EventPackController;
 use App\Http\Controllers\Company\Events\EventSiteController;
 use App\Http\Controllers\Company\PersonnelController;
+use App\Http\Controllers\Company\PersonnelDocumentController;
 use App\Http\Controllers\Company\ProductController;
 use App\Http\Controllers\Company\ReportController;
 use App\Http\Controllers\Company\SiteController;
@@ -83,6 +84,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('sites/{site}/inventory/{inventory}/reassort', [SiteInventoryController::class, 'restock'])->name('sites.inventory.restock');
 
             Route::resource('personnel', PersonnelController::class);
+            Route::post('personnel/{personnel}/documents', [PersonnelDocumentController::class, 'store'])->name('personnel.documents.store');
+            Route::get('personnel/{personnel}/documents/{document}', [PersonnelDocumentController::class, 'show'])->name('personnel.documents.show');
+            Route::delete('personnel/{personnel}/documents/{document}', [PersonnelDocumentController::class, 'destroy'])->name('personnel.documents.destroy');
 
             Route::resource('affectations', AffectationController::class)->except(['show']);
             Route::post('affectations/{affectation}/permuter', [AffectationController::class, 'permuter'])->name('affectations.permuter');

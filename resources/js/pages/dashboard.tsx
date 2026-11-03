@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/page/empty-state';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
+import { SetupChecklist, type SetupState } from '@/components/setup-checklist';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { create as personnelCreate } from '@/routes/personnel';
@@ -48,6 +49,7 @@ type RecentSite = {
 type TrendPoint = { label: string; visits: number; revenue?: number };
 
 type Props = {
+    setup?: SetupState | null;
     stats: Stats | null;
     recent_visits: RecentVisit[];
     recent_sites: RecentSite[];
@@ -262,7 +264,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
 
 /* ─────────────────────────── Page ─────────────────────────── */
 
-export default function Dashboard({ stats, recent_visits, recent_sites, trend, auth }: Props) {
+export default function Dashboard({ stats, recent_visits, recent_sites, trend, auth, setup }: Props) {
     const firstName = auth?.user?.name?.split(' ')[0] ?? '';
     const companyName = auth?.company?.name;
     // Le comptable consulte seulement
@@ -298,6 +300,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                     </div>
                 }
             >
+                {setup && <div className="mb-6"><SetupChecklist setup={setup} /></div>}
                 {stats === null ? (
                     <Panel>
                         <EmptyState

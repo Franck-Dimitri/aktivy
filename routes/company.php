@@ -7,6 +7,7 @@ use App\Http\Controllers\Company\CompanySettingsController;
 use App\Http\Controllers\Company\DailyReportController;
 use App\Http\Controllers\Company\DashboardController;
 use App\Http\Controllers\Company\DataExportController;
+use App\Http\Controllers\Company\ImportController;
 use App\Http\Controllers\Company\Events\EventActivateController;
 use App\Http\Controllers\Company\Events\EventController;
 use App\Http\Controllers\Company\Events\EventHostessController;
@@ -46,6 +47,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('entreprise', [CompanySettingsController::class, 'edit'])->name('company.settings.edit');
             // POST : le formulaire peut contenir un fichier (logo)
             Route::post('entreprise', [CompanySettingsController::class, 'update'])->name('company.settings.update');
+
+            // Reprise des fichiers existants
+            Route::get('import', [ImportController::class, 'index'])->name('company.import.index');
+            Route::get('import/{type}/modele', [ImportController::class, 'template'])->name('company.import.template');
+            Route::post('import/{type}', [ImportController::class, 'store'])->middleware('throttle:10,1')->name('company.import.store');
 
             Route::get('mes-donnees', [DataExportController::class, 'show'])->name('company.data-export');
             Route::get('mes-donnees/telecharger', [DataExportController::class, 'download'])

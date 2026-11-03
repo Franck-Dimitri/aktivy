@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use App\Enums\Role;
 use App\Models\Site;
+use App\Models\SiteProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -105,6 +106,16 @@ class DashboardController extends Controller
             ],
             'recent_visits' => $recentVisits,
             'recent_sites'  => $recentSites,
+            // Assistant de démarrage : étapes de mise en route, pour le gérant uniquement
+            'setup' => $user->hasRole(Role::CompanyAdmin) ? [
+                'identity'     => $company->logo_path !== null,
+                'sites'        => $company->sites()->exists(),
+                'products'     => $company->products()->exists(),
+                'staff'        => $company->users()->where('role', Role::FieldAgent)->exists(),
+                'affectations' => $company->affectations()->exists(),
+                'inventory'    => SiteProduct::where('company_id', $company->id)->exists(),
+                'report'       => $company->dailyReports()->where('status', 'submitted')->exists(),
+            ] : null,
         ]);
     }
 }

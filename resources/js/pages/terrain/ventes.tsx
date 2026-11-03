@@ -75,10 +75,10 @@ function formatMoney(amount: number): string {
 
 function Money({ amount }: { amount: number }) {
     return (
-        <>
-            {formatMoney(amount)}
+        <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+            <span className="whitespace-nowrap">{formatMoney(amount)}</span>
             <small>FCFA</small>
-        </>
+        </span>
     );
 }
 
@@ -111,7 +111,7 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
                 type="button"
                 onClick={() => setOpen((o) => !o)}
                 aria-expanded={open}
-                className="group flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
+                className="group flex w-full items-center gap-3 px-4 py-3.5 text-left sm:gap-4 sm:px-5 transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
             >
                 <div
                     className={cn(
@@ -156,7 +156,7 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
                 )}
 
                 <div className="shrink-0 text-right">
-                    <p className={cn('text-sm font-bold tabular-nums', hasSales ? 'text-motriks-deep' : 'text-slate-300')}>
+                    <p className={cn('text-sm font-bold whitespace-nowrap tabular-nums', hasSales ? 'text-motriks-deep' : 'text-slate-300')}>
                         {formatMoney(day.total_revenue)}
                         <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
                     </p>
@@ -177,14 +177,14 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
             </button>
 
             {open && (
-                <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-4">
+                <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-4 sm:px-5">
                     {day.lines.length === 0 ? (
                         <p className="py-4 text-center text-sm text-slate-400">Aucune vente enregistrée ce jour.</p>
                     ) : (
                         <ul className="grid gap-2.5">
                             {day.lines.map((l) => (
-                                <li key={l.product_name} className="flex items-center gap-4 rounded-2xl bg-white p-3 ring-1 ring-slate-200/70">
-                                    <ProductImage src={l.image_url} alt={l.product_name} className="size-16" />
+                                <li key={l.product_name} className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200/70 sm:gap-4">
+                                    <ProductImage src={l.image_url} alt={l.product_name} className="size-12 sm:size-16" />
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-sm font-semibold text-ink">{l.product_name}</p>
                                         <p className="mt-0.5 text-xs text-slate-500 tabular-nums">
@@ -192,7 +192,7 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
                                         </p>
                                         {l.notes && <p className="mt-1 text-xs text-slate-400 italic">{l.notes}</p>}
                                     </div>
-                                    <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">
+                                    <p className="shrink-0 text-sm font-bold whitespace-nowrap text-motriks-deep tabular-nums">
                                         {formatMoney(l.revenue)}
                                         <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
                                     </p>
@@ -202,9 +202,9 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
                     )}
 
                     {day.lines.length > 0 && (
-                        <div className="mt-3 flex items-center justify-between px-1">
+                        <div className="mt-3 flex items-center justify-between gap-3 px-1">
                             <p className="text-sm font-medium text-slate-500">Total de la journée</p>
-                            <p className="text-lg font-bold text-motriks-deep tabular-nums">
+                            <p className="text-lg font-bold whitespace-nowrap text-motriks-deep tabular-nums">
                                 {formatMoney(day.total_revenue)}
                                 <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
                             </p>
@@ -230,7 +230,7 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
 
                     <Link
                         href={reportShow({ visit: day.visit_id }).url}
-                        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                        className="mt-1.5 inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                     >
                         Voir le rapport complet
                         <ChevronRight className="size-3.5" />

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { create as personnelCreate } from '@/routes/personnel';
 import { index as sitesIndex, create as siteCreate, show as siteShow } from '@/routes/sites';
+import { WeeklyTargetsPrompt, type WeeklyTargetsSummary } from '@/components/weekly-targets-prompt';
 
 type Stats = {
     sites_total: number;
@@ -53,6 +54,8 @@ type Props = {
     recent_sites: RecentSite[];
     trend?: TrendPoint[];
     auth: { user: { name: string; role: string }; company?: { name: string } };
+    /** Gérant et superviseur seulement. */
+    weekly_targets?: WeeklyTargetsSummary | null;
 };
 
 function formatCurrency(amount: number): string {
@@ -262,7 +265,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
 
 /* ─────────────────────────── Page ─────────────────────────── */
 
-export default function Dashboard({ stats, recent_visits, recent_sites, trend, auth }: Props) {
+export default function Dashboard({ stats, recent_visits, recent_sites, trend, auth, weekly_targets }: Props) {
     const firstName = auth?.user?.name?.split(' ')[0] ?? '';
     const companyName = auth?.company?.name;
     // Le comptable consulte seulement
@@ -308,6 +311,9 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                     </Panel>
                 ) : (
                     <div className="flex flex-col gap-6">
+                        {/* Objectifs de la semaine : proposés, jamais imposés */}
+                        <WeeklyTargetsPrompt summary={weekly_targets} />
+
                         {/* Chiffres clés */}
                         <MetricStrip
                             items={[

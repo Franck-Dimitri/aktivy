@@ -1,14 +1,26 @@
 import { Head, Link } from '@inertiajs/react';
-import { AlertCircle, Building2, CheckCircle2, Clock, Info } from 'lucide-react';
-import { Page, Panel } from '@/components/page/page';
+import { ArrowRight, Building2, CheckCircle2, ChevronRight, CircleDashed, Clock, FileX2, Inbox, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { buttonClass } from '@/components/page/buttons';
+import { TextInput } from '@/components/page/form-fields';
+import { Page } from '@/components/page/page';
+import { StatusBadge } from '@/components/page/status-badge';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes/admin';
+import { index as companiesIndex } from '@/routes/admin/companies';
 import { index as onboardingIndex, show as onboardingShow } from '@/routes/admin/onboarding';
+import { CompanyAvatar, MetricRow, QuietEmpty, Segmented } from '@/components/page/list-kit';
 
 type Company = {
-    id: number; name: string; sector: string | null; city: string | null;
-    status: 'pending' | 'rejected'; onboarding_completed_at: string;
-    admin_name: string | null; admin_email: string | null; rejection_reason: string | null;
+    id: number;
+    name: string;
+    sector: string | null;
+    city: string | null;
+    status: 'pending' | 'rejected';
+    onboarding_completed_at: string;
+    admin_name: string | null;
+    admin_email: string | null;
+    rejection_reason: string | null;
 };
 
 type Props = {
@@ -17,14 +29,23 @@ type Props = {
     flash?: { success?: string };
 };
 
-const STATUS: Record<string, { label: string; cls: string; icon: typeof Clock }> = {
-    pending:  { label: 'En attente',  cls: 'bg-amber-50 text-amber-700 ring-amber-200/60',  icon: Clock },
-    rejected: { label: 'Rejeté',      cls: 'bg-red-50   text-red-600   ring-red-200/60',    icon: AlertCircle },
-};
+type Filter = 'all' | Company['status'];
 
 export default function AdminOnboardingIndex({ companies, incomplete, flash }: Props) {
-    const pending  = companies.filter((c) => c.status === 'pending').length;
-    const rejected = companies.filter((c) => c.status === 'rejected').length;
+    const [filter, setFilter] = useState<Filter>('pending');
+    const [query, setQuery] = useState('');
+
+    const pending = companies.filter((c) => c.status === 'pending').length;
+    const rejected = companies.length - pending;
+
+    const shown = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return companies.filter(
+            (c) =>
+                (filter === 'all' || c.status === filter) &&
+                (!q || `${c.name} ${c.admin_name ?? ''} ${c.admin_email ?? ''} ${c.city ?? ''} ${c.sector ?? ''}`.toLowerCase().includes(q)),
+        );
+    }, [companies, filter, query]);
 
     return (
         <>
@@ -33,91 +54,110 @@ export default function AdminOnboardingIndex({ companies, incomplete, flash }: P
             <Page
                 title="Demandes d'inscription"
                 description="Examinez les dossiers soumis et activez les nouveaux espaces clients."
+                className="max-w-6xl"
+                actions={
+                    <Link href={companiesIndex().url} className={buttonClass('secondary', 'md')}>
+                        <Building2 />
+                        Toutes les entreprises
+                    </Link>
+                }
             >
-                {/* Flash */}
                 {flash?.success && (
-                    <div className="mb-5 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+                    <div className="flex items-center gap-3 rounded-xl bg-motriks-soft px-4 py-3 text-sm font-medium text-motriks-deep ring-1 ring-motriks/15">
                         <CheckCircle2 className="size-4 shrink-0" />
                         {flash.success}
                     </div>
                 )}
 
-                {/* Stats row */}
-                <div className="mb-5 grid grid-cols-3 gap-4">
-                    {[
-                        { label: 'Dossiers soumis',              value: companies.length, color: 'text-ink' },
-                        { label: 'En attente de validation',      value: pending,          color: 'text-amber-600' },
-                        { label: 'Inscriptions incomplètes',      value: incomplete,       color: 'text-slate-400' },
-                    ].map(({ label, value, color }) => (
-                        <div key={label} className="rounded-xl border border-slate-200/80 bg-white px-5 py-4 shadow-sm shadow-slate-900/[0.03]">
-                            <p className={cn('text-2xl font-extrabold tabular-nums', color)}>{value}</p>
-                            <p className="mt-0.5 text-xs text-slate-500">{label}</p>
-                        </div>
-                    ))}
-                </div>
+                <MetricRow
+                    items={[
+                        { label: 'À examiner', value: pending, hint: pending ? 'En attente de votre décision' : 'Rien en attente', icon: Clock, tone: pending ? 'amber' : 'default', pulse: true },
+                        { label: 'Rejetés', value: rejected, hint: 'En attente d’un nouvel envoi', icon: FileX2, tone: rejected ? 'red' : 'default' },
+                        { label: 'Inscriptions incomplètes', value: incomplete, hint: 'Compte créé, documents non envoyés', icon: CircleDashed },
+                    ]}
+                />
 
-                {incomplete > 0 && (
-                    <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                        <Info className="mt-px size-4 shrink-0 text-slate-400" />
-                        <span>
-                            <strong>{incomplete}</strong> entreprise{incomplete > 1 ? 's ont' : ' a'} créé un compte mais n'a pas encore soumis ses documents.
-                        </span>
-                    </div>
-                )}
-
-                <Panel title={companies.length > 0 ? `${companies.length} dossier${companies.length > 1 ? 's' : ''}` : 'Dossiers soumis'}>
-                    {companies.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <div className="flex size-12 items-center justify-center rounded-xl bg-slate-50 ring-1 ring-slate-200 shadow-sm">
-                                <Building2 className="size-5 text-slate-300" />
+                <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] dark:border-sidebar-border dark:bg-card">
+                    <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-sidebar-border">
+                        <Segmented
+                            label="Filtrer par statut"
+                            value={filter}
+                            onChange={setFilter}
+                            options={[
+                                { value: 'pending', label: 'À examiner', count: pending },
+                                { value: 'rejected', label: 'Rejetés', count: rejected },
+                                { value: 'all', label: 'Tous', count: companies.length },
+                            ]}
+                        />
+                        {companies.length > 0 && (
+                            <div className="sm:w-72">
+                                <TextInput icon={Search} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Entreprise, gérant, ville…" aria-label="Rechercher un dossier" className="h-9" />
                             </div>
-                            <p className="mt-4 text-sm font-semibold text-slate-700">Aucun dossier en attente</p>
-                            <p className="mt-1 text-xs text-slate-400">Les nouvelles demandes apparaîtront ici.</p>
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-slate-100">
-                            {companies.map((c) => {
-                                const s = STATUS[c.status];
-                                const Icon = s.icon;
-                                return (
-                                    <Link
-                                        key={c.id}
-                                        href={onboardingShow({ company: c.id }).url}
-                                        className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-slate-50"
-                                    >
-                                        {/* Avatar */}
-                                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 font-bold text-slate-400 text-sm group-hover:bg-slate-200 transition-colors">
-                                            {c.name.charAt(0).toUpperCase()}
-                                        </div>
+                        )}
+                    </div>
 
-                                        {/* Info */}
+                    {shown.length === 0 ? (
+                        companies.length === 0 || (!query && filter === 'pending') ? (
+                            <QuietEmpty
+                                icon={Inbox}
+                                title={companies.length === 0 ? 'Aucun dossier pour le moment' : 'Tout est traité'}
+                                action={
+                                    <Link href={companiesIndex().url} className={buttonClass('ghost', 'sm', 'text-motriks-deep')}>
+                                        Voir les entreprises actives
+                                        <ArrowRight />
+                                    </Link>
+                                }
+                            >
+                                {incomplete > 0
+                                    ? `${incomplete} entreprise${incomplete > 1 ? 's ont' : ' a'} créé un compte sans encore envoyer ses documents. Leur dossier apparaîtra ici dès l’envoi.`
+                                    : 'Les nouvelles demandes apparaîtront ici dès qu’une entreprise aura envoyé ses documents.'}
+                            </QuietEmpty>
+                        ) : (
+                            <QuietEmpty icon={Search} title="Aucun dossier ne correspond">
+                                Modifiez la recherche ou le filtre.
+                            </QuietEmpty>
+                        )
+                    ) : (
+                        <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
+                            {shown.map((c) => (
+                                <li key={c.id}>
+                                    <Link
+                                        href={onboardingShow({ company: c.id }).url}
+                                        className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-slate-50/80 focus-visible:bg-slate-50 focus-visible:outline-none sm:px-5 dark:hover:bg-white/[0.03]"
+                                    >
+                                        <CompanyAvatar name={c.name} muted={c.status === 'rejected'} />
+
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold text-ink">{c.name}</p>
-                                            <p className="mt-0.5 truncate text-xs text-slate-400">
-                                                {c.admin_name}
-                                                {c.admin_email && <> · <span className="font-mono">{c.admin_email}</span></>}
+                                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                <p className="truncate text-sm font-semibold text-ink">{c.name}</p>
+                                                {c.sector && <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-white/5">{c.sector}</span>}
+                                            </div>
+                                            <p className="mt-0.5 truncate text-xs text-slate-500">
+                                                {[c.admin_name, c.admin_email, c.city].filter(Boolean).join(' · ') || 'Gérant non renseigné'}
                                             </p>
-                                            {(c.sector || c.city) && (
-                                                <p className="mt-0.5 text-xs text-slate-400">
-                                                    {[c.sector, c.city].filter(Boolean).join(' · ')}
+                                            <div className="mt-1.5 flex items-center gap-2 sm:hidden">
+                                                <StatusBadge tone={c.status === 'pending' ? 'warning' : 'danger'}>{c.status === 'pending' ? 'À examiner' : 'Rejeté'}</StatusBadge>
+                                                <span className="text-[11px] text-slate-400 tabular-nums">{c.onboarding_completed_at}</span>
+                                            </div>
+                                            {c.status === 'rejected' && c.rejection_reason && (
+                                                <p className="mt-1.5 line-clamp-1 text-xs text-red-600/90">
+                                                    <span className="font-semibold">Motif :</span> {c.rejection_reason}
                                                 </p>
                                             )}
                                         </div>
 
-                                        {/* Status + date */}
-                                        <div className="shrink-0 text-right">
-                                            <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1', s.cls)}>
-                                                <Icon className="size-3" />
-                                                {s.label}
-                                            </span>
-                                            <p className="mt-1.5 text-[11px] text-slate-400">{c.onboarding_completed_at}</p>
+                                        <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
+                                            <StatusBadge tone={c.status === 'pending' ? 'warning' : 'danger'}>{c.status === 'pending' ? 'À examiner' : 'Rejeté'}</StatusBadge>
+                                            <span className="text-[11px] text-slate-400 tabular-nums">Soumis le {c.onboarding_completed_at}</span>
                                         </div>
+
+                                        <ChevronRight className={cn('size-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-500')} />
                                     </Link>
-                                );
-                            })}
-                        </div>
+                                </li>
+                            ))}
+                        </ul>
                     )}
-                </Panel>
+                </section>
             </Page>
         </>
     );
@@ -126,6 +166,6 @@ export default function AdminOnboardingIndex({ companies, incomplete, flash }: P
 AdminOnboardingIndex.layout = {
     breadcrumbs: [
         { title: 'Administration', href: dashboard() },
-        { title: 'Demandes d\'inscription', href: onboardingIndex() },
+        { title: "Demandes d'inscription", href: onboardingIndex() },
     ],
 };

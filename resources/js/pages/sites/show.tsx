@@ -219,8 +219,8 @@ function Section({
 }) {
     return (
         <section className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white">
-            <header className="flex items-start justify-between gap-4 px-5 pt-4 pb-3">
-                <div>
+            <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 px-5 pt-4 pb-3">
+                <div className="min-w-0 grow basis-40">
                     <h2 className="text-sm font-semibold text-ink">{title}</h2>
                     {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
                 </div>
@@ -492,7 +492,7 @@ function StockMovements({ movements }: { movements: StockMovementItem[] }) {
             <ul className="divide-y divide-slate-100">
                 {movements.map((m) => (
                     <li key={m.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm">
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 grow basis-full sm:basis-0">
                             <p className="font-medium text-ink">
                                 {m.product_name ?? 'Produit retiré'} <span className="font-normal text-slate-500">· {m.type_label}</span>
                             </p>
@@ -510,7 +510,7 @@ function StockMovements({ movements }: { movements: StockMovementItem[] }) {
                                 )}
                             </p>
                         </div>
-                        <span className={cn('w-16 text-right font-semibold tabular-nums', m.quantity > 0 ? 'text-motriks-deep' : m.quantity < 0 ? 'text-red-600' : 'text-slate-400')}>
+                        <span className={cn('ml-auto w-16 text-right font-semibold tabular-nums sm:ml-0', m.quantity > 0 ? 'text-motriks-deep' : m.quantity < 0 ? 'text-red-600' : 'text-slate-400')}>
                             {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
                         </span>
                         <span className="w-20 text-right text-xs text-slate-500 tabular-nums">stock {m.stock_after}</span>
@@ -671,7 +671,7 @@ function PhotoGallery({ photos, siteId, canAdd }: { photos: string[]; siteId: nu
                             type="button"
                             onClick={() => ask(i)}
                             aria-label={`Supprimer la photo ${i + 1}`}
-                            className="absolute top-2 right-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600 focus-visible:opacity-100"
+                            className="absolute top-2 right-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600 focus-visible:opacity-100 pointer-coarse:size-9 pointer-coarse:opacity-100"
                         >
                             <X className="size-3.5" />
                         </button>
@@ -1186,7 +1186,7 @@ export default function SiteShow({
                                         const percent = Math.min(100, item.alert_threshold > 0 ? (item.current_stock / item.alert_threshold) * 100 : 100);
 
                                         return (
-                                            <li key={item.id} className="flex items-center gap-4 px-5 py-4">
+                                            <li key={item.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 sm:flex-nowrap">
                                                 <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
                                                     {item.product_image_url ? (
                                                         <img src={item.product_image_url} alt={item.product_name} className="size-full object-cover" />
@@ -1197,7 +1197,7 @@ export default function SiteShow({
 
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <p className="truncate text-sm font-semibold text-ink">{item.product_name}</p>
+                                                        <p className="max-w-full min-w-0 truncate text-sm font-semibold text-ink">{item.product_name}</p>
                                                         <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset', style.chip)}>{style.label}</span>
                                                     </div>
                                                     <p className="mt-0.5 text-xs text-slate-500">
@@ -1214,7 +1214,7 @@ export default function SiteShow({
                                                     <p className="text-xs text-slate-400">{item.product_unit}</p>
                                                 </div>
 
-                                                <div className="flex shrink-0 gap-1">
+                                                <div className="flex w-full shrink-0 justify-end gap-1 sm:w-auto">
                                                     <ActionButton
                                                         variant="secondary"
                                                         size="icon"

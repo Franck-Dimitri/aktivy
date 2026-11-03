@@ -1,12 +1,10 @@
 import { CircleAlert, CircleCheck, Info, Loader2, TriangleAlert } from 'lucide-react';
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
 import { useAppearance } from '@/hooks/use-appearance';
-import { useFlashToast } from '@/hooks/use-flash-toast';
 
+/** Les toasts du serveur sont écoutés par setupFlashToasts(), installé dans app.tsx. */
 function Toaster({ ...props }: ToasterProps) {
     const { appearance } = useAppearance();
-
-    useFlashToast();
 
     return (
         <Sonner

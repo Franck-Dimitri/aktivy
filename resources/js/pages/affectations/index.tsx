@@ -686,7 +686,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                     <span className={cn('tabular-nums', currentOnly ? 'text-motriks-deep/70' : 'text-slate-400')}>{stats.current}</span>
                                 </button>
 
-                                <div role="group" aria-label="Filtrer par statut" className="inline-flex rounded-xl bg-slate-100 p-1">
+                                <div role="group" aria-label="Filtrer par statut" className="inline-flex max-w-full overflow-x-auto rounded-xl bg-slate-100 p-1">
                                     {filters.map((f) => {
                                         const active = filter === f.value;
 
@@ -697,7 +697,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                                 onClick={() => setFilter(f.value)}
                                                 aria-pressed={active}
                                                 className={cn(
-                                                    'inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
+                                                    'inline-flex h-8 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                                     active ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
                                                 )}
                                             >

@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" style="color-scheme: light">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="theme-color" content="#3B6D11">
 
         {{-- Seules les pages publiques sont indexées ; l'espace connecté et les écrans d'authentification ne le sont pas --}}

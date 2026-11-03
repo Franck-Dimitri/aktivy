@@ -5,7 +5,7 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const inputClasses =
-    'peer h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-4 pl-11 text-[15px] text-ink transition-[border-color,background-color,box-shadow] duration-150 outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:bg-white focus:ring-4 focus:ring-motriks/15 disabled:cursor-not-allowed disabled:opacity-60 read-only:cursor-default read-only:border-dashed read-only:bg-white read-only:text-slate-500 read-only:focus:ring-0 aria-invalid:border-red-400 aria-invalid:bg-red-50/40 aria-invalid:focus:ring-red-500/15 autofill:shadow-[inset_0_0_0_1000px_#f8fafc] autofill:[-webkit-text-fill-color:#0f172a] autofill:focus:shadow-[inset_0_0_0_1000px_#ffffff]';
+    'peer h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-4 pl-11 text-base text-ink sm:text-[15px] transition-[border-color,background-color,box-shadow] duration-150 outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:bg-white focus:ring-4 focus:ring-motriks/15 disabled:cursor-not-allowed disabled:opacity-60 read-only:cursor-default read-only:border-dashed read-only:bg-white read-only:text-slate-500 read-only:focus:ring-0 aria-invalid:border-red-400 aria-invalid:bg-red-50/40 aria-invalid:focus:ring-red-500/15 autofill:shadow-[inset_0_0_0_1000px_#f8fafc] autofill:[-webkit-text-fill-color:#0f172a] autofill:focus:shadow-[inset_0_0_0_1000px_#ffffff]';
 
 type FieldProps = Omit<ComponentProps<'input'>, 'id' | 'name'> & {
     id: string;

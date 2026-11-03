@@ -23,7 +23,7 @@ export function StatusBadge({ tone, children }: { tone: StatusTone; children: Re
     return (
         <span
             className={cn(
-                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ring-1 ring-inset',
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold max-w-full whitespace-normal sm:whitespace-nowrap ring-1 ring-inset',
                 tones[tone],
             )}
         >

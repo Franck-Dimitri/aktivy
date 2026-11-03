@@ -25,7 +25,7 @@ class CompanyRejected extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Votre demande d’inscription sur '.config('app.name'))
+            ->subject('Votre dossier est à compléter · '.config('app.name'))
             ->view(['emails.company-rejected', 'emails.text.company-rejected'], [
                 'name' => $notifiable->name ?? null,
                 'company' => $this->company,

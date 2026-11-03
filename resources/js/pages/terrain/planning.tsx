@@ -142,14 +142,14 @@ function MonthCalendar({
     const elapsed = cells.filter((c) => c && !c.isFuture).length;
 
     return (
-        <section className={cn(card, 'flex flex-col p-6 sm:p-7')}>
-            <header className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-semibold tracking-tight text-ink">
+        <section className={cn(card, 'flex flex-col p-4 sm:p-7')}>
+            <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                    <h2 className="text-lg font-semibold tracking-tight whitespace-nowrap text-ink">
                         {MONTH_NAMES[month]} {year}
                     </h2>
                     {elapsed > 0 && (
-                        <span className="inline-flex items-center rounded-full bg-motriks-soft px-2.5 py-0.5 text-xs font-semibold text-motriks-deep ring-1 ring-green-200/70 tabular-nums">
+                        <span className="inline-flex items-center whitespace-nowrap rounded-full bg-motriks-soft px-2.5 py-0.5 text-xs font-semibold text-motriks-deep ring-1 ring-green-200/70 tabular-nums">
                             {worked}/{elapsed} jours
                         </span>
                     )}
@@ -184,7 +184,7 @@ function MonthCalendar({
                 </div>
             </header>
 
-            <div className="mt-6 grid grid-cols-7 gap-2">
+            <div className="mt-6 grid grid-cols-7 gap-1 sm:gap-2">
                 {DAY_NAMES.map((d) => (
                     <div key={d} className="pb-1 text-center text-xs font-medium text-slate-400">
                         {d}
@@ -194,7 +194,7 @@ function MonthCalendar({
 
             {/* Les lignes se partagent toute la hauteur disponible : le calendrier va jusqu'en bas de la carte */}
             <div
-                className="mt-1 grid min-h-0 flex-1 grid-cols-7 gap-2"
+                className="mt-1 grid min-h-0 flex-1 grid-cols-7 gap-1 sm:gap-2"
                 style={{ gridTemplateRows: `repeat(${rows}, minmax(3rem, 1fr))` }}
             >
                 {cells.map((c, i) =>
@@ -203,7 +203,7 @@ function MonthCalendar({
                             key={c.date}
                             title={c.worked ? `${longDate(c.date)}${c.duration ? ` · ${formatDuration(c.duration)}` : ''}` : undefined}
                             className={cn(
-                                'relative flex flex-col justify-between rounded-2xl p-2.5 text-sm font-medium tabular-nums transition-colors',
+                                'relative flex min-w-0 flex-col justify-between overflow-hidden rounded-xl p-1.5 text-sm sm:rounded-2xl sm:p-2.5 font-medium tabular-nums transition-colors',
                                 c.worked
                                     ? 'bg-motriks text-white shadow-sm shadow-green-600/20'
                                     : c.isToday
@@ -216,7 +216,7 @@ function MonthCalendar({
                         >
                             <span className={cn('leading-none', c.isToday && 'font-bold')}>{c.day}</span>
                             {c.worked && (
-                                <span className="text-[11px] leading-none font-semibold text-white/85">
+                                <span className="hidden text-[11px] leading-none font-semibold text-white/85 sm:block">
                                     {c.inProgress ? 'En cours' : c.duration ? formatDuration(c.duration) : ''}
                                 </span>
                             )}

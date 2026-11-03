@@ -18,7 +18,7 @@ abstract class AppNotification extends Notification implements ShouldQueue
     /** Envoyer aussi par e-mail. */
     protected bool $mail = true;
 
-    /** Catégorie, pour l'icône : incident, stock, ticket, attendance, reminder. */
+    /** Catégorie, pour l'icône : incident, stock, ticket, attendance, reminder, signup (cf. resources/js/lib/notification-kinds.ts). */
     abstract public function kind(): string;
 
     abstract public function title(): string;
@@ -45,15 +45,69 @@ abstract class AppNotification extends Notification implements ShouldQueue
         ];
     }
 
+    /** Étiquette et teinte de l'e-mail, par catégorie. */
+    private const MAIL_STYLE = [
+        'incident' => ['Incident signalé', 'red'],
+        'stock' => ['Stock critique', 'amber'],
+        'ticket' => ['Demande', 'blue'],
+        'attendance' => ['Prise de service', 'violet'],
+        'reminder' => ['Rappel', 'green'],
+        'signup' => ['Inscription', 'teal'],
+        'target' => ['Objectif', 'green'],
+    ];
+
+    /** Phrase d'introduction de l'e-mail ; par défaut, le texte de la notification. */
+    protected function mailIntro(): string
+    {
+        return $this->body();
+    }
+
+    /**
+     * Éléments listés sous l'introduction (ex. les hôtesses absentes).
+     *
+     * @return array<int, string>
+     */
+    protected function mailItems(): array
+    {
+        return [];
+    }
+
+    /** Citation mise en avant (ex. le message d'une hôtesse). */
+    protected function mailQuote(): ?string
+    {
+        return null;
+    }
+
+    /** Libellé du bouton. */
+    protected function actionLabel(): string
+    {
+        return 'Ouvrir dans '.config('app.name');
+    }
+
     public function toMail(object $notifiable): MailMessage
     {
         [$name, $parameters] = $this->route() + [1 => []];
+        [$eyebrow, $tone] = self::MAIL_STYLE[$this->kind()] ?? ['Notification', 'slate'];
+
+        $company = $notifiable->company->name ?? null;
+        $reason = $company
+            ? "Vous recevez cet e-mail en tant que membre de {$company} sur ".config('app.name').'.'
+            : 'Vous recevez cet e-mail en tant qu’administrateur de '.config('app.name').'.';
 
         return (new MailMessage)
             ->subject($this->title())
-            ->greeting('Bonjour '.($notifiable->name ?? '').',')
-            ->line($this->body())
-            ->action('Voir dans '.config('app.name'), route($name, $parameters))
-            ->salutation('L’équipe '.config('app.name'));
+            ->view(['emails.notification', 'emails.text.notification'], [
+                'eyebrow' => $eyebrow,
+                'tone' => $tone,
+                'title' => $this->title(),
+                'preheader' => $this->body(),
+                'name' => $notifiable->name ?? null,
+                'intro' => $this->mailIntro(),
+                'items' => $this->mailItems(),
+                'quote' => $this->mailQuote(),
+                'action' => $this->actionLabel(),
+                'url' => route($name, $parameters),
+                'reason' => $reason,
+            ]);
     }
 }

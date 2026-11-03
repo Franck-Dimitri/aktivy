@@ -79,7 +79,7 @@ export function StaffDocuments({ memberId, documents, types }: { memberId: numbe
                                     {d.uploader && ` par ${d.uploader}`}
                                 </p>
                             </a>
-                            <button type="button" onClick={() => remove(d)} className="flex size-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600" aria-label={`Retirer ${d.title}`}>
+                            <button type="button" onClick={() => remove(d)} className="flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-400 sm:size-8 hover:bg-red-50 hover:text-red-600" aria-label={`Retirer ${d.title}`}>
                                 <Trash2 className="size-4" />
                             </button>
                         </li>
@@ -95,9 +95,11 @@ export function StaffDocuments({ memberId, documents, types }: { memberId: numbe
                         ))}
                     </SelectInput>
                 </div>
-                <TextInput value={title} onChange={(e) => setTitle(e.target.value)} maxLength={150} placeholder="Intitulé (facultatif)" className="min-w-0 flex-1" aria-label="Intitulé du document" />
+                <div className="min-w-0 grow basis-full sm:basis-0">
+                    <TextInput value={title} onChange={(e) => setTitle(e.target.value)} maxLength={150} placeholder="Intitulé (facultatif)" aria-label="Intitulé du document" />
+                </div>
                 <input ref={input} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
-                <ActionButton icon={<Paperclip />} loading={sending} onClick={() => input.current?.click()}>
+                <ActionButton icon={<Paperclip />} loading={sending} onClick={() => input.current?.click()} className="w-full sm:w-auto">
                     {sending ? 'Envoi…' : 'Joindre un fichier'}
                 </ActionButton>
             </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use App\Enums\Role;
 use App\Models\Site;
+use App\Support\Targets\WeeklyTargets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -105,6 +106,8 @@ class DashboardController extends Controller
             ],
             'recent_visits' => $recentVisits,
             'recent_sites'  => $recentSites,
+            // Proposition de fixer les objectifs de la semaine (gérant et superviseur)
+            'weekly_targets' => WeeklyTargets::summary($user),
         ]);
     }
 }

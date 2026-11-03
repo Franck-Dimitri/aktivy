@@ -58,10 +58,10 @@ function formatMoney(amount: number): string {
 
 function Money({ amount }: { amount: number }) {
     return (
-        <>
-            {formatMoney(amount)}
+        <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+            <span className="whitespace-nowrap">{formatMoney(amount)}</span>
             <small>FCFA</small>
-        </>
+        </span>
     );
 }
 
@@ -233,9 +233,9 @@ function FeaturedReport({ report }: { report: Report }) {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-5">
-                    <div className="text-right">
-                        <p className="text-2xl font-semibold tracking-tight text-motriks-deep tabular-nums">
+                <div className="flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-3 sm:w-auto sm:justify-start">
+                    <div className="sm:text-right">
+                        <p className="text-2xl font-semibold tracking-tight whitespace-nowrap text-motriks-deep tabular-nums">
                             {formatMoney(report.total_revenue)}
                             <span className="ml-1.5 text-sm font-medium text-slate-400">FCFA</span>
                         </p>
@@ -311,7 +311,7 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
     const sold = soldLines(report);
 
     const rowClass =
-        'group relative flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset';
+        'group relative flex w-full items-center gap-3 px-4 py-3.5 text-left sm:gap-4 sm:px-5 transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset';
 
     const content = (
         <>
@@ -357,7 +357,7 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
 
             {submitted && (
                 <div className="shrink-0 text-right">
-                    <p className={cn('text-sm font-bold tabular-nums', report.total_revenue > 0 ? 'text-motriks-deep' : 'text-slate-300')}>
+                    <p className={cn('text-sm font-bold whitespace-nowrap tabular-nums', report.total_revenue > 0 ? 'text-motriks-deep' : 'text-slate-300')}>
                         {formatMoney(report.total_revenue)}
                         <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
                     </p>
@@ -497,14 +497,14 @@ export default function TerrainRapports({ reports }: { reports: Report[] }) {
                                             placeholder="Site, date, mois, produit…"
                                             aria-label="Rechercher un rapport"
                                             autoComplete="off"
-                                            className="h-10 w-full rounded-xl border border-slate-200 bg-white pr-9 pl-10 text-sm text-ink transition-colors outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:ring-2 focus:ring-motriks/20 [&::-webkit-search-cancel-button]:hidden"
+                                            className="h-10 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-10 text-base text-ink sm:text-sm transition-colors outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:ring-2 focus:ring-motriks/20 [&::-webkit-search-cancel-button]:hidden"
                                         />
                                         {search && (
                                             <button
                                                 type="button"
                                                 onClick={() => setSearch('')}
                                                 aria-label="Effacer la recherche"
-                                                className="absolute top-1/2 right-2 flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                                                className="absolute top-1/2 right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                                             >
                                                 <X className="size-3.5" />
                                             </button>
@@ -515,7 +515,7 @@ export default function TerrainRapports({ reports }: { reports: Report[] }) {
                                 )}
 
                                 {showTabs && (
-                                    <div role="tablist" aria-label="Statut" className="inline-flex w-fit gap-1 rounded-2xl bg-slate-100/80 p-1">
+                                    <div role="tablist" aria-label="Statut" className="flex w-full max-w-full gap-1 overflow-x-auto rounded-2xl bg-slate-100/80 p-1 sm:inline-flex sm:w-fit">
                                         {tabs.map((t) => (
                                             <button
                                                 key={t.key}
@@ -524,14 +524,14 @@ export default function TerrainRapports({ reports }: { reports: Report[] }) {
                                                 aria-selected={status === t.key}
                                                 onClick={() => setStatus(t.key)}
                                                 className={cn(
-                                                    'flex h-8 items-center gap-2 rounded-xl px-3.5 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
+                                                    'flex h-9 flex-1 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm sm:h-8 sm:flex-none sm:gap-2 sm:px-3.5 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                                     status === t.key ? 'bg-white text-ink shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-ink',
                                                 )}
                                             >
                                                 {t.label}
                                                 <span
                                                     className={cn(
-                                                        'rounded-full px-1.5 text-xs font-semibold tabular-nums',
+                                                        'rounded-full px-1 text-xs font-semibold tabular-nums sm:px-1.5',
                                                         status === t.key ? 'bg-motriks-soft text-motriks-deep' : 'text-slate-400',
                                                     )}
                                                 >

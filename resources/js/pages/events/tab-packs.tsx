@@ -51,14 +51,14 @@ function PackCard({ pack, canEdit, onDelete }: {
 
             {/* Header */}
             <button
-                className="flex w-full items-center gap-3 px-5 py-4 text-left"
+                className="flex w-full flex-wrap items-center gap-3 px-5 py-4 text-left"
                 onClick={() => setExpanded(!expanded)}
             >
                 <div className={cn('flex size-10 shrink-0 items-center justify-center rounded-xl ring-1', cfg.bg, cfg.ring)}>
                     <Icon className={cn('size-5', cfg.accent)} />
                 </div>
 
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 grow basis-40">
                     <p className="truncate text-sm font-bold text-slate-900">{pack.name}</p>
                     <div className="mt-0.5 flex items-center gap-2">
                         <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1', cfg.badge)}>
@@ -70,9 +70,9 @@ function PackCard({ pack, canEdit, onDelete }: {
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="ml-auto flex shrink-0 items-center gap-2">
                     {pack.price !== null && (
-                        <span className="text-base font-black tabular-nums text-slate-800">
+                        <span className="text-base font-black whitespace-nowrap tabular-nums text-slate-800">
                             {formatMoney(pack.price)}
                             <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
                         </span>
@@ -268,17 +268,18 @@ export function TabPacks({ event, companyProducts }: Props) {
                             </div>
 
                             {data.lines.map((line, i) => (
-                                <div key={i} className="flex items-center gap-2 rounded-xl bg-slate-50 p-2">
-                                    <SelectInput
-                                        value={line.product_id}
-                                        onChange={(e) => updateLine(i, 'product_id', e.target.value)}
-                                        className="flex-1"
-                                    >
-                                        <option value="">-- Produit --</option>
-                                        {companyProducts.map((p) => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </SelectInput>
+                                <div key={i} className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-2 sm:flex-nowrap">
+                                    <div className="min-w-0 grow basis-full sm:basis-0">
+                                        <SelectInput
+                                            value={line.product_id}
+                                            onChange={(e) => updateLine(i, 'product_id', e.target.value)}
+                                        >
+                                            <option value="">-- Produit --</option>
+                                            {companyProducts.map((p) => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </SelectInput>
+                                    </div>
                                     <TextInput
                                         type="number"
                                         value={line.quantity}
@@ -300,7 +301,7 @@ export function TabPacks({ event, companyProducts }: Props) {
                                         <button
                                             type="button"
                                             onClick={() => removeLine(i)}
-                                            className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                                            className="ml-auto shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 sm:ml-0 pointer-coarse:p-2.5"
                                         >
                                             <X className="size-4" />
                                         </button>

@@ -54,8 +54,8 @@ export function Panel({
             )}
         >
             {title && (
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 dark:border-sidebar-border">
-                    <div>
+                <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-b border-slate-100 px-5 py-4 dark:border-sidebar-border">
+                    <div className="min-w-0">
                         <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
                         {description && <p className="mt-0.5 text-sm text-slate-500">{description}</p>}
                     </div>

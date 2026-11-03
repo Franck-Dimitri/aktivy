@@ -56,7 +56,7 @@ const typeIcon: Record<string, LucideIcon> = {
 };
 
 const iconBtn =
-    'flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
+    'flex size-9 items-center justify-center rounded-lg text-slate-400 transition-colors sm:size-8 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 export default function SitesIndex({ sites, types }: Props) {
     // Le superviseur crée des sites ; seul le gérant les supprime

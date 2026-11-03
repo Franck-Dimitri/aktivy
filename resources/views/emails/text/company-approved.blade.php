@@ -1,12 +1,11 @@
 Bonjour{!! $name ? ' '.$name : '' !!},
 
-Nous avons vérifié le dossier de {!! $company->name !!} : votre inscription sur {!! config('app.name') !!} est validée.
-Toutes les fonctionnalités de votre espace sont maintenant débloquées.
+Le dossier de {!! $company->name !!} est validé. Votre espace est ouvert, avec toutes ses fonctionnalités.
+
+Pour bien démarrer : ajoutez vos points de vente, invitez votre équipe, puis affectez vos hôtesses.
 
 Accéder à mon espace : {!! $url !!}
 
-Vous pouvez dès à présent ajouter vos sites, votre personnel et planifier vos premières affectations.
-
 —
-L'équipe {!! config('app.name') !!}
-Vous recevez cet email car vous gérez l'entreprise {!! $company->name !!} sur {!! config('app.name') !!}.
+{!! config('app.name') !!} · Pilotez vos équipes terrain
+Vous recevez cet e-mail en tant que gérant de {!! $company->name !!}.

@@ -88,14 +88,14 @@ export default function TwoFactorChallenge() {
                                             pattern={REGEXP_ONLY_DIGITS}
                                             autoFocus
                                         >
-                                            <InputOTPGroup className="gap-2">
+                                            <InputOTPGroup className="gap-1.5 sm:gap-2">
                                                 {Array.from(
                                                     { length: OTP_MAX_LENGTH },
                                                     (_, index) => (
                                                         <InputOTPSlot
                                                             key={index}
                                                             index={index}
-                                                            className="h-14 w-12 rounded-xl border border-slate-200 bg-slate-50 text-xl font-bold text-ink shadow-none first:rounded-xl last:rounded-xl"
+                                                            className="h-12 w-10 rounded-xl border sm:h-14 sm:w-12 border-slate-200 bg-slate-50 text-xl font-bold text-ink shadow-none first:rounded-xl last:rounded-xl"
                                                         />
                                                     ),
                                                 )}

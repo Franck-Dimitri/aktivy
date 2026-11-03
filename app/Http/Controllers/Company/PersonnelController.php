@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Enums\AccountStatus;
 use App\Enums\AffectationStatus;
 use App\Enums\Role;
+use App\Models\StaffDocument;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
@@ -18,13 +19,6 @@ use Inertia\Response;
 
 class PersonnelController extends Controller
 {
-    /** Roles that belong to a company and can be managed here. */
-    private const MANAGEABLE_ROLES = [
-        Role::Supervisor,
-        Role::FieldAgent,
-        Role::Accountant,
-    ];
-
     /** Statuts qu'un responsable peut donner à un membre. */
     private const MANAGEABLE_STATUSES = [
         AccountStatus::Active,
@@ -165,6 +159,16 @@ class PersonnelController extends Controller
                 'status_label' => $personnel->status === AccountStatus::Active ? 'Actif' : 'Suspendu',
             ],
             'stats'        => $stats,
+            'documents'    => $personnel->documents()->with('uploader:id,name')->latest()->get()->map(fn (StaffDocument $d) => [
+                'id'          => $d->id,
+                'type_label'  => StaffDocument::TYPES[$d->type] ?? $d->type,
+                'title'       => $d->title,
+                'size'        => $d->size,
+                'is_pdf'      => $d->mime === 'application/pdf',
+                'uploaded_at' => $d->created_at->format('d/m/Y'),
+                'uploader'    => $d->uploader?->name,
+            ]),
+            'document_types' => collect(StaffDocument::TYPES)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values(),
             'affectations' => $affectations,
             'recent_visits'=> $recentVisits,
             // Options du modal « Modifier »
@@ -253,12 +257,8 @@ class PersonnelController extends Controller
 
     private function authorizeCompany(Request $request, User $personnel): void
     {
-        abort_if($personnel->company_id !== $request->user()->company_id, 403);
-
-        // Le gérant n'est pas un membre « gérable » : un superviseur ne doit pas pouvoir le modifier.
-        // Le superviseur ne gère que les hôtesses de ses sites et celles qui ne sont pas encore affectées.
-        abort_unless($personnel->hasRole(...$this->manageableRoles($request->user())), 403);
-        abort_unless(User::visibleTo($request->user())->whereKey($personnel->id)->exists(), 403);
+        // Le gérant n'est géré par personne ; le superviseur ne gère que les hôtesses de ses sites
+        abort_unless($personnel->isManageableBy($request->user()), 403);
     }
 
     /**
@@ -291,7 +291,7 @@ class PersonnelController extends Controller
      */
     private function manageableRoles(User $viewer): array
     {
-        return $viewer->hasRole(Role::Supervisor) ? [Role::FieldAgent] : self::MANAGEABLE_ROLES;
+        return User::manageableRolesFor($viewer);
     }
 
     /** @return array<int, array{value: string, label: string}> */

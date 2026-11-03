@@ -15,7 +15,6 @@ import {
     Settings2,
     ShoppingCart,
     TrendingUp,
-    UserCog,
     Users,
     Zap,
 } from 'lucide-react';
@@ -143,7 +142,6 @@ export function menuFor(role: Role): MenuGroup[] {
             label: 'Entreprise',
             items: [
                 { title: 'Paramètres', icon: Settings2, href: companySettings().url },
-                { title: 'Utilisateurs', icon: UserCog },
                 { title: 'Abonnement', icon: CreditCard },
                 { title: 'Mes données', icon: DatabaseBackup, href: dataExport() },
             ],

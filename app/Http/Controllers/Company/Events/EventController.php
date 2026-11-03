@@ -26,9 +26,10 @@ class EventController extends Controller
         ]);
     }
 
-    public function create(): Response
+    /** La création se fait dans un modal de la liste : l'ancienne URL l'ouvre directement. */
+    public function create(): RedirectResponse
     {
-        return Inertia::render('events/create');
+        return redirect()->route('events.index', ['nouveau' => 1]);
     }
 
     public function store(Request $request): RedirectResponse

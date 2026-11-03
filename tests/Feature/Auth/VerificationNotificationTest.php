@@ -53,8 +53,9 @@ class VerificationNotificationTest extends TestCase
         $mail = (new VerifyEmail)->toMail($user);
         $html = (string) $mail->render();
 
-        $this->assertSame('emails.verify-email', $mail->view);
-        $this->assertStringContainsString('Confirmez votre adresse email', $mail->subject);
+        // Version HTML et version texte
+        $this->assertSame(['emails.verify-email', 'emails.text.verify-email'], $mail->view);
+        $this->assertStringContainsString('Confirmez votre adresse e-mail', $mail->subject);
         $this->assertStringContainsString('Bonjour Awa Diop', $html);
         $this->assertStringContainsString(e($user->company->name), $html);
         $this->assertStringContainsString(e($mail->viewData['url']), $html);

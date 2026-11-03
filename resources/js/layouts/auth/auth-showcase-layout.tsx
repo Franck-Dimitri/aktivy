@@ -21,7 +21,7 @@ export default function AuthShowcaseLayout({
                 <div className="h-1.5 bg-motriks lg:hidden" />
 
                 <div className="flex flex-1 flex-col px-6 py-8 sm:px-10 lg:px-12">
-                    <header className="flex items-center justify-between gap-4">
+                    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
                         <Link
                             href={home()}
                             className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:outline-none"
@@ -30,7 +30,7 @@ export default function AuthShowcaseLayout({
                         </Link>
 
                         {headerLink && (
-                            <p className="text-right text-sm text-slate-500">
+                            <p className="ml-auto text-right text-sm text-slate-500">
                                 <span className="hidden sm:inline lg:hidden 2xl:inline">
                                     {headerLink.text}{' '}
                                 </span>

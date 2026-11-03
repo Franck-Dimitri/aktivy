@@ -244,7 +244,7 @@ export default function DailyReportShow({
                 }
             >
                 <div className="flex flex-col gap-6">
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 [&>span]:max-w-full [&>span]:whitespace-normal">
                         {report.validated_at ? (
                             <StatusBadge tone="success">
                                 Validé le {report.validated_at}
@@ -568,7 +568,7 @@ export default function DailyReportShow({
                                         {money(report.total_revenue, currency)})
                                     </span>
                                 </p>
-                                <div className="flex gap-2">
+                                <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
                                     <ActionButton
                                         variant="ghost"
                                         icon={<X />}

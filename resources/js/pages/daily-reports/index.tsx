@@ -116,7 +116,7 @@ export default function DailyReportsIndex({
                     <div className="flex flex-col gap-6">
                         {/* Jour et site */}
                         <div className="flex flex-wrap items-end gap-3">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex w-full items-center gap-1.5 sm:w-auto">
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -129,16 +129,18 @@ export default function DailyReportsIndex({
                                 >
                                     <ChevronLeft className="size-4" />
                                 </button>
-                                <TextInput
-                                    type="date"
-                                    icon={CalendarDays}
-                                    value={filters.date}
-                                    onChange={(e) =>
-                                        e.target.value &&
-                                        apply({ date: e.target.value })
-                                    }
-                                    aria-label="Jour"
-                                />
+                                <div className="min-w-0 flex-1">
+                                    <TextInput
+                                        type="date"
+                                        icon={CalendarDays}
+                                        value={filters.date}
+                                        onChange={(e) =>
+                                            e.target.value &&
+                                            apply({ date: e.target.value })
+                                        }
+                                        aria-label="Jour"
+                                    />
+                                </div>
                                 <button
                                     type="button"
                                     onClick={() =>

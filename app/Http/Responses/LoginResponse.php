@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Support\Toast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
@@ -21,6 +22,16 @@ class LoginResponse implements LoginResponseContract, TwoFactorLoginResponseCont
             return new JsonResponse(['two_factor' => false]);
         }
 
+        Toast::success(self::welcome($request->user()->name));
+
         return redirect()->intended($request->user()->homeUrl());
+    }
+
+    /** « Bon retour, Awa ! » : le prénom seulement. */
+    public static function welcome(?string $name): string
+    {
+        $first = trim(strtok((string) $name, ' ') ?: '');
+
+        return $first !== '' ? "Bon retour, {$first} !" : 'Bon retour !';
     }
 }

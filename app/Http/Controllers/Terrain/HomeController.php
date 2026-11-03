@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Affectation;
 use App\Models\DailyReport;
 use App\Models\SalesTarget;
+use App\Models\WeeklyTarget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -73,6 +74,17 @@ class HomeController extends Controller
         $myTarget = $targetAmount === null
             ? null
             : SalesTarget::progress($myStats['revenue_this_month'], (int) $targetAmount, now());
+
+        // Objectif de la semaine (lundi → dimanche), s'il y en a un
+        $weekStart = WeeklyTarget::weekOf(now());
+        $weekAmount = WeeklyTarget::where('user_id', $user->id)->whereDate('week_start', $weekStart->toDateString())->value('amount');
+        $myWeekTarget = $weekAmount === null ? null : [
+            'target'      => (int) $weekAmount,
+            'actual'      => (float) $statsBase()->whereBetween('daily_reports.report_date', [$weekStart->toDateString(), $weekStart->addDays(6)->toDateString()])->sum('daily_report_lines.revenue'),
+            'day'         => now()->dayOfWeekIso,
+            'days_left'   => 7 - now()->dayOfWeekIso,
+            'week_end'    => $weekStart->addDays(6)->toDateString(),
+        ];
 
         // Tendance 7 derniers jours (2 requêtes)
         $visitsByDate = $user->visits()
@@ -144,6 +156,7 @@ class HomeController extends Controller
             ] : null,
             'my_stats'       => $myStats,
             'my_target'      => $myTarget,
+            'my_week_target' => $myWeekTarget,
             'recent_reports' => $recentReports,
         ]);
     }

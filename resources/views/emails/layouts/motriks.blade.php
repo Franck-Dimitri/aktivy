@@ -1,65 +1,68 @@
+{{--
+    Gabarit commun des e-mails Motriks : sobre, clair, lisible sur téléphone.
+    Tableaux et styles en ligne pour Gmail, Outlook et Apple Mail ; aucune police ni image distante
+    hormis le logo. Couleurs alignées sur l'application (vert Motriks #039855).
+--}}
 <!DOCTYPE html>
 <html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="x-apple-disable-message-reformatting">
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
     <meta name="color-scheme" content="light only">
     <meta name="supported-color-schemes" content="light only">
     <title>@yield('title', config('app.name'))</title>
     <style>
         body { margin: 0; padding: 0; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
         table { border-collapse: collapse; mso-table-lspace: 0; mso-table-rspace: 0; }
-        img { border: 0; line-height: 100%; outline: none; text-decoration: none; }
-        a { color: #2f7d1c; }
-
-        @media only screen and (max-width: 620px) {
+        img { border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+        a { color: #027a48; }
+        @media only screen and (max-width: 600px) {
             .container { width: 100% !important; }
-            .px { padding-left: 24px !important; padding-right: 24px !important; }
-            .h1 { font-size: 22px !important; }
-            .btn a { display: block !important; }
+            .card-pad { padding: 28px 22px !important; }
+            .outer-pad { padding: 20px 12px !important; }
+            .h1 { font-size: 21px !important; line-height: 29px !important; }
+            .btn, .btn a { display: block !important; width: 100% !important; text-align: center !important; }
         }
     </style>
 </head>
-<body style="margin:0; padding:0; background-color:#f1f5f9; font-family:'Montserrat', 'Segoe UI', Helvetica, Arial, sans-serif; color:#0f172a;">
+<body style="margin:0; padding:0; background-color:#f4f6f5; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#0f172a;">
 
-    {{-- Texte d'aperçu affiché dans la boîte de réception --}}
-    <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f1f5f9; opacity:0;">
+    {{-- Texte d'aperçu dans la boîte de réception --}}
+    <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#f4f6f5; opacity:0;">
         @yield('preheader')
-        &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
+        &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
     </div>
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f5;">
         <tr>
-            <td align="center" style="padding:40px 16px;">
+            <td class="outer-pad" align="center" style="padding:40px 16px;">
 
-                <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px;">
+                <table role="presentation" class="container" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px; max-width:560px;">
 
-                    {{-- En-tête : logo --}}
+                    {{-- Marque --}}
                     <tr>
-                        <td style="padding:0 0 24px 0;">
+                        <td style="padding:0 4px 20px 4px;">
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td width="36" height="36" valign="middle" style="width:36px; height:36px;">
-                                        <img src="{{ asset('images/logo-email.png') }}" width="36" height="36" alt="" style="display:block; width:36px; height:36px; border:0;">
+                                    <td width="28" valign="middle" style="width:28px;">
+                                        <img src="{{ asset('images/logo-email.png') }}" width="28" height="28" alt="" style="display:block; width:28px; height:28px;">
                                     </td>
-                                    <td style="padding-left:10px; font-size:24px; font-weight:800; letter-spacing:-0.5px; color:#0f172a; font-family:'Montserrat', 'Segoe UI', Helvetica, Arial, sans-serif;">
-                                        {{ config('app.name') }}<span style="color:#4FC031;">.</span>
+                                    <td valign="middle" style="padding-left:9px; font-size:18px; font-weight:700; letter-spacing:-0.3px; color:#0f172a;">
+                                        {{ config('app.name') }}
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
 
-                    {{-- Carte principale --}}
+                    {{-- Carte --}}
                     <tr>
-                        <td style="background-color:#ffffff; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden;">
+                        <td style="background-color:#ffffff; border:1px solid #e5e9e7; border-radius:18px;">
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td height="4" style="height:4px; line-height:4px; font-size:4px; background-color:#4FC031; border-radius:16px 16px 0 0;">&nbsp;</td>
-                                </tr>
-                                <tr>
-                                    <td class="px" style="padding:40px 48px;">
+                                    <td class="card-pad" style="padding:40px 44px;">
                                         @yield('content')
                                     </td>
                                 </tr>
@@ -69,13 +72,11 @@
 
                     {{-- Pied de page --}}
                     <tr>
-                        <td class="px" align="center" style="padding:28px 48px 0 48px; font-size:12px; line-height:20px; color:#64748b;">
+                        <td align="center" style="padding:24px 24px 0 24px; font-size:12px; line-height:19px; color:#8a94a6;">
                             @hasSection('footer')
-                                @yield('footer')
-                                <br><br>
+                                @yield('footer')<br>
                             @endif
-                            <strong style="color:#0f172a;">{{ config('app.name') }}</strong> — La nouvelle façon de piloter vos équipes sur le terrain.<br>
-                            &copy; {{ date('Y') }} {{ config('app.name') }}. Tous droits réservés.
+                            <span style="color:#64748b;">{{ config('app.name') }}</span> · Pilotez vos équipes terrain
                         </td>
                     </tr>
 

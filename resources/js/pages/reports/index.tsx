@@ -1,11 +1,12 @@
 import { Head, router } from '@inertiajs/react';
-import { CalendarRange, FileDown, FileSpreadsheet, MapPin, Package, UserRound, Zap } from 'lucide-react';
+import { CalendarRange, FileDown, FileSpreadsheet, MapPin, Package, Target, UserRound, Zap } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { buttonClass } from '@/components/page/buttons';
 import { EmptyState } from '@/components/page/empty-state';
 import { SelectInput, TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { MetricStrip } from '@/components/page/surface';
+import { WeeklyTargetsModal } from '@/components/weekly-targets-modal';
 import { cn } from '@/lib/utils';
 import { exportMethod as exportRoute, index as reportsIndex, pdf as pdfRoute } from '@/routes/reports';
 import { EvolutionChart, type TimelinePoint } from './evolution-chart';
@@ -139,6 +140,7 @@ function Breakdown({ title, icon: Icon, items, currency, dates = false }: {
 export default function ReportsIndex(props: Props) {
     const { options, currency, totals, lines, previous } = props;
     const [filters, setFilters] = useState<Filters>(props.filters);
+    const [weeklyOpen, setWeeklyOpen] = useState(false);
 
     const apply = (next: Filters) => {
         setFilters(next);
@@ -176,6 +178,12 @@ export default function ReportsIndex(props: Props) {
                 description="Ventes déclarées par vos hôtesses dans leurs rapports journaliers envoyés. Exportez-les en Excel pour votre comptabilité."
                 actions={
                     <div className="flex flex-wrap gap-2">
+                        {props.canEditTargets && (
+                            <button type="button" onClick={() => setWeeklyOpen(true)} className={buttonClass('secondary', 'md')}>
+                                <Target className="size-4" />
+                                Objectifs de la semaine
+                            </button>
+                        )}
                         <a href={pdfUrl} className={buttonClass('secondary', 'md')}>
                             <FileDown className="size-4" />
                             Synthèse PDF
@@ -338,6 +346,8 @@ export default function ReportsIndex(props: Props) {
                     </>
                 )}
             </Page>
+
+            {weeklyOpen && <WeeklyTargetsModal onClose={() => setWeeklyOpen(false)} />}
         </>
     );
 }

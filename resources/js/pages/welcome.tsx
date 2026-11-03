@@ -86,22 +86,22 @@ export default function Welcome({ targetDate, appName = 'Motriks' }: WelcomeProp
                 <div className="relative z-10 flex flex-col min-h-screen justify-between">
                     
                     {/* En-tête avec logo et boutons figés (non-cliquables) */}
-                    <header className="max-w-6xl w-full mx-auto px-6 py-6 flex justify-between items-center">
+                    <header className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-wrap justify-between items-center gap-x-2 gap-y-3">
                         {/* Logo avec touche #4FC031 */}
                         <div className="flex items-center gap-2.5">
                             <MotriksMark className="rounded-xl shadow-sm" />
                             <div className="flex items-baseline">
-                                <span className="font-extrabold text-2xl tracking-tight text-slate-900">{appName}</span>
-                                <span className="text-2xl font-black leading-none ml-0.5" style={{ color: '#4FC031' }}>.</span>
+                                <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-slate-900">{appName}</span>
+                                <span className="text-xl sm:text-2xl font-black leading-none ml-0.5" style={{ color: '#4FC031' }}>.</span>
                             </div>
                         </div>
 
                         {/* Boutons Connexion et Inscription figés (non-cliquables) */}
-                        <nav className="flex items-center gap-3">
+                        <nav className="ml-auto flex items-center gap-2 sm:gap-3">
                             <button
                                 type="button"
                                 disabled
-                                className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white/90 border border-slate-300 rounded-lg cursor-not-allowed select-none opacity-80 shadow-2xs"
+                                className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 bg-white/90 border border-slate-300 rounded-lg cursor-not-allowed select-none opacity-80 shadow-2xs"
                                 title="Accès temporairement verrouillé"
                             >
                                 Connexion
@@ -109,7 +109,7 @@ export default function Welcome({ targetDate, appName = 'Motriks' }: WelcomeProp
                             <button
                                 type="button"
                                 disabled
-                                className="px-4 py-2 text-sm font-semibold text-slate-200 bg-slate-900/85 rounded-lg cursor-not-allowed select-none opacity-80 shadow-xs"
+                                className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-200 bg-slate-900/85 rounded-lg cursor-not-allowed select-none opacity-80 shadow-xs"
                                 title="Inscriptions temporairement verrouillées"
                             >
                                 Inscription
@@ -186,7 +186,7 @@ export default function Welcome({ targetDate, appName = 'Motriks' }: WelcomeProp
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Votre adresse email professionnelle..."
-                                        className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-800 text-sm shadow-xs transition"
+                                        className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-800 text-base sm:text-sm shadow-xs transition"
                                     />
                                     <button
                                         type="submit"

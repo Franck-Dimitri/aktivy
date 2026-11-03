@@ -57,11 +57,11 @@ type Metric = {
 /** Bandeau de 4 chiffres clés, sobre (remplace les grosses cartes de stats). */
 export function MetricStrip({ items }: { items: Metric[] }) {
     return (
-        <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200/70 bg-white sm:grid-cols-4 sm:divide-y-0">
+        <div className={cn('grid grid-cols-2 divide-x divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200/70 bg-white', items.length === 3 ? 'sm:grid-cols-3 sm:divide-y-0' : 'lg:grid-cols-4 lg:divide-y-0')}>
             {items.map((m) => (
-                <div key={m.label} className="flex flex-col gap-1 px-5 py-4 sm:px-6">
+                <div key={m.label} className="flex min-w-0 flex-col gap-1 px-4 py-4 sm:px-6">
                     <span className="text-xs font-medium text-slate-500">{m.label}</span>
-                    <span className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-ink tabular-nums">
+                    <span className="flex flex-wrap items-center gap-x-2 text-xl font-semibold tracking-tight text-ink tabular-nums xl:text-2xl">
                         {m.value}
                         {m.live && <span className="size-2 rounded-full bg-motriks ring-4 ring-motriks/15" />}
                     </span>

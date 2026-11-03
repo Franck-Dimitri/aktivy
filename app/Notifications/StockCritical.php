@@ -37,6 +37,11 @@ class StockCritical extends AppNotification
         return "Il reste {$this->remaining} {$this->unit} de {$this->product} à {$this->site} (seuil critique : {$this->threshold}). Prévoyez un réassort.";
     }
 
+    protected function actionLabel(): string
+    {
+        return 'Voir les alertes de stock';
+    }
+
     protected function route(): array
     {
         return ['stock-alerts.index'];

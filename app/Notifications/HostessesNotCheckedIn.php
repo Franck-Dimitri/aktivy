@@ -29,6 +29,23 @@ class HostessesNotCheckedIn extends AppNotification
         return 'Pas encore de prise de service : '.implode(', ', $this->hostesses).'.';
     }
 
+    protected function mailIntro(): string
+    {
+        return count($this->hostesses) > 1
+            ? 'Ces hôtesses étaient attendues aujourd’hui et n’ont pas encore pris leur service :'
+            : 'Cette hôtesse était attendue aujourd’hui et n’a pas encore pris son service :';
+    }
+
+    protected function mailItems(): array
+    {
+        return $this->hostesses;
+    }
+
+    protected function actionLabel(): string
+    {
+        return 'Voir la journée';
+    }
+
     protected function route(): array
     {
         return ['daily-reports.index'];

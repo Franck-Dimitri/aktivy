@@ -37,6 +37,23 @@ class TicketCreated extends AppNotification
         return "« {$this->subject} »";
     }
 
+    protected function mailIntro(): string
+    {
+        return $this->urgent
+            ? "{$this->agent} vous a envoyé une demande marquée urgente :"
+            : "{$this->agent} vous a envoyé une demande :";
+    }
+
+    protected function mailQuote(): ?string
+    {
+        return $this->subject;
+    }
+
+    protected function actionLabel(): string
+    {
+        return 'Répondre à la demande';
+    }
+
     protected function route(): array
     {
         return ['tickets.index'];

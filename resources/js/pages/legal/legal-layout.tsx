@@ -120,7 +120,7 @@ export default function LegalLayout({
                 <div className="border-b border-slate-100 bg-gradient-to-b from-green-50/70 to-white">
                     <div className="mx-auto max-w-6xl px-4 pb-12 pt-14 sm:px-6 sm:pt-16">
                         <p className="text-sm font-semibold uppercase tracking-wider text-green-600">Informations légales</p>
-                        <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">{title}</h1>
+                        <h1 className="mt-3 text-3xl font-extrabold tracking-tight break-words text-slate-900 min-[390px]:text-4xl sm:text-5xl">{title}</h1>
                         <p className="mt-4 text-sm text-slate-500">Dernière mise à jour : {LEGAL_INFO.updatedAt}</p>
                         <div className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-600">{intro}</div>
                     </div>

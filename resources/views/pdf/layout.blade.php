@@ -52,7 +52,13 @@
             </tr>
         </table>
     </header>
-    <footer>Document généré par {{ config('app.name') }} · {{ $company->name }}</footer>
+    @php($contact = array_filter([$company->email, $company->phone, implode(', ', array_filter([$company->address, $company->city]))]))
+    <footer>
+        @if ($contact)
+            <div style="color: #64748b; margin-bottom: 0.8mm;">{{ $company->name }} · {{ implode(' · ', $contact) }}</div>
+        @endif
+        Document généré par {{ config('app.name') }}@unless ($contact) · {{ $company->name }}@endunless
+    </footer>
 
     <main>
         @yield('content')

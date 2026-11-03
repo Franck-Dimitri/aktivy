@@ -23,7 +23,7 @@ const variants: Record<ButtonVariant, string> = {
 const sizes: Record<ButtonSize, string> = {
     sm: 'h-8 rounded-lg px-3 text-xs [&_svg]:size-3.5',
     md: 'h-10 rounded-xl px-4 text-sm [&_svg]:size-4',
-    icon: 'size-8 rounded-lg [&_svg]:size-3.5',
+    icon: 'size-9 rounded-lg sm:size-8 [&_svg]:size-3.5',
 };
 
 /** Classes d'un bouton, utilisables sur n'importe quel élément. */

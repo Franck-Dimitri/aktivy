@@ -43,7 +43,7 @@ function PdvCard({ site, canEdit, onDelete }: {
                 {canEdit && (
                     <button
                         onClick={onDelete}
-                        className="rounded-lg p-1.5 text-slate-200 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
+                        className="rounded-lg p-1.5 text-slate-200 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 focus-visible:opacity-100 pointer-coarse:-m-1 pointer-coarse:p-2.5 pointer-coarse:text-slate-400 pointer-coarse:opacity-100"
                         aria-label="Supprimer"
                     >
                         <Trash2 className="size-4" />

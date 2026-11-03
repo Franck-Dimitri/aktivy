@@ -44,7 +44,7 @@ export function AppSidebar() {
     const { auth } = usePage().props;
     const { isMobile, setOpenMobile } = useSidebar();
     const isPending = auth.company?.status === 'pending' || auth.company?.status === 'rejected';
-    const normalGroups = menuFor(auth.user.role);
+    const normalGroups = menuFor(auth.user.role, auth.modules);
     const groups = isPending ? pendingMenu(normalGroups) : normalGroups;
     const home = isPending ? onboardingShow().url : (groups[0].items[0].href ?? '/');
     const companyName = auth.company?.name ?? 'Motriks';

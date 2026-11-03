@@ -2,6 +2,7 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
+use App\Http\Controllers\Admin\CompanyModuleController;
 use App\Http\Controllers\Admin\CompanyRequestController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -95,6 +96,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('entreprises', [AdminCompanyController::class, 'index'])->name('companies.index');
             Route::post('entreprises/{company}/suspendre', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
             Route::post('entreprises/{company}/reactiver', [AdminCompanyController::class, 'reactivate'])->name('companies.reactivate');
+            Route::get('entreprises/{company}/modules', [CompanyModuleController::class, 'index'])->name('companies.modules');
+            Route::put('entreprises/{company}/modules/{module}', [CompanyModuleController::class, 'update'])->name('companies.modules.update');
+            Route::delete('entreprises/{company}/modules/{module}', [CompanyModuleController::class, 'destroy'])->name('companies.modules.destroy');
 
             // Demandes d'inscription entreprises
             Route::prefix('onboarding')->name('onboarding.')->group(function () {

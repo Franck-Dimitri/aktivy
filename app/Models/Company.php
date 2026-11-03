@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AccountStatus;
+use App\Enums\Module;
 use Database\Factories\CompanyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -50,6 +51,9 @@ class Company extends Model
     use HasFactory, SoftDeletes;
 
     private const DEFAULT_DOCUMENT_COLOR = '#027a48';
+
+    /** @var array<int, string>|null */
+    private ?array $activeModulesCache = null;
 
     /**
      * The model's default values for attributes.
@@ -126,6 +130,48 @@ class Company extends Model
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);
+    }
+
+    public function modules(): HasMany
+    {
+        return $this->hasMany(CompanyModule::class);
+    }
+
+    /**
+     * Modules payants actifs aujourd'hui (calculé une fois par requête).
+     *
+     * @return array<int, string>
+     */
+    public function activeModules(): array
+    {
+        return $this->activeModulesCache ??= $this->modules()->active()->pluck('module')
+            ->map(fn ($m) => $m instanceof Module ? $m->value : $m)->all();
+    }
+
+    public function hasModule(Module $module): bool
+    {
+        return in_array($module->value, $this->activeModules(), true);
+    }
+
+    /**
+     * Essai de tous les modules à la validation d'une nouvelle entreprise.
+     */
+    public function startTrial(int $days = 14): void
+    {
+        if ($this->modules()->exists()) {
+            return;
+        }
+
+        foreach (Module::cases() as $module) {
+            $this->modules()->create([
+                'module' => $module->value,
+                'starts_on' => today()->toDateString(),
+                'ends_on' => today()->addDays($days)->toDateString(),
+                'is_trial' => true,
+            ]);
+        }
+
+        $this->activeModulesCache = null;
     }
 
     /**

@@ -89,6 +89,9 @@ class CompanyRequestController extends Controller
             'rejection_reason' => null,
         ]);
 
+        // 14 jours pour essayer tous les modules payants
+        $company->startTrial();
+
         $this->notifyCompany($company, new CompanyApproved($company));
 
         return redirect()->route('admin.onboarding.index')

@@ -497,6 +497,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     const isSubmitted = report.status === 'submitted';
     const online = useOnline();
     const { auth } = usePage().props;
+    const hasPhotos = auth.modules.includes('photos');
     // Soumis sans réseau : le rapport attend la connexion pour partir tout seul
     const [queued, setQueued] = useState(() => typeof window !== 'undefined' && queuedReports().some((q) => q.reportId === report.id));
 
@@ -860,6 +861,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </GlowCard>
                                 )}
 
+                                {hasPhotos && (
                                 <GlowCard contentClassName="p-5">
                                     <h3 className="text-base font-semibold text-ink">Photos</h3>
                                     <p className="mt-0.5 mb-4 text-sm text-slate-500">
@@ -872,6 +874,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         deleteUrl={(photo) => photoDestroy({ visit: visit.id, photo }).url}
                                     />
                                 </GlowCard>
+                                )}
                                 </div>
 
                                 <div className="lg:sticky lg:top-6">
@@ -1143,13 +1146,13 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </div>
                                 </div>
 
-                                {(report.photos.length > 0 || !report.validated) && (
+                                {(report.photos.length > 0 || (!report.validated && hasPhotos)) && (
                                     <GlowCard contentClassName="p-5">
                                         <h3 className="mb-3 text-sm font-semibold text-slate-500">Photos</h3>
                                         <ReportPhotos
                                             photos={report.photos}
                                             max={report.max_photos}
-                                            uploadUrl={report.validated ? undefined : photoStore({ visit: visit.id }).url}
+                                            uploadUrl={report.validated || !hasPhotos ? undefined : photoStore({ visit: visit.id }).url}
                                         />
                                     </GlowCard>
                                 )}

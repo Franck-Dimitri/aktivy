@@ -2,6 +2,8 @@
 
 namespace App\Support\Stock;
 
+use App\Enums\Module;
+use App\Models\Company;
 use App\Models\SiteProduct;
 use App\Models\StockMovement;
 use App\Models\User;
@@ -62,7 +64,8 @@ class StockLedger
         $stock->update(['current_stock' => $after, 'updated_by' => $by?->id ?? $stock->updated_by]);
 
         // Passage sous le seuil critique : les responsables du site sont prévenus (une fois, au franchissement)
-        if ($before > $stock->critical_threshold && $after <= $stock->critical_threshold) {
+        if ($before > $stock->critical_threshold && $after <= $stock->critical_threshold
+            && Company::find($stock->company_id)?->hasModule(Module::Stocks)) {
             $stock->loadMissing(['product:id,name,unit', 'site:id,name']);
             Notify::send(
                 Notify::siteManagers($stock->company_id, [$stock->site_id]),

@@ -7,7 +7,7 @@ import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
-import { index as companiesIndex, reactivate, suspend } from '@/routes/admin/companies';
+import { index as companiesIndex, modules as companyModules, reactivate, suspend } from '@/routes/admin/companies';
 import { show as onboardingShow } from '@/routes/admin/onboarding';
 
 type Company = {
@@ -85,6 +85,9 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                         <div className="flex items-center gap-2">
                                             <Link href={onboardingShow(c.id).url} className="text-xs font-semibold text-motriks-deep hover:underline">
                                                 Dossier
+                                            </Link>
+                                            <Link href={companyModules(c.id).url} className="text-xs font-semibold text-motriks-deep hover:underline">
+                                                Modules
                                             </Link>
                                             {c.status === 'active' && (
                                                 <ActionButton variant="secondary" size="sm" className="border-red-200 text-red-600 hover:bg-red-50" onClick={() => toggle(c)}>

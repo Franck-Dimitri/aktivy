@@ -28,3 +28,6 @@ Schedule::command('notifications:attendance')->everyThirtyMinutes()->between('7:
 
 // Rappel aux hôtesses dont le rapport du jour est encore en brouillon
 Schedule::command('notifications:report-reminders')->dailyAt('19:00');
+
+// Modules payants qui arrivent à échéance : rappels au gérant (J-30, J-7, J-1, puis le lendemain)
+Schedule::command('subscriptions:reminders')->dailyAt('09:00');

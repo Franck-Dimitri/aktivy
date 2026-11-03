@@ -796,6 +796,7 @@ export default function SiteShow({
 }: Props) {
     // Supprimer un site : réservé au gérant
     const { manageCompany } = usePage().props.auth.can;
+    const hasStocks = usePage().props.auth.modules.includes('stocks');
     const [tab, setTabState] = useState<TabKey>(tabFromHash);
     const [assign, setAssign] = useState<AssignState>({ open: false });
     const [showInventoryModal, setShowInventoryModal] = useState(false);
@@ -1215,6 +1216,7 @@ export default function SiteShow({
                                                 </div>
 
                                                 <div className="flex shrink-0 gap-1">
+                                                    {hasStocks && (
                                                     <ActionButton
                                                         variant="secondary"
                                                         size="icon"
@@ -1224,6 +1226,7 @@ export default function SiteShow({
                                                         className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
                                                         onClick={() => setRestockItem(item)}
                                                     />
+                                                    )}
                                                     <ActionButton
                                                         variant="secondary"
                                                         size="icon"
@@ -1242,7 +1245,7 @@ export default function SiteShow({
                             )}
                         </Section>
                     )}
-                    {tab === 'inventaire' && <StockMovements movements={stock_movements} />}
+                    {tab === 'inventaire' && hasStocks && <StockMovements movements={stock_movements} />}
 
                     {/* ───────────── Visites ───────────── */}
                     {tab === 'visites' && (

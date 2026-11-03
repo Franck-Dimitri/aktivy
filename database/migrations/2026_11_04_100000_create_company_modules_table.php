@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Modules payants activés pour chaque entreprise, avec leur période.
- * Les entreprises déjà inscrites gardent tout ce qu'elles utilisent : rien ne leur est retiré.
+ * Les entreprises déjà validées gardent tout ce qu'elles utilisent : rien ne leur est retiré.
+ * Celles encore en attente auront l'essai de 14 jours à leur validation.
  */
 return new class extends Migration
 {
@@ -31,7 +32,7 @@ return new class extends Migration
         });
 
         $now = now();
-        foreach (DB::table('companies')->pluck('id') as $companyId) {
+        foreach (DB::table('companies')->whereIn('status', ['active', 'suspended'])->pluck('id') as $companyId) {
             foreach (self::MODULES as $module) {
                 DB::table('company_modules')->insert([
                     'company_id' => $companyId, 'module' => $module, 'starts_on' => $now->toDateString(),

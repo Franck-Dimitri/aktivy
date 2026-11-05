@@ -25,6 +25,7 @@ import { home as terrainHome } from '@/routes/terrain';
 import { index as terrainReports } from '@/routes/terrain/reports';
 import { show as reportShow } from '@/routes/terrain/report';
 import { store as visitStore, checkout as visitCheckout } from '@/routes/terrain/visit';
+import { WeekTargetCard, type WeekTarget } from './week-target-card';
 
 /* ─────────────────────── Types ─────────────────────── */
 
@@ -80,6 +81,7 @@ type Props = {
     visit: VisitInfo | null;
     my_stats: MyStats;
     my_target: MonthTarget | null;
+    my_week_target: WeekTarget | null;
     recent_reports: RecentReport[];
     weekly_trend: TrendPoint[];
 };
@@ -319,7 +321,7 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                         <div
                             className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-xl bg-slate-900 px-3 py-2 text-center shadow-lg"
                             style={{
-                                left: `clamp(14%, ${activePoint.x}%, 86%)`,
+                                left: `clamp(4.5rem, ${activePoint.x}%, calc(100% - 4.5rem))`,
                                 top: `calc(${activePoint.y}% - 14px)`,
                             }}
                         >
@@ -332,9 +334,9 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                 )}
             </div>
 
-            <div className="mt-3 flex justify-between text-xs text-slate-400">
+            <div className="mt-3 flex justify-between gap-1 text-[11px] text-slate-400 tabular-nums sm:text-xs">
                 {data.map((d) => (
-                    <span key={d.label}>{d.label}</span>
+                    <span key={d.label} className="whitespace-nowrap">{d.label}</span>
                 ))}
             </div>
         </div>
@@ -357,9 +359,9 @@ function TargetProgress({ target }: { target: MonthTarget }) {
 
     return (
         <div className="mt-5 border-t border-slate-100 pt-4">
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
                 <p className="text-sm font-semibold text-ink">Objectif du mois</p>
-                <p className="text-xs tabular-nums text-slate-500">
+                <p className="text-xs whitespace-nowrap tabular-nums text-slate-500">
                     <span className="font-semibold text-ink">{formatCurrency(target.actual)}</span> / {formatCurrency(target.target)} FCFA
                 </p>
             </div>
@@ -530,6 +532,7 @@ export default function TerrainHome({
     visit,
     my_stats,
     my_target,
+    my_week_target,
     recent_reports,
     weekly_trend,
 }: Props) {
@@ -674,10 +677,10 @@ export default function TerrainHome({
                             {
                                 label: "Chiffre d'affaires",
                                 value: (
-                                    <>
-                                        {formatCurrency(my_stats.revenue_this_month)}
+                                    <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                                        <span className="whitespace-nowrap">{formatCurrency(my_stats.revenue_this_month)}</span>
                                         <span className="text-sm font-medium text-slate-400">FCFA</span>
-                                    </>
+                                    </span>
                                 ),
                                 sub:
                                     revenueDelta !== null
@@ -738,6 +741,8 @@ export default function TerrainHome({
 
                         {/* Colonne droite : jauges + rapports */}
                         <div className="flex flex-col gap-6">
+                            {my_week_target && <WeekTargetCard target={my_week_target} />}
+
                             <GlowCard contentClassName="flex flex-col p-6">
                                 <div>
                                     <h3 className="text-base font-semibold text-ink">Performance du mois</h3>

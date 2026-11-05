@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Company;
 
+use App\Enums\AccountStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use App\Notifications\TicketAnswered;
+use App\Support\Notifications\Notify;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,10 +59,12 @@ class TicketController extends Controller
             'response' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        $wasClosed = $ticket->status === 'closed';
         $ticket->status = $validated['status'];
 
         // La réponse est datée et signée seulement quand elle change
         $response = trim($validated['response'] ?? '') ?: null;
+        $newResponse = $response !== null && $response !== $ticket->response;
         if ($response !== $ticket->response) {
             $ticket->fill([
                 'response'     => $response,
@@ -69,6 +74,12 @@ class TicketController extends Controller
         }
 
         $ticket->save();
+
+        // L'hôtesse est prévenue d'une nouvelle réponse, ou de la résolution de sa demande
+        $resolved = ! $wasClosed && $ticket->status === 'closed';
+        if (($newResponse || $resolved) && $ticket->agent?->status === AccountStatus::Active) {
+            Notify::send($ticket->agent, new TicketAnswered($ticket->load('responder:id,name'), $newResponse));
+        }
 
         return back()->with('success', 'Demande mise à jour.');
     }

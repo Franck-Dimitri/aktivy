@@ -23,8 +23,8 @@ export function TabVentes({ sales }: Props) {
     return (
         <div className="flex flex-col gap-5">
             {/* ── KPIs ── */}
-            <div className="grid grid-cols-3 gap-3">
-                <GlowCard contentClassName="p-4">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                <GlowCard className="col-span-2 lg:col-span-1" contentClassName="p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">CA total</p>
                     <p className="mt-1.5 text-2xl font-black tabular-nums text-slate-900">
                         {formatMoney(sales.revenue)}
@@ -73,7 +73,7 @@ export function TabVentes({ sales }: Props) {
                                         </p>
                                         <p className="text-xs text-slate-400">{formatMoney(pdv.units_sold)} unités</p>
                                     </div>
-                                    <div className="w-16 shrink-0">
+                                    <div className="hidden w-16 shrink-0 sm:block">
                                         <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                                             <div
                                                 className="h-full rounded-full bg-motriks transition-all"

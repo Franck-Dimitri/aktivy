@@ -131,8 +131,8 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
                                     </a>
                                 ) : null}
                                 {member.email ? (
-                                    <a href={`mailto:${member.email}`} className="inline-flex items-center gap-1.5 font-medium text-ink hover:text-motriks-deep">
-                                        <Mail className="size-3.5 text-slate-400" />
+                                    <a href={`mailto:${member.email}`} className="inline-flex min-w-0 items-center gap-1.5 font-medium wrap-anywhere text-ink hover:text-motriks-deep">
+                                        <Mail className="size-3.5 shrink-0 text-slate-400" />
                                         {member.email}
                                     </a>
                                 ) : null}

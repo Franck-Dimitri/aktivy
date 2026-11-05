@@ -20,7 +20,7 @@ export function StatStrip({ items, className }: { items: StatItem[]; className?:
     return (
         <dl className={cn('grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-100 lg:grid-cols-4', className)}>
             {items.map((item) => (
-                <div key={item.label} className="bg-white px-5 py-3.5">
+                <div key={item.label} className="min-w-0 bg-white px-4 py-3.5 sm:px-5">
                     <dt className="flex items-center gap-2 text-xs font-medium text-slate-500">
                         {item.label}
                         {item.delta !== undefined && item.delta !== null && (
@@ -42,7 +42,7 @@ export function StatStrip({ items, className }: { items: StatItem[]; className?:
                             </span>
                         )}
                     </dt>
-                    <dd className="mt-1 flex items-baseline gap-1.5 text-xl font-semibold tracking-tight text-ink tabular-nums [&_small]:text-xs [&_small]:font-medium [&_small]:text-slate-400">
+                    <dd className="mt-1 flex flex-wrap items-baseline gap-x-1.5 text-xl font-semibold tracking-tight text-ink tabular-nums [&_small]:text-xs [&_small]:font-medium [&_small]:text-slate-400">
                         {item.value}
                     </dd>
                     {item.sub && <p className="mt-0.5 truncate text-xs text-slate-400">{item.sub}</p>}

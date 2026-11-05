@@ -627,20 +627,20 @@ function HeroDashboard() {
                 </aside>
 
                 <div className="min-w-0 flex-1">
-                    <div className="border-b border-slate-100 px-6 py-4 text-sm text-slate-500">
+                    <div className="border-b border-slate-100 px-4 py-4 text-sm text-slate-500 sm:px-6">
                         Espace entreprise · Démo Distribution
                     </div>
 
-                    <div className="p-6">
-                        <div className="grid grid-cols-3 gap-3">
+                    <div className="p-4 sm:p-6">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3">
                             {[
                                 { label: 'Ventes du jour', value: '2 480 000', unit: 'FCFA' },
                                 { label: 'Hôtesses actives', value: '24 / 26', unit: '' },
                                 { label: 'Sites ouverts', value: '9 / 10', unit: '' },
                             ].map((k) => (
-                                <div key={k.label} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                                <div key={k.label} className="min-w-0 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm sm:p-4">
                                     <p className="text-xs text-slate-500">{k.label}</p>
-                                    <p className="mt-2 text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
+                                    <p className="mt-2 text-base font-semibold tracking-tight text-slate-900 sm:text-xl">
                                         {k.value} <span className="text-xs font-medium text-slate-400">{k.unit}</span>
                                     </p>
                                 </div>
@@ -648,16 +648,16 @@ function HeroDashboard() {
                         </div>
 
                         <div className="mt-5 overflow-hidden rounded-2xl border border-slate-100">
-                            <p className="border-b border-slate-100 px-5 py-3.5 text-sm font-semibold text-slate-900">Activité des sites</p>
+                            <p className="border-b border-slate-100 px-4 py-3.5 text-sm font-semibold text-slate-900 sm:px-5">Activité des sites</p>
                             {rows.map((r) => (
-                                <div key={r.code} className="flex items-center gap-4 border-b border-slate-100 px-5 py-3.5 last:border-b-0">
+                                <div key={r.code} className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 last:border-b-0 sm:gap-4 sm:px-5">
                                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
                                         <Icon name={r.icon} className="h-4 w-4" />
                                     </span>
-                                    <span className="w-36 shrink-0 truncate text-sm font-medium text-slate-900">{r.name}</span>
+                                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900 sm:w-36 sm:flex-none sm:shrink-0">{r.name}</span>
                                     <span className="hidden w-28 shrink-0 font-mono text-xs text-slate-400 md:block">{r.code}</span>
                                     <span className="hidden flex-1 text-sm text-slate-600 sm:block">{r.amount} FCFA</span>
-                                    <span className={`ml-auto rounded-full px-2.5 py-1 text-[11px] font-semibold ${r.tone}`}>{r.status}</span>
+                                    <span className={`ml-auto shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold ${r.tone}`}>{r.status}</span>
                                 </div>
                             ))}
                         </div>
@@ -1157,7 +1157,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
 
                     <div className="relative mx-auto grid max-w-[90rem] items-start gap-12 px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-32 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-10 lg:px-10 lg:pt-36">
                         <div>
-                            <h1 data-reveal className="text-5xl font-extrabold leading-[1.05] tracking-tight text-slate-950 sm:text-6xl lg:text-[3.6rem]">
+                            <h1 data-reveal className="text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-950 min-[390px]:text-5xl sm:text-6xl lg:text-[3.6rem]">
                                 Pilotez vos équipes terrain en temps réel, sans saisie manuelle
                             </h1>
                             <p data-reveal className="mt-7 max-w-xl text-lg leading-relaxed text-slate-600">

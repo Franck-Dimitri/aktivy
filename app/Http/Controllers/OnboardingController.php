@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Enums\AccountStatus;
 use App\Enums\Role;
 use App\Models\Company;
+use App\Models\User;
+use App\Notifications\CompanySubmitted;
+use App\Support\Notifications\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -118,9 +121,17 @@ class OnboardingController extends Controller
             }
         }
 
+        $resubmitted = $company->status === AccountStatus::Rejected;
         $company->update($updates);
 
-        return redirect()->route('onboarding.show');
+        // Le super-admin est prévenu qu'un dossier attend sa décision
+        $admins = User::where('role', Role::SuperAdmin)->where('status', AccountStatus::Active)->get();
+        if ($admins->isNotEmpty()) {
+            Notify::send($admins, new CompanySubmitted($company, $resubmitted));
+        }
+
+        return redirect()->route('onboarding.show')
+            ->with('success', 'Dossier envoyé ! Nous l’examinons et vous prévenons par e-mail.');
     }
 
     /**

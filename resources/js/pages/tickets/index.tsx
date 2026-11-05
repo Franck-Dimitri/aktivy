@@ -1,333 +1,178 @@
-import { Head, router } from '@inertiajs/react';
-import {
-    AlertCircle,
-    Check,
-    ChevronDown,
-    MessageSquarePlus,
-    Phone,
-    Send,
-} from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { ActionButton } from '@/components/page/buttons';
-import { EmptyState } from '@/components/page/empty-state';
-import { TextArea } from '@/components/page/form-fields';
+import { Head } from '@inertiajs/react';
+import { AlertCircle, CheckCircle2, ChevronRight, Inbox, MessageCircleQuestion, MessageSquareReply, Search, Siren } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { TextInput } from '@/components/page/form-fields';
+import { MetricRow, QuietEmpty, Segmented } from '@/components/page/list-kit';
 import { Page } from '@/components/page/page';
-import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
-import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
-import { toastFormError } from '@/lib/form-toast';
+import { StatusBadge } from '@/components/page/status-badge';
 import { cn } from '@/lib/utils';
-import {
-    index as ticketsIndex,
-    update as ticketUpdate,
-} from '@/routes/tickets';
+import { index as ticketsIndex } from '@/routes/tickets';
+import { TicketModal } from './ticket-modal';
+import { initials, STATUS, type Ticket } from './ticket-types';
 
-type TicketStatus = 'open' | 'in_review' | 'closed';
+type Filter = 'pending' | 'unanswered' | 'closed' | 'all';
 
-type Ticket = {
-    id: number;
-    subject: string;
-    body: string;
-    priority: 'normal' | 'urgent';
-    status: TicketStatus;
-    response: string | null;
-    responder: string | null;
-    responded_at: string | null;
-    created_at: string;
-    created_date: string;
-    agent_name: string | null;
-    agent_phone: string | null;
-};
-
-const statusTone: Record<TicketStatus, StatusTone> = {
-    open: 'info',
-    in_review: 'warning',
-    closed: 'success',
-};
-
-const statusLabel: Record<TicketStatus, string> = {
-    open: 'Ouvert',
-    in_review: 'En cours',
-    closed: 'Résolu',
-};
-
-type Filter = 'pending' | 'closed' | 'all';
-
-const filters: { value: Filter; label: string }[] = [
-    { value: 'pending', label: 'À traiter' },
-    { value: 'closed', label: 'Résolues' },
-    { value: 'all', label: 'Toutes' },
-];
-
-/* ─── Formulaire de réponse ─── */
-
-function ReplyForm({ ticket }: { ticket: Ticket }) {
-    const [response, setResponse] = useState(ticket.response ?? '');
-    const [status, setStatus] = useState<TicketStatus>(ticket.status);
-    const [busy, setBusy] = useState(false);
-
-    function submit() {
-        router.put(
-            ticketUpdate({ ticket: ticket.id }).url,
-            { response, status },
-            {
-                preserveScroll: true,
-                onStart: () => setBusy(true),
-                onSuccess: () => toast.success('Demande mise à jour'),
-                onError: toastFormError,
-                onFinish: () => setBusy(false),
-            },
-        );
-    }
+function TicketCard({ ticket, onOpen }: { ticket: Ticket; onOpen: () => void }) {
+    const urgent = ticket.priority === 'urgent' && ticket.status !== 'closed';
+    const closed = ticket.status === 'closed';
+    const agent = ticket.agent_name ?? 'Compte supprimé';
 
     return (
-        <div className="flex flex-col gap-3">
-            <TextArea
-                rows={3}
-                placeholder="Votre réponse à l'hôtesse…"
-                value={response}
-                onChange={(e) => setResponse(e.target.value)}
-                maxLength={2000}
-            />
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div
-                    className="flex flex-wrap gap-1.5"
-                    role="radiogroup"
-                    aria-label="Statut"
-                >
-                    {(Object.keys(statusLabel) as TicketStatus[]).map((s) => (
-                        <button
-                            key={s}
-                            type="button"
-                            role="radio"
-                            aria-checked={status === s}
-                            onClick={() => setStatus(s)}
-                            className={cn(
-                                'rounded-full px-3 py-1 text-xs font-semibold ring-1 transition-colors',
-                                status === s
-                                    ? 'bg-motriks-soft text-motriks-deep ring-green-300'
-                                    : 'bg-white text-slate-500 ring-slate-200 hover:bg-slate-50',
-                            )}
-                        >
-                            {statusLabel[s]}
-                        </button>
-                    ))}
-                </div>
-                <ActionButton
-                    size="sm"
-                    icon={<Send />}
-                    loading={busy}
-                    onClick={submit}
-                >
-                    Enregistrer
-                </ActionButton>
-            </div>
-        </div>
-    );
-}
-
-/* ─── Carte ticket ─── */
-
-function TicketCard({ ticket }: { ticket: Ticket }) {
-    const [expanded, setExpanded] = useState(
-        ticket.status !== 'closed' && ticket.response === null,
-    );
-
-    return (
-        <li
-            className={cn(
-                'relative before:absolute before:inset-y-0 before:left-0 before:w-1',
-                ticket.priority === 'urgent'
-                    ? 'before:bg-red-500'
-                    : 'before:bg-motriks',
-            )}
-        >
+        <li>
             <button
                 type="button"
-                onClick={() => setExpanded(!expanded)}
-                aria-expanded={expanded}
-                className="w-full px-5 py-4 pl-6 text-left transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
+                onClick={onOpen}
+                className={cn(
+                    'group relative flex w-full items-start gap-4 overflow-hidden rounded-2xl border bg-white p-4 text-left shadow-sm shadow-slate-900/[0.03] transition-all duration-200 hover:-translate-y-px hover:shadow-md hover:shadow-slate-900/[0.06] focus-visible:ring-4 focus-visible:ring-motriks/20 focus-visible:outline-none sm:p-5 dark:bg-card',
+                    urgent ? 'border-red-200 hover:border-red-300 dark:border-red-500/30' : 'border-slate-200/80 hover:border-slate-300 dark:border-sidebar-border',
+                    closed && 'bg-slate-50/50',
+                )}
             >
-                <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-semibold text-ink">
-                                {ticket.subject}
+                {urgent && <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-red-500" />}
+
+                <span
+                    className={cn(
+                        'flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold',
+                        closed ? 'bg-slate-100 text-slate-400 dark:bg-white/5' : 'bg-motriks-soft text-motriks-deep',
+                    )}
+                >
+                    {initials(agent)}
+                </span>
+
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className={cn('truncate text-sm font-semibold', closed ? 'text-slate-500' : 'text-ink')}>{ticket.subject}</p>
+                            <p className="mt-0.5 truncate text-xs text-slate-500">
+                                {agent} · {ticket.created_at}
                             </p>
-                            {ticket.priority === 'urgent' && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-red-200">
-                                    <AlertCircle className="size-3" />
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                            {urgent && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-red-600/15 ring-inset">
+                                    <Siren className="size-3" />
                                     Urgent
                                 </span>
                             )}
-                            {ticket.response && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-motriks-soft px-2 py-0.5 text-[11px] font-semibold text-motriks-deep ring-1 ring-green-200">
-                                    <Check className="size-3" />
-                                    Répondu
-                                </span>
-                            )}
+                            <StatusBadge tone={STATUS[ticket.status].tone}>{STATUS[ticket.status].label}</StatusBadge>
                         </div>
-                        <p className="mt-0.5 text-xs text-slate-400">
-                            {ticket.agent_name ?? 'Compte supprimé'} ·{' '}
-                            {ticket.created_at}
-                        </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                        <StatusBadge tone={statusTone[ticket.status]}>
-                            {statusLabel[ticket.status]}
-                        </StatusBadge>
-                        <span
-                            className={cn(
-                                'flex size-6 items-center justify-center rounded-lg bg-slate-100 text-slate-400 transition-all duration-200',
-                                expanded &&
-                                    'rotate-180 bg-motriks-soft text-motriks-deep',
-                            )}
-                        >
-                            <ChevronDown className="size-3.5" />
+
+                    <p className={cn('mt-2.5 line-clamp-2 text-sm leading-relaxed', closed ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300')}>{ticket.body}</p>
+
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                        {ticket.response ? (
+                            <p className="flex min-w-0 items-center gap-1.5 text-xs text-slate-500">
+                                <MessageSquareReply className="size-3.5 shrink-0 text-motriks" />
+                                <span className="truncate">
+                                    <span className="font-medium text-slate-600 dark:text-slate-300">{ticket.responder ?? 'Réponse'} :</span> {ticket.response}
+                                </span>
+                            </p>
+                        ) : (
+                            <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600">
+                                <AlertCircle className="size-3.5" />
+                                Sans réponse
+                            </p>
+                        )}
+                        <span className="inline-flex shrink-0 items-center gap-0.5 text-xs font-semibold text-motriks-deep opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:opacity-100">
+                            {closed ? 'Voir' : ticket.response ? 'Suivre' : 'Répondre'}
+                            <ChevronRight className="size-3.5" />
                         </span>
                     </div>
                 </div>
             </button>
-
-            {expanded && (
-                <div className="flex flex-col gap-4 border-t border-slate-100 bg-slate-50/50 px-6 py-5 pl-7">
-                    <div className="flex flex-col items-start gap-1.5">
-                        <p className="flex flex-wrap items-center gap-x-2 text-[11px] font-semibold text-slate-400">
-                            {ticket.agent_name ?? 'Compte supprimé'}
-                            {ticket.agent_phone && (
-                                <a
-                                    href={`tel:${ticket.agent_phone}`}
-                                    className="inline-flex items-center gap-1 text-motriks-deep hover:underline"
-                                >
-                                    <Phone className="size-3" />
-                                    {ticket.agent_phone}
-                                </a>
-                            )}
-                        </p>
-                        <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-slate-800 px-4 py-3 shadow-sm">
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-100">
-                                {ticket.body}
-                            </p>
-                        </div>
-                        <p className="text-[11px] text-slate-400">
-                            {ticket.created_date}
-                        </p>
-                    </div>
-
-                    {ticket.response && ticket.responded_at && (
-                        <p className="text-[11px] text-slate-400">
-                            Réponse de {ticket.responder ?? 'un responsable'} ·{' '}
-                            {ticket.responded_at}
-                        </p>
-                    )}
-
-                    <ReplyForm ticket={ticket} />
-                </div>
-            )}
         </li>
     );
 }
 
-/* ─── Page ─── */
-
 export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
     const [filter, setFilter] = useState<Filter>('pending');
+    const [query, setQuery] = useState('');
+    const [openId, setOpenId] = useState<number | null>(null);
 
     const pending = tickets.filter((t) => t.status !== 'closed');
-    const urgent = pending.filter((t) => t.priority === 'urgent').length;
     const unanswered = pending.filter((t) => t.response === null).length;
+    const urgent = pending.filter((t) => t.priority === 'urgent').length;
     const closed = tickets.length - pending.length;
 
-    const shown =
-        filter === 'all'
-            ? tickets
-            : filter === 'closed'
-              ? tickets.filter((t) => t.status === 'closed')
-              : pending;
+    const shown = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return tickets.filter((t) => {
+            const inFilter =
+                filter === 'all' ||
+                (filter === 'closed' && t.status === 'closed') ||
+                (filter === 'pending' && t.status !== 'closed') ||
+                (filter === 'unanswered' && t.status !== 'closed' && t.response === null);
+            return inFilter && (!q || `${t.subject} ${t.body} ${t.agent_name ?? ''}`.toLowerCase().includes(q));
+        });
+    }, [tickets, filter, query]);
+
+    // Le ticket ouvert est relu dans les props, pour refléter une mise à jour
+    const opened = tickets.find((t) => t.id === openId) ?? null;
 
     return (
         <>
             <Head title="Tickets" />
-            <GlowStyles />
 
-            <Page
-                title="Tickets"
-                description="Les demandes de votre équipe terrain"
-            >
+            <Page title="Tickets" description="Les demandes de votre équipe terrain, et vos réponses." className="max-w-5xl">
                 {tickets.length === 0 ? (
-                    <GlowCard contentClassName="p-10">
-                        <EmptyState
-                            icon={MessageSquarePlus}
-                            title="Aucune demande"
-                            description="Les demandes envoyées par vos hôtesses depuis leur espace terrain apparaîtront ici."
-                        />
-                    </GlowCard>
+                    <div className="rounded-2xl border border-slate-200/80 bg-white dark:border-sidebar-border dark:bg-card">
+                        <QuietEmpty icon={MessageCircleQuestion} title="Aucune demande pour le moment">
+                            Les demandes envoyées par vos hôtesses depuis leur espace terrain apparaîtront ici.
+                        </QuietEmpty>
+                    </div>
                 ) : (
-                    <div className="flex flex-col gap-6">
-                        <MetricStrip
+                    <>
+                        <MetricRow
                             items={[
-                                {
-                                    label: 'À traiter',
-                                    value: pending.length,
-                                    sub: 'ouvertes ou en cours',
-                                },
-                                {
-                                    label: 'Sans réponse',
-                                    value: unanswered,
-                                    sub: 'à traiter en priorité',
-                                },
-                                {
-                                    label: 'Urgentes',
-                                    value: urgent,
-                                    sub: 'parmi celles à traiter',
-                                },
-                                {
-                                    label: 'Résolues',
-                                    value: closed,
-                                    sub: 'demandes fermées',
-                                },
+                                { label: 'À traiter', value: pending.length, hint: 'Ouvertes ou en cours', icon: Inbox, tone: pending.length ? 'blue' : 'default' },
+                                { label: 'Sans réponse', value: unanswered, hint: 'À traiter en priorité', icon: AlertCircle, tone: unanswered ? 'amber' : 'default', pulse: true },
+                                { label: 'Urgentes', value: urgent, hint: 'Parmi celles à traiter', icon: Siren, tone: urgent ? 'red' : 'default' },
+                                { label: 'Résolues', value: closed, hint: 'Demandes fermées', icon: CheckCircle2, tone: 'green' },
                             ]}
                         />
 
-                        <GlowCard contentClassName="p-0">
-                            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
-                                <h3 className="text-base font-semibold text-ink">
-                                    Demandes
-                                </h3>
-                                <div className="flex gap-1.5">
-                                    {filters.map((f) => (
-                                        <button
-                                            key={f.value}
-                                            type="button"
-                                            aria-pressed={filter === f.value}
-                                            onClick={() => setFilter(f.value)}
-                                            className={cn(
-                                                'rounded-full px-3 py-1 text-xs font-semibold ring-1 transition-colors',
-                                                filter === f.value
-                                                    ? 'bg-motriks text-white ring-motriks'
-                                                    : 'bg-white text-slate-500 ring-slate-200 hover:bg-slate-50',
-                                            )}
-                                        >
-                                            {f.label}
-                                        </button>
-                                    ))}
-                                </div>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <Segmented
+                                label="Filtrer les demandes"
+                                value={filter}
+                                onChange={setFilter}
+                                options={[
+                                    { value: 'pending', label: 'À traiter', count: pending.length },
+                                    { value: 'unanswered', label: 'Sans réponse', count: unanswered },
+                                    { value: 'closed', label: 'Résolues', count: closed },
+                                    { value: 'all', label: 'Toutes', count: tickets.length },
+                                ]}
+                            />
+                            <div className="sm:w-72">
+                                <TextInput icon={Search} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Sujet, message ou hôtesse" aria-label="Rechercher une demande" className="h-9" />
                             </div>
-                            {shown.length === 0 ? (
-                                <p className="px-6 py-8 text-center text-sm text-slate-500">
-                                    Aucune demande dans cette liste.
-                                </p>
-                            ) : (
-                                <ul className="divide-y divide-slate-100">
-                                    {shown.map((t) => (
-                                        <TicketCard key={t.id} ticket={t} />
-                                    ))}
-                                </ul>
-                            )}
-                        </GlowCard>
-                    </div>
+                        </div>
+
+                        {shown.length === 0 ? (
+                            <div className="rounded-2xl border border-slate-200/80 bg-white dark:border-sidebar-border dark:bg-card">
+                                {query.trim() ? (
+                                    <QuietEmpty icon={Search} title="Aucune demande ne correspond">
+                                        Modifiez la recherche ou le filtre.
+                                    </QuietEmpty>
+                                ) : (
+                                    <QuietEmpty icon={CheckCircle2} title={filter === 'closed' ? 'Aucune demande résolue' : 'Tout est traité'}>
+                                        {filter === 'closed' ? 'Les demandes que vous résolvez apparaîtront ici.' : 'Aucune demande n’attend de réponse. Bravo à l’équipe !'}
+                                    </QuietEmpty>
+                                )}
+                            </div>
+                        ) : (
+                            <ul className="flex flex-col gap-3">
+                                {shown.map((t) => (
+                                    <TicketCard key={t.id} ticket={t} onOpen={() => setOpenId(t.id)} />
+                                ))}
+                            </ul>
+                        )}
+                    </>
                 )}
             </Page>
+
+            {opened && <TicketModal key={opened.id} ticket={opened} onClose={() => setOpenId(null)} />}
         </>
     );
 }

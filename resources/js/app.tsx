@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
+import { setupFlashToasts } from '@/hooks/use-flash-toast';
 import { setupOffline } from '@/lib/offline';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
@@ -16,6 +17,9 @@ const PUBLIC_PAGES = ['welcome', 'landing', 'contact'];
 const PUBLIC_PREFIXES = ['legal/'];
 
 const isPublicPage = (name: string) => PUBLIC_PAGES.includes(name) || PUBLIC_PREFIXES.some((prefix) => name.startsWith(prefix));
+
+// Avant Inertia : le toast du premier chargement (connexion, lien d'e-mail…) ne doit pas être manqué
+setupFlashToasts();
 
 void createInertiaApp({
     title: (title) => (title ? title : appName),

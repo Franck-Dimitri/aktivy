@@ -46,7 +46,7 @@ function HostessCard({ h, canEdit, onDelete }: { h: Hostess; canEdit: boolean; o
             {canEdit && (
                 <button
                     onClick={onDelete}
-                    className="absolute right-2.5 top-2.5 rounded-lg p-1 text-slate-200 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
+                    className="absolute right-2.5 top-2.5 rounded-lg p-1 text-slate-200 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 focus-visible:opacity-100 pointer-coarse:right-1 pointer-coarse:top-1 pointer-coarse:p-3 pointer-coarse:text-slate-400 pointer-coarse:opacity-100"
                     aria-label="Retirer"
                 >
                     <Trash2 className="size-3.5" />
@@ -125,7 +125,7 @@ export function TabHostesses({ event, availableHostesses }: Props) {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 {event.hostesses.length > 0 && (
                     <div className="flex items-center gap-3 text-xs text-slate-500">
                         <span className="flex items-center gap-1">

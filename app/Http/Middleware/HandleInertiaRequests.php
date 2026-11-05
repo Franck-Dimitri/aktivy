@@ -6,8 +6,11 @@ use App\Enums\Module;
 use App\Enums\Role;
 use App\Models\Affectation;
 use App\Models\User;
+use App\Support\Toast;
+use Closure;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -19,6 +22,30 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    /** Messages de session (`->with('success', '…')`) affichés en toast, par type. */
+    private const TOAST_KEYS = ['success', 'error', 'warning', 'info'];
+
+    /**
+     * Les contrôleurs posent leurs messages avec `->with('success', '…')` : ils sont convertis en toast
+     * ici, sur la page qui suit la redirection. Sans ce pont, aucun n'atteignait l'écran.
+     */
+    public function handle(Request $request, Closure $next): SymfonyResponse
+    {
+        if ($request->hasSession() && $request->header('X-Inertia-Partial-Data') === null) {
+            foreach (self::TOAST_KEYS as $type) {
+                $message = $request->session()->get($type);
+
+                if (is_string($message) && $message !== '') {
+                    Toast::{$type}($message);
+                    $request->session()->forget($type);
+                    break;
+                }
+            }
+        }
+
+        return parent::handle($request, $next);
+    }
 
     /**
      * Determines the current asset version.

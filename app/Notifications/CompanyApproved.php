@@ -25,7 +25,7 @@ class CompanyApproved extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Votre espace '.config('app.name').' est activé')
+            ->subject('Votre espace est activé · '.config('app.name'))
             ->view(['emails.company-approved', 'emails.text.company-approved'], [
                 'name' => $notifiable->name ?? null,
                 'company' => $this->company,

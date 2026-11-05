@@ -206,7 +206,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                     )}
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                            <p className="truncate font-semibold text-ink">{line.product_name}</p>
+                            <p className="line-clamp-2 font-semibold break-words text-ink">{line.product_name}</p>
                             {soldOut && (
                                 <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-red-600/15 ring-inset">
                                     Épuisé
@@ -236,8 +236,8 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                 </div>
 
                 {/* Stepper + montant */}
-                <div className="flex items-center justify-between gap-4 md:justify-end">
-                    <div className="inline-flex items-center rounded-2xl bg-slate-100 p-1">
+                <div className="flex items-center justify-between gap-3 sm:gap-4 md:justify-end">
+                    <div className="inline-flex shrink-0 items-center rounded-2xl bg-slate-100 p-1">
                         <button
                             type="button"
                             disabled={disabled || line.units_sold <= 0}
@@ -274,24 +274,24 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
 
                     <p
                         className={cn(
-                            'min-w-24 text-right text-base font-bold tabular-nums md:w-32',
+                            'flex min-w-0 flex-wrap items-baseline justify-end gap-x-1 text-right text-base font-bold tabular-nums md:w-32',
                             amount > 0 ? 'text-motriks-deep' : 'text-slate-300',
                         )}
                     >
-                        {amount > 0 ? formatMoney(amount) : '—'}
-                        <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
+                        <span className="whitespace-nowrap">{amount > 0 ? formatMoney(amount) : '—'}</span>
+                        <span className="text-xs font-medium text-slate-400">FCFA</span>
                     </p>
                 </div>
             </div>
 
             {/* Actions discrètes */}
-            <div className="mt-3 flex items-center gap-4 text-xs md:pl-20">
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-4 text-xs md:pl-20">
                 {!soldOut && line.opening_stock > 0 && (
                     <button
                         type="button"
                         disabled={disabled}
                         onClick={() => onChange(max)}
-                        className="font-semibold text-motriks-deep hover:underline focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
+                        className="inline-flex min-h-9 items-center font-semibold text-motriks-deep hover:underline focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
                     >
                         Tout vendu
                     </button>
@@ -301,7 +301,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                         type="button"
                         disabled={disabled}
                         onClick={() => onChange(0)}
-                        className="font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
+                        className="inline-flex min-h-9 items-center font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
                     >
                         Remettre à 0
                     </button>
@@ -309,7 +309,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                 <button
                     type="button"
                     onClick={() => setNoteOpen((o) => !o)}
-                    className="inline-flex items-center gap-1 font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                    className="inline-flex min-h-9 items-center gap-1 font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                 >
                     <Pencil className="size-3" />
                     Note
@@ -323,7 +323,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                         value={line.notes ?? ''}
                         disabled={disabled}
                         onChange={(e) => onNoteChange(e.target.value)}
-                        className="mt-2.5 h-9 bg-white text-xs"
+                        className="mt-1 h-9 bg-white text-xs"
                     />
                 </div>
             )}
@@ -362,9 +362,9 @@ function SummaryPanel({
         <GlowCard contentClassName="flex flex-col gap-5 p-5 sm:p-6">
             <div>
                 <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Total de la journée</p>
-                <p className="mt-1.5 text-4xl font-extrabold tracking-tight text-ink tabular-nums">
-                    {formatMoney(totalRevenue)}
-                    <span className="ml-1.5 text-base font-medium text-slate-400">FCFA</span>
+                <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 text-4xl font-extrabold tracking-tight text-ink tabular-nums">
+                    <span className="whitespace-nowrap">{formatMoney(totalRevenue)}</span>
+                    <span className="text-base font-medium text-slate-400">FCFA</span>
                 </p>
             </div>
 
@@ -975,14 +975,14 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </div>
                                 ))}
 
-                                <div className="flex items-center justify-between border-t border-dashed border-slate-200 px-5 py-5 sm:px-6">
+                                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-dashed border-slate-200 px-5 py-5 sm:px-6">
                                     <div>
                                         <p className="text-sm font-bold text-ink">Total journée</p>
                                         <p className="text-xs text-slate-500">
                                             {totalSold} unité{totalSold > 1 ? 's' : ''} vendues
                                         </p>
                                     </div>
-                                    <p className="text-3xl font-extrabold text-motriks-deep tabular-nums">
+                                    <p className="text-3xl font-extrabold whitespace-nowrap text-motriks-deep tabular-nums">
                                         {formatMoney(totalRevenue)}
                                         <span className="ml-1 text-sm font-medium text-slate-400">FCFA</span>
                                     </p>
@@ -1002,7 +1002,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                             <li key={l.id} className="px-5 py-3.5 sm:px-6">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div className="min-w-0">
-                                                        <p className="truncate text-sm font-medium text-ink">{l.product_name}</p>
+                                                        <p className="line-clamp-2 text-sm font-medium break-words text-ink">{l.product_name}</p>
                                                         <p className="text-xs text-slate-400">Attendu : {theoretical(l)} {l.unit}</p>
                                                     </div>
                                                     <input
@@ -1023,7 +1023,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                         maxLength={300}
                                                         placeholder={`Motif de l’écart (${countOf(l) - theoretical(l) > 0 ? '+' : ''}${countOf(l) - theoretical(l)}) : casse, vol, erreur…`}
                                                         aria-label={`Motif de l’écart — ${l.product_name}`}
-                                                        className="mt-2.5 h-10 bg-white text-sm"
+                                                        className="mt-2.5 h-10 bg-white"
                                                     />
                                                 )}
                                             </li>
@@ -1091,7 +1091,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </div>
                                 <ul className="divide-y divide-slate-100">
                                     {report.lines.map((l) => (
-                                        <li key={l.id} className="flex items-center gap-4 px-5 py-4 sm:px-6">
+                                        <li key={l.id} className="flex items-center gap-3 px-5 py-4 sm:gap-4 sm:px-6">
                                             {l.image_url ? (
                                                 <img src={l.image_url} alt={l.product_name} className="size-12 shrink-0 rounded-xl object-cover" />
                                             ) : (
@@ -1114,7 +1114,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                 )}
                                             </div>
                                             {l.revenue > 0 && (
-                                                <p className="shrink-0 font-semibold text-motriks-deep tabular-nums">
+                                                <p className="shrink-0 font-semibold whitespace-nowrap text-motriks-deep tabular-nums">
                                                     {formatMoney(l.revenue)}
                                                     <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
                                                 </p>

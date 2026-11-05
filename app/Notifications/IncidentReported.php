@@ -41,6 +41,21 @@ class IncidentReported extends AppNotification
         return "{$this->agent} a signalé : « {$this->incident} »";
     }
 
+    protected function mailIntro(): string
+    {
+        return "{$this->agent} a signalé un incident à {$this->site} :";
+    }
+
+    protected function mailQuote(): ?string
+    {
+        return $this->incident;
+    }
+
+    protected function actionLabel(): string
+    {
+        return 'Voir le rapport';
+    }
+
     protected function route(): array
     {
         return ['daily-reports.show', ['dailyReport' => $this->reportId]];

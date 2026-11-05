@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Company;
 
 use App\Http\Controllers\Controller;
 
+use App\Enums\Module;
 use App\Enums\Role;
 use App\Models\Site;
 use App\Models\SiteProduct;
+use App\Support\Targets\WeeklyTargets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -116,6 +118,8 @@ class DashboardController extends Controller
                 'inventory'    => SiteProduct::where('company_id', $company->id)->exists(),
                 'report'       => $company->dailyReports()->where('status', 'submitted')->exists(),
             ] : null,
+            // Proposition de fixer les objectifs de la semaine (gérant et superviseur)
+            'weekly_targets' => $company->hasModule(Module::Reporting) ? WeeklyTargets::summary($user) : null,
         ]);
     }
 }

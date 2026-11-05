@@ -181,5 +181,8 @@
 
     body {
         @apply bg-background text-foreground;
+        /* viewport-fit=cover (app.blade.php) : rien ne passe sous l'encoche des iPhone en paysage */
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
     }
 }

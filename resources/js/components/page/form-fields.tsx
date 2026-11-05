@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 const control =
-    'w-full rounded-xl border border-slate-200 bg-white text-sm text-ink outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:ring-4 focus:ring-motriks/10 disabled:bg-slate-50 disabled:opacity-60';
+    'w-full rounded-xl border border-slate-200 bg-white text-base text-ink outline-none sm:text-sm transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:ring-4 focus:ring-motriks/10 disabled:bg-slate-50 disabled:opacity-60';
 const invalid = 'border-red-300 hover:border-red-300 focus:border-red-400 focus:ring-red-500/10';
 
 export const inputClass = `h-11 px-3.5 ${control}`;
@@ -27,7 +27,7 @@ export function Field({
 }) {
     return (
         <div className={className}>
-            <label htmlFor={htmlFor} className="mb-1.5 flex items-baseline gap-1.5 text-sm font-semibold text-ink">
+            <label htmlFor={htmlFor} className="mb-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm font-semibold text-ink">
                 {label}
                 {required && <span className="text-red-500">*</span>}
                 {hint && <span className="text-xs font-normal text-slate-400">{hint}</span>}

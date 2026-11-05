@@ -1,9 +1,9 @@
 import { usePasskeyRegister } from '@laravel/passkeys/react';
 import { useState } from 'react';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Fingerprint, KeyRound, Plus } from 'lucide-react';
+import { ActionButton } from '@/components/page/buttons';
+import { Field, TextInput } from '@/components/page/form-fields';
+import { passkeyErrorMessage } from '@/lib/passkey-error';
 
 type Props = {
     onSuccess: () => void;
@@ -58,50 +58,38 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
 
     if (!isSupported) {
         return (
-            <div className="text-sm text-muted-foreground">
-                Ce navigateur ne prend pas en charge les clés d’accès.
-            </div>
+            <p className="rounded-xl bg-slate-50 px-3.5 py-3 text-xs leading-relaxed text-slate-500 ring-1 ring-slate-200/70 dark:bg-white/5 dark:ring-sidebar-border">
+                Ce navigateur ne prend pas en charge les clés d’accès. Essayez avec Chrome, Edge ou Safari à jour.
+            </p>
         );
     }
 
     if (!showForm) {
         return (
-            <Button variant="outline" onClick={() => setShowForm(true)}>
+            <ActionButton variant="secondary" icon={<Plus />} onClick={() => setShowForm(true)}>
                 Ajouter une clé d’accès
-            </Button>
+            </ActionButton>
         );
     }
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="space-y-4 rounded-lg border border-border bg-muted/50 p-4"
-        >
-            <div className="grid gap-2">
-                <Label htmlFor="passkey-name">Nom de la clé</Label>
-                <Input
-                    id="passkey-name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="ex. : iPhone de travail, PC du bureau"
-                    className="mt-1 block w-full border-foreground/20"
-                    autoFocus
-                />
-                <p className="text-xs text-muted-foreground">
-                    Pour la reconnaître plus tard.
-                </p>
-            </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 sm:p-5 dark:border-sidebar-border dark:bg-white/[0.02]">
+            <Field label="Nom de la clé" htmlFor="passkey-name" hint="pour la reconnaître plus tard" error={passkeyErrorMessage(error) ?? undefined}>
+                <TextInput id="passkey-name" icon={KeyRound} value={name} onChange={(e) => setName(e.target.value)} placeholder="ex. : iPhone de travail, PC du bureau" maxLength={60} aria-invalid={error ? true : undefined} autoFocus />
+            </Field>
 
-            {error && <InputError message={error} />}
+            <p className="flex items-start gap-2 text-xs leading-relaxed text-slate-500">
+                <Fingerprint className="mt-px size-3.5 shrink-0 text-motriks" />
+                Votre appareil va vous demander votre empreinte, votre visage ou son code de déverrouillage.
+            </p>
 
-            <div className="flex gap-2">
-                <Button type="submit" disabled={isLoading || !name.trim()}>
-                    {isLoading ? 'Enregistrement…' : 'Ajouter une clé d’accès'}
-                </Button>
-                <Button type="button" variant="ghost" onClick={handleCancel}>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <ActionButton variant="ghost" onClick={handleCancel} disabled={isLoading}>
                     Annuler
-                </Button>
+                </ActionButton>
+                <ActionButton type="submit" loading={isLoading} disabled={!name.trim()}>
+                    Créer la clé
+                </ActionButton>
             </div>
         </form>
     );

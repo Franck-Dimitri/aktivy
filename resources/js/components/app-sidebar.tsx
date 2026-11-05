@@ -13,6 +13,7 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { menuFor, roleLabels } from '@/lib/navigation';
+import { help as helpRoute } from '@/routes';
 import { show as onboardingShow } from '@/routes/onboarding';
 import type { MenuGroup } from '@/types';
 import MotriksMark from '@/components/motriks-mark';
@@ -43,7 +44,7 @@ export function AppSidebar() {
     const { auth } = usePage().props;
     const { isMobile, setOpenMobile } = useSidebar();
     const isPending = auth.company?.status === 'pending' || auth.company?.status === 'rejected';
-    const normalGroups = menuFor(auth.user.role);
+    const normalGroups = menuFor(auth.user.role, auth.modules);
     const groups = isPending ? pendingMenu(normalGroups) : normalGroups;
     const home = isPending ? onboardingShow().url : (groups[0].items[0].href ?? '/');
     const companyName = auth.company?.name ?? 'Motriks';
@@ -104,12 +105,14 @@ export function AppSidebar() {
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <SidebarMenuButton
-                                aria-disabled
-                                tooltip={{ children: 'Aide — bientôt disponible' }}
-                                className="h-9 cursor-default rounded-xl px-3 text-[13px] text-green-100/35 hover:bg-transparent hover:text-green-100/35 aria-disabled:pointer-events-auto aria-disabled:opacity-100 [&>svg]:size-4 [&>svg]:text-green-100/30"
+                                asChild
+                                tooltip={{ children: 'Aide' }}
+                                className="h-9 rounded-xl px-3 text-[13px] text-green-100/80 hover:bg-white/10 hover:text-white [&>svg]:size-4 [&>svg]:text-green-100/70"
                             >
-                                <LifeBuoy />
-                                <span>Aide</span>
+                                <Link href={helpRoute().url} onClick={() => isMobile && setOpenMobile(false)}>
+                                    <LifeBuoy />
+                                    <span>Aide</span>
+                                </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     </SidebarMenu>

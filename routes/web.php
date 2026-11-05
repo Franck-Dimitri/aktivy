@@ -2,10 +2,12 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
+use App\Http\Controllers\Admin\CompanyModuleController;
 use App\Http\Controllers\Admin\CompanyRequestController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HelpController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ReportPhotoController;
@@ -73,6 +75,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Centre d'aide, pour tous les rôles
+    Route::get('aide', HelpController::class)->name('help');
+
     // Notifications (cloche), pour tous les rôles
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     // Aperçu de la cloche (JSON) : déclaré avant {notification} pour ne pas être pris pour un identifiant
@@ -93,6 +98,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('entreprises', [AdminCompanyController::class, 'index'])->name('companies.index');
             Route::post('entreprises/{company}/suspendre', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
             Route::post('entreprises/{company}/reactiver', [AdminCompanyController::class, 'reactivate'])->name('companies.reactivate');
+            Route::get('entreprises/{company}/modules', [CompanyModuleController::class, 'index'])->name('companies.modules');
+            Route::put('entreprises/{company}/modules/{module}', [CompanyModuleController::class, 'update'])->name('companies.modules.update');
+            Route::delete('entreprises/{company}/modules/{module}', [CompanyModuleController::class, 'destroy'])->name('companies.modules.destroy');
 
             // Demandes d'inscription entreprises
             Route::prefix('onboarding')->name('onboarding.')->group(function () {

@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -218,10 +218,12 @@ export default function DailyReportShow({
                         >
                             Rapports du jour
                         </ActionLink>
+                        {usePage().props.auth.modules.includes('reporting') && (
                         <a href={dailyReportPdf({ dailyReport: report.id }).url} className={buttonClass('secondary', 'md')}>
                             <FileDown className="size-4" />
                             PDF
                         </a>
+                        )}
                         {can_correct && !editing && (
                             <>
                                 <ActionButton

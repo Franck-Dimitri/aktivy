@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Building2, CheckCircle2, Clock, FileText, Inbox, PauseCircle, PlayCircle, Search, Store, Users } from 'lucide-react';
+import { Blocks, Building2, CheckCircle2, Clock, FileText, Inbox, PauseCircle, PlayCircle, Search, Store, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
@@ -8,7 +8,7 @@ import { TextInput } from '@/components/page/form-fields';
 import { Page } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { cn } from '@/lib/utils';
-import { index as companiesIndex, reactivate, suspend } from '@/routes/admin/companies';
+import { index as companiesIndex, modules as companyModules, reactivate, suspend } from '@/routes/admin/companies';
 import { index as onboardingIndex, show as onboardingShow } from '@/routes/admin/onboarding';
 import { CompanyAvatar, MetricRow, QuietEmpty, Segmented } from '@/components/page/list-kit';
 
@@ -152,7 +152,7 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                 <span role="columnheader">Équipe</span>
                                 <span role="columnheader">Activité</span>
                                 <span role="columnheader">Statut</span>
-                                <span role="columnheader" className="w-[188px] text-right">Actions</span>
+                                <span role="columnheader" className="w-[272px] text-right">Actions</span>
                             </div>
 
                             <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
@@ -193,7 +193,7 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                             <StatusBadge tone={STATUS[c.status].tone}>{STATUS[c.status].label}</StatusBadge>
                                         </div>
 
-                                        <div role="cell" className="col-span-2 flex items-center justify-between gap-2 lg:col-span-1 lg:w-[188px] lg:justify-end">
+                                        <div role="cell" className="col-span-2 flex items-center justify-between gap-2 lg:col-span-1 lg:w-[272px] lg:justify-end">
                                             <span className="text-xs lg:hidden">
                                                 <LastReport date={c.last_report} />
                                             </span>
@@ -201,6 +201,10 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                                 <Link href={onboardingShow(c.id).url} className={buttonClass('ghost', 'sm')}>
                                                     <FileText />
                                                     Dossier
+                                                </Link>
+                                                <Link href={companyModules(c.id).url} className={buttonClass('ghost', 'sm')}>
+                                                    <Blocks />
+                                                    Modules
                                                 </Link>
                                                 {c.status === 'active' && (
                                                     <ActionButton variant="icon-danger" size="sm" icon={<PauseCircle />} onClick={() => ask(c)}>

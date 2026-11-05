@@ -42,6 +42,8 @@ export type Auth = {
     };
     /** Hôtesse ou superviseur rattaché à aucun point de vente. */
     noSite: boolean;
+    /** Modules payants actifs de l'entreprise. */
+    modules: string[];
     /** Notifications non lues (cloche). */
     unreadNotifications: number;
 };

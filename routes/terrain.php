@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Module;
 use App\Enums\Role;
 use App\Http\Controllers\ReportPhotoController;
 use App\Http\Controllers\Terrain\DailyReportController;
@@ -10,10 +11,11 @@ use App\Http\Controllers\Terrain\SalesController;
 use App\Http\Controllers\Terrain\StatsController;
 use App\Http\Controllers\Terrain\TicketController;
 use App\Http\Controllers\Terrain\VisitController;
+use App\Http\Middleware\EnsureModuleIsActive;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified', EnsureUserHasRole::using(Role::FieldAgent)])
+Route::middleware(['auth', 'verified', EnsureUserHasRole::using(Role::FieldAgent), EnsureModuleIsActive::using(Module::Terrain)])
     ->prefix('terrain')
     ->name('terrain.')
     ->group(function () {
@@ -28,7 +30,7 @@ Route::middleware(['auth', 'verified', EnsureUserHasRole::using(Role::FieldAgent
         Route::put('rapport/{visit}', [DailyReportController::class, 'update'])->name('report.update');
         Route::post('rapport/{visit}/soumettre', [DailyReportController::class, 'submit'])->name('report.submit');
         Route::post('rapport/{visit}/signaler', [DailyReportController::class, 'flag'])->name('report.flag');
-        Route::post('rapport/{visit}/photos', [ReportPhotoController::class, 'store'])->name('report.photos.store');
+        Route::post('rapport/{visit}/photos', [ReportPhotoController::class, 'store'])->middleware(EnsureModuleIsActive::using(Module::Photos))->name('report.photos.store');
         Route::delete('rapport/{visit}/photos/{photo}', [ReportPhotoController::class, 'destroy'])->name('report.photos.destroy');
 
         // Statistiques personnelles
@@ -44,7 +46,9 @@ Route::middleware(['auth', 'verified', EnsureUserHasRole::using(Role::FieldAgent
         Route::get('ventes', SalesController::class)->name('sales');
 
         // Tickets / demandes
-        Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
-        Route::post('tickets', [TicketController::class, 'store'])->name('tickets.store');
+        Route::middleware(EnsureModuleIsActive::using(Module::Requests))->group(function () {
+            Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
+            Route::post('tickets', [TicketController::class, 'store'])->name('tickets.store');
         Route::delete('tickets/{ticket}', [TicketController::class, 'cancel'])->name('tickets.cancel');
+        });
     });

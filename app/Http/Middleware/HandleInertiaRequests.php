@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\Module;
 use App\Enums\Role;
 use App\Models\Affectation;
 use App\Models\User;
@@ -92,6 +93,8 @@ class HandleInertiaRequests extends Middleware
                     // Équipe, sites, catalogue, affectations, objectifs (le superviseur sur ses sites)
                     'manageTeam' => $request->user()?->hasRole(Role::CompanyAdmin, Role::Supervisor) ?? false,
                 ],
+                // Modules payants actifs : le menu et les pages masquent ce qui n'est pas souscrit
+                'modules' => fn () => $request->user()?->company?->activeModules() ?? array_map(fn ($m) => $m->value, Module::cases()),
                 // Hôtesse ou superviseur rattaché à aucun point de vente : un bandeau le lui dit
                 'noSite' => fn () => $this->hasNoSite($request->user()),
                 // Compteur de la cloche

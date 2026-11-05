@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Module;
 use App\Enums\Role;
 use App\Http\Controllers\Company\ActivityController;
 use App\Http\Controllers\Company\AffectationController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\Company\CompanySettingsController;
 use App\Http\Controllers\Company\DailyReportController;
 use App\Http\Controllers\Company\DashboardController;
 use App\Http\Controllers\Company\DataExportController;
+use App\Http\Controllers\Company\ImportController;
 use App\Http\Controllers\Company\Events\EventActivateController;
 use App\Http\Controllers\Company\Events\EventController;
 use App\Http\Controllers\Company\Events\EventHostessController;
@@ -20,8 +22,10 @@ use App\Http\Controllers\Company\SiteController;
 use App\Http\Controllers\Company\SiteInventoryController;
 use App\Http\Controllers\Company\SitePhotoController;
 use App\Http\Controllers\Company\StockAlertController;
+use App\Http\Controllers\Company\SubscriptionController;
 use App\Http\Controllers\Company\TicketController;
 use App\Http\Controllers\Company\WeeklyTargetController;
+use App\Http\Middleware\EnsureModuleIsActive;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
@@ -31,14 +35,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('dashboard', DashboardController::class)->name('dashboard');
 
             // Rapports de ventes et export Excel pour la comptabilité
-            Route::get('rapports', [ReportController::class, 'index'])->name('reports.index');
-            Route::get('rapports/export', [ReportController::class, 'export'])->name('reports.export');
-            Route::get('rapports/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
+            Route::get('rapports', [ReportController::class, 'index'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('reports.index');
+            Route::get('rapports/export', [ReportController::class, 'export'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('reports.export');
+            Route::get('rapports/pdf', [ReportController::class, 'pdf'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('reports.pdf');
 
             // Rapports journaliers des hôtesses
-            Route::get('rapports-journaliers', [DailyReportController::class, 'index'])->name('daily-reports.index');
-            Route::get('rapports-journaliers/{dailyReport}', [DailyReportController::class, 'show'])->name('daily-reports.show');
-            Route::get('rapports-journaliers/{dailyReport}/pdf', [DailyReportController::class, 'pdf'])->name('daily-reports.pdf');
+            Route::get('rapports-journaliers', [DailyReportController::class, 'index'])->middleware(EnsureModuleIsActive::using(Module::Terrain))->name('daily-reports.index');
+            Route::get('rapports-journaliers/{dailyReport}', [DailyReportController::class, 'show'])->middleware(EnsureModuleIsActive::using(Module::Terrain))->name('daily-reports.show');
+            Route::get('rapports-journaliers/{dailyReport}/pdf', [DailyReportController::class, 'pdf'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('daily-reports.pdf');
         });
 
     // Réservé au gérant : export des données, suppression des sites, événements
@@ -48,6 +52,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // POST : le formulaire peut contenir un fichier (logo)
             Route::post('entreprise', [CompanySettingsController::class, 'update'])->name('company.settings.update');
 
+            // Reprise des fichiers existants
+            Route::get('import', [ImportController::class, 'index'])->name('company.import.index');
+            Route::get('import/{type}/modele', [ImportController::class, 'template'])->name('company.import.template');
+            Route::post('import/{type}', [ImportController::class, 'store'])->middleware('throttle:10,1')->name('company.import.store');
+
+            Route::get('abonnement', SubscriptionController::class)->name('company.subscription');
+
             Route::get('mes-donnees', [DataExportController::class, 'show'])->name('company.data-export');
             Route::get('mes-donnees/telecharger', [DataExportController::class, 'download'])
                 ->middleware('throttle:5,1')
@@ -56,25 +67,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('sites', SiteController::class)->only(['destroy']);
 
             // Événements commerciaux
-            Route::resource('events', EventController::class)->except(['edit']);
-            Route::post('events/{event}/activate', EventActivateController::class)->name('events.activate');
-            Route::post('events/{event}/sites', [EventSiteController::class, 'store'])->name('events.sites.store');
-            Route::delete('events/{event}/sites/{eventSite}', [EventSiteController::class, 'destroy'])->name('events.sites.destroy');
-            Route::post('events/{event}/packs', [EventPackController::class, 'store'])->name('events.packs.store');
-            Route::put('events/{event}/packs/{pack}', [EventPackController::class, 'update'])->name('events.packs.update');
-            Route::delete('events/{event}/packs/{pack}', [EventPackController::class, 'destroy'])->name('events.packs.destroy');
-            Route::post('events/{event}/hostesses', [EventHostessController::class, 'store'])->name('events.hostesses.store');
-            Route::put('events/{event}/hostesses/{hostess}', [EventHostessController::class, 'update'])->name('events.hostesses.update');
-            Route::delete('events/{event}/hostesses/{hostess}', [EventHostessController::class, 'destroy'])->name('events.hostesses.destroy');
+            Route::resource('events', EventController::class)->except(['edit'])->middleware(EnsureModuleIsActive::using(Module::Events));
+            Route::post('events/{event}/activate', EventActivateController::class)->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.activate');
+            Route::post('events/{event}/sites', [EventSiteController::class, 'store'])->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.sites.store');
+            Route::delete('events/{event}/sites/{eventSite}', [EventSiteController::class, 'destroy'])->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.sites.destroy');
+            Route::post('events/{event}/packs', [EventPackController::class, 'store'])->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.packs.store');
+            Route::put('events/{event}/packs/{pack}', [EventPackController::class, 'update'])->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.packs.update');
+            Route::delete('events/{event}/packs/{pack}', [EventPackController::class, 'destroy'])->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.packs.destroy');
+            Route::post('events/{event}/hostesses', [EventHostessController::class, 'store'])->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.hostesses.store');
+            Route::put('events/{event}/hostesses/{hostess}', [EventHostessController::class, 'update'])->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.hostesses.update');
+            Route::delete('events/{event}/hostesses/{hostess}', [EventHostessController::class, 'destroy'])->middleware(EnsureModuleIsActive::using(Module::Events))->name('events.hostesses.destroy');
         });
 
     // Gérant et superviseur ; le superviseur est limité aux sites où il est affecté
     Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor))
         ->group(function () {
-            Route::post('rapports/objectifs', [ReportController::class, 'saveTarget'])->name('reports.targets.save');
+            Route::post('rapports/objectifs', [ReportController::class, 'saveTarget'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('reports.targets.save');
             // Objectifs hebdomadaires des hôtesses (facultatifs)
-            Route::get('objectifs-semaine', [WeeklyTargetController::class, 'show'])->name('weekly-targets.show');
-            Route::post('objectifs-semaine', [WeeklyTargetController::class, 'store'])->name('weekly-targets.store');
+            Route::get('objectifs-semaine', [WeeklyTargetController::class, 'show'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('weekly-targets.show');
+            Route::post('objectifs-semaine', [WeeklyTargetController::class, 'store'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('weekly-targets.store');
 
             Route::resource('sites', SiteController::class)->except(['destroy']);
             Route::resource('products', ProductController::class)->except(['show']);
@@ -82,10 +93,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('sites/{site}/photos/{index}', [SitePhotoController::class, 'destroy'])->name('sites.photos.destroy');
             Route::resource('sites.inventory', SiteInventoryController::class)->only(['store', 'update', 'destroy']);
             // Relecture des rapports journaliers : correction puis validation
-            Route::put('rapports-journaliers/{dailyReport}', [DailyReportController::class, 'update'])->name('daily-reports.update');
-            Route::post('rapports-journaliers/{dailyReport}/valider', [DailyReportController::class, 'validateReport'])->name('daily-reports.validate');
+            Route::put('rapports-journaliers/{dailyReport}', [DailyReportController::class, 'update'])->middleware(EnsureModuleIsActive::using(Module::Terrain))->name('daily-reports.update');
+            Route::post('rapports-journaliers/{dailyReport}/valider', [DailyReportController::class, 'validateReport'])->middleware(EnsureModuleIsActive::using(Module::Terrain))->name('daily-reports.validate');
 
-            Route::post('sites/{site}/inventory/{inventory}/reassort', [SiteInventoryController::class, 'restock'])->name('sites.inventory.restock');
+            Route::post('sites/{site}/inventory/{inventory}/reassort', [SiteInventoryController::class, 'restock'])->middleware(EnsureModuleIsActive::using(Module::Stocks))->name('sites.inventory.restock');
 
             Route::resource('personnel', PersonnelController::class);
             Route::post('personnel/{personnel}/documents', [PersonnelDocumentController::class, 'store'])->name('personnel.documents.store');
@@ -96,11 +107,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('affectations/{affectation}/permuter', [AffectationController::class, 'permuter'])->name('affectations.permuter');
 
             // Suivi en direct : activité du jour et produits sous leur seuil
-            Route::get('activite', ActivityController::class)->name('activity.index');
-            Route::get('stock/alertes', StockAlertController::class)->name('stock-alerts.index');
+            Route::get('activite', ActivityController::class)->middleware(EnsureModuleIsActive::using(Module::Terrain))->name('activity.index');
+            Route::get('stock/alertes', StockAlertController::class)->middleware(EnsureModuleIsActive::using(Module::Stocks))->name('stock-alerts.index');
 
             // Demandes des hôtesses (tickets)
-            Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
-            Route::put('tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
+            Route::get('tickets', [TicketController::class, 'index'])->middleware(EnsureModuleIsActive::using(Module::Requests))->name('tickets.index');
+            Route::put('tickets/{ticket}', [TicketController::class, 'update'])->middleware(EnsureModuleIsActive::using(Module::Requests))->name('tickets.update');
         });
 });

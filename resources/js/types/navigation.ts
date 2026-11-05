@@ -18,6 +18,8 @@ export type MenuItem = {
     title: string;
     icon: LucideIcon;
     href?: NonNullable<InertiaLinkProps['href']>;
+    /** Module payant requis : l'entrée est masquée si l'entreprise ne l'a pas. */
+    module?: string;
 };
 
 export type MenuGroup = {

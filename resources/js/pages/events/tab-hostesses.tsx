@@ -1,282 +1,215 @@
 import { router, useForm } from '@inertiajs/react';
-import { MapPin, Trash2, UserPlus, Users } from 'lucide-react';
-import { useState } from 'react';
-import { GlowCard } from '@/components/page/surface';
+import { KeyRound, Phone, Store, Trash2, UserCheck, UserPlus, UserRound, Users } from 'lucide-react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { ActionButton } from '@/components/page/buttons';
-import { TextInput, SelectInput } from '@/components/page/form-fields';
+import { ConfirmDialog } from '@/components/page/confirm-dialog';
+import { Field, SelectInput, TextInput } from '@/components/page/form-fields';
+import { Modal } from '@/components/page/modal';
+import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
-import { store as hostessStore, destroy as hostessDestroy } from '@/routes/events/hostesses';
-import type { AvailableHostess, EventData } from './types';
+import { destroy as hostessDestroy, store as hostessStore, update as hostessUpdate } from '@/routes/events/hostesses';
+import { ModalFooter, ModeCards, PickList, TabEmpty, TabToolbar } from './tab-kit';
+import type { AvailableHostess, EventData, EventHostess } from './types';
 
 type Props = { event: EventData; availableHostesses: AvailableHostess[] };
-type Hostess = EventData['hostesses'][0];
 
-const AVATAR_COLORS = [
-    'bg-violet-100 text-violet-700',
-    'bg-blue-100 text-blue-700',
-    'bg-cyan-100 text-cyan-700',
-    'bg-emerald-100 text-emerald-700',
-    'bg-amber-100 text-amber-700',
-    'bg-rose-100 text-rose-700',
-];
+const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
 
-function getAvatarColor(name: string) {
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
+/** Ajout d'une hôtesse : une hôtesse de l'équipe, ou un compte créé pour l'événement. */
+function AddHostessModal({ event, available, onClose }: { event: EventData; available: AvailableHostess[]; onClose: () => void }) {
+    const [mode, setMode] = useState<'existing' | 'new'>(available.length ? 'existing' : 'new');
+    const { data, setData, post, processing, errors, transform } = useForm({
+        user_id: null as number | null,
+        name: '',
+        phone: '',
+        password: '',
+        event_site_id: event.sites.length === 1 ? String(event.sites[0].id) : '',
+    });
 
-function initials(name: string) {
-    return name
-        .split(' ')
-        .slice(0, 2)
-        .map((p) => p.charAt(0).toUpperCase())
-        .join('');
-}
+    const close = useCallback(() => !processing && onClose(), [processing, onClose]);
 
-function HostessCard({ h, canEdit, onDelete }: { h: Hostess; canEdit: boolean; onDelete: () => void }) {
-    const isArchived = h.status === 'archived';
-    const avatarColor = getAvatarColor(h.name);
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        transform((d) => {
+            const site = d.event_site_id ? Number(d.event_site_id) : null;
+            return mode === 'existing' ? { mode, user_id: d.user_id, event_site_id: site } : { mode, name: d.name, phone: d.phone, password: d.password, event_site_id: site };
+        });
+        post(hostessStore({ event: event.id }).url, { preserveScroll: true, onSuccess: onClose, onError: toastFormError });
+    };
+
+    const canSubmit = mode === 'existing' ? data.user_id !== null : data.name.trim() !== '' && data.phone.trim() !== '' && data.password !== '';
 
     return (
-        <div className={cn(
-            'group relative flex flex-col items-center gap-3 rounded-2xl bg-white p-5 ring-1 text-center transition-shadow hover:shadow-md',
-            isArchived ? 'ring-slate-100 opacity-60' : 'ring-slate-100',
-        )}>
-            {canEdit && (
-                <button
-                    onClick={onDelete}
-                    className="absolute right-2.5 top-2.5 rounded-lg p-1 text-slate-200 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 focus-visible:opacity-100 pointer-coarse:right-1 pointer-coarse:top-1 pointer-coarse:p-3 pointer-coarse:text-slate-400 pointer-coarse:opacity-100"
-                    aria-label="Retirer"
-                >
-                    <Trash2 className="size-3.5" />
-                </button>
-            )}
+        <Modal onClose={close} title="Ajouter une hôtesse" description={`Elle animera « ${event.name} ».`} icon={<UserPlus />}>
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex flex-col gap-5 overflow-y-auto px-6 pt-3 pb-6">
+                    <ModeCards
+                        value={mode}
+                        onChange={setMode}
+                        options={[
+                            { value: 'existing', title: 'De votre équipe', text: 'Une hôtesse qui a déjà un compte.', icon: UserCheck },
+                            { value: 'new', title: 'Recrutée pour l’événement', text: 'Un compte créé maintenant, archivé à la clôture.', icon: UserPlus },
+                        ]}
+                    />
 
-            {/* Avatar */}
-            <div className="relative">
-                <div className={cn(
-                    'flex size-14 items-center justify-center rounded-full text-lg font-bold',
-                    isArchived ? 'bg-slate-100 text-slate-400' : avatarColor,
-                )}>
-                    {initials(h.name)}
+                    {mode === 'existing' ? (
+                        <div>
+                            <PickList
+                                items={available.map((h) => ({ id: h.id, title: h.name, subtitle: h.phone }))}
+                                value={data.user_id}
+                                onChange={(id) => setData('user_id', id)}
+                                empty="Toutes vos hôtesses actives sont déjà dans l’événement."
+                                searchPlaceholder="Rechercher une hôtesse"
+                            />
+                            {errors.user_id && <p className="mt-1.5 text-xs font-medium text-red-600">{errors.user_id}</p>}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <Field label="Nom complet" htmlFor="h-name" required error={errors.name}>
+                                    <TextInput id="h-name" icon={UserRound} value={data.name} onChange={(e) => setData('name', e.target.value)} placeholder="Prénom Nom" error={errors.name} maxLength={255} autoFocus />
+                                </Field>
+                                <Field label="Téléphone" htmlFor="h-phone" required error={errors.phone}>
+                                    <TextInput id="h-phone" type="tel" icon={Phone} value={data.phone} onChange={(e) => setData('phone', e.target.value)} placeholder="6XX XX XX XX" error={errors.phone} maxLength={25} />
+                                </Field>
+                            </div>
+                            <Field label="Mot de passe provisoire" htmlFor="h-password" required error={errors.password} hint="à changer à la première connexion">
+                                <TextInput id="h-password" type="text" autoComplete="off" icon={KeyRound} value={data.password} onChange={(e) => setData('password', e.target.value)} placeholder="12 caractères, majuscule, chiffre, symbole" error={errors.password} className="font-mono" />
+                            </Field>
+                            <p className="text-xs leading-relaxed text-slate-500">Elle se connecte avec son numéro de téléphone et ce mot de passe. Communiquez-le-lui directement.</p>
+                        </div>
+                    )}
+
+                    {event.sites.length > 0 && (
+                        <Field label="Point de vente" htmlFor="h-site" hint="(modifiable ensuite)" error={errors.event_site_id}>
+                            <SelectInput id="h-site" icon={Store} value={data.event_site_id} onChange={(e) => setData('event_site_id', e.target.value)} error={errors.event_site_id}>
+                                <option value="">À placer plus tard</option>
+                                {event.sites.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </Field>
+                    )}
                 </div>
-                {!isArchived && (
-                    <span className="absolute -bottom-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-white ring-2 ring-white">
-                        <span className="size-2 rounded-full bg-green-400" />
-                    </span>
-                )}
+                <ModalFooter onCancel={close} processing={processing} submitLabel={mode === 'new' ? 'Créer et ajouter' : 'Ajouter'} icon={<UserPlus />} disabled={!canSubmit} />
+            </form>
+        </Modal>
+    );
+}
+
+function HostessCard({ h, event, canEdit, onRemove }: { h: EventHostess; event: EventData; canEdit: boolean; onRemove: () => void }) {
+    const archived = h.status === 'archived';
+    const [saving, setSaving] = useState(false);
+
+    const assign = (value: string) =>
+        router.put(hostessUpdate({ event: event.id, hostess: h.id }).url, { event_site_id: value ? Number(value) : null }, { preserveScroll: true, onStart: () => setSaving(true), onFinish: () => setSaving(false) });
+
+    return (
+        <article className={cn('flex flex-col rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-900/[0.03] sm:p-5 dark:border-sidebar-border dark:bg-card', archived && 'opacity-70')}>
+            <div className="flex items-start gap-3">
+                <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold', archived ? 'bg-slate-100 text-slate-400 dark:bg-white/5' : 'bg-motriks-soft text-motriks-deep')}>{initials(h.name)}</span>
+                <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-ink">{h.name}</p>
+                    <p className="truncate text-xs text-slate-500">{h.phone ?? 'Sans téléphone'}</p>
+                </div>
+                {/* Le serveur refuse le retrait pendant l'événement */}
+                {canEdit && event.status !== 'active' && <ActionButton variant="icon-danger" size="icon" icon={<Trash2 />} onClick={onRemove} aria-label={`Retirer ${h.name}`} title="Retirer" />}
             </div>
 
-            {/* Name */}
-            <div className="min-w-0 w-full">
-                <p className="truncate text-sm font-bold text-slate-900">{h.name}</p>
-                {h.phone && <p className="mt-0.5 text-xs text-slate-400">{h.phone}</p>}
+            <div className="mt-3 flex flex-wrap gap-1.5">
+                {h.recruited_for_event && <span className="rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">Recrutée</span>}
+                {archived && <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-white/5">Archivée</span>}
             </div>
 
-            {/* Chips */}
-            <div className="flex flex-wrap justify-center gap-1.5">
-                {h.site_name && (
-                    <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-600 ring-1 ring-blue-100">
-                        <MapPin className="size-2.5" />
-                        {h.site_name}
-                    </span>
-                )}
-                {h.recruited_for_event && (
-                    <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-600 ring-1 ring-purple-100">
-                        Recrutée
-                    </span>
-                )}
-                {isArchived && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                        Archivée
-                    </span>
+            <div className="mt-auto pt-3">
+                {canEdit && event.sites.length > 0 ? (
+                    <SelectInput
+                        icon={Store}
+                        value={h.event_site_id ? String(h.event_site_id) : ''}
+                        onChange={(e) => assign(e.target.value)}
+                        disabled={saving}
+                        aria-label={`Point de vente de ${h.name}`}
+                        className={cn('h-9 text-xs sm:text-xs', !h.event_site_id && 'border-amber-300 text-amber-700')}
+                    >
+                        <option value="">À placer</option>
+                        {event.sites.map((s) => (
+                            <option key={s.id} value={s.id}>
+                                {s.name}
+                            </option>
+                        ))}
+                    </SelectInput>
+                ) : (
+                    <p className={cn('flex items-center gap-1.5 text-xs', h.site_name ? 'text-slate-600 dark:text-slate-300' : 'text-amber-600')}>
+                        <Store className="size-3.5" />
+                        {h.site_name ?? 'Sans point de vente'}
+                    </p>
                 )}
             </div>
-        </div>
+        </article>
     );
 }
 
 export function TabHostesses({ event, availableHostesses }: Props) {
-    const [showForm, setShowForm] = useState(false);
-    const [addMode, setAddMode] = useState<'existing' | 'new'>('existing');
+    const [adding, setAdding] = useState(false);
+    const [target, setTarget] = useState<EventHostess | null>(null);
+    const [removing, setRemoving] = useState(false);
 
     const canEdit = !['completed', 'archived'].includes(event.status);
+    const count = event.hostesses.length;
+    const unplaced = event.hostesses.filter((h) => !h.event_site_id).length;
 
-    const { data, setData, post, processing, reset, errors } = useForm({
-        user_id:       '',
-        event_site_id: '',
-        name:          '',
-        phone:         '',
-        password:      '',
-    });
+    const add = canEdit && (
+        <ActionButton icon={<UserPlus />} onClick={() => setAdding(true)}>
+            Ajouter une hôtesse
+        </ActionButton>
+    );
 
-    function submit(e: React.FormEvent) {
-        e.preventDefault();
-        post(hostessStore({ event: event.id }).url, {
-            // @ts-expect-error transform is supported by Inertia useForm
-            transform: (d: typeof data) => ({ ...d, mode: addMode }),
-            onSuccess: () => { reset(); setShowForm(false); },
+    const remove = () => {
+        if (!target) return;
+        router.delete(hostessDestroy({ event: event.id, hostess: target.id }).url, {
+            preserveScroll: true,
+            onStart: () => setRemoving(true),
+            onFinish: () => setRemoving(false),
+            onSuccess: () => setTarget(null),
         });
-    }
-
-    const activeCount   = event.hostesses.filter((h) => h.status === 'active').length;
-    const archivedCount = event.hostesses.filter((h) => h.status === 'archived').length;
+    };
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                {event.hostesses.length > 0 && (
-                    <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                            <span className="size-2 rounded-full bg-green-400" />
-                            {activeCount} active{activeCount > 1 ? 's' : ''}
-                        </span>
-                        {archivedCount > 0 && (
-                            <span className="flex items-center gap-1">
-                                <span className="size-2 rounded-full bg-slate-300" />
-                                {archivedCount} archivée{archivedCount > 1 ? 's' : ''}
-                            </span>
-                        )}
-                    </div>
-                )}
-                {canEdit && (
-                    <div className="ml-auto">
-                        <ActionButton icon={<UserPlus />} onClick={() => setShowForm(!showForm)} variant="secondary">
-                            Ajouter une hôtesse
-                        </ActionButton>
-                    </div>
-                )}
-            </div>
-
-            {showForm && (
-                <GlowCard contentClassName="p-5" className="max-w-2xl">
-                    {/* Mode tabs */}
-                    <div className="mb-4 flex gap-2">
-                        {(['existing', 'new'] as const).map((m) => (
-                            <button
-                                key={m}
-                                type="button"
-                                onClick={() => setAddMode(m)}
-                                className={cn(
-                                    'flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
-                                    addMode === m
-                                        ? 'border-motriks bg-motriks-soft text-motriks-deep'
-                                        : 'border-slate-200 text-slate-500 hover:border-slate-300',
-                                )}
-                            >
-                                {m === 'existing' ? 'Hôtesse existante' : 'Nouvelle hôtesse'}
-                            </button>
+            {count === 0 ? (
+                <TabEmpty icon={Users} title="Aucune hôtesse" text="Ajoutez des hôtesses de votre équipe ou recrutez-en pour cet événement, puis placez-les sur un point de vente." action={add} />
+            ) : (
+                <>
+                    <TabToolbar
+                        summary={
+                            <>
+                                {count} hôtesse{count > 1 ? 's' : ''}
+                                {unplaced > 0 && canEdit && <span className="font-medium text-amber-600"> · {unplaced} à placer</span>}
+                            </>
+                        }
+                        action={add}
+                    />
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {event.hostesses.map((h) => (
+                            <HostessCard key={h.id} h={h} event={event} canEdit={canEdit} onRemove={() => setTarget(h)} />
                         ))}
                     </div>
-
-                    <form onSubmit={submit} className="flex flex-col gap-3">
-                        {addMode === 'existing' ? (
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-sm font-semibold text-ink">Hôtesse</label>
-                                {availableHostesses.length === 0 ? (
-                                    <p className="rounded-lg bg-slate-50 p-3 text-sm italic text-slate-400">
-                                        Aucune hôtesse disponible à recruter.
-                                    </p>
-                                ) : (
-                                    <SelectInput
-                                        value={data.user_id}
-                                        onChange={(e) => setData('user_id', e.target.value)}
-                                        error={errors.user_id}
-                                    >
-                                        <option value="">-- Choisir --</option>
-                                        {availableHostesses.map((h) => (
-                                            <option key={h.id} value={h.id}>
-                                                {h.name}{h.phone ? ` — ${h.phone}` : ''}
-                                            </option>
-                                        ))}
-                                    </SelectInput>
-                                )}
-                            </div>
-                        ) : (
-                            <>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-sm font-semibold text-ink">Nom complet</label>
-                                        <TextInput
-                                            value={data.name}
-                                            onChange={(e) => setData('name', e.target.value)}
-                                            error={errors.name}
-                                            placeholder="Prénom Nom"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-sm font-semibold text-ink">Téléphone</label>
-                                        <TextInput
-                                            value={data.phone}
-                                            onChange={(e) => setData('phone', e.target.value)}
-                                            error={errors.phone}
-                                            placeholder="6XXXXXXXX"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-sm font-semibold text-ink">Mot de passe provisoire</label>
-                                    <TextInput
-                                        type="password"
-                                        value={data.password}
-                                        onChange={(e) => setData('password', e.target.value)}
-                                        error={errors.password}
-                                        placeholder="12 caractères min. (maj., chiffre, symbole)"
-                                    />
-                                </div>
-                            </>
-                        )}
-
-                        {event.sites.length > 0 && (
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-sm font-semibold text-ink">PDV assigné</label>
-                                <SelectInput
-                                    value={data.event_site_id}
-                                    onChange={(e) => setData('event_site_id', e.target.value)}
-                                >
-                                    <option value="">-- Aucun --</option>
-                                    {event.sites.map((s) => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
-                                    ))}
-                                </SelectInput>
-                            </div>
-                        )}
-
-                        <div className="flex justify-end gap-2 pt-1 border-t border-slate-100">
-                            <ActionButton type="button" variant="secondary" onClick={() => setShowForm(false)}>
-                                Annuler
-                            </ActionButton>
-                            <ActionButton type="submit" icon={<UserPlus />} loading={processing}>
-                                Ajouter
-                            </ActionButton>
-                        </div>
-                    </form>
-                </GlowCard>
+                </>
             )}
 
-            {event.hostesses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-16 text-center">
-                    <div className="flex size-12 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
-                        <Users className="size-6 text-purple-400" />
-                    </div>
-                    <p className="mt-4 text-sm font-bold text-slate-700">Aucune hôtesse</p>
-                    <p className="mt-1 max-w-xs text-xs text-slate-400">
-                        Recrutez des hôtesses existantes ou créez de nouveaux comptes pour cet événement.
-                    </p>
-                </div>
-            ) : (
-                <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-                    {event.hostesses.map((h) => (
-                        <HostessCard
-                            key={h.id}
-                            h={h}
-                            canEdit={canEdit}
-                            onDelete={() => router.delete(hostessDestroy({ event: event.id, hostess: h.id }).url)}
-                        />
-                    ))}
-                </div>
-            )}
+            {adding && <AddHostessModal event={event} available={availableHostesses} onClose={() => setAdding(false)} />}
+
+            <ConfirmDialog
+                open={target !== null}
+                onOpenChange={(open) => !open && setTarget(null)}
+                title={`Retirer ${target?.name ?? ''} ?`}
+                description={target?.recruited_for_event ? 'Elle est retirée de l’événement. Son compte, créé pour l’occasion, reste dans votre personnel.' : 'Elle est retirée de l’événement ; son compte n’est pas modifié.'}
+                confirmLabel="Retirer"
+                loading={removing}
+                onConfirm={remove}
+            />
         </div>
     );
 }

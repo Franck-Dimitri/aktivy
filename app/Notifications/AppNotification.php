@@ -6,19 +6,26 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Str;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 /**
- * Notification de l'application : affichée sous la cloche, et envoyée par e-mail
- * aux destinataires qui ont une adresse (sauf si la notification est réservée à la cloche).
+ * Notification de l'application : affichée sous la cloche (database), poussée sur les appareils où
+ * l'utilisateur a activé les notifications (WebPush), et envoyée par e-mail aux destinataires qui ont
+ * une adresse quand la notification le prévoit.
  */
 abstract class AppNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /** Envoyer aussi par e-mail. */
+    /** Envoyer aussi par e-mail (les notifications « temps réel » s'en tiennent à la cloche et au push). */
     protected bool $mail = true;
 
-    /** Catégorie, pour l'icône : incident, stock, ticket, attendance, reminder, signup (cf. resources/js/lib/notification-kinds.ts). */
+    /** Pousser sur les appareils abonnés (téléphone, ordinateur). */
+    protected bool $push = true;
+
+    /** Catégorie, pour l'icône (cf. resources/js/lib/notification-kinds.ts). */
     abstract public function kind(): string;
 
     abstract public function title(): string;
@@ -30,7 +37,34 @@ abstract class AppNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return $this->mail && filled($notifiable->email ?? null) ? ['database', 'mail'] : ['database'];
+        $channels = ['database'];
+
+        if ($this->push && method_exists($notifiable, 'pushSubscriptions') && $notifiable->pushSubscriptions()->exists()) {
+            $channels[] = WebPushChannel::class;
+        }
+
+        if ($this->mail && filled($notifiable->email ?? null)) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
+    }
+
+    /** Notification système : titre et corps courts, ouverture de la page concernée au toucher. */
+    public function toWebPush(object $notifiable, mixed $notification = null): WebPushMessage
+    {
+        [$name, $parameters] = $this->route() + [1 => []];
+
+        return (new WebPushMessage)
+            ->title(Str::limit($this->title(), 80))
+            ->body(Str::limit($this->body(), 180))
+            ->icon('/icon-192.png')
+            ->badge('/icon-192.png')
+            ->lang('fr')
+            // Même type, même cible : la nouvelle remplace l'ancienne au lieu de s'empiler
+            ->tag($this->kind())
+            ->data(['url' => route($name, $parameters, absolute: false)])
+            ->options(['TTL' => 86400, 'urgency' => in_array($this->kind(), ['incident', 'attendance', 'stock'], true) ? 'high' : 'normal']);
     }
 
     public function toArray(object $notifiable): array

@@ -10,6 +10,8 @@ use App\Models\Affectation;
 use App\Models\Company;
 use App\Models\Site;
 use App\Models\User;
+use App\Notifications\LiveNotification;
+use App\Support\Notifications\Notify;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -128,11 +130,17 @@ class AffectationController extends Controller
 
         $this->authorizeChoice($request, $validated['site_id'], $validated['user_id']);
 
-        $company->affectations()->create([
+        $affectation = $company->affectations()->create([
             ...$validated,
             'assigned_by' => $request->user()->id,
             'status'      => AffectationStatus::Active,
         ]);
+
+        // La personne affectée (hôtesse ou superviseur) l'apprend sur son téléphone
+        $affectation->load(['site:id,name', 'agent']);
+        if ($affectation->agent && $affectation->agent->id !== $request->user()->id) {
+            Notify::send($affectation->agent, LiveNotification::assignedToSite($affectation, $affectation->agent->hasRole(Role::FieldAgent)));
+        }
 
         return redirect()->route('affectations.index')
             ->with('success', 'Affectation créée.');

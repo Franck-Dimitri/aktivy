@@ -1,366 +1,403 @@
 import { router, useForm } from '@inertiajs/react';
-import { ChevronDown, ChevronUp, Gift, Package, PackagePlus, Plus, Trash2, X } from 'lucide-react';
-import { useState } from 'react';
-import InputError from '@/components/input-error';
-import { GlowCard } from '@/components/page/surface';
+import { Check, ChevronDown, Gift, Minus, Package, PackagePlus, Pencil, Plus, Tag, Trash2, X } from 'lucide-react';
+import { useCallback, useState, type FormEvent, type ReactNode } from 'react';
 import { ActionButton } from '@/components/page/buttons';
-import { TextInput, TextArea, SelectInput } from '@/components/page/form-fields';
+import { ConfirmDialog } from '@/components/page/confirm-dialog';
+import { Field, SelectInput, TextArea, TextInput, ToggleField } from '@/components/page/form-fields';
+import { Modal } from '@/components/page/modal';
+import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
-import { store as packStore, destroy as packDestroy } from '@/routes/events/packs';
+import { destroy as packDestroy, store as packStore, update as packUpdate } from '@/routes/events/packs';
+import { ModalFooter, ModeCards, TabEmpty, TabToolbar } from './tab-kit';
 import { formatMoney } from './types';
-import type { CompanyProduct, EventData } from './types';
+import type { CompanyProduct, EventData, EventPack } from './types';
 
-type PackLineForm = { product_id: string; quantity: number; role: 'paid' | 'free'; unit_price: string };
+type PackType = 'grouped_discount' | 'buy_get_free';
 type Props = { event: EventData; companyProducts: CompanyProduct[] };
-const EMPTY_LINE: PackLineForm = { product_id: '', quantity: 1, role: 'paid', unit_price: '' };
 
-const PACK_TYPE_CONFIG = {
-    grouped_discount: {
-        icon:       Package,
-        label:      'Bundle prix réduit',
-        accent:     'text-indigo-600',
-        bg:         'bg-indigo-50',
-        ring:       'ring-indigo-100',
-        strip:      'bg-indigo-500',
-        badge:      'bg-indigo-50 text-indigo-700 ring-indigo-100',
-    },
-    buy_get_free: {
-        icon:       Gift,
-        label:      'Acheté / offert',
-        accent:     'text-motriks',
-        bg:         'bg-motriks-soft',
-        ring:       'ring-green-100',
-        strip:      'bg-motriks',
-        badge:      'bg-motriks-soft text-motriks-deep ring-green-100',
-    },
+
+const TYPES: Record<PackType, { label: string; text: string; icon: typeof Package; tile: string }> = {
+    grouped_discount: { label: 'Lot à prix réduit', text: 'Plusieurs produits vendus ensemble à un prix unique.', icon: Package, tile: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10' },
+    buy_get_free: { label: 'Acheté / offert', text: 'Des produits payants, d’autres offerts (ex. 2 achetés, 1 offert).', icon: Gift, tile: 'bg-motriks-soft text-motriks-deep' },
 };
 
-function PackCard({ pack, canEdit, onDelete }: {
-    pack: EventData['packs'][0];
-    canEdit: boolean;
-    onDelete: () => void;
-}) {
-    const [expanded, setExpanded] = useState(false);
-    const cfg = PACK_TYPE_CONFIG[pack.type as keyof typeof PACK_TYPE_CONFIG];
-    const Icon = cfg.icon;
+type Item = { product_id: string; quantity: number; unit_price?: number | null };
+const EMPTY_ITEM: Item = { product_id: '', quantity: 1 };
 
+/** Une ligne produit : produit + quantité (− / +) + retrait. */
+function ItemRow({ item, products, onChange, onRemove, label, accent }: { item: Item; products: CompanyProduct[]; onChange: (patch: Partial<Item>) => void; onRemove?: () => void; label: string; accent?: boolean }) {
     return (
-        <div className={cn('overflow-hidden rounded-2xl bg-white ring-1', cfg.ring)}>
-            {/* Colored top strip */}
-            <div className={cn('h-1', cfg.strip)} />
-
-            {/* Header */}
-            <button
-                className="flex w-full flex-wrap items-center gap-3 px-5 py-4 text-left"
-                onClick={() => setExpanded(!expanded)}
-            >
-                <div className={cn('flex size-10 shrink-0 items-center justify-center rounded-xl ring-1', cfg.bg, cfg.ring)}>
-                    <Icon className={cn('size-5', cfg.accent)} />
-                </div>
-
-                <div className="min-w-0 grow basis-40">
-                    <p className="truncate text-sm font-bold text-slate-900">{pack.name}</p>
-                    <div className="mt-0.5 flex items-center gap-2">
-                        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1', cfg.badge)}>
-                            {cfg.label}
-                        </span>
-                        <span className="text-[11px] text-slate-400">
-                            {pack.lines.length} produit{pack.lines.length > 1 ? 's' : ''}
-                        </span>
-                    </div>
-                </div>
-
-                <div className="ml-auto flex shrink-0 items-center gap-2">
-                    {pack.price !== null && (
-                        <span className="text-base font-black whitespace-nowrap tabular-nums text-slate-800">
-                            {formatMoney(pack.price)}
-                            <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
-                        </span>
-                    )}
-                    {!pack.active && (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                            Inactif
-                        </span>
-                    )}
-                    {expanded
-                        ? <ChevronUp className="size-4 text-slate-400" />
-                        : <ChevronDown className="size-4 text-slate-400" />}
-                </div>
-            </button>
-
-            {/* Expanded detail */}
-            {expanded && (
-                <div className="border-t border-slate-100 px-5 pb-5 pt-4">
-                    {pack.description && (
-                        <p className="mb-4 text-sm text-slate-500">{pack.description}</p>
-                    )}
-
-                    <div className="flex flex-wrap gap-2">
-                        {pack.lines.map((l) => (
-                            <span
-                                key={l.id}
-                                className={cn(
-                                    'flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1',
-                                    l.role === 'free'
-                                        ? 'bg-green-50 text-green-700 ring-green-100'
-                                        : 'bg-slate-100 text-slate-600 ring-slate-200',
-                                )}
-                            >
-                                {l.role === 'free' && <Gift className="size-3" />}
-                                <span className="font-bold tabular-nums">{l.quantity}×</span>
-                                {l.product.name}
-                                {l.unit_price !== null && (
-                                    <span className="text-[10px] opacity-60">
-                                        {formatMoney(l.unit_price)} FCFA
-                                    </span>
-                                )}
-                                {l.role === 'free' && (
-                                    <span className="rounded-full bg-green-100 px-1 py-0.5 text-[9px] font-bold uppercase text-green-700">
-                                        offert
-                                    </span>
-                                )}
-                            </span>
-                        ))}
-                    </div>
-
-                    {canEdit && (
-                        <div className="mt-4 flex justify-end border-t border-slate-50 pt-3">
-                            <button
-                                onClick={onDelete}
-                                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-50 hover:text-red-600"
-                            >
-                                <Trash2 className="size-3.5" />
-                                Supprimer ce pack
-                            </button>
-                        </div>
-                    )}
-                </div>
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 p-2.5 last:border-0 sm:flex-nowrap dark:border-sidebar-border">
+            <div className="min-w-0 grow basis-full sm:basis-0">
+                <SelectInput value={item.product_id} onChange={(e) => onChange({ product_id: e.target.value })} aria-label={label} className="h-10">
+                    <option value="">Choisir un produit…</option>
+                    {products.map((p) => (
+                        <option key={p.id} value={p.id}>
+                            {p.name}
+                        </option>
+                    ))}
+                </SelectInput>
+            </div>
+            <div className={cn('flex h-10 shrink-0 items-center rounded-xl border', accent ? 'border-motriks/30 bg-motriks-soft/40' : 'border-slate-200 dark:border-sidebar-border')} aria-label="Quantité">
+                <button type="button" onClick={() => onChange({ quantity: Math.max(1, item.quantity - 1) })} disabled={item.quantity <= 1} className="flex size-9 items-center justify-center text-slate-500 hover:text-ink disabled:opacity-40" aria-label="Moins">
+                    <Minus className="size-3.5" />
+                </button>
+                <span className="w-7 text-center text-sm font-semibold text-ink tabular-nums">{item.quantity}</span>
+                <button type="button" onClick={() => onChange({ quantity: item.quantity + 1 })} className="flex size-9 items-center justify-center text-slate-500 hover:text-ink" aria-label="Plus">
+                    <Plus className="size-3.5" />
+                </button>
+            </div>
+            {onRemove && (
+                <button type="button" onClick={onRemove} aria-label="Retirer la ligne" className="ml-auto flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 sm:ml-0">
+                    <X className="size-4" />
+                </button>
             )}
         </div>
     );
 }
 
-export function TabPacks({ event, companyProducts }: Props) {
-    const [showForm, setShowForm] = useState(false);
+/** Bloc de lignes avec titre et bouton d'ajout. */
+function ItemBlock({ title, hint, items, products, onChange, addLabel, accent, extra }: { title: ReactNode; hint?: string; items: Item[]; products: CompanyProduct[]; onChange: (items: Item[]) => void; addLabel: string; accent?: boolean; extra?: ReactNode }) {
+    return (
+        <div>
+            <div className="mb-2 flex items-end justify-between gap-3">
+                <div>
+                    <p className="text-sm font-semibold text-ink">{title}</p>
+                    {hint && <p className="text-xs text-slate-500">{hint}</p>}
+                </div>
+                {extra}
+            </div>
+            <div className={cn('overflow-hidden rounded-xl border', accent ? 'border-motriks/25' : 'border-slate-200 dark:border-sidebar-border')}>
+                {items.map((item, i) => (
+                    <ItemRow
+                        key={i}
+                        item={item}
+                        products={products}
+                        label={`${addLabel} ${i + 1}`}
+                        accent={accent}
+                        onChange={(patch) => onChange(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)))}
+                        onRemove={items.length > 1 ? () => onChange(items.filter((_, idx) => idx !== i)) : undefined}
+                    />
+                ))}
+                <button
+                    type="button"
+                    onClick={() => onChange([...items, { ...EMPTY_ITEM }])}
+                    className={cn('flex w-full items-center justify-center gap-1.5 py-2.5 text-xs font-semibold transition-colors', accent ? 'bg-motriks-soft/40 text-motriks-deep hover:bg-motriks-soft/70' : 'bg-slate-50/70 text-motriks-deep hover:bg-motriks-soft/60 dark:bg-white/[0.02]')}
+                >
+                    <Plus className="size-3.5" />
+                    {addLabel}
+                </button>
+            </div>
+        </div>
+    );
+}
 
-    const canEdit = !['completed', 'archived'].includes(event.status);
+/** « 2 Jus mangue » / « 2 Jus mangue et 1 Biscuits » */
+function listItems(items: Item[], name: (id: string) => string | undefined): string {
+    const parts = items.filter((i) => i.product_id).map((i) => `${i.quantity} ${name(i.product_id) ?? '…'}`);
+    return parts.length <= 1 ? (parts[0] ?? '') : `${parts.slice(0, -1).join(', ')} et ${parts[parts.length - 1]}`;
+}
 
-    const { data, setData, post, processing, reset, errors, clearErrors, transform } = useForm<{
-        name: string;
-        description: string;
-        type: 'grouped_discount' | 'buy_get_free';
-        price: string;
-        lines: PackLineForm[];
-    }>({
-        name:        '',
-        description: '',
-        type:        'grouped_discount',
-        price:       '',
-        lines:       [{ ...EMPTY_LINE }],
+/** Lignes d'un pack enregistré, au format du formulaire. */
+const toItems = (lines: EventPack['lines']): Item[] => lines.map((l) => ({ product_id: String(l.product_id), quantity: l.quantity, unit_price: l.unit_price }));
+
+/**
+ * Création ou modification d'un pack d'événement : lot à prix réduit, ou offre « acheté / offert »
+ * (X achetés, Y offerts). En modification, le formulaire part du pack enregistré.
+ */
+function PackModal({ event, products, pack, onClose }: { event: EventData; products: CompanyProduct[]; pack?: EventPack; onClose: () => void }) {
+    const paid = pack ? toItems(pack.lines.filter((l) => l.role === 'paid')) : [];
+    const gift = pack ? toItems(pack.lines.filter((l) => l.role === 'free')) : [];
+    const { data, setData, post, put, processing, errors, transform } = useForm<{ name: string; description: string; type: PackType; price: string; active: boolean; lines: Item[]; buy: Item[]; free: Item[] }>({
+        name: pack?.name ?? '',
+        description: pack?.description ?? '',
+        type: pack?.type ?? 'buy_get_free',
+        price: pack?.price != null ? String(pack.price) : '',
+        active: pack?.active ?? true,
+        lines: pack?.type === 'grouped_discount' && paid.length ? paid : [{ ...EMPTY_ITEM }],
+        buy: pack?.type === 'buy_get_free' && paid.length ? paid : [{ product_id: '', quantity: 2 }],
+        free: pack?.type === 'buy_get_free' && gift.length ? gift : [{ ...EMPTY_ITEM }],
     });
 
-    function addLine() { setData('lines', [...data.lines, { ...EMPTY_LINE }]); }
-    function removeLine(i: number) { setData('lines', data.lines.filter((_, idx) => idx !== i)); }
-    function updateLine(i: number, field: keyof PackLineForm, value: string | number) {
-        const lines = [...data.lines];
-        lines[i] = { ...lines[i], [field]: value };
-        setData('lines', lines);
-    }
-    function submit(e: React.FormEvent) {
-        e.preventDefault();
-        transform((d) => ({
-            ...d,
-            price: d.type === 'grouped_discount' && d.price !== '' ? Number(d.price) : null,
-            lines: d.lines.map((l) => ({
-                ...l,
-                product_id: l.product_id !== '' ? Number(l.product_id) : null,
-                // un bundle ne contient que des produits payants
-                role: d.type === 'grouped_discount' ? 'paid' : l.role,
-                unit_price: l.unit_price !== '' ? Number(l.unit_price) : null,
-            })),
-        }));
-        post(packStore({ event: event.id }).url, {
-            preserveScroll: true,
-            onSuccess: () => { reset(); clearErrors(); setShowForm(false); },
-        });
-    }
+    const close = useCallback(() => !processing && onClose(), [processing, onClose]);
+    const name = (id: string) => products.find((p) => String(p.id) === id)?.name;
 
-    const cfg = PACK_TYPE_CONFIG[data.type];
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        transform((d) => {
+            // Le prix unitaire éventuel d'une ligne existante est conservé
+            const line = (i: Item, role: 'paid' | 'free') => ({ product_id: i.product_id ? Number(i.product_id) : null, quantity: i.quantity, role, unit_price: i.unit_price ?? null });
+            return {
+                name: d.name,
+                description: d.description,
+                type: d.type,
+                ...(pack ? { active: d.active } : {}),
+                price: d.type === 'grouped_discount' && d.price !== '' ? Number(d.price) : null,
+                lines:
+                    d.type === 'grouped_discount'
+                        ? d.lines.map((i) => line(i, 'paid'))
+                        : [...d.buy.map((i) => line(i, 'paid')), ...d.free.map((i) => line(i, 'free'))],
+            };
+        });
+        const options = { preserveScroll: true, onSuccess: onClose, onError: toastFormError };
+        if (pack) {
+            put(packUpdate({ event: event.id, pack: pack.id }).url, options);
+        } else {
+            post(packStore({ event: event.id }).url, options);
+        }
+    };
+
+    const lineErrors = [...new Set(Object.entries(errors).filter(([k]) => k === 'lines' || k.startsWith('lines.')).map(([, m]) => m))];
+
+    const isOffer = data.type === 'buy_get_free';
+    const buyReady = data.buy.some((i) => i.product_id);
+    const freeReady = data.free.some((i) => i.product_id);
+    const canSubmit = data.name.trim() !== '' && (isOffer ? buyReady && freeReady : data.lines.some((i) => i.product_id) && data.price !== '');
+
+    // « Achetez 2 Jus mangue, le 3e offert » quand achat et cadeau portent sur un seul et même produit
+    const single = isOffer && data.buy.filter((i) => i.product_id).length === 1 && data.free.filter((i) => i.product_id).length === 1 && data.buy.find((i) => i.product_id)!.product_id === data.free.find((i) => i.product_id)!.product_id;
+    const offerSentence = !isOffer
+        ? ''
+        : single
+          ? (() => {
+                const b = data.buy.find((i) => i.product_id)!;
+                const f = data.free.find((i) => i.product_id)!;
+                return f.quantity === 1 ? `Achetez ${b.quantity} ${name(b.product_id)}, le ${b.quantity + 1}e offert` : `Achetez ${b.quantity} ${name(b.product_id)}, recevez-en ${f.quantity} de plus offerts`;
+            })()
+          : buyReady && freeReady
+            ? `Achetez ${listItems(data.buy, name)}, recevez ${listItems(data.free, name)} offert${data.free.reduce((n, i) => n + (i.product_id ? i.quantity : 0), 0) > 1 ? 's' : ''}`
+            : '';
+
+    const sameAsBuy = () => {
+        const first = data.buy.find((i) => i.product_id);
+        if (first) setData('free', [{ product_id: first.product_id, quantity: data.free[0]?.quantity ?? 1 }]);
+    };
 
     return (
-        <div className="flex flex-col gap-4">
-            {canEdit && (
-                <div className="flex justify-end">
-                    <ActionButton icon={<PackagePlus />} onClick={() => setShowForm(!showForm)} variant="secondary">
-                        Créer un pack
-                    </ActionButton>
-                </div>
-            )}
+        <Modal onClose={close} title={pack ? 'Modifier le pack' : 'Créer un pack'} description={pack ? `« ${pack.name} »` : 'Une offre promotionnelle vendue par les hôtesses.'} size="lg" icon={pack ? <Pencil /> : <PackagePlus />}>
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex flex-col gap-6 overflow-y-auto px-6 pt-3 pb-6">
+                    <ModeCards value={data.type} onChange={(t) => setData('type', t)} options={(Object.keys(TYPES) as PackType[]).map((t) => ({ value: t, title: TYPES[t].label, text: TYPES[t].text, icon: TYPES[t].icon }))} />
 
-            {showForm && (
-                <GlowCard contentClassName="p-5" className="max-w-2xl">
-                    {/* Type selector */}
-                    <div className="mb-5 grid grid-cols-2 gap-2">
-                        {(['grouped_discount', 'buy_get_free'] as const).map((t) => {
-                            const c = PACK_TYPE_CONFIG[t];
-                            const Icon = c.icon;
-                            const selected = data.type === t;
-                            return (
-                                <button
-                                    key={t}
-                                    type="button"
-                                    onClick={() => setData('type', t)}
-                                    className={cn(
-                                        'flex items-center gap-2 rounded-xl border p-3 text-left text-sm font-medium transition-colors',
-                                        selected
-                                            ? cn('border-transparent ring-1', c.bg, c.ring, c.accent)
-                                            : 'border-slate-200 text-slate-500 hover:border-slate-300',
-                                    )}
-                                >
-                                    <Icon className={cn('size-4 shrink-0', selected ? c.accent : 'text-slate-400')} />
-                                    <span className="text-xs leading-tight">{c.label}</span>
-                                </button>
-                            );
-                        })}
+                    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_180px]">
+                        <Field label="Nom du pack" htmlFor="p-name" required error={errors.name} className={isOffer ? 'sm:col-span-2' : undefined}>
+                            <TextInput id="p-name" icon={Tag} value={data.name} onChange={(e) => setData('name', e.target.value)} placeholder={isOffer ? 'Ex. : 2 achetés, 1 offert' : 'Ex. : Pack Découverte'} error={errors.name} maxLength={255} autoFocus />
+                        </Field>
+                        {!isOffer && (
+                            <Field label="Prix du lot" htmlFor="p-price" required error={errors.price}>
+                                <TextInput
+                                    id="p-price"
+                                    inputMode="numeric"
+                                    value={data.price}
+                                    onChange={(e) => setData('price', e.target.value.replace(/[^\d]/g, ''))}
+                                    placeholder="0"
+                                    error={errors.price}
+                                    trailing={<span className="text-xs font-medium text-slate-400">FCFA</span>}
+                                    className="text-right tabular-nums"
+                                />
+                            </Field>
+                        )}
                     </div>
 
-                    <form onSubmit={submit} className="flex flex-col gap-4">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-sm font-semibold text-ink">Nom du pack</label>
-                                <TextInput
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    placeholder="ex. Pack Découverte"
-                                />
-                                <InputError message={errors.name} />
-                            </div>
-                            {data.type === 'grouped_discount' && (
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-sm font-semibold text-ink">Prix bundle (FCFA)</label>
-                                    <TextInput
-                                        type="number"
-                                        value={data.price}
-                                        onChange={(e) => setData('price', e.target.value)}
-                                        placeholder="0"
-                                    />
-                                    <InputError message={errors.price} />
-                                </div>
-                            )}
-                        </div>
+                    {isOffer ? (
+                        <div className="flex flex-col gap-3">
+                            <ItemBlock title="Le client achète" hint="Au prix habituel" items={data.buy} products={products} onChange={(buy) => setData('buy', buy)} addLabel="Ajouter un produit acheté" />
 
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-sm font-semibold text-ink">Description</label>
-                            <TextArea
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                                rows={2}
-                                placeholder="Optionnel"
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-semibold text-ink">Produits dans le pack</label>
-                                <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1', cfg.badge)}>
-                                    {data.lines.length} produit{data.lines.length > 1 ? 's' : ''}
+                            <div className="flex items-center justify-center" aria-hidden>
+                                <span className="flex size-8 items-center justify-center rounded-full bg-motriks text-white shadow-sm">
+                                    <Gift className="size-4" />
                                 </span>
                             </div>
 
-                            {data.lines.map((line, i) => (
-                                <div key={i} className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-2 sm:flex-nowrap">
-                                    <div className="min-w-0 grow basis-full sm:basis-0">
-                                        <SelectInput
-                                            value={line.product_id}
-                                            onChange={(e) => updateLine(i, 'product_id', e.target.value)}
-                                        >
-                                            <option value="">-- Produit --</option>
-                                            {companyProducts.map((p) => (
-                                                <option key={p.id} value={p.id}>{p.name}</option>
-                                            ))}
-                                        </SelectInput>
-                                    </div>
-                                    <TextInput
-                                        type="number"
-                                        value={line.quantity}
-                                        onChange={(e) => updateLine(i, 'quantity', Number(e.target.value))}
-                                        placeholder="Qté"
-                                        className="w-16"
-                                    />
-                                    {data.type === 'buy_get_free' && (
-                                        <SelectInput
-                                            value={line.role}
-                                            onChange={(e) => updateLine(i, 'role', e.target.value as 'paid' | 'free')}
-                                            className="w-28"
-                                        >
-                                            <option value="paid">Payant</option>
-                                            <option value="free">Offert</option>
-                                        </SelectInput>
-                                    )}
-                                    {data.lines.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeLine(i)}
-                                            className="ml-auto shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 sm:ml-0 pointer-coarse:p-2.5"
-                                        >
-                                            <X className="size-4" />
+                            <ItemBlock
+                                title="Il reçoit en cadeau"
+                                hint="Sortis du stock, sans être facturés"
+                                items={data.free}
+                                products={products}
+                                onChange={(free) => setData('free', free)}
+                                addLabel="Ajouter un produit offert"
+                                accent
+                                extra={
+                                    buyReady && (
+                                        <button type="button" onClick={sameAsBuy} className="shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-motriks-deep transition-colors hover:bg-motriks-soft">
+                                            Même produit
                                         </button>
-                                    )}
-                                </div>
-                            ))}
-
-                            <button
-                                type="button"
-                                onClick={addLine}
-                                className={cn('flex items-center gap-1.5 text-xs font-semibold hover:underline', cfg.accent)}
-                            >
-                                <Plus className="size-3.5" /> Ajouter un produit
-                            </button>
-
-                            {/* Erreurs des produits du pack (ligne par ligne, sans doublons) */}
-                            {[...new Set(
-                                Object.entries(errors)
-                                    .filter(([key]) => key === 'lines' || key.startsWith('lines.'))
-                                    .map(([, message]) => message),
-                            )].map((message) => (
-                                <InputError key={message} message={message} />
-                            ))}
+                                    )
+                                }
+                            />
                         </div>
+                    ) : (
+                        <ItemBlock title="Produits du lot" hint="Vendus ensemble au prix du lot" items={data.lines} products={products} onChange={(lines) => setData('lines', lines)} addLabel="Ajouter un produit" />
+                    )}
 
-                        <div className="flex justify-end gap-2 pt-1 border-t border-slate-100">
-                            <ActionButton type="button" variant="secondary" onClick={() => setShowForm(false)}>
-                                Annuler
-                            </ActionButton>
-                            <ActionButton type="submit" icon={<PackagePlus />} loading={processing}>
-                                Créer le pack
-                            </ActionButton>
-                        </div>
-                    </form>
-                </GlowCard>
-            )}
-
-            {event.packs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-16 text-center">
-                    <div className="flex size-12 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
-                        <Package className="size-6 text-indigo-400" />
-                    </div>
-                    <p className="mt-4 text-sm font-bold text-slate-700">Aucun pack produit</p>
-                    <p className="mt-1 max-w-xs text-xs text-slate-400">
-                        Créez des bundles à prix réduit ou des offres "acheté/offert" pour cet événement.
-                    </p>
-                </div>
-            ) : (
-                <div className="flex flex-col gap-3">
-                    {event.packs.map((pack) => (
-                        <PackCard
-                            key={pack.id}
-                            pack={pack}
-                            canEdit={canEdit}
-                            onDelete={() => router.delete(packDestroy({ event: event.id, pack: pack.id }).url)}
-                        />
+                    {lineErrors.map((m) => (
+                        <p key={m} role="alert" className="-mt-3 text-xs font-medium text-red-600">
+                            {m}
+                        </p>
                     ))}
+
+                    {(offerSentence || (!isOffer && data.lines.some((i) => i.product_id))) && (
+                        <div className="rounded-xl border border-slate-200/80 bg-slate-50 px-4 py-3.5 dark:border-sidebar-border dark:bg-white/[0.03]">
+                            <p className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">L’hôtesse proposera</p>
+                            <p className="mt-1 text-[15px] font-semibold text-ink">
+                                {isOffer ? (
+                                    offerSentence
+                                ) : (
+                                    <>
+                                        {listItems(data.lines, name)}
+                                        {data.price && <span className="text-motriks-deep"> pour {formatMoney(Number(data.price))} FCFA</span>}
+                                    </>
+                                )}
+                            </p>
+                        </div>
+                    )}
+
+                    <Field label="Description" htmlFor="p-desc" hint="(optionnel)" error={errors.description}>
+                        <TextArea id="p-desc" rows={2} value={data.description} onChange={(e) => setData('description', e.target.value)} placeholder="Argumentaire pour les hôtesses, conditions…" error={errors.description} maxLength={1000} />
+                    </Field>
+
+                    {pack && (
+                        <>
+                            <ToggleField
+                                checked={data.active}
+                                onChange={(v) => setData('active', v)}
+                                label="Pack proposé aux hôtesses"
+                                description={data.active ? 'Les hôtesses peuvent le vendre.' : 'Masqué dans leur saisie : il ne peut plus être vendu.'}
+                            />
+                            {event.status === 'active' && (
+                                <p className="-mt-2 text-xs leading-relaxed text-slate-500">L’événement est en cours : les ventes déjà déclarées gardent l’offre d’origine, la nouvelle s’applique aux prochaines saisies.</p>
+                            )}
+                        </>
+                    )}
+                </div>
+                <ModalFooter onCancel={close} processing={processing} submitLabel={pack ? 'Enregistrer' : 'Créer le pack'} icon={pack ? <Check /> : <PackagePlus />} disabled={!canSubmit} />
+            </form>
+        </Modal>
+    );
+}
+
+function PackCard({ pack, canEdit, onEdit, onDelete }: { pack: EventPack; canEdit: boolean; onEdit: () => void; onDelete: () => void }) {
+    const [open, setOpen] = useState(false);
+    const t = TYPES[pack.type] ?? TYPES.grouped_discount;
+    const Icon = t.icon;
+
+    return (
+        <article className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] dark:border-sidebar-border dark:bg-card">
+            <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-slate-50/60 sm:px-5 dark:hover:bg-white/[0.02]">
+                <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-xl', t.tile)}>
+                    <Icon className="size-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="truncate text-sm font-semibold text-ink">{pack.name}</span>
+                        {!pack.active && <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:bg-white/5">Inactif</span>}
+                    </span>
+                    <span className="block truncate text-xs text-slate-500">
+                        {t.label} ·{' '}
+                        {pack.type === 'buy_get_free'
+                            ? (() => {
+                                  const paid = pack.lines.filter((l) => l.role === 'paid').reduce((n, l) => n + l.quantity, 0);
+                                  const free = pack.lines.filter((l) => l.role === 'free').reduce((n, l) => n + l.quantity, 0);
+                                  return `${paid} acheté${paid > 1 ? 's' : ''} · ${free} offert${free > 1 ? 's' : ''}`;
+                              })()
+                            : `${pack.lines.length} produit${pack.lines.length > 1 ? 's' : ''}`}
+                    </span>
+                </span>
+                {pack.price !== null && (
+                    <span className="shrink-0 text-sm font-semibold whitespace-nowrap text-ink tabular-nums">
+                        {formatMoney(pack.price)} <span className="text-xs font-medium text-slate-400">FCFA</span>
+                    </span>
+                )}
+                <ChevronDown className={cn('size-4 shrink-0 text-slate-400 transition-transform', open && 'rotate-180')} />
+            </button>
+
+            {open && (
+                <div className="border-t border-slate-100 px-4 py-4 sm:px-5 dark:border-sidebar-border">
+                    {pack.description && <p className="mb-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{pack.description}</p>}
+                    <ul className="flex flex-col gap-1.5">
+                        {pack.lines.map((l) => (
+                            <li key={l.id} className="flex items-center gap-2 text-sm">
+                                <span className="w-8 shrink-0 font-semibold text-ink tabular-nums">{l.quantity} ×</span>
+                                <span className="min-w-0 flex-1 truncate text-slate-700 dark:text-slate-300">{l.product.name}</span>
+                                {l.role === 'free' ? (
+                                    <span className="inline-flex items-center gap-1 rounded-md bg-motriks-soft px-1.5 py-0.5 text-[10px] font-semibold text-motriks-deep">
+                                        <Gift className="size-3" />
+                                        Offert
+                                    </span>
+                                ) : (
+                                    l.unit_price !== null && <span className="text-xs text-slate-400 tabular-nums">{formatMoney(l.unit_price)} FCFA</span>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                    {canEdit && (
+                        <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-3 dark:border-sidebar-border">
+                            <ActionButton variant="ghost" size="sm" icon={<Trash2 />} onClick={onDelete} className="text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10">
+                                Supprimer
+                            </ActionButton>
+                            <ActionButton variant="secondary" size="sm" icon={<Pencil />} onClick={onEdit}>
+                                Modifier
+                            </ActionButton>
+                        </div>
+                    )}
                 </div>
             )}
+        </article>
+    );
+}
+
+export function TabPacks({ event, companyProducts }: Props) {
+    const [creating, setCreating] = useState(false);
+    const [editing, setEditing] = useState<EventPack | null>(null);
+    const [target, setTarget] = useState<EventPack | null>(null);
+    const [removing, setRemoving] = useState(false);
+
+    const canEdit = !['completed', 'archived'].includes(event.status);
+    const count = event.packs.length;
+
+    const add = canEdit && (
+        <ActionButton icon={<PackagePlus />} onClick={() => setCreating(true)}>
+            Créer un pack
+        </ActionButton>
+    );
+
+    const remove = () => {
+        if (!target) return;
+        router.delete(packDestroy({ event: event.id, pack: target.id }).url, {
+            preserveScroll: true,
+            onStart: () => setRemoving(true),
+            onFinish: () => setRemoving(false),
+            onSuccess: () => setTarget(null),
+        });
+    };
+
+    return (
+        <div className="flex flex-col gap-4">
+            {count === 0 ? (
+                <TabEmpty icon={Package} title="Aucun pack" text="Facultatif : créez des lots à prix réduit ou des offres « acheté / offert » que les hôtesses pourront vendre." action={add} />
+            ) : (
+                <>
+                    <TabToolbar summary={`${count} pack${count > 1 ? 's' : ''}`} action={add} />
+                    <div className="flex flex-col gap-3">
+                        {event.packs.map((pack) => (
+                            <PackCard key={pack.id} pack={pack} canEdit={canEdit} onEdit={() => setEditing(pack)} onDelete={() => setTarget(pack)} />
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {creating && <PackModal event={event} products={companyProducts} onClose={() => setCreating(false)} />}
+            {editing && <PackModal key={editing.id} event={event} products={companyProducts} pack={editing} onClose={() => setEditing(null)} />}
+
+            <ConfirmDialog
+                open={target !== null}
+                onOpenChange={(open) => !open && setTarget(null)}
+                title={`Supprimer « ${target?.name ?? ''} » ?`}
+                description="Le pack n’est plus proposé aux hôtesses. Les ventes déjà déclarées sont conservées."
+                confirmLabel="Supprimer"
+                loading={removing}
+                onConfirm={remove}
+            />
         </div>
     );
 }

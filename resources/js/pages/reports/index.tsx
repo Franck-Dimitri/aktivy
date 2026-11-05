@@ -1,18 +1,17 @@
 import { Head, router } from '@inertiajs/react';
-import { CalendarRange, FileDown, FileSpreadsheet, MapPin, Package, Target, UserRound, Zap } from 'lucide-react';
+import { CalendarRange, FileDown, FileSpreadsheet, MapPin, Package, UserRound, Zap } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { buttonClass } from '@/components/page/buttons';
 import { EmptyState } from '@/components/page/empty-state';
 import { SelectInput, TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { MetricStrip } from '@/components/page/surface';
-import { WeeklyTargetsModal } from '@/components/weekly-targets-modal';
 import { cn } from '@/lib/utils';
 import { exportMethod as exportRoute, index as reportsIndex, pdf as pdfRoute } from '@/routes/reports';
 import { EvolutionChart, type TimelinePoint } from './evolution-chart';
 import { day, money, number, signedPercent, variation } from './format';
 import { MonthlyTable, type MonthRow } from './monthly-table';
-import { TargetsPanel, type Targets } from './targets-panel';
+import { ReportTabs } from './report-tabs';
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -62,7 +61,6 @@ type Props = {
     previous: { from: string; to: string; totals: Props['totals'] };
     timeline: { granularity: string; points: TimelinePoint[] };
     monthly: MonthRow[];
-    targets: Targets;
     canEditTargets: boolean;
 };
 
@@ -140,7 +138,6 @@ function Breakdown({ title, icon: Icon, items, currency, dates = false }: {
 export default function ReportsIndex(props: Props) {
     const { options, currency, totals, lines, previous } = props;
     const [filters, setFilters] = useState<Filters>(props.filters);
-    const [weeklyOpen, setWeeklyOpen] = useState(false);
 
     const apply = (next: Filters) => {
         setFilters(next);
@@ -171,19 +168,13 @@ export default function ReportsIndex(props: Props) {
 
     return (
         <>
-            <Head title="Rapports" />
+            <Head title="Ventes" />
 
             <Page
-                title="Rapports"
+                title="Ventes & objectifs"
                 description="Ventes déclarées par vos hôtesses dans leurs rapports journaliers envoyés. Exportez-les en Excel pour votre comptabilité."
                 actions={
                     <div className="flex flex-wrap gap-2">
-                        {props.canEditTargets && (
-                            <button type="button" onClick={() => setWeeklyOpen(true)} className={buttonClass('secondary', 'md')}>
-                                <Target className="size-4" />
-                                Objectifs de la semaine
-                            </button>
-                        )}
                         <a href={pdfUrl} className={buttonClass('secondary', 'md')}>
                             <FileDown className="size-4" />
                             Synthèse PDF
@@ -195,6 +186,8 @@ export default function ReportsIndex(props: Props) {
                     </div>
                 }
             >
+                <ReportTabs active="sales" />
+
                 {/* ── Filtres ── */}
                 <Panel>
                     <form onSubmit={submit} className="flex flex-col gap-4 p-4 sm:p-5">
@@ -267,8 +260,6 @@ export default function ReportsIndex(props: Props) {
                 <p className="-mt-3 text-xs text-slate-400">
                     Période précédente : du {day(previous.from)} au {day(previous.to)}.
                 </p>
-
-                <TargetsPanel targets={props.targets} currency={currency} canEdit={props.canEditTargets} />
 
                 {hasHistory && (
                     <EvolutionChart
@@ -347,7 +338,6 @@ export default function ReportsIndex(props: Props) {
                 )}
             </Page>
 
-            {weeklyOpen && <WeeklyTargetsModal onClose={() => setWeeklyOpen(false)} />}
         </>
     );
 }

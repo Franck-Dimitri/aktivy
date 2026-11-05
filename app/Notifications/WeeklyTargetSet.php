@@ -36,7 +36,7 @@ class WeeklyTargetSet extends AppNotification
         $isCurrent = $start->equalTo(WeeklyTarget::weekOf(CarbonImmutable::now()));
         $when = $isCurrent ? 'cette semaine' : 'la semaine du '.$start->locale('fr')->translatedFormat('j F');
 
-        return 'Objectif '.$when.' : '.PdfDocument::money($this->amount, $this->currency).' de ventes. Bonne semaine !';
+        return 'À partir de '.$when.' : '.PdfDocument::money($this->amount, $this->currency).' de ventes par semaine. Bonne semaine !';
     }
 
     protected function route(): array

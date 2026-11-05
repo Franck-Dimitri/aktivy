@@ -8,7 +8,9 @@ use App\Models\DailyReportLine;
 use App\Models\DailyReportPhoto;
 use App\Models\StockMovement;
 use App\Notifications\IncidentReported;
+use App\Notifications\LiveNotification;
 use App\Support\Incident;
+use App\Support\Targets\TargetReachedCheck;
 use App\Support\Notifications\Notify;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
@@ -189,6 +191,11 @@ class DailyReportController extends Controller
                 $this->notifyIncident($report);
             }
         });
+
+        // Rapport envoyé : les responsables du site en sont prévenus ; objectif peut-être atteint
+        $report->load(['agent', 'site:id,name', 'lines']);
+        Notify::send(Notify::siteManagers($report->company_id, [$report->site_id]), LiveNotification::reportSubmitted($report));
+        TargetReachedCheck::afterSubmit($report);
 
         return redirect()->route('terrain.home')
             ->with('success', 'Rapport soumis avec succès. Bonne fin de journée !');

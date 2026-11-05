@@ -43,7 +43,7 @@ class WeeklyTargets
             ->visibleTo($manager)
             ->where(fn ($q) => $q
                 ->whereHas('affectations', fn ($a) => $a->ongoing()->when($siteIds !== null, fn ($a) => $a->whereIn('site_id', $siteIds)))
-                ->orWhereIn('id', WeeklyTarget::where('week_start', $weekStart->toDateString())->select('user_id')));
+                ->orWhereIn('id', WeeklyTarget::whereDate('week_start', '<=', $weekStart->toDateString())->where('amount', '>', 0)->select('user_id')));
     }
 
     /**
@@ -63,7 +63,8 @@ class WeeklyTargets
         return [
             'week_start' => $weekStart->toDateString(),
             'hostesses' => $ids->count(),
-            'with_target' => WeeklyTarget::where('week_start', $weekStart->toDateString())->whereIn('user_id', $ids)->count(),
+            // Objectifs en vigueur cette semaine, y compris ceux reconduits des semaines précédentes
+            'with_target' => WeeklyTarget::effective($ids, $weekStart)->count(),
         ];
     }
 }

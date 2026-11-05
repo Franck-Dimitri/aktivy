@@ -6,6 +6,8 @@ use App\Enums\Role;
 use App\Models\DailyReport;
 use App\Models\DailyReportPhoto;
 use App\Models\Visit;
+use App\Notifications\LiveNotification;
+use App\Support\Notifications\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -41,6 +43,10 @@ class ReportPhotoController extends Controller
             'caption' => $validated['caption'] ?? null,
             'size' => $file->getSize(),
         ]);
+
+        // Preuve photo : les responsables du site la voient arriver
+        $report->loadMissing(['agent', 'site:id,name']);
+        Notify::send(Notify::siteManagers($report->company_id, [$report->site_id]), LiveNotification::photoAdded($report, $validated['caption'] ?? null));
 
         return back()->with('success', 'Photo ajoutée.');
     }

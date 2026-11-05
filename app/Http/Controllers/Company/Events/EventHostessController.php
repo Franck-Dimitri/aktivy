@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventHostess;
 use App\Models\User;
+use App\Notifications\LiveNotification;
+use App\Support\Notifications\Notify;
 use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,17 +44,15 @@ class EventHostessController extends Controller
             'event_site_id' => ['nullable', 'integer', "exists:event_sites,id,event_id,{$event->id}"],
         ]);
 
-        abort_if(
-            $event->hostesses()->where('user_id', $data['user_id'])->exists(),
-            422,
-            'Cette hôtesse est déjà dans l\'événement.'
-        );
+        if ($event->hostesses()->where('user_id', $data['user_id'])->exists()) {
+            return back()->withErrors(['user_id' => 'Cette hôtesse est déjà dans l’événement.']);
+        }
 
-        $event->hostesses()->create([
+        $this->notifyAssigned($event, $event->hostesses()->create([
             'user_id'              => $data['user_id'],
             'event_site_id'        => $data['event_site_id'] ?? null,
             'recruited_for_event'  => false,
-        ]);
+        ]));
 
         return back()->with('success', 'Hôtesse ajoutée à l\'événement.');
     }
@@ -84,11 +84,12 @@ class EventHostessController extends Controller
             'must_change_password' => true,
         ]);
 
-        $event->hostesses()->create([
+        // Visible sous sa cloche dès sa première connexion
+        $this->notifyAssigned($event, $event->hostesses()->create([
             'user_id'              => $user->id,
             'event_site_id'        => $data['event_site_id'] ?? null,
             'recruited_for_event'  => true,
-        ]);
+        ]));
 
         return back()->with('success', 'Hôtesse créée et ajoutée à l\'événement.');
     }
@@ -104,7 +105,20 @@ class EventHostessController extends Controller
 
         $hostess->update($data);
 
+        // Placée sur un (nouveau) point de vente de l'événement : elle est prévenue
+        if ($hostess->wasChanged('event_site_id') && $hostess->event_site_id) {
+            $this->notifyAssigned($event, $hostess);
+        }
+
         return back()->with('success', 'Affectation mise à jour.');
+    }
+
+    private function notifyAssigned(Event $event, EventHostess $hostess): void
+    {
+        $hostess->load(['user', 'eventSite.site']);
+        if ($hostess->user) {
+            Notify::send($hostess->user, LiveNotification::assignedToEvent($hostess, $event));
+        }
     }
 
     public function destroy(Request $request, Event $event, EventHostess $hostess): RedirectResponse

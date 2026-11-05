@@ -4,10 +4,13 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Enums\AccountStatus;
 use App\Enums\Role;
 use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\User;
+use App\Notifications\LiveNotification;
+use App\Support\Notifications\Notify;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -54,6 +57,12 @@ class CreateNewUser implements CreatesNewUsers
             ]);
 
             AuditLog::record('company.registered', $company, new: ['name' => $company->name], actor: $user);
+
+            // Le super-admin voit arriver les nouveaux comptes (envoyé une fois la transaction validée)
+            $admins = User::where('role', Role::SuperAdmin)->where('status', AccountStatus::Active)->get();
+            if ($admins->isNotEmpty()) {
+                Notify::send($admins, LiveNotification::companyRegistered($company, $user));
+            }
 
             return $user;
         });

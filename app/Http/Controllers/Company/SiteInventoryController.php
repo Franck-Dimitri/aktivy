@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers\Company;
 
+use App\Enums\AccountStatus;
+use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Models\DailyReportLine;
 use App\Models\Site;
 use App\Models\SiteProduct;
 use App\Models\StockMovement;
+use App\Models\User;
+use App\Notifications\LiveNotification;
+use App\Support\Notifications\Notify;
 use App\Support\Stock\StockLedger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,6 +92,16 @@ class SiteInventoryController extends Controller
         ]);
 
         StockLedger::move($inventory->id, $validated['quantity'], StockMovement::RESTOCK, $request->user(), notes: $validated['notes'] ?? null);
+
+        // Les hôtesses du site voient la livraison arrivée, sur leur téléphone
+        $inventory->refresh()->loadMissing(['product:id,name,unit', 'site:id,name']);
+        $hostesses = User::where('role', Role::FieldAgent)
+            ->where('status', AccountStatus::Active)
+            ->whereHas('affectations', fn ($a) => $a->current()->where('site_id', $site->id))
+            ->get();
+        if ($hostesses->isNotEmpty()) {
+            Notify::send($hostesses, LiveNotification::restocked($inventory, $validated['quantity']));
+        }
 
         return back()->with('success', "Réassort de {$validated['quantity']} enregistré.");
     }

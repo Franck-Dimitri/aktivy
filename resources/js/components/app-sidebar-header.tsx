@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LogOut, Settings, User } from 'lucide-react';
+import { ChevronLeft, LogOut, Settings, User } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NotificationBell } from '@/components/notification-bell';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -14,6 +14,7 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useLogoutDialog } from '@/components/logout-dialog';
 import { roleLabels } from '@/lib/navigation';
+import { toUrl } from '@/lib/utils';
 import { edit as profileEdit } from '@/routes/profile';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
@@ -39,16 +40,38 @@ function initials(name: string): string {
 
 export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
     const { auth } = usePage().props;
+    const currentUrl = usePage().url;
     const { ask, dialog } = useLogoutDialog();
+    // Page parente : le dernier élément du fil d'Ariane dont la page actuelle est une sous-page
+    // (/sites pour /sites/1). Les pages de premier niveau gardent le logo.
+    const currentPath = currentUrl.split('?')[0].replace(/\/$/, '');
+    const parent =
+        [...breadcrumbs].reverse().find((b) => {
+            if (!b.href) return false;
+            const path = toUrl(b.href).replace(/^https?:\/\/[^/]+/, '').split('?')[0].replace(/\/$/, '');
+            return path !== '' && path !== currentPath && currentPath.startsWith(`${path}/`);
+        }) ?? null;
 
     return (
         <>
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-xl sm:px-6 dark:border-sidebar-border dark:bg-background/80">
             <div className="flex min-w-0 flex-1 items-center gap-2">
                 <SidebarTrigger className="-ml-2 size-10 shrink-0 text-slate-500 hover:bg-slate-100 md:-ml-1 md:size-7" />
-                <div className="flex min-w-0 items-center gap-1 md:hidden">
-                    <AppLogo />
-                </div>
+                {/* Téléphone (et application installée, sans bouton Retour du navigateur) : retour à la page parente */}
+                {parent ? (
+                    <Link
+                        href={parent.href}
+                        className="-ml-1 flex min-w-0 items-center gap-0.5 rounded-lg py-2 pr-2 text-sm font-semibold text-slate-700 transition-colors hover:text-ink md:hidden"
+                        aria-label={`Retour : ${parent.title}`}
+                    >
+                        <ChevronLeft className="size-5 shrink-0 text-slate-400" />
+                        <span className="truncate">{parent.title}</span>
+                    </Link>
+                ) : (
+                    <div className="flex min-w-0 items-center gap-1 md:hidden">
+                        <AppLogo />
+                    </div>
+                )}
                 <div className="hidden min-w-0 md:block">
                     <Breadcrumbs breadcrumbs={breadcrumbs} />
                 </div>

@@ -8,38 +8,40 @@ type Props = {
 };
 
 const TABS: { id: TabId; label: string; countKey?: keyof Props['counts'] }[] = [
-    { id: 'apercu',   label: 'Aperçu' },
-    { id: 'pdv',      label: 'Points de vente', countKey: 'pdv' },
-    { id: 'packs',    label: 'Packs produits',  countKey: 'packs' },
-    { id: 'hotesses', label: 'Hôtesses',        countKey: 'hotesses' },
-    { id: 'ventes',   label: 'Ventes',           countKey: 'ventes' },
+    { id: 'apercu', label: 'Aperçu' },
+    { id: 'pdv', label: 'Points de vente', countKey: 'pdv' },
+    { id: 'packs', label: 'Packs', countKey: 'packs' },
+    { id: 'hotesses', label: 'Hôtesses', countKey: 'hotesses' },
+    { id: 'ventes', label: 'Ventes', countKey: 'ventes' },
 ];
 
+/** Onglets soulignés, défilables sur mobile. */
 export function EventTabs({ active, onChange, counts }: Props) {
     return (
-        <div className="flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
+        <div role="tablist" aria-label="Rubriques de l’événement" className="-mx-4 flex gap-6 overflow-x-auto border-b border-slate-200 px-4 sm:mx-0 sm:px-0 dark:border-sidebar-border">
             {TABS.map((t) => {
-                const count = t.countKey !== undefined ? counts[t.countKey] : undefined;
+                const count = t.countKey ? counts[t.countKey] : undefined;
+                const selected = active === t.id;
+
                 return (
                     <button
                         key={t.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={selected}
                         onClick={() => onChange(t.id)}
                         className={cn(
-                            'flex shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                            active === t.id
-                                ? 'bg-white text-ink shadow-sm'
-                                : 'text-slate-500 hover:text-ink',
+                            'relative flex h-11 shrink-0 items-center gap-2 text-sm font-medium transition-colors focus-visible:outline-none',
+                            selected ? 'text-ink' : 'text-slate-500 hover:text-ink',
                         )}
                     >
                         {t.label}
-                        {count !== undefined && count > 0 && (
-                            <span className={cn(
-                                'flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-semibold',
-                                active === t.id ? 'bg-motriks text-white' : 'bg-slate-200 text-slate-500',
-                            )}>
+                        {count !== undefined && (
+                            <span className={cn('rounded-md px-1.5 text-[11px] font-semibold tabular-nums', selected ? 'bg-motriks-soft text-motriks-deep' : 'bg-slate-100 text-slate-500 dark:bg-white/5')}>
                                 {count}
                             </span>
                         )}
+                        <span aria-hidden className={cn('absolute inset-x-0 -bottom-px h-0.5 rounded-full transition-colors', selected ? 'bg-motriks' : 'bg-transparent')} />
                     </button>
                 );
             })}

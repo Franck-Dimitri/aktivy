@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\SiteProduct;
 use App\Models\StockMovement;
 use App\Models\User;
+use App\Notifications\LiveNotification;
 use App\Notifications\StockCritical;
 use App\Support\Notifications\Notify;
 use Illuminate\Support\Facades\DB;
@@ -63,13 +64,16 @@ class StockLedger
 
         $stock->update(['current_stock' => $after, 'updated_by' => $by?->id ?? $stock->updated_by]);
 
-        // Passage sous le seuil critique : les responsables du site sont prévenus (une fois, au franchissement)
-        if ($before > $stock->critical_threshold && $after <= $stock->critical_threshold
-            && Company::find($stock->company_id)?->hasModule(Module::Stocks)) {
+        // Passage sous un seuil : les responsables du site sont prévenus (une fois, au franchissement).
+        // Le seuil critique prime : un stock qui tombe d'un coup sous les deux n'envoie que l'alerte critique.
+        $crossesCritical = $before > $stock->critical_threshold && $after <= $stock->critical_threshold;
+        $crossesAlert = $before > $stock->alert_threshold && $after <= $stock->alert_threshold;
+
+        if (($crossesCritical || $crossesAlert) && Company::find($stock->company_id)?->hasModule(Module::Stocks)) {
             $stock->loadMissing(['product:id,name,unit', 'site:id,name']);
             Notify::send(
                 Notify::siteManagers($stock->company_id, [$stock->site_id]),
-                new StockCritical($stock, $after, $stock->critical_threshold),
+                $crossesCritical ? new StockCritical($stock, $after, $stock->critical_threshold) : LiveNotification::stockLow($stock, $after),
             );
         }
 

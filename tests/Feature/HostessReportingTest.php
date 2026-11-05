@@ -143,7 +143,7 @@ class HostessReportingTest extends TestCase
             'amount' => 100000,
         ])->assertSessionHasNoErrors();
 
-        $this->actingAs($manager)->get(route('reports.index'))
+        $this->actingAs($manager)->get(route('reports.objectives'))
             ->assertInertia(fn ($page) => $page
                 ->where('targets.hostesses.0.user_id', $agent->id)
                 ->where('targets.hostesses.0.target', 100000)

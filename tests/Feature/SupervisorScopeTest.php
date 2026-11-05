@@ -130,7 +130,7 @@ class SupervisorScopeTest extends TestCase
 
     public function test_reports_and_targets_are_limited_to_the_supervisors_sites()
     {
-        $this->actingAs($this->supervisor)->get(route('reports.index'))
+        $this->actingAs($this->supervisor)->get(route('reports.objectives'))
             ->assertInertia(fn ($page) => $page
                 ->where('targets.global', null)
                 ->has('targets.sites', 1)
@@ -171,7 +171,7 @@ class SupervisorScopeTest extends TestCase
         $this->actingAs($this->manager)->get(route('sites.index'))
             ->assertInertia(fn ($page) => $page->has('sites', 2)->where('auth.noSite', false));
 
-        $this->actingAs($this->manager)->get(route('reports.index'))
+        $this->actingAs($this->manager)->get(route('reports.objectives'))
             ->assertInertia(fn ($page) => $page->has('targets.hostesses', 2)->whereNot('targets.global', null));
     }
 }

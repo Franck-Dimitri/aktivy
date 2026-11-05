@@ -46,6 +46,47 @@ self.addEventListener('message', (event) => {
     }
 });
 
+/*
+ * Notifications push (WebPush) : chaque notification porte un titre, un texte court et l'adresse
+ * de la page concernée. Un toucher ouvre cette page, dans la fenêtre Motriks déjà ouverte s'il y en a une.
+ */
+self.addEventListener('push', (event) => {
+    let payload = {};
+    try {
+        payload = event.data ? event.data.json() : {};
+    } catch {
+        payload = { title: 'Motriks', body: event.data?.text() ?? '' };
+    }
+
+    const title = payload.title || 'Motriks';
+    event.waitUntil(
+        self.registration.showNotification(title, {
+            body: payload.body || '',
+            icon: payload.icon || '/icon-192.png',
+            badge: payload.badge || '/icon-192.png',
+            lang: payload.lang || 'fr',
+            tag: payload.tag,
+            renotify: Boolean(payload.tag),
+            data: { url: payload.data?.url || '/' },
+        }),
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const target = new URL(event.notification.data?.url || '/', self.location.origin).href;
+
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+            const open = windows.find((w) => new URL(w.url).origin === self.location.origin);
+            if (open) {
+                return open.focus().then((w) => (w && 'navigate' in w ? w.navigate(target) : undefined));
+            }
+            return self.clients.openWindow(target);
+        }),
+    );
+});
+
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);

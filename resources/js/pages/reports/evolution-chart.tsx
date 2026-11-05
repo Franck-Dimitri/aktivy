@@ -12,7 +12,7 @@ export type TimelinePoint = {
 
 // Période actuelle : vert Motriks plein ; période précédente : bleu en pointillé.
 // Couple validé (lisibilité, daltonisme, contraste) sur fond blanc.
-const CURRENT = '#3B6D11';
+const CURRENT = '#039855';
 const PREVIOUS = '#2a78d6';
 
 type TooltipProps = {

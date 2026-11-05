@@ -81,7 +81,10 @@ export function MetricRow({ items }: { items: Metric[] }) {
     );
 }
 
-/** Filtre segmenté avec compteurs. */
+/**
+ * Filtre segmenté avec compteurs. Sur téléphone, les options passent à la ligne et se partagent
+ * la largeur : toutes restent visibles (un défilement horizontal cachait les dernières).
+ */
 export function Segmented<T extends string>({
     value,
     onChange,
@@ -94,7 +97,7 @@ export function Segmented<T extends string>({
     label: string;
 }) {
     return (
-        <div role="tablist" aria-label={label} className="inline-flex max-w-full gap-0.5 overflow-x-auto rounded-xl bg-slate-100/80 p-1 dark:bg-white/5">
+        <div role="tablist" aria-label={label} className="flex w-full flex-wrap gap-0.5 rounded-xl bg-slate-100/80 p-1 sm:inline-flex sm:w-auto sm:max-w-full sm:flex-nowrap sm:overflow-x-auto dark:bg-white/5">
             {options.map((o) => {
                 const active = o.value === value;
                 return (
@@ -105,7 +108,7 @@ export function Segmented<T extends string>({
                         aria-selected={active}
                         onClick={() => onChange(o.value)}
                         className={cn(
-                            'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks/30 focus-visible:outline-none',
+                            'inline-flex h-9 grow basis-auto items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks/30 focus-visible:outline-none sm:h-8 sm:shrink-0 sm:grow-0',
                             active ? 'bg-white text-ink shadow-sm ring-1 ring-slate-900/5 dark:bg-card' : 'text-slate-500 hover:text-ink',
                         )}
                     >

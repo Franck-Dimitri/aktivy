@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Check, Pencil, Target, X } from 'lucide-react';
+import { Check, Pencil, Repeat, Target, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { ActionButton } from '@/components/page/buttons';
@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils';
 import { save as saveTarget } from '@/routes/reports/targets';
 import { monthName, money, number } from './format';
 
-type TargetLine = { actual: number; target: number | null; projection: number };
+/** since : mois (AAAA-MM-01) depuis lequel l'objectif est reconduit, null s'il a été fixé ce mois-ci. */
+type TargetLine = { actual: number; target: number | null; projection: number; since?: string | null };
 
 export type Targets = {
     month: string;
@@ -71,6 +72,12 @@ function TargetRow({ label, line, scope, currency, canEdit, prominent = false }:
                 <div className="flex min-w-0 items-center gap-2">
                     <span className={cn('truncate font-semibold text-ink', prominent ? 'text-base' : 'text-sm')}>{label}</span>
                     {status(line)}
+                    {line.target && line.since ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-motriks-soft px-1.5 py-0.5 text-[10px] font-semibold text-motriks-deep" title="Objectif reconduit automatiquement chaque mois">
+                            <Repeat className="size-3" />
+                            depuis {monthName(line.since).toLowerCase()}
+                        </span>
+                    ) : null}
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                     <span className="tabular-nums text-ink">
@@ -132,7 +139,7 @@ function TargetRow({ label, line, scope, currency, canEdit, prominent = false }:
                         <ActionButton type="submit" size="sm" icon={<Check />} loading={saving}>Enregistrer</ActionButton>
                         <ActionButton type="button" size="sm" variant="ghost" icon={<X />} onClick={() => setEditing(false)}>Annuler</ActionButton>
                     </div>
-                    <p className="text-xs text-slate-400">Laissez vide pour retirer l’objectif.</p>
+                    <p className="text-xs text-slate-400">Il reste en place les mois suivants tant que vous ne le changez pas. Laissez vide pour le retirer à partir de ce mois.</p>
                     <InputError message={error} />
                 </form>
             )}
@@ -148,7 +155,7 @@ export function TargetsPanel({ targets, currency, canEdit }: { targets: Targets;
     return (
         <Panel
             title={`Objectifs de ${monthName(targets.month).toLowerCase()}`}
-            description={`Jour ${targets.days_elapsed} sur ${targets.days_in_month} · indépendamment des filtres.`}
+            description={`Jour ${targets.days_elapsed} sur ${targets.days_in_month} · reconduits chaque mois jusqu’à modification · indépendamment des filtres.`}
             actions={<Target className="size-4 text-slate-300" />}
         >
             <ul className="divide-y divide-slate-100">

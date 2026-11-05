@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { CalendarRange, Eraser, History, Target, Users } from 'lucide-react';
+import { CalendarRange, Eraser, Repeat, Target, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
@@ -17,6 +17,8 @@ type Row = {
     sites: string[];
     target: number | null;
     actual: number;
+    /** Semaine depuis laquelle l'objectif est reconduit (null s'il a été fixé pour cette semaine). */
+    since: string | null;
     last_target: number | null;
     last_actual: number;
 };
@@ -76,12 +78,10 @@ export function WeeklyTargetsModal({ onClose, initialWeek = 'current' }: { onClo
     const filled = rows.filter((h) => Number(amounts[h.user_id]) > 0).length;
     const total = rows.reduce((s, h) => s + (Number(amounts[h.user_id]) || 0), 0);
     const dirty = useMemo(() => rows.some((h) => (Number(amounts[h.user_id]) || 0) !== (h.target ?? 0)), [rows, amounts]);
-    const canReuse = rows.some((h) => h.last_target);
     const cur = unit(data?.currency ?? 'XAF');
 
     const set = (id: number, v: string) => setAmounts((a) => ({ ...a, [id]: v.replace(/[^\d]/g, '') }));
 
-    const reuseLastWeek = () => setAmounts((a) => Object.fromEntries(rows.map((h) => [h.user_id, h.last_target ? String(h.last_target) : (a[h.user_id] ?? '')])));
     const applyToAll = () => Number(bulk) > 0 && setAmounts(Object.fromEntries(rows.map((h) => [h.user_id, bulk])));
     const clearAll = () => setAmounts(Object.fromEntries(rows.map((h) => [h.user_id, ''])));
 
@@ -95,7 +95,7 @@ export function WeeklyTargetsModal({ onClose, initialWeek = 'current' }: { onClo
                 onStart: () => setSaving(true),
                 onSuccess: () => {
                     toast.success('Objectifs enregistrés', {
-                        description: filled ? `${filled} hôtesse${filled > 1 ? 's sont prévenues' : ' est prévenue'} sous la cloche.` : 'Aucun objectif cette semaine.',
+                        description: filled ? 'Ils restent en place les semaines suivantes. Les hôtesses concernées par un changement sont prévenues.' : 'Plus aucun objectif à partir de cette semaine.',
                     });
                     onClose();
                 },
@@ -163,20 +163,18 @@ export function WeeklyTargetsModal({ onClose, initialWeek = 'current' }: { onClo
                         </div>
                     ) : (
                         <>
-                            {canReuse && (
-                                <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50/60 px-6 py-2.5 dark:border-sidebar-border dark:bg-white/[0.02]">
-                                    <button type="button" onClick={reuseLastWeek} className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs font-medium text-motriks-deep transition-colors hover:bg-motriks-soft">
-                                        <History className="size-3.5" />
-                                        Reprendre les objectifs de la semaine dernière
+                            <div className="flex items-start gap-2.5 border-b border-slate-100 bg-slate-50/60 px-6 py-3 dark:border-sidebar-border dark:bg-white/[0.02]">
+                                <Repeat className="mt-0.5 size-3.5 shrink-0 text-motriks" />
+                                <p className="min-w-0 flex-1 text-xs leading-relaxed text-slate-500">
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300">Fixés une fois, les objectifs restent en place chaque semaine.</span> Changez un montant, ou videz-le pour le retirer, à partir de {data.week === 'next' ? 'la semaine prochaine' : 'cette semaine'}.
+                                </p>
+                                {filled > 0 && (
+                                    <button type="button" onClick={clearAll} className="-my-1 inline-flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink dark:hover:bg-white/5">
+                                        <Eraser className="size-3.5" />
+                                        Tout retirer
                                     </button>
-                                    {filled > 0 && (
-                                        <button type="button" onClick={clearAll} className="ml-auto inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink dark:hover:bg-white/5">
-                                            <Eraser className="size-3.5" />
-                                            Tout effacer
-                                        </button>
-                                    )}
-                                </div>
-                            )}
+                                )}
+                            </div>
                             <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
                                 {rows.map((h) => {
                                     const value = amounts[h.user_id] ?? '';
@@ -189,7 +187,18 @@ export function WeeklyTargetsModal({ onClose, initialWeek = 'current' }: { onClo
                                             <span className={cn('flex size-9 items-center justify-center rounded-full text-[11px] font-bold', amount > 0 ? 'bg-motriks-soft text-motriks-deep' : 'bg-slate-100 text-slate-500 dark:bg-white/5')}>{initials(h.name)}</span>
 
                                             <div className="min-w-0">
-                                                <p className="truncate text-sm font-semibold text-ink">{h.name}</p>
+                                                <p className="flex min-w-0 items-center gap-2">
+                                                    <span className="truncate text-sm font-semibold text-ink">{h.name}</span>
+                                                    {h.since && h.target === amount && amount > 0 && (
+                                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-motriks-soft px-1.5 py-0.5 text-[10px] font-semibold text-motriks-deep" title={`Objectif fixé à partir de la semaine du ${dayMonth(h.since)}`}>
+                                                            <Repeat className="size-3" />
+                                                            depuis le {dayMonth(h.since)}
+                                                        </span>
+                                                    )}
+                                                    {h.target !== null && amount !== h.target && (
+                                                        <span className="shrink-0 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{amount > 0 ? 'modifié' : 'retiré'}</span>
+                                                    )}
+                                                </p>
                                                 <p className="truncate text-[11px] text-slate-400">
                                                     {h.sites.length ? h.sites.join(', ') : 'Sans point de vente'}
                                                     {' · '}sem. dernière {fmt(h.last_actual)} {cur}
@@ -212,7 +221,7 @@ export function WeeklyTargetsModal({ onClose, initialWeek = 'current' }: { onClo
                                                     value={value ? fmt(amount) : ''}
                                                     onChange={(e) => set(h.user_id, e.target.value)}
                                                     inputMode="numeric"
-                                                    placeholder={h.last_target ? fmt(h.last_target) : 'Aucun objectif'}
+                                                    placeholder="Aucun objectif"
                                                     aria-label={`Objectif de ${h.name}`}
                                                     className={cn(
                                                         'h-10 w-full rounded-xl border bg-white pr-14 pl-3.5 text-right text-sm font-semibold text-ink tabular-nums outline-none transition-[border-color,box-shadow] placeholder:font-normal placeholder:text-slate-300 focus:border-motriks focus:ring-4 focus:ring-motriks/10 dark:bg-transparent',

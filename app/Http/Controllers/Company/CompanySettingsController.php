@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Company;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Support\Reminders\ReminderSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -29,7 +30,36 @@ class CompanySettingsController extends Controller
                 'primary_color' => $company->primary_color,
                 'logo_url' => $company->logo_path ? Storage::disk('public')->url($company->logo_path) : null,
             ],
+            'reminders' => ReminderSettings::for($company)->all(),
+            'timezone' => $company->timezone ?: config('app.timezone'),
         ]);
+    }
+
+    /** Rappels automatiques : lesquels sont envoyés, et à quelle heure (fuseau de l'entreprise). */
+    public function updateReminders(Request $request): RedirectResponse
+    {
+        $company = $request->user()->company;
+        $rules = [];
+
+        foreach (ReminderSettings::DEFAULTS as $key => $default) {
+            $rules[$key] = match (true) {
+                is_bool($default) => ['required', 'boolean'],
+                is_int($default) => ['required', 'integer', 'min:'.ReminderSettings::LIMITS[$key][0], 'max:'.ReminderSettings::LIMITS[$key][1]],
+                default => ['required', 'date_format:H:i'],
+            };
+        }
+
+        $data = $request->validate($rules, [
+            '*.date_format' => 'Indiquez une heure valide (HH:MM).',
+            '*.min' => 'Valeur trop petite.',
+            '*.max' => 'Valeur trop grande.',
+        ]);
+
+        $old = ReminderSettings::for($company)->all();
+        $company->forceFill(['reminder_settings' => array_map(fn ($v) => is_numeric($v) && ! is_bool($v) ? (int) $v : $v, $data)])->save();
+        AuditLog::record('company.reminders_updated', $company, old: $old, new: $data);
+
+        return back()->with('success', 'Rappels enregistrés.');
     }
 
     public function update(Request $request): RedirectResponse

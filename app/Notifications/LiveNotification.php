@@ -1,0 +1,155 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\Affectation;
+use App\Models\Company;
+use App\Models\DailyReport;
+use App\Models\Event;
+use App\Models\EventHostess;
+use App\Models\EventPack;
+use App\Models\SiteProduct;
+use App\Models\User;
+use App\Models\Visit;
+use App\Support\Pdf\PdfDocument;
+
+/**
+ * Notifications « temps réel » : envoyées au moment de l'action, sous la cloche et en push.
+ * Un constructeur nommé par cas ; les textes sont courts, à lire sur un écran verrouillé.
+ */
+class LiveNotification extends TextNotification
+{
+    private static function fcfa(float|int $amount): string
+    {
+        return PdfDocument::money($amount, 'FCFA');
+    }
+
+    // ── Stock ────────────────────────────────────────────────────────────
+
+    /** Un produit passe sous son seuil d'alerte (le seuil critique a sa propre notification). */
+    public static function stockLow(SiteProduct $stock, int $remaining): self
+    {
+        return new self('stock_low', 'stock',
+            "Stock bas · {$stock->product?->name}",
+            "Il reste {$remaining} {$stock->product?->unit} à {$stock->site?->name} (seuil d’alerte : {$stock->alert_threshold}).",
+            'stock-alerts.index');
+    }
+
+    /** Pour les hôtesses du site : la livraison est arrivée. */
+    public static function restocked(SiteProduct $stock, int $quantity): self
+    {
+        return new self('restocked', 'stock',
+            "Réassort reçu · {$stock->site?->name}",
+            "+{$quantity} {$stock->product?->unit} de {$stock->product?->name}. Stock disponible : {$stock->current_stock}.",
+            'terrain.home');
+    }
+
+    // ── Journée de l'hôtesse ─────────────────────────────────────────────
+
+    public static function shiftStarted(Visit $visit, User $hostess): self
+    {
+        $offSite = $visit->isOffSite() ? ' · pointage hors site' : '';
+
+        return new self('shift_started', 'presence',
+            "{$hostess->name} a pris son service",
+            "{$visit->site?->name} · arrivée à {$visit->checked_in_at->format('H:i')}{$offSite}.",
+            'activity.index');
+    }
+
+    public static function shiftEnded(Visit $visit, User $hostess): self
+    {
+        $minutes = (int) $visit->checked_in_at->diffInMinutes($visit->checked_out_at);
+        $duration = intdiv($minutes, 60).' h '.str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT);
+
+        return new self('shift_ended', 'presence',
+            "{$hostess->name} a terminé sa journée",
+            "{$visit->site?->name} · départ à {$visit->checked_out_at->format('H:i')} ({$duration} de présence).",
+            'activity.index');
+    }
+
+    public static function reportSubmitted(DailyReport $report): self
+    {
+        return new self('report_submitted', 'report',
+            "Rapport envoyé · {$report->agent?->name}",
+            "{$report->site?->name} : ".self::fcfa($report->totalRevenue()).", {$report->totalUnitsSold()} unités vendues.",
+            'daily-reports.show', ['dailyReport' => $report->id]);
+    }
+
+    public static function photoAdded(DailyReport $report, ?string $caption): self
+    {
+        return new self('photo_added', 'photo',
+            "Nouvelle photo · {$report->agent?->name}",
+            $report->site?->name.($caption ? " : « {$caption} »" : ' : une preuve photo a été jointe au rapport.'),
+            'daily-reports.show', ['dailyReport' => $report->id]);
+    }
+
+    // ── Affectations ─────────────────────────────────────────────────────
+
+    public static function assignedToSite(Affectation $affectation, bool $forHostess = true): self
+    {
+        $slot = $affectation->slot_start && $affectation->slot_end ? ", de {$affectation->slot_start} à {$affectation->slot_end}" : '';
+
+        return new self('assigned_to_site', 'assignment',
+            'Nouvelle affectation',
+            "{$affectation->site?->name} à partir du {$affectation->starts_on->format('d/m/Y')}{$slot}.",
+            $forHostess ? 'terrain.planning' : 'dashboard');
+    }
+
+    public static function assignedToEvent(EventHostess $hostess, Event $event): self
+    {
+        $where = $hostess->eventSite ? " sur « {$hostess->eventSite->displayName()} »" : '';
+
+        return new self('assigned_to_event', 'assignment',
+            "Événement · {$event->name}",
+            "Vous êtes attendue{$where}, du {$event->start_date->format('d/m')} au {$event->end_date->format('d/m/Y')}.",
+            'terrain.home');
+    }
+
+    public static function packPublished(EventPack $pack, Event $event): self
+    {
+        return new self('pack_published', 'event',
+            "Nouvelle offre · {$pack->name}",
+            "À proposer pendant « {$event->name} ». Elle apparaît dans votre saisie des ventes.",
+            'terrain.home');
+    }
+
+    // ── Objectifs ────────────────────────────────────────────────────────
+
+    /** @param  'week'|'month'  $scale */
+    public static function targetReached(User $hostess, string $scale, float $actual, int $target, bool $forHostess): self
+    {
+        $period = $scale === 'week' ? 'de la semaine' : 'du mois';
+
+        return $forHostess
+            ? new self('target_reached', 'target', "Objectif {$period} atteint !",
+                self::fcfa($actual).' sur '.self::fcfa($target).'. Bravo, chaque vente en plus compte !', 'terrain.home')
+            : new self('target_reached', 'target', "{$hostess->name} a atteint son objectif {$period}",
+                self::fcfa($actual).' sur '.self::fcfa($target).'.', 'reports.objectives', ['period' => $scale]);
+    }
+
+    // ── Comptes et abonnements ───────────────────────────────────────────
+
+    public static function companyRegistered(Company $company, User $manager): self
+    {
+        return new self('company_registered', 'signup',
+            "Nouveau compte · {$company->name}",
+            "{$manager->name} vient de créer son espace. Son dossier sera à examiner dès son envoi.",
+            'admin.companies.index');
+    }
+
+    public static function moduleActivated(string $module, ?string $endsOn, bool $trial): self
+    {
+        return new self('module_activated', 'module',
+            "Module activé · {$module}",
+            ($trial ? 'Essai gratuit' : 'Actif').($endsOn ? " jusqu’au {$endsOn}." : ', sans date de fin.').' Ses écrans sont disponibles dès maintenant.',
+            'company.subscription');
+    }
+
+    public static function moduleDeactivated(string $module): self
+    {
+        return new self('module_deactivated', 'module',
+            "Module désactivé · {$module}",
+            'Vos données sont conservées. Contactez-nous pour le réactiver.',
+            'company.subscription');
+    }
+}

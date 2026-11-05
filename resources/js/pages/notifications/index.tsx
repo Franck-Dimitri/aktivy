@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
 import { QuietEmpty, Segmented } from '@/components/page/list-kit';
 import { Page } from '@/components/page/page';
+import { PushDeviceCard } from '@/components/push-device-card';
 import { kindStyle, NOTIFICATION_KINDS, type NotificationItem, type NotificationKind } from '@/lib/notification-kinds';
 import { cn } from '@/lib/utils';
 import { index as notificationsIndex, open as notificationOpen, readAll } from '@/routes/notifications';
@@ -14,10 +15,10 @@ const KINDS = NOTIFICATION_KINDS;
 
 /** Ce que chaque rôle reçoit, pour expliquer la cloche quand elle est vide. */
 const KINDS_BY_ROLE: Record<string, Kind[]> = {
-    super_admin: ['signup'],
-    field_agent: ['target', 'ticket', 'reminder'],
+    super_admin: ['signup', 'module'],
+    field_agent: ['assignment', 'reminder', 'target', 'ticket', 'stock', 'event'],
 };
-const MANAGER_KINDS: Kind[] = ['incident', 'stock', 'ticket', 'attendance'];
+const MANAGER_KINDS: Kind[] = ['presence', 'report', 'incident', 'stock', 'attendance', 'ticket', 'photo', 'target'];
 
 /** Libellé du jour : Aujourd'hui, Hier, nom du jour cette semaine, sinon la date. */
 function dayLabel(d: Date): string {
@@ -116,6 +117,8 @@ export default function NotificationsIndex({ notifications }: { notifications: N
                     )
                 }
             >
+                <PushDeviceCard />
+
                 {notifications.length === 0 ? (
                     <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] dark:border-sidebar-border dark:bg-card">
                         <div className="flex flex-col items-center px-6 pt-12 pb-8 text-center">

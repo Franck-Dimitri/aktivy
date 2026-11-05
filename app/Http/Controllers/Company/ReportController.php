@@ -11,11 +11,13 @@ use App\Models\SalesTarget;
 use App\Models\User;
 use App\Support\Pdf\PdfDocument;
 use App\Support\Reports\SalesReport;
+use App\Support\Targets\TargetOverview;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -27,6 +29,23 @@ class ReportController extends Controller
 {
     /** Nombre de lignes du journal affichées à l'écran ; l'export Excel les contient toutes. */
     private const PREVIEW_LINES = 200;
+
+    /**
+     * Onglet « Objectifs » de « Ventes & objectifs » : qui atteint son objectif (semaine ou mois),
+     * et réglage des objectifs du mois de l'entreprise, des sites et des hôtesses.
+     */
+    public function objectives(Request $request): Response
+    {
+        $user = $request->user();
+        $request->validate(['period' => ['nullable', Rule::in(TargetOverview::PERIODS)]]);
+
+        return Inertia::render('reports/objectives', [
+            'overview' => (new TargetOverview($user, $this->today($user->company)))->build($request->input('period', 'week')),
+            'targets' => $this->targets($user),
+            'currency' => $user->company->currency ?: 'XAF',
+            'canEditTargets' => in_array($user->role, [Role::CompanyAdmin, Role::Supervisor], true),
+        ]);
+    }
 
     public function index(Request $request): Response
     {
@@ -54,7 +73,6 @@ class ReportController extends Controller
             ],
             'timeline' => $report->timeline(),
             'monthly' => $report->monthly(),
-            'targets' => $this->targets($request->user()),
             'canEditTargets' => in_array($request->user()->role, [Role::CompanyAdmin, Role::Supervisor], true),
             'byDay' => $report->byDay(),
             'bySite' => $report->bySite(),
@@ -148,22 +166,30 @@ class ReportController extends Controller
             abort_unless($user->hasRole(Role::CompanyAdmin), 403);
         }
 
-        $target = SalesTarget::firstOrNew([
-            'company_id' => $company->id,
-            'site_id' => $siteId,
-            'user_id' => $userId,
-            'month' => $this->today($company)->startOfMonth()->toDateString(),
-        ]);
+        // L'objectif s'applique à partir de ce mois et reste reconduit tant qu'il n'est pas changé
+        $monthStart = $this->today($company)->startOfMonth();
+        $key = SalesTarget::keyFor($siteId, $userId);
+        $desired = (int) ($data['amount'] ?? 0);
 
-        if (empty($data['amount'])) {
-            $target->exists && $target->delete();
+        $inherited = (int) (SalesTarget::latestFor($company->id, $monthStart->subMonth())->get($key)?->amount ?? 0);
+        $thisMonth = SalesTarget::where('company_id', $company->id)
+            ->where('site_id', $siteId)
+            ->where('user_id', $userId)
+            ->whereDate('month', $monthStart->toDateString())
+            ->get();
 
-            return back()->with('success', 'Objectif retiré.');
+        if ($desired === $inherited) {
+            // Retour à l'objectif des mois précédents : la ligne du mois n'a plus lieu d'être
+            $thisMonth->each->delete();
+        } else {
+            $target = $thisMonth->shift() ?? new SalesTarget(['company_id' => $company->id, 'site_id' => $siteId, 'user_id' => $userId, 'month' => $monthStart]);
+            // 0 enregistré = objectif retiré à partir de ce mois
+            $target->fill(['amount' => $desired, 'updated_by' => $user->id])->save();
+            // Doublons éventuels laissés par l'ancien enregistrement
+            $thisMonth->each->delete();
         }
 
-        $target->fill(['amount' => $data['amount'], 'updated_by' => $user->id])->save();
-
-        return back()->with('success', 'Objectif enregistré.');
+        return back()->with('success', $desired > 0 ? 'Objectif enregistré. Il reste en place les mois suivants.' : 'Objectif retiré à partir de ce mois.');
     }
 
     /**
@@ -178,12 +204,13 @@ class ReportController extends Controller
         $monthStart = $today->startOfMonth();
         $month = new SalesReport($company, $monthStart, $today->endOfDay(), allowedSiteIds: $siteIds);
 
-        $targets = SalesTarget::where('company_id', $company->id)
-            ->whereDate('month', $monthStart->toDateString())
-            ->get();
-        $global = $targets->first(fn (SalesTarget $t) => $t->site_id === null && $t->user_id === null);
-        $bySiteTarget = $targets->whereNotNull('site_id')->keyBy('site_id');
-        $byHostessTarget = $targets->whereNotNull('user_id')->keyBy('user_id');
+        // Objectifs en vigueur ce mois-ci : fixés ce mois-ci ou reconduits depuis un mois précédent
+        $targets = SalesTarget::effective($company->id, $monthStart);
+        $global = $targets->get('g');
+        $bySiteTarget = $targets->filter(fn (SalesTarget $t) => $t->site_id && ! $t->user_id)->keyBy('site_id');
+        $byHostessTarget = $targets->filter(fn (SalesTarget $t) => $t->user_id)->keyBy('user_id');
+        // Mois depuis lequel un objectif est reconduit (null s'il a été fixé ce mois-ci)
+        $since = fn (?SalesTarget $t) => $t && $t->month->lt($monthStart) ? $t->month->toDateString() : null;
 
         $bySite = $month->revenueBySite();
         $byHostess = $month->revenueByHostess();
@@ -204,7 +231,7 @@ class ReportController extends Controller
             'days_in_month' => $today->daysInMonth,
             // L'objectif de l'entreprise n'a pas de sens sur le périmètre d'un superviseur
             'global' => $siteIds === null
-                ? SalesTarget::progress($month->totals()['revenue'], $global?->amount, $today)
+                ? [...SalesTarget::progress($month->totals()['revenue'], $global?->amount, $today), 'since' => $since($global)]
                 : null,
             'sites' => $company->sites()
                 ->when($siteIds !== null, fn ($q) => $q->whereIn('id', $siteIds))
@@ -214,11 +241,13 @@ class ReportController extends Controller
                     'site_id' => $site->id,
                     'name' => $site->name,
                     ...SalesTarget::progress($bySite[$site->id] ?? 0.0, $bySiteTarget->get($site->id)?->amount, $today),
+                    'since' => $since($bySiteTarget->get($site->id)),
                 ]),
             'hostesses' => $hostesses->map(fn (User $hostess) => [
                 'user_id' => $hostess->id,
                 'name' => $hostess->name,
                 ...SalesTarget::progress($byHostess[$hostess->id] ?? 0.0, $byHostessTarget->get($hostess->id)?->amount, $today),
+                'since' => $since($byHostessTarget->get($hostess->id)),
             ]),
         ];
     }

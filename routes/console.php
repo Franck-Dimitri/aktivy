@@ -23,11 +23,12 @@ Schedule::call(function () {
     $telegram->sendMessage($chatId, $msg);
 })->dailyAt('08:00');
 
-// Hôtesses attendues qui n'ont pas pointé : vérifié toutes les 30 minutes le matin
-Schedule::command('notifications:attendance')->everyThirtyMinutes()->between('7:00', '14:00')->withoutOverlapping();
-
-// Rappel aux hôtesses dont le rapport du jour est encore en brouillon
-Schedule::command('notifications:report-reminders')->dailyAt('19:00');
+// Rappels automatiques, chaque minute : prise de service, retards (hôtesse et responsables), clôture,
+// rapport non envoyé, rapports manquants, stocks bas, demandes sans réponse, événements du lendemain,
+// abonnements qui expirent. Horaires réglables par entreprise, jamais la nuit, jamais deux fois.
+// Remplace notifications:attendance et notifications:report-reminders (commandes conservées pour un envoi manuel).
+// Sur le serveur : * * * * * cd /chemin/vers/motriks && php artisan schedule:run >> /dev/null 2>&1
+Schedule::command('reminders:run')->everyMinute()->withoutOverlapping()->runInBackground();
 
 // Modules payants qui arrivent à échéance : rappels au gérant (J-30, J-7, J-1, puis le lendemain)
 Schedule::command('subscriptions:reminders')->dailyAt('09:00');

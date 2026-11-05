@@ -118,14 +118,17 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6 }: Props) {
 
             {canAdd && (
                 <div className="flex flex-wrap items-center gap-2">
-                    <TextInput
-                        value={caption}
-                        onChange={(e) => setCaption(e.target.value)}
-                        maxLength={200}
-                        placeholder="Légende (facultatif) : rayon, stand…"
-                        className="h-10 min-w-0 flex-1"
-                        aria-label="Légende de la photo"
-                    />
+                    {/* Le conteneur porte la largeur : pleine ligne sur téléphone, le reste de la ligne au-delà */}
+                    <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
+                        <TextInput
+                            value={caption}
+                            onChange={(e) => setCaption(e.target.value)}
+                            maxLength={200}
+                            placeholder="Légende (facultatif) : rayon, stand…"
+                            className="h-10"
+                            aria-label="Légende de la photo"
+                        />
+                    </div>
                     <input
                         ref={input}
                         type="file"

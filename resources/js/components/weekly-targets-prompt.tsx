@@ -59,7 +59,7 @@ export function WeeklyTargetsPrompt({ summary }: { summary: WeeklyTargetsSummary
                         <div className="min-w-0 flex-1 pr-6">
                             <p className="text-[11px] font-semibold tracking-wider text-motriks-deep uppercase">Nouvelle semaine</p>
                             <h2 className="mt-0.5 text-[15px] font-semibold text-ink">Fixer un objectif à vos {summary.hostesses > 1 ? `${summary.hostesses} hôtesses` : 'hôtesse'} ?</h2>
-                            <p className="mt-0.5 text-sm text-slate-500">Facultatif. L’objectif s’affiche sur leur accueil avec leur progression, jour après jour.</p>
+                            <p className="mt-0.5 text-sm text-slate-500">Facultatif. Fixé une fois, il reste en place chaque semaine jusqu’à ce que vous le changiez, et s’affiche sur leur accueil avec leur progression.</p>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                             <ActionButton variant="ghost" onClick={dismiss}>
@@ -82,12 +82,13 @@ export function WeeklyTargetsPrompt({ summary }: { summary: WeeklyTargetsSummary
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-motriks-soft text-motriks-deep">
                     <Target className="size-4" />
                 </span>
-                <p className="min-w-0 flex-1 truncate text-sm text-slate-600 dark:text-slate-300">
+                <p className="min-w-0 flex-1 text-sm leading-snug text-slate-600 dark:text-slate-300">
                     <span className="font-semibold text-ink">Objectifs de la semaine</span>
                     {' · '}
                     <span className="tabular-nums">
                         {summary.with_target} hôtesse{summary.with_target > 1 ? 's' : ''} sur {summary.hostesses}
                     </span>
+                    <span className="hidden text-slate-400 sm:inline"> · reconduits chaque semaine</span>
                 </p>
                 <ActionButton variant="secondary" size="sm" icon={<Pencil />} onClick={() => setOpen(true)}>
                     Modifier

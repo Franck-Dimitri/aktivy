@@ -10,6 +10,7 @@ use App\Models\SiteProduct;
 use App\Models\User;
 use App\Notifications\HostessesNotCheckedIn;
 use App\Notifications\IncidentReported;
+use App\Notifications\LiveNotification;
 use App\Notifications\ReportReminder;
 use App\Notifications\StockCritical;
 use App\Notifications\TicketCreated;
@@ -130,11 +131,13 @@ class NotificationsAndActivityTest extends TestCase
     {
         Notification::fake();
 
-        // 10 → 5 : sous l'alerte mais pas critique ; puis 5 → 2 : critique
+        // 10 → 5 : sous l'alerte mais pas critique (« stock bas ») ; puis 5 → 2 : critique
         $this->actingAs($this->manager)->put(route('sites.inventory.update', [$this->site, $this->soap]), [
             'current_stock' => 5, 'alert_threshold' => 6, 'critical_threshold' => 3,
         ]);
-        Notification::assertNothingSentTo($this->manager);
+        Notification::assertSentToTimes($this->manager, LiveNotification::class, 1);
+        Notification::assertSentTo($this->manager, LiveNotification::class, fn ($n) => $n->type === 'stock_low');
+        Notification::assertNotSentTo($this->manager, StockCritical::class);
 
         $this->submit($this->checkIn(), 3);
         Notification::assertSentToTimes($this->manager, StockCritical::class, 1);
@@ -201,16 +204,17 @@ class NotificationsAndActivityTest extends TestCase
         $report = $this->checkIn();
         $this->submit($report, 1, 'Présentoir cassé');
 
+        // Prise de service, rapport envoyé et incident : trois notifications non lues
         $this->actingAs($this->manager)->get(route('notifications.index'))
             ->assertInertia(fn ($page) => $page
-                ->where('auth.unreadNotifications', 1)
-                ->where('notifications.0.kind', 'incident')
-                ->where('notifications.0.read', false));
+                ->where('auth.unreadNotifications', 3)
+                ->where('notifications', fn ($list) => collect($list)->pluck('kind')->sort()->values()->all() === ['incident', 'presence', 'report']
+                    && collect($list)->every(fn ($n) => $n['read'] === false)));
 
-        $id = $this->manager->notifications()->value('id');
+        $id = $this->manager->notifications()->get()->first(fn ($n) => $n->data['kind'] === 'incident')->id;
         $this->actingAs($this->manager)->get(route('notifications.open', $id))
             ->assertRedirect(route('daily-reports.show', $report, absolute: false));
-        $this->assertSame(0, $this->manager->unreadNotifications()->count());
+        $this->assertSame(2, $this->manager->unreadNotifications()->count());
 
         // Une notification d'un autre utilisateur ne s'ouvre pas
         $this->actingAs($this->otherSupervisor)->get(route('notifications.open', $id))->assertNotFound();
@@ -221,12 +225,11 @@ class NotificationsAndActivityTest extends TestCase
         $report = $this->checkIn();
         $this->submit($report, 1, 'Présentoir cassé');
 
-        $this->actingAs($this->manager)->getJson(route('notifications.recent'))
+        $response = $this->actingAs($this->manager)->getJson(route('notifications.recent'))
             ->assertOk()
-            ->assertJsonPath('unread', 1)
-            ->assertJsonCount(1, 'notifications')
-            ->assertJsonPath('notifications.0.kind', 'incident')
-            ->assertJsonPath('notifications.0.read', false);
+            ->assertJsonPath('unread', 3)
+            ->assertJsonCount(3, 'notifications');
+        $this->assertContains('incident', collect($response->json('notifications'))->pluck('kind'));
 
         $this->actingAs($this->otherSupervisor)->getJson(route('notifications.recent'))
             ->assertOk()

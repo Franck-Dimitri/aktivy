@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Company\Events;
 
 use App\Http\Controllers\Controller;
+use App\Enums\AccountStatus;
 use App\Models\Event;
 use App\Models\EventPack;
+use App\Models\User;
+use App\Notifications\LiveNotification;
+use App\Support\Notifications\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,7 +34,25 @@ class EventPackController extends Controller
             $pack->lines()->create($line);
         }
 
+        $this->notifyHostesses($event, $pack);
+
         return back()->with('success', 'Pack créé.');
+    }
+
+    /** Les hôtesses de l'événement (lancé) découvrent l'offre qu'elles peuvent désormais proposer. */
+    private function notifyHostesses(Event $event, EventPack $pack): void
+    {
+        if (! $event->isActive()) {
+            return;
+        }
+
+        $hostesses = User::whereIn('id', $event->hostesses()->where('status', 'active')->pluck('user_id'))
+            ->where('status', AccountStatus::Active)
+            ->get();
+
+        if ($hostesses->isNotEmpty()) {
+            Notify::send($hostesses, LiveNotification::packPublished($pack, $event));
+        }
     }
 
     public function update(Request $request, Event $event, EventPack $pack): RedirectResponse
@@ -40,6 +62,7 @@ class EventPackController extends Controller
 
         $data = $this->validatePack($request, ['active' => 'boolean']);
 
+        $wasActive = (bool) $pack->active;
         $pack->update([
             'name'        => $data['name'],
             'description' => $data['description'] ?? null,
@@ -51,6 +74,11 @@ class EventPackController extends Controller
         $pack->lines()->delete();
         foreach ($data['lines'] as $line) {
             $pack->lines()->create($line);
+        }
+
+        // Un pack remis en vente est de nouveau signalé aux hôtesses
+        if (! $wasActive && $pack->active) {
+            $this->notifyHostesses($event, $pack);
         }
 
         return back()->with('success', 'Pack mis à jour.');

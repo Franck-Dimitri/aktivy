@@ -7,6 +7,8 @@ use App\Models\Affectation;
 use App\Models\DailyReport;
 use App\Models\DailyReportLine;
 use App\Models\Visit;
+use App\Notifications\LiveNotification;
+use App\Support\Notifications\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -90,6 +92,9 @@ class VisitController extends Controller
             ]);
         }
 
+        // Les responsables du site voient la prise de service en direct
+        Notify::send(Notify::siteManagers($user->company_id, [$affectation->site_id]), LiveNotification::shiftStarted($visit->setRelation('site', $affectation->site), $user));
+
         return redirect()->route('terrain.report.show', $visit)
             ->with('success', 'Prise de service enregistrée.');
     }
@@ -110,6 +115,8 @@ class VisitController extends Controller
             latitude: $validated['latitude'] ?? null,
             longitude: $validated['longitude'] ?? null,
         );
+
+        Notify::send(Notify::siteManagers($visit->company_id, [$visit->site_id]), LiveNotification::shiftEnded($visit->fresh('site'), $request->user()));
 
         return redirect()->route('terrain.home')
             ->with('success', 'Fin de service enregistrée. Bonne soirée !');

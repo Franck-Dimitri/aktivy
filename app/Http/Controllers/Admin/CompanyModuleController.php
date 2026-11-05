@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AccountStatus;
 use App\Enums\Module;
+use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\CompanyModule;
+use App\Notifications\LiveNotification;
+use App\Support\Notifications\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -54,6 +58,7 @@ class CompanyModuleController extends Controller
         );
 
         AuditLog::record('module.activated', $company, new: ['module' => $module->value, 'ends_on' => $row->ends_on?->toDateString(), 'trial' => $row->is_trial]);
+        $this->notifyManagers($company, LiveNotification::moduleActivated($module->label(), $row->ends_on?->format('d/m/Y'), (bool) $row->is_trial));
 
         return back()->with('success', "{$module->label()} activé.");
     }
@@ -62,10 +67,22 @@ class CompanyModuleController extends Controller
     {
         $module = Module::tryFrom($module) ?? abort(404);
 
-        CompanyModule::where('company_id', $company->id)->where('module', $module->value)->delete();
+        $deleted = CompanyModule::where('company_id', $company->id)->where('module', $module->value)->delete();
         AuditLog::record('module.deactivated', $company, old: ['module' => $module->value]);
+        if ($deleted) {
+            $this->notifyManagers($company, LiveNotification::moduleDeactivated($module->label()));
+        }
 
         return back()->with('success', "{$module->label()} désactivé.");
+    }
+
+    /** Le gérant de l'entreprise est prévenu de tout changement de son abonnement. */
+    private function notifyManagers(Company $company, LiveNotification $notification): void
+    {
+        $managers = $company->users()->where('role', Role::CompanyAdmin)->where('status', AccountStatus::Active)->get();
+        if ($managers->isNotEmpty()) {
+            Notify::send($managers, $notification);
+        }
     }
 
     /** @return array{active: bool, ends_on: string|null, is_trial: bool, expired: bool} */

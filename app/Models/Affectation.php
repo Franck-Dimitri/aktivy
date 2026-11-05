@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AffectationStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -44,6 +45,20 @@ class Affectation extends Model
     protected $attributes = [
         'status' => 'active',
     ];
+
+    /**
+     * Créneau lu « HH:MM » : la base renvoie « HH:MM:SS » (colonne time), affiché tel quel jusqu'ici,
+     * et refusé par la validation H:i quand un formulaire le renvoyait sans modification.
+     */
+    protected function slotStart(): Attribute
+    {
+        return Attribute::make(get: fn (?string $value) => $value ? substr($value, 0, 5) : null);
+    }
+
+    protected function slotEnd(): Attribute
+    {
+        return Attribute::make(get: fn (?string $value) => $value ? substr($value, 0, 5) : null);
+    }
 
     protected function casts(): array
     {

@@ -75,6 +75,12 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureAuthentication(): void
     {
+        // Par défaut, Fortify relit l'identifiant dans la colonne « login », qui n'existe pas
+        // (on se connecte par e-mail ou téléphone) : la confirmation échouait toujours.
+        Fortify::confirmPasswordsUsing(
+            fn (User $user, ?string $password): bool => $password !== null && Hash::check($password, $user->password),
+        );
+
         Fortify::authenticateUsing(function (Request $request) {
             $user = $this->findUserByLogin((string) $request->input(Fortify::username()));
 

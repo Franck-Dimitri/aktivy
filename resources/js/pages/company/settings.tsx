@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
 import { TextInput } from '@/components/page/form-fields';
 import { Page } from '@/components/page/page';
+import { RemindersPanel, type Reminders } from './reminders-panel';
 import { compressImage } from '@/lib/compress-image';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
@@ -44,7 +45,7 @@ function documentColor(hex: string): { color: string; replaced: boolean } {
     return luminance > 0.65 ? { color: DEFAULT_COLOR, replaced: true } : { color: hex, replaced: false };
 }
 
-export default function CompanySettings({ company }: { company: Company }) {
+export default function CompanySettings({ company, reminders, timezone }: { company: Company; reminders: Reminders; timezone: string }) {
     const [removed, setRemoved] = useState(false);
     const form = useForm({
         name: company.name,
@@ -147,6 +148,8 @@ export default function CompanySettings({ company }: { company: Company }) {
                         <SavePanel dirty={isDirty} processing={processing} onCancel={cancel} />
                     </aside>
                 </form>
+
+                <RemindersPanel initial={reminders} timezone={timezone} />
             </Page>
         </>
     );

@@ -1,120 +1,95 @@
-import { Form } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useForm } from '@inertiajs/react';
+import { LockKeyhole, TriangleAlert, UserX } from 'lucide-react';
+import { useRef, useState, type FormEvent } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { ActionButton } from '@/components/page/buttons';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { PasswordField, SettingsCard } from '@/pages/settings/settings-kit';
 
+/** Fermeture du compte : bouton discret, puis confirmation par mot de passe. */
 export default function DeleteUser() {
+    const [open, setOpen] = useState(false);
     const passwordInput = useRef<HTMLInputElement>(null);
+    const form = useForm({ password: '' });
+
+    const close = (next: boolean) => {
+        if (form.processing) return;
+        setOpen(next);
+        if (!next) {
+            form.reset();
+            form.clearErrors();
+        }
+    };
+
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.delete(ProfileController.destroy().url, {
+            preserveScroll: true,
+            onError: () => passwordInput.current?.focus(),
+            onFinish: () => form.reset('password'),
+        });
+    };
 
     return (
-        <div className="space-y-6">
-            <Heading
-                variant="small"
-                title="Delete account"
-                description="Delete your account and all of its resources"
-            />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
-                    <p className="text-sm">
-                        Please proceed with caution, this cannot be undone.
-                    </p>
-                </div>
-
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button
-                            variant="destructive"
-                            data-test="delete-user-button"
-                        >
-                            Delete account
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogTitle>
-                            Are you sure you want to delete your account?
-                        </DialogTitle>
-                        <DialogDescription>
-                            Once your account is deleted, all of its resources
-                            and data will also be permanently deleted. Please
-                            enter your password to confirm you would like to
-                            permanently delete your account.
-                        </DialogDescription>
-
-                        <Form
-                            {...ProfileController.destroy.form()}
-                            options={{
-                                preserveScroll: true,
-                            }}
-                            onError={() => passwordInput.current?.focus()}
-                            resetOnSuccess
-                            className="space-y-6"
-                        >
-                            {({ resetAndClearErrors, processing, errors }) => (
-                                <>
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor="password"
-                                            className="sr-only"
-                                        >
-                                            Password
-                                        </Label>
-
-                                        <PasswordInput
-                                            id="password"
-                                            name="password"
-                                            ref={passwordInput}
-                                            placeholder="Password"
-                                            autoComplete="current-password"
-                                        />
-
-                                        <InputError message={errors.password} />
-                                    </div>
-
-                                    <DialogFooter className="gap-2">
-                                        <DialogClose asChild>
-                                            <Button
-                                                variant="secondary"
-                                                onClick={() =>
-                                                    resetAndClearErrors()
-                                                }
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </DialogClose>
-
-                                        <Button
-                                            variant="destructive"
-                                            disabled={processing}
-                                            asChild
-                                        >
-                                            <button
-                                                type="submit"
-                                                data-test="confirm-delete-user-button"
-                                            >
-                                                Delete account
-                                            </button>
-                                        </Button>
-                                    </DialogFooter>
-                                </>
-                            )}
-                        </Form>
-                    </DialogContent>
-                </Dialog>
+        <SettingsCard icon={UserX} tone="danger" title="Supprimer mon compte" description="Vous serez déconnecté et ne pourrez plus vous connecter avec ces identifiants.">
+            <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+                <p className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-500">
+                    <TriangleAlert className="mt-0.5 size-4 shrink-0 text-red-500" />
+                    Vous ne pourrez pas annuler cette action vous-même.
+                </p>
+                <ActionButton variant="secondary" className="border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50" onClick={() => setOpen(true)} data-test="delete-user-button">
+                    Supprimer mon compte
+                </ActionButton>
             </div>
-        </div>
+
+            <Dialog open={open} onOpenChange={close}>
+                <DialogContent accent="red" className="gap-0 p-0 shadow-[0_24px_80px_-12px_rgba(220,38,38,0.22)] ring-red-600/15 sm:max-w-md">
+                    <form onSubmit={submit}>
+                        <div className="flex gap-4 p-6 pb-5">
+                            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-600">
+                                <UserX className="size-5" />
+                            </span>
+                            <div className="min-w-0 pt-0.5">
+                                <DialogTitle className="text-base font-semibold text-ink">Supprimer votre compte ?</DialogTitle>
+                                <DialogDescription className="mt-1.5 text-sm leading-relaxed text-slate-500">
+                                    Vous serez déconnecté immédiatement. Saisissez votre mot de passe pour confirmer.
+                                </DialogDescription>
+                            </div>
+                        </div>
+
+                        <div className="px-6 pb-6">
+                            <label htmlFor="password" className="sr-only">
+                                Mot de passe
+                            </label>
+                            <PasswordField
+                                id="password"
+                                ref={passwordInput}
+                                icon={LockKeyhole}
+                                value={form.data.password}
+                                onChange={(e) => form.setData('password', e.target.value)}
+                                error={form.errors.password}
+                                placeholder="Votre mot de passe"
+                                autoComplete="current-password"
+                                autoFocus
+                            />
+                            {form.errors.password && (
+                                <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+                                    {form.errors.password}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col-reverse gap-2 border-t border-slate-100 px-6 py-4 sm:flex-row sm:justify-end">
+                            <ActionButton variant="secondary" disabled={form.processing} onClick={() => close(false)}>
+                                Annuler
+                            </ActionButton>
+                            <ActionButton type="submit" variant="danger" loading={form.processing} disabled={!form.data.password} data-test="confirm-delete-user-button">
+                                Supprimer mon compte
+                            </ActionButton>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </SettingsCard>
     );
 }

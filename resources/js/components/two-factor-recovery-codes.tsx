@@ -53,15 +53,15 @@ export default function TwoFactorRecoveryCodes({
     const RecoveryCodeIconComponent = codesAreVisible ? EyeOff : Eye;
 
     return (
-        <Card>
+        <Card className="gap-4 rounded-xl border-slate-200/80 py-5 shadow-none dark:border-sidebar-border">
             <CardHeader>
                 <CardTitle className="flex gap-3">
                     <LockKeyhole className="size-4" aria-hidden="true" />
-                    2FA recovery codes
+                    Codes de secours
                 </CardTitle>
                 <CardDescription>
-                    Recovery codes let you regain access if you lose your 2FA
-                    device. Store them in a secure password manager.
+                    Ils permettent de vous connecter si vous perdez votre téléphone.
+                    Gardez-les en lieu sûr, hors de ce téléphone.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -76,7 +76,7 @@ export default function TwoFactorRecoveryCodes({
                             className="size-4"
                             aria-hidden="true"
                         />
-                        {codesAreVisible ? 'Hide' : 'View'} recovery codes
+                        {codesAreVisible ? 'Masquer les codes' : 'Afficher les codes'}
                     </Button>
 
                     {canRegenerateCodes && (
@@ -92,7 +92,7 @@ export default function TwoFactorRecoveryCodes({
                                     disabled={processing}
                                     aria-describedby="regenerate-warning"
                                 >
-                                    <RefreshCw /> Regenerate codes
+                                    <RefreshCw /> Nouveaux codes
                                 </Button>
                             )}
                         </Form>
@@ -112,7 +112,7 @@ export default function TwoFactorRecoveryCodes({
                                     ref={codesSectionRef}
                                     className="grid gap-1 rounded-lg bg-muted p-4 font-mono text-sm"
                                     role="list"
-                                    aria-label="Recovery codes"
+                                    aria-label="Codes de secours"
                                 >
                                     {recoveryCodesList.length ? (
                                         recoveryCodesList.map((code, index) => (
@@ -127,7 +127,7 @@ export default function TwoFactorRecoveryCodes({
                                     ) : (
                                         <div
                                             className="space-y-2"
-                                            aria-label="Loading recovery codes"
+                                            aria-label="Chargement des codes"
                                         >
                                             {Array.from(
                                                 { length: 8 },
@@ -145,13 +145,13 @@ export default function TwoFactorRecoveryCodes({
 
                                 <div className="text-xs text-muted-foreground select-none">
                                     <p id="regenerate-warning">
-                                        Each recovery code can be used once to
-                                        access your account and will be removed
-                                        after use. If you need more, click{' '}
+                                        Chaque code ne sert qu’une fois. S’il vous
+                                        en faut d’autres, utilisez
+                                        {' '}
                                         <span className="font-bold">
-                                            Regenerate codes
+                                            Nouveaux codes
                                         </span>{' '}
-                                        above.
+                                        (les anciens ne marcheront plus).
                                     </p>
                                 </div>
                             </>

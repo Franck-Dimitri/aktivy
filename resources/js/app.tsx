@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { setupFlashToasts } from '@/hooks/use-flash-toast';
 import { setupOffline } from '@/lib/offline';
+import { setupInstallCapture } from '@/lib/pwa';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -20,6 +21,8 @@ const isPublicPage = (name: string) => PUBLIC_PAGES.includes(name) || PUBLIC_PRE
 
 // Avant Inertia : le toast du premier chargement (connexion, lien d'e-mail…) ne doit pas être manqué
 setupFlashToasts();
+// Android : l'invitation à installer n'est envoyée qu'une fois, elle est mise de côté dès le démarrage
+setupInstallCapture();
 
 void createInertiaApp({
     title: (title) => (title ? title : appName),

@@ -1,6 +1,10 @@
 export const number = new Intl.NumberFormat('fr-FR');
 
-export const money = (n: number | string, currency: string) => `${number.format(Math.round(Number(n)))} ${currency}`;
+/** Franc CFA (BEAC « XAF » ou BCEAO « XOF ») : affiché « FCFA », comme sur le terrain. */
+export const currencyLabel = (currency: string) => (currency === 'XAF' || currency === 'XOF' ? 'FCFA' : currency);
+
+/** « 125 000 FCFA » : espace insécable, le montant ne se coupe jamais de sa devise. */
+export const money = (n: number | string, currency: string) => `${number.format(Math.round(Number(n)))} ${currencyLabel(currency)}`;
 
 /** Montant court pour les axes : 1,2 M, 350 k. */
 export const compactMoney = (n: number) =>

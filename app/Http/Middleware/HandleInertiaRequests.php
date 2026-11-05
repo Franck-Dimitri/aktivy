@@ -101,6 +101,8 @@ class HandleInertiaRequests extends Middleware
                 'unreadNotifications' => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            // Clé publique VAPID : sans elle, le bouton « Activer les notifications » n'est pas proposé
+            'push' => ['publicKey' => config('webpush.vapid.public_key') ?: null],
         ];
     }
 }

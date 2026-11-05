@@ -1,9 +1,9 @@
 import { router } from '@inertiajs/react';
-import { KeyRound } from 'lucide-react';
+import { Fingerprint, KeyRound } from 'lucide-react';
 import { destroy } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyRegistrationController';
-import Heading from '@/components/heading';
 import PasskeyItem from '@/components/passkey-item';
 import PasskeyRegistration from '@/components/passkey-register';
+import { SettingsCard } from '@/pages/settings/settings-kit';
 import type { Passkey } from '@/types/auth';
 
 export type Props = {
@@ -11,61 +11,37 @@ export type Props = {
     passkeys?: Passkey[];
 };
 
-const EmptyState = () => {
-    return (
-        <div className="p-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-                <KeyRound className="h-7 w-7 text-muted-foreground" />
-            </div>
-            <p className="font-medium">No passkeys yet</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-                Add a passkey to sign in without a password
-            </p>
-        </div>
-    );
-};
-
 export default function ManagePasskeys(props: Props) {
     const passkeys = props.passkeys ?? [];
-
-    const handleDelete = (id: number, onError: () => void) => {
-        router.delete(destroy.url(id), {
-            preserveScroll: true,
-            onError,
-        });
-    };
-
-    const handleRegisterSuccess = () => {
-        router.reload();
-    };
 
     if (!(props.canManagePasskeys ?? false)) {
         return null;
     }
 
+    const handleDelete = (id: number, onError: () => void) => {
+        router.delete(destroy.url(id), { preserveScroll: true, onError });
+    };
+
     return (
-        <div className="space-y-6">
-            <Heading
-                variant="small"
-                title="Passkeys"
-                description="Manage your passkeys for passwordless sign-in"
-            />
-
-            <div className="overflow-hidden rounded-lg border border-border">
+        <SettingsCard icon={Fingerprint} title="Clés d’accès" description="Connectez-vous avec l’empreinte, le visage ou le code de votre appareil, sans mot de passe.">
+            <div className="flex flex-col gap-4 px-5 py-5 sm:px-7">
                 {passkeys.length > 0 ? (
-                    passkeys.map((passkey) => (
-                        <PasskeyItem
-                            key={passkey.id}
-                            passkey={passkey}
-                            onDelete={handleDelete}
-                        />
-                    ))
+                    <div className="overflow-hidden rounded-xl border border-slate-200/80 dark:border-sidebar-border">
+                        {passkeys.map((passkey) => (
+                            <PasskeyItem key={passkey.id} passkey={passkey} onDelete={handleDelete} />
+                        ))}
+                    </div>
                 ) : (
-                    <EmptyState />
+                    <p className="flex items-center gap-2.5 text-sm text-slate-500">
+                        <KeyRound className="size-4 shrink-0 text-slate-300" />
+                        Aucune clé d’accès pour l’instant.
+                    </p>
                 )}
-            </div>
 
-            <PasskeyRegistration onSuccess={handleRegisterSuccess} />
-        </div>
+                <div>
+                    <PasskeyRegistration onSuccess={() => router.reload()} />
+                </div>
+            </div>
+        </SettingsCard>
     );
 }

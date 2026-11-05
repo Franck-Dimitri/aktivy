@@ -74,6 +74,8 @@ class Company extends Model
         return [
             'status'                  => AccountStatus::class,
             'onboarding_completed_at' => 'datetime',
+            // Rappels automatiques (cf. App\Support\Reminders\ReminderSettings)
+            'reminder_settings'       => 'array',
         ];
     }
 

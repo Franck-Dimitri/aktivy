@@ -1,218 +1,162 @@
 import { router, useForm } from '@inertiajs/react';
-import { MapPin, Plus, Store, Trash2, Users } from 'lucide-react';
-import { useState } from 'react';
-import { GlowCard } from '@/components/page/surface';
+import { Building2, MapPin, Plus, Store, Tent, Trash2, Users } from 'lucide-react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { ActionButton } from '@/components/page/buttons';
-import { TextInput, SelectInput } from '@/components/page/form-fields';
+import { ConfirmDialog } from '@/components/page/confirm-dialog';
+import { Field, TextInput } from '@/components/page/form-fields';
+import { Modal } from '@/components/page/modal';
+import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
-import { store as siteStore, destroy as siteDestroy } from '@/routes/events/sites';
-import type { CompanySite, EventData } from './types';
+import { destroy as siteDestroy, store as siteStore } from '@/routes/events/sites';
+import { ModalFooter, ModeCards, PickList, TabEmpty, TabToolbar } from './tab-kit';
+import type { CompanySite, EventData, EventSite } from './types';
 
 type Props = { event: EventData; companySites: CompanySite[] };
 
-function PdvCard({ site, canEdit, onDelete }: {
-    site: EventData['sites'][0];
-    canEdit: boolean;
-    onDelete: () => void;
-}) {
-    const isExisting = site.site_id !== null;
+/** Ajout d'un point de vente : un site existant de l'entreprise, ou un stand propre à l'événement. */
+function AddPdvModal({ event, available, onClose }: { event: EventData; available: CompanySite[]; onClose: () => void }) {
+    const [mode, setMode] = useState<'existing' | 'new'>(available.length ? 'existing' : 'new');
+    const { data, setData, post, processing, errors, transform } = useForm({ site_id: null as number | null, name: '', address: '', city: event.city ?? '' });
+
+    const close = useCallback(() => !processing && onClose(), [processing, onClose]);
+
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        transform((d) => (mode === 'existing' ? { site_id: d.site_id } : { name: d.name, address: d.address, city: d.city }));
+        post(siteStore({ event: event.id }).url, { preserveScroll: true, onSuccess: onClose, onError: toastFormError });
+    };
+
+    const canSubmit = mode === 'existing' ? data.site_id !== null : data.name.trim() !== '';
 
     return (
-        <div className={cn(
-            'group relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-white p-5 ring-1 transition-shadow hover:shadow-md',
-            isExisting ? 'ring-green-100' : 'ring-amber-100',
-        )}>
-            {/* Top colored strip */}
-            <div className={cn(
-                'absolute inset-x-0 top-0 h-1',
-                isExisting ? 'bg-motriks' : 'bg-amber-400',
-            )} />
+        <Modal onClose={close} title="Ajouter un point de vente" description="Où l’événement se déroule." icon={<Store />}>
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex flex-col gap-5 overflow-y-auto px-6 pt-3 pb-6">
+                    <ModeCards
+                        value={mode}
+                        onChange={setMode}
+                        options={[
+                            { value: 'existing', title: 'Point de vente existant', text: 'Un de vos sites, avec son stock.', icon: Store },
+                            { value: 'new', title: 'Stand de l’événement', text: 'Un emplacement propre à ce salon.', icon: Tent },
+                        ]}
+                    />
 
-            <div className="flex items-start justify-between gap-2 pt-1">
-                <div className={cn(
-                    'flex size-10 shrink-0 items-center justify-center rounded-xl ring-1',
-                    isExisting
-                        ? 'bg-motriks-soft ring-green-100'
-                        : 'bg-amber-50 ring-amber-100',
-                )}>
-                    {isExisting
-                        ? <Store className="size-5 text-motriks" />
-                        : <MapPin className="size-5 text-amber-500" />}
+                    {mode === 'existing' ? (
+                        <div>
+                            <PickList
+                                items={available.map((s) => ({ id: s.id, title: s.name, subtitle: [s.address, s.city].filter(Boolean).join(', ') }))}
+                                value={data.site_id}
+                                onChange={(id) => setData('site_id', id)}
+                                empty="Tous vos points de vente actifs sont déjà dans l’événement."
+                                searchPlaceholder="Rechercher un point de vente"
+                            />
+                            {errors.site_id && <p className="mt-1.5 text-xs font-medium text-red-600">{errors.site_id}</p>}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-4">
+                            <Field label="Nom du stand" htmlFor="pdv-name" required error={errors.name}>
+                                <TextInput id="pdv-name" icon={Tent} value={data.name} onChange={(e) => setData('name', e.target.value)} placeholder="Ex. : Stand B12" error={errors.name} maxLength={255} autoFocus />
+                            </Field>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <Field label="Emplacement" htmlFor="pdv-address" hint="(optionnel)" error={errors.address}>
+                                    <TextInput id="pdv-address" icon={Building2} value={data.address} onChange={(e) => setData('address', e.target.value)} placeholder="Hall 3, allée B" error={errors.address} maxLength={255} />
+                                </Field>
+                                <Field label="Ville" htmlFor="pdv-city" error={errors.city}>
+                                    <TextInput id="pdv-city" icon={MapPin} value={data.city} onChange={(e) => setData('city', e.target.value)} placeholder="Douala" error={errors.city} maxLength={100} />
+                                </Field>
+                            </div>
+                        </div>
+                    )}
                 </div>
+                <ModalFooter onCancel={close} processing={processing} submitLabel="Ajouter" icon={<Plus />} disabled={!canSubmit} />
+            </form>
+        </Modal>
+    );
+}
 
+function PdvCard({ site, canEdit, onDelete }: { site: EventSite; canEdit: boolean; onDelete: () => void }) {
+    const linked = site.site_id !== null;
+    const place = [site.address, site.city].filter(Boolean).join(', ');
+
+    return (
+        <article className="flex flex-col rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-900/[0.03] sm:p-5 dark:border-sidebar-border dark:bg-card">
+            <div className="flex items-start gap-3">
+                <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-xl', linked ? 'bg-motriks-soft text-motriks-deep' : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10')}>
+                    {linked ? <Store className="size-5" /> : <Tent className="size-5" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-ink">{site.name}</p>
+                    <p className="truncate text-xs text-slate-500">{place || (linked ? 'Point de vente' : 'Stand')}</p>
+                </div>
                 {canEdit && (
-                    <button
-                        onClick={onDelete}
-                        className="rounded-lg p-1.5 text-slate-200 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 focus-visible:opacity-100 pointer-coarse:-m-1 pointer-coarse:p-2.5 pointer-coarse:text-slate-400 pointer-coarse:opacity-100"
-                        aria-label="Supprimer"
-                    >
-                        <Trash2 className="size-4" />
-                    </button>
+                    <ActionButton variant="icon-danger" size="icon" icon={<Trash2 />} onClick={onDelete} aria-label={`Retirer ${site.name}`} title="Retirer" />
                 )}
             </div>
-
-            <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-slate-900">{site.name}</p>
-                {(site.address || site.city) && (
-                    <p className="mt-0.5 truncate text-xs text-slate-400">
-                        {[site.address, site.city].filter(Boolean).join(', ')}
-                    </p>
-                )}
-            </div>
-
-            <div className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1.5 text-xs">
-                <Users className="size-3.5 text-slate-400" />
-                <span className="font-medium text-slate-600 tabular-nums">{site.hostesses_count}</span>
-                <span className="text-slate-400">hôtesse{site.hostesses_count > 1 ? 's' : ''}</span>
-                <span className="ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
-                    style={{ background: isExisting ? '#ecfdf3' : '#fffbeb', color: isExisting ? '#039855' : '#b45309' }}>
-                    {isExisting ? 'PDV lié' : 'Stand'}
+            <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs dark:border-sidebar-border">
+                <span className={cn('inline-flex items-center gap-1.5', site.hostesses_count ? 'text-slate-600 dark:text-slate-300' : 'text-amber-600')}>
+                    <Users className="size-3.5" />
+                    {site.hostesses_count ? `${site.hostesses_count} hôtesse${site.hostesses_count > 1 ? 's' : ''}` : 'Aucune hôtesse'}
+                </span>
+                <span className={cn('rounded-md px-1.5 py-0.5 text-[10px] font-semibold', linked ? 'bg-motriks-soft text-motriks-deep' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10')}>
+                    {linked ? 'Point de vente' : 'Stand'}
                 </span>
             </div>
-        </div>
+        </article>
     );
 }
 
 export function TabPdv({ event, companySites }: Props) {
-    const [showForm, setShowForm] = useState(false);
-    const [mode, setMode] = useState<'existing' | 'new'>('existing');
+    const [adding, setAdding] = useState(false);
+    const [target, setTarget] = useState<EventSite | null>(null);
+    const [removing, setRemoving] = useState(false);
 
-    const { data, setData, post, processing, reset, errors } = useForm({
-        site_id: '',
-        name:    '',
-        address: '',
-        city:    '',
-    });
+    const canEdit = !['completed', 'archived'].includes(event.status);
+    const used = event.sites.map((s) => s.site_id).filter(Boolean);
+    const available = companySites.filter((s) => !used.includes(s.id));
+    const count = event.sites.length;
 
-    const canEdit    = !['completed', 'archived'].includes(event.status);
-    const usedSiteIds = event.sites.map((s) => s.site_id).filter(Boolean);
-    const available  = companySites.filter((s) => !usedSiteIds.includes(s.id));
+    const add = canEdit && (
+        <ActionButton icon={<Plus />} onClick={() => setAdding(true)}>
+            Ajouter un point de vente
+        </ActionButton>
+    );
 
-    function submit(e: React.FormEvent) {
-        e.preventDefault();
-        post(siteStore({ event: event.id }).url, {
-            onSuccess: () => { reset(); setShowForm(false); },
+    const remove = () => {
+        if (!target) return;
+        router.delete(siteDestroy({ event: event.id, eventSite: target.id }).url, {
+            preserveScroll: true,
+            onStart: () => setRemoving(true),
+            onFinish: () => setRemoving(false),
+            onSuccess: () => setTarget(null),
         });
-    }
+    };
 
     return (
         <div className="flex flex-col gap-4">
-            {canEdit && (
-                <div className="flex justify-end">
-                    <ActionButton icon={<Plus />} onClick={() => setShowForm(!showForm)} variant="secondary">
-                        Ajouter un PDV
-                    </ActionButton>
-                </div>
-            )}
-
-            {showForm && (
-                <GlowCard contentClassName="p-5" className="max-w-2xl">
-                    <div className="mb-4 flex gap-2">
-                        {(['existing', 'new'] as const).map((m) => (
-                            <button
-                                key={m}
-                                onClick={() => setMode(m)}
-                                className={cn(
-                                    'flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
-                                    mode === m
-                                        ? 'border-motriks bg-motriks-soft text-motriks-deep'
-                                        : 'border-slate-200 text-slate-500 hover:border-slate-300',
-                                )}
-                            >
-                                {m === 'existing' ? <><Store className="size-4" /> PDV existant</> : <><MapPin className="size-4" /> Nouveau stand</>}
-                            </button>
+            {count === 0 ? (
+                <TabEmpty icon={MapPin} title="Aucun point de vente" text="Ajoutez vos points de vente habituels ou créez des stands propres à cet événement." action={add} />
+            ) : (
+                <>
+                    <TabToolbar summary={`${count} point${count > 1 ? 's' : ''} de vente`} action={add} />
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {event.sites.map((site) => (
+                            <PdvCard key={site.id} site={site} canEdit={canEdit} onDelete={() => setTarget(site)} />
                         ))}
                     </div>
-
-                    <form onSubmit={submit} className="flex flex-col gap-3">
-                        {mode === 'existing' ? (
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-sm font-semibold text-ink">Point de vente</label>
-                                {available.length === 0 ? (
-                                    <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-400 italic">
-                                        Tous les PDV actifs sont déjà ajoutés.
-                                    </p>
-                                ) : (
-                                    <SelectInput
-                                        value={data.site_id}
-                                        onChange={(e) => setData('site_id', e.target.value)}
-                                        error={errors.site_id}
-                                    >
-                                        <option value="">-- Choisir --</option>
-                                        {available.map((s) => (
-                                            <option key={s.id} value={s.id}>
-                                                {s.name} — {s.city}
-                                            </option>
-                                        ))}
-                                    </SelectInput>
-                                )}
-                            </div>
-                        ) : (
-                            <>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-sm font-semibold text-ink">Nom du stand</label>
-                                    <TextInput
-                                        value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
-                                        placeholder="ex. Stand B12"
-                                        error={errors.name}
-                                    />
-                                </div>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-sm font-semibold text-ink">Adresse / Hall</label>
-                                        <TextInput
-                                            value={data.address}
-                                            onChange={(e) => setData('address', e.target.value)}
-                                            placeholder="Hall 3, Allée B"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-sm font-semibold text-ink">Ville</label>
-                                        <TextInput
-                                            value={data.city}
-                                            onChange={(e) => setData('city', e.target.value)}
-                                            placeholder="Yaoundé"
-                                        />
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
-                        <div className="flex justify-end gap-2 pt-1">
-                            <ActionButton type="button" variant="secondary" onClick={() => setShowForm(false)}>
-                                Annuler
-                            </ActionButton>
-                            <ActionButton type="submit" icon={<Plus />} loading={processing}>
-                                Ajouter
-                            </ActionButton>
-                        </div>
-                    </form>
-                </GlowCard>
+                </>
             )}
 
-            {event.sites.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-16 text-center">
-                    <div className="flex size-12 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
-                        <MapPin className="size-6 text-blue-400" />
-                    </div>
-                    <p className="mt-4 text-sm font-bold text-slate-700">Aucun point de vente</p>
-                    <p className="mt-1 max-w-xs text-xs text-slate-400">
-                        Ajoutez les PDV existants ou créez des stands spécifiques à cet événement.
-                    </p>
-                </div>
-            ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {event.sites.map((site) => (
-                        <PdvCard
-                            key={site.id}
-                            site={site}
-                            canEdit={canEdit}
-                            onDelete={() => router.delete(siteDestroy({ event: event.id, eventSite: site.id }).url)}
-                        />
-                    ))}
-                </div>
-            )}
+            {adding && <AddPdvModal event={event} available={available} onClose={() => setAdding(false)} />}
+
+            <ConfirmDialog
+                open={target !== null}
+                onOpenChange={(open) => !open && setTarget(null)}
+                title={`Retirer « ${target?.name ?? ''} » ?`}
+                description={target?.hostesses_count ? `Les ${target.hostesses_count} hôtesse(s) placées ici n’auront plus de point de vente dans l’événement.` : 'Le point de vente est retiré de l’événement.'}
+                confirmLabel="Retirer"
+                loading={removing}
+                onConfirm={remove}
+            />
         </div>
     );
 }

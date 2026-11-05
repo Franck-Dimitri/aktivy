@@ -10,6 +10,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReportPhotoController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Middleware\EnsureUserHasRole;
@@ -76,7 +77,12 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Centre d'aide, pour tous les rôles
-    Route::get('aide', HelpController::class)->name('help');
+    Route::get('aide', [HelpController::class, 'index'])->name('help');
+    Route::post('aide/support', [HelpController::class, 'support'])->middleware('throttle:5,1')->name('help.support');
+
+    // Notifications push : appareils de l'utilisateur
+    Route::post('push/abonnement', [PushSubscriptionController::class, 'store'])->middleware('throttle:20,1')->name('push.subscribe');
+    Route::delete('push/abonnement', [PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
 
     // Notifications (cloche), pour tous les rôles
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');

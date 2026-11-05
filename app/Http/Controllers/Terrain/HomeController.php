@@ -67,17 +67,15 @@ class HomeController extends Controller
             'reports_this_month'    => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->where('report_date', '>=', $thisMonthStart)->count(),
         ];
 
-        // Objectif de CA du mois fixé par le responsable, s'il y en a un
-        $targetAmount = SalesTarget::where('user_id', $user->id)
-            ->whereDate('month', now()->startOfMonth()->toDateString())
-            ->value('amount');
+        // Objectif de CA du mois fixé par le responsable (reconduit d'un mois sur l'autre), s'il y en a un
+        $targetAmount = SalesTarget::effective($user->company_id, now())->get(SalesTarget::keyFor(null, $user->id))?->amount;
         $myTarget = $targetAmount === null
             ? null
             : SalesTarget::progress($myStats['revenue_this_month'], (int) $targetAmount, now());
 
-        // Objectif de la semaine (lundi → dimanche), s'il y en a un
+        // Objectif de la semaine (lundi → dimanche, reconduit d'une semaine sur l'autre), s'il y en a un
         $weekStart = WeeklyTarget::weekOf(now());
-        $weekAmount = WeeklyTarget::where('user_id', $user->id)->whereDate('week_start', $weekStart->toDateString())->value('amount');
+        $weekAmount = WeeklyTarget::effective([$user->id], $weekStart)->get($user->id)?->amount;
         $myWeekTarget = $weekAmount === null ? null : [
             'target'      => (int) $weekAmount,
             'actual'      => (float) $statsBase()->whereBetween('daily_reports.report_date', [$weekStart->toDateString(), $weekStart->addDays(6)->toDateString()])->sum('daily_report_lines.revenue'),

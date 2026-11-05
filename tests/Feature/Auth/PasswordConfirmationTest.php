@@ -24,6 +24,27 @@ class PasswordConfirmationTest extends TestCase
         );
     }
 
+    public function test_the_right_password_unlocks_the_security_page()
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get(route('security.edit'))->assertRedirect(route('password.confirm'));
+
+        $this->actingAs($user)->post(route('password.confirm.store'), ['password' => 'password'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('security.edit'));
+
+        $this->actingAs($user)->get(route('security.edit'))->assertOk();
+    }
+
+    public function test_a_hostess_who_logs_in_by_phone_can_confirm_too()
+    {
+        $hostess = User::factory()->fieldAgent()->create(['email' => null, 'phone' => '+237690000099']);
+
+        $this->actingAs($hostess)->post(route('password.confirm.store'), ['password' => 'password'])->assertSessionHasNoErrors();
+        $this->actingAs($hostess)->post(route('password.confirm.store'), ['password' => 'mauvais'])->assertSessionHasErrors('password');
+    }
+
     public function test_password_confirmation_requires_authentication()
     {
         $response = $this->get(route('password.confirm'));

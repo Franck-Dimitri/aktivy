@@ -39,11 +39,9 @@ class WeeklyTargetController extends Controller
             ->get(['id', 'name']);
         $ids = $hostesses->pluck('id');
 
-        $targets = WeeklyTarget::whereIn('user_id', $ids)
-            ->whereIn('week_start', [$weekStart->toDateString(), $lastStart->toDateString()])
-            ->get();
-        $thisWeek = $targets->filter(fn ($t) => $t->week_start->equalTo($weekStart))->keyBy('user_id');
-        $lastWeek = $targets->filter(fn ($t) => $t->week_start->equalTo($lastStart))->keyBy('user_id');
+        // Objectifs en vigueur : fixés cette semaine ou reconduits depuis une semaine précédente
+        $thisWeek = WeeklyTarget::effective($ids, $weekStart);
+        $lastWeek = WeeklyTarget::effective($ids, $lastStart);
 
         $siteIds = $user->managedSiteIds();
         $company = $user->company;
@@ -63,6 +61,8 @@ class WeeklyTargetController extends Controller
                 'name' => $h->name,
                 'sites' => $h->affectations->pluck('site.name')->filter()->unique()->values(),
                 'target' => $thisWeek->get($h->id)?->amount,
+                // Semaine depuis laquelle l'objectif est reconduit (null s'il a été fixé cette semaine)
+                'since' => ($t = $thisWeek->get($h->id)) && $t->week_start->lt($weekStart) ? $t->week_start->toDateString() : null,
                 'actual' => (float) ($actual[$h->id] ?? 0),
                 'last_target' => $lastWeek->get($h->id)?->amount,
                 'last_actual' => (float) ($lastActual[$h->id] ?? 0),
@@ -71,7 +71,8 @@ class WeeklyTargetController extends Controller
     }
 
     /**
-     * Enregistre les objectifs d'une semaine : un montant vide retire l'objectif de l'hôtesse.
+     * Enregistre les objectifs à partir d'une semaine : ils restent en place les semaines suivantes
+     * tant qu'ils ne sont pas changés. Un montant vide retire l'objectif à partir de cette semaine.
      * Les hôtesses dont l'objectif est nouveau ou modifié en sont prévenues sous la cloche.
      */
     public function store(Request $request): RedirectResponse
@@ -96,29 +97,36 @@ class WeeklyTargetController extends Controller
         $allowed = WeeklyTargets::hostesses($user, $weekStart)->whereIn('id', $ids)->pluck('id');
         abort_if($allowed->count() !== $ids->unique()->count(), 403, 'Certaines hôtesses ne font pas partie de votre équipe.');
 
-        $existing = WeeklyTarget::where('week_start', $weekStart->toDateString())->whereIn('user_id', $ids)->get()->keyBy('user_id');
+        // Ce qui s'appliquait jusque-là (semaines précédentes) et ce qui est déjà fixé pour cette semaine
+        $inherited = WeeklyTarget::latestFor($ids, $weekStart->subDay());
+        $atWeek = WeeklyTarget::whereIn('user_id', $ids)->whereDate('week_start', $weekStart->toDateString())->get()->keyBy('user_id');
         $changed = [];
 
-        DB::transaction(function () use ($data, $existing, $weekStart, $user, &$changed) {
+        DB::transaction(function () use ($data, $inherited, $atWeek, $weekStart, $user, &$changed) {
             foreach ($data['targets'] as $row) {
-                $target = $existing->get($row['user_id']);
-                $amount = (int) ($row['amount'] ?? 0);
+                $userId = $row['user_id'];
+                $desired = (int) ($row['amount'] ?? 0);
+                $before = (int) ($inherited->get($userId)?->amount ?? 0);
+                $current = (int) ($atWeek->get($userId)?->amount ?? $before);
 
-                if ($amount === 0) {
-                    $target?->delete();
-
+                if ($desired === $current) {
                     continue;
                 }
 
-                if ($target?->amount === $amount) {
-                    continue;
+                if ($desired === $before) {
+                    // Retour à l'objectif reconduit : la ligne de cette semaine n'a plus lieu d'être
+                    $atWeek->get($userId)?->delete();
+                } else {
+                    // 0 enregistré = objectif retiré à partir de cette semaine
+                    WeeklyTarget::updateOrCreate(
+                        ['user_id' => $userId, 'week_start' => $weekStart->toDateString()],
+                        ['company_id' => $user->company_id, 'amount' => $desired, 'updated_by' => $user->id],
+                    );
                 }
 
-                WeeklyTarget::updateOrCreate(
-                    ['user_id' => $row['user_id'], 'week_start' => $weekStart->toDateString()],
-                    ['company_id' => $user->company_id, 'amount' => $amount, 'updated_by' => $user->id],
-                );
-                $changed[$row['user_id']] = $amount;
+                if ($desired > 0) {
+                    $changed[$userId] = $desired;
+                }
             }
         });
 
@@ -127,6 +135,6 @@ class WeeklyTargetController extends Controller
             Notify::send($hostess, new WeeklyTargetSet($changed[$hostess->id], $currency, $weekStart));
         }
 
-        return back()->with('success', 'Objectifs de la semaine enregistrés.');
+        return back()->with('success', 'Objectifs enregistrés. Ils restent en place les semaines suivantes.');
     }
 }

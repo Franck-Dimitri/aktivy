@@ -38,6 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('rapports', [ReportController::class, 'index'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('reports.index');
             Route::get('rapports/export', [ReportController::class, 'export'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('reports.export');
             Route::get('rapports/pdf', [ReportController::class, 'pdf'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('reports.pdf');
+            // Onglet « Objectifs » : qui atteint son objectif de la semaine ou du mois
+            Route::get('rapports/objectifs', [ReportController::class, 'objectives'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('reports.objectives');
 
             // Rapports journaliers des hôtesses
             Route::get('rapports-journaliers', [DailyReportController::class, 'index'])->middleware(EnsureModuleIsActive::using(Module::Terrain))->name('daily-reports.index');
@@ -51,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('entreprise', [CompanySettingsController::class, 'edit'])->name('company.settings.edit');
             // POST : le formulaire peut contenir un fichier (logo)
             Route::post('entreprise', [CompanySettingsController::class, 'update'])->name('company.settings.update');
+            Route::put('entreprise/rappels', [CompanySettingsController::class, 'updateReminders'])->name('company.settings.reminders');
 
             // Reprise des fichiers existants
             Route::get('import', [ImportController::class, 'index'])->name('company.import.index');

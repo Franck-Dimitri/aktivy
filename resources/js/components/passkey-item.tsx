@@ -1,15 +1,7 @@
 import { KeyRound, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { ActionButton } from '@/components/page/buttons';
+import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import type { Passkey } from '@/types/auth';
 
 type Props = {
@@ -18,76 +10,43 @@ type Props = {
 };
 
 export default function PasskeyItem({ passkey, onDelete }: Props) {
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const handleDelete = () => {
-        setIsDeleting(true);
-        onDelete(passkey.id, () => setIsDeleting(false));
-    };
+    const [confirming, setConfirming] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     return (
-        <div className="flex items-center justify-between gap-3 border-b p-4 last:border-b-0">
-            <div className="flex min-w-0 items-center gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-                    <KeyRound className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="min-w-0 space-y-1">
-                    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        <p className="min-w-0 font-medium tracking-tight break-words">
-                            {passkey.name}
-                        </p>
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3.5 last:border-b-0 dark:border-sidebar-border">
+            <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-motriks-soft text-motriks-deep">
+                    <KeyRound className="size-4" />
+                </span>
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <p className="min-w-0 text-sm font-medium break-words text-ink">{passkey.name}</p>
                         {passkey.authenticator && (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase ring-1 ring-border ring-inset">
-                                {passkey.authenticator}
-                            </span>
+                            <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 ring-1 ring-slate-200/80 dark:bg-white/5">{passkey.authenticator}</span>
                         )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="mt-0.5 text-xs text-slate-500">
                         Ajoutée {passkey.created_at_diff}
-                        {passkey.last_used_at_diff && (
-                            <>
-                                <span className="mx-1 text-muted-foreground/50">
-                                    /
-                                </span>
-                                utilisée {passkey.last_used_at_diff}
-                            </>
-                        )}
+                        {passkey.last_used_at_diff ? ` · utilisée ${passkey.last_used_at_diff}` : ' · jamais utilisée'}
                     </p>
                 </div>
             </div>
 
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Retirer</span>
-                    </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogTitle>Retirer cette clé d’accès ?</DialogTitle>
-                    <DialogDescription>
-                        « {passkey.name} » ne pourra plus servir à vous
-                        connecter.
+            <ActionButton variant="icon-danger" size="icon" icon={<Trash2 />} onClick={() => setConfirming(true)} aria-label={`Retirer la clé ${passkey.name}`} />
 
-                    </DialogDescription>
-                    <DialogFooter className="gap-2">
-                        <DialogClose asChild>
-                            <Button variant="secondary">Annuler</Button>
-                        </DialogClose>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                        >
-                            {isDeleting ? 'Retrait…' : 'Retirer'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <ConfirmDialog
+                open={confirming}
+                onOpenChange={setConfirming}
+                title="Retirer cette clé d’accès ?"
+                description={<>« {passkey.name} » ne pourra plus servir à vous connecter. Votre mot de passe reste valable.</>}
+                confirmLabel="Retirer"
+                loading={deleting}
+                onConfirm={() => {
+                    setDeleting(true);
+                    onDelete(passkey.id, () => setDeleting(false));
+                }}
+            />
         </div>
     );
 }

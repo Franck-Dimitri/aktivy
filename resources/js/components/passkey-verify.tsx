@@ -4,6 +4,7 @@ import { usePasskeyVerify } from '@laravel/passkeys/react';
 import { KeyRound } from 'lucide-react';
 import { AuthDivider, AuthSecondaryButton } from '@/components/auth/auth-field';
 import InputError from '@/components/input-error';
+import { passkeyErrorMessage } from '@/lib/passkey-error';
 import { Spinner } from '@/components/ui/spinner';
 
 type Props = {
@@ -64,7 +65,7 @@ export default function PasskeyVerify({
                         : (label ?? 'Se connecter avec une clé d’accès')}
                 </AuthSecondaryButton>
                 {error && (
-                    <InputError message={error} className="text-center" />
+                    <InputError message={passkeyErrorMessage(error) ?? undefined} className="text-center" />
                 )}
             </div>
 

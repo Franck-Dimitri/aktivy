@@ -26,7 +26,7 @@ export default function AdminDashboard() {
                                 <Button asChild>
                                     <Link href={companiesIndex()}>Voir les entreprises</Link>
                                 </Button>
-                                <Button asChild variant="outline">
+                                <Button asChild variant="outline" className="h-auto min-h-9 whitespace-normal">
                                     <Link href={onboardingIndex()}>Traiter les demandes d’inscription</Link>
                                 </Button>
                             </div>

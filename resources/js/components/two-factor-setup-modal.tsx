@@ -73,7 +73,7 @@ function TwoFactorSetupStep({
             ) : (
                 <>
                     <div className="mx-auto flex max-w-md overflow-hidden">
-                        <div className="mx-auto aspect-square w-64 rounded-lg border border-border">
+                        <div className="mx-auto aspect-square w-full max-w-64 rounded-lg border border-border">
                             <div className="z-10 flex h-full w-full items-center justify-center p-5">
                                 {qrCodeSvg ? (
                                     <div

@@ -50,10 +50,10 @@ function formatMoney(amount: number): string {
 
 function Money({ amount }: { amount: number }) {
     return (
-        <>
-            {formatMoney(amount)}
+        <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+            <span className="whitespace-nowrap">{formatMoney(amount)}</span>
             <small>FCFA</small>
-        </>
+        </span>
     );
 }
 
@@ -175,7 +175,7 @@ function TrendCard({ data }: { data: TrendPoint[] }) {
                         <div
                             className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-xl bg-slate-900 px-3 py-2 text-center shadow-lg"
                             style={{
-                                left: `clamp(14%, ${points[active].x}%, 86%)`,
+                                left: `clamp(4.5rem, ${points[active].x}%, calc(100% - 4.5rem))`,
                                 top: `calc(${points[active].y}% - 14px)`,
                             }}
                         >
@@ -186,9 +186,9 @@ function TrendCard({ data }: { data: TrendPoint[] }) {
                 )}
             </div>
 
-            <div className="mt-3 flex justify-between text-xs text-slate-400 tabular-nums">
+            <div className="mt-3 flex justify-between gap-1 text-[11px] text-slate-400 tabular-nums sm:text-xs">
                 {data.map((d) => (
-                    <span key={d.label}>{d.label}</span>
+                    <span key={d.label} className="whitespace-nowrap">{d.label}</span>
                 ))}
             </div>
         </section>
@@ -244,7 +244,7 @@ function TopProductsCard({ products, totalVisits, totalReports }: { products: To
 
             {/* Totaux depuis le début */}
             <dl className="grid grid-cols-2 gap-px border-t border-slate-100 bg-slate-100">
-                <div className="flex items-center gap-3 bg-white px-5 py-3.5">
+                <div className="flex items-center gap-3 bg-white px-4 py-3.5 sm:px-5">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-motriks-soft text-motriks-deep ring-1 ring-green-600/10 ring-inset">
                         <CalendarCheck className="size-4" />
                     </span>
@@ -253,7 +253,7 @@ function TopProductsCard({ products, totalVisits, totalReports }: { products: To
                         <dt className="mt-1 text-xs text-slate-500">Visites depuis le début</dt>
                     </div>
                 </div>
-                <div className="flex items-center gap-3 bg-white px-5 py-3.5">
+                <div className="flex items-center gap-3 bg-white px-4 py-3.5 sm:px-5">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-motriks-soft text-motriks-deep ring-1 ring-green-600/10 ring-inset">
                         <ClipboardCheck className="size-4" />
                     </span>

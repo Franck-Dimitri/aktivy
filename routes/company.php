@@ -22,6 +22,7 @@ use App\Http\Controllers\Company\SiteInventoryController;
 use App\Http\Controllers\Company\SitePhotoController;
 use App\Http\Controllers\Company\StockAlertController;
 use App\Http\Controllers\Company\TicketController;
+use App\Http\Controllers\Company\WeeklyTargetController;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor))
         ->group(function () {
             Route::post('rapports/objectifs', [ReportController::class, 'saveTarget'])->name('reports.targets.save');
+            // Objectifs hebdomadaires des hôtesses (facultatifs)
+            Route::get('objectifs-semaine', [WeeklyTargetController::class, 'show'])->name('weekly-targets.show');
+            Route::post('objectifs-semaine', [WeeklyTargetController::class, 'store'])->name('weekly-targets.store');
 
             Route::resource('sites', SiteController::class)->except(['destroy']);
             Route::resource('products', ProductController::class)->except(['show']);

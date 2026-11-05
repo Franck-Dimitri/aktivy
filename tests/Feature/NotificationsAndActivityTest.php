@@ -216,6 +216,29 @@ class NotificationsAndActivityTest extends TestCase
         $this->actingAs($this->otherSupervisor)->get(route('notifications.open', $id))->assertNotFound();
     }
 
+    public function test_the_bell_preview_returns_the_latest_notifications_of_the_user_only()
+    {
+        $report = $this->checkIn();
+        $this->submit($report, 1, 'Présentoir cassé');
+
+        $this->actingAs($this->manager)->getJson(route('notifications.recent'))
+            ->assertOk()
+            ->assertJsonPath('unread', 1)
+            ->assertJsonCount(1, 'notifications')
+            ->assertJsonPath('notifications.0.kind', 'incident')
+            ->assertJsonPath('notifications.0.read', false);
+
+        $this->actingAs($this->otherSupervisor)->getJson(route('notifications.recent'))
+            ->assertOk()
+            ->assertJsonPath('unread', 0)
+            ->assertJsonCount(0, 'notifications');
+    }
+
+    public function test_the_bell_preview_requires_a_login()
+    {
+        $this->getJson(route('notifications.recent'))->assertUnauthorized();
+    }
+
     public function test_the_activity_board_shows_who_is_on_site_and_who_is_missing()
     {
         $late = User::factory()->fieldAgent()->create(['company_id' => $this->manager->company_id]);

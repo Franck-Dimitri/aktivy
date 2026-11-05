@@ -222,7 +222,7 @@ function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
                     <div className="flex flex-col items-end gap-1.5">
                         <p className="text-xs font-medium text-slate-400">Vous</p>
                         <div className="max-w-[88%] rounded-2xl rounded-tr-md bg-ink px-4 py-3">
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap text-white">{ticket.body}</p>
+                            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-white">{ticket.body}</p>
                         </div>
                     </div>
 
@@ -231,7 +231,7 @@ function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
                         <div className="flex flex-col items-start gap-1.5">
                             <p className="text-xs font-medium text-motriks-deep">Votre responsable</p>
                             <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-green-200/70 bg-motriks-soft px-4 py-3">
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap text-green-950">{ticket.response}</p>
+                                <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-green-950">{ticket.response}</p>
                             </div>
                             {ticket.responded_at && <p className="text-xs text-slate-400">{ticket.responded_at}</p>}
                         </div>
@@ -386,7 +386,7 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
                 ) : (
                     <div className="flex flex-col gap-5">
                         {/* Filtres */}
-                        <div role="tablist" aria-label="Filtrer les demandes" className="inline-flex w-fit gap-1 rounded-2xl bg-slate-100/80 p-1">
+                        <div role="tablist" aria-label="Filtrer les demandes" className="flex w-full max-w-full gap-1 overflow-x-auto rounded-2xl bg-slate-100/80 p-1 sm:inline-flex sm:w-fit">
                             {filters.map((f) => {
                                 const active = filter === f.key;
                                 return (
@@ -397,14 +397,14 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
                                         aria-selected={active}
                                         onClick={() => setFilter(f.key)}
                                         className={cn(
-                                            'flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
+                                            'flex min-h-9 flex-1 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-medium whitespace-nowrap transition-all sm:min-h-0 sm:flex-none sm:gap-2 sm:px-3.5 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                             active ? 'bg-white text-ink shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-ink',
                                         )}
                                     >
                                         {f.label}
                                         <span
                                             className={cn(
-                                                'rounded-full px-1.5 text-xs font-semibold tabular-nums',
+                                                'rounded-full px-1 text-xs font-semibold tabular-nums sm:px-1.5',
                                                 active ? 'bg-motriks-soft text-motriks-deep' : 'text-slate-400',
                                             )}
                                         >

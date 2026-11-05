@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Support\Toast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse as PasskeyLoginResponseContract;
@@ -16,6 +17,7 @@ class PasskeyLoginResponse implements PasskeyLoginResponseContract
      */
     public function toResponse($request): Response
     {
+        Toast::success(LoginResponse::welcome($request->user()->name));
         $redirect = redirect()->intended($request->user()->homeUrl());
 
         if ($request->wantsJson()) {

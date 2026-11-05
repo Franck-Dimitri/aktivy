@@ -79,6 +79,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Notifications (cloche), pour tous les rôles
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    // Aperçu de la cloche (JSON) : déclaré avant {notification} pour ne pas être pris pour un identifiant
+    Route::get('notifications/apercu', [NotificationController::class, 'recent'])->name('notifications.recent');
     Route::get('notifications/{notification}', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('notifications/tout-lu', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 

@@ -178,7 +178,7 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
     return (
         <div className="flex flex-col gap-6">
             {/* Step indicator */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
                 {STEPS.map((label, i) => (
                     <div key={label} className="flex items-center gap-2">
                         <div className={cn(
@@ -321,7 +321,7 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
                                 <button
                                     type="button"
                                     onClick={() => setStep(0)}
-                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 h-10 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 h-10 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                                 >
                                     Retour
                                 </button>
@@ -392,9 +392,9 @@ function PendingView({ company, submittedAt }: { company: Company; submittedAt: 
                         { label: 'Email', value: company.email },
                         { label: 'Téléphone', value: company.phone },
                     ].filter(({ value }) => value).map(({ label, value }) => (
-                        <div key={label} className="flex items-center justify-between px-6 py-3">
-                            <dt className="text-sm text-slate-500">{label}</dt>
-                            <dd className="text-sm font-semibold text-ink">{value}</dd>
+                        <div key={label} className="flex items-center justify-between gap-4 px-6 py-3">
+                            <dt className="shrink-0 text-sm text-slate-500">{label}</dt>
+                            <dd className="min-w-0 text-right text-sm font-semibold break-words text-ink">{value}</dd>
                         </div>
                     ))}
                 </dl>
@@ -447,7 +447,7 @@ function RejectedView({ company, sectors }: Pick<Props, 'company' | 'sectors'>) 
                 )}
             </GlowCard>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
                 <ActionButton icon={<RefreshCw />} onClick={() => setResubmit(true)}>
                     Soumettre un nouveau dossier
                 </ActionButton>
@@ -489,14 +489,14 @@ export default function OnboardingPage({ company, user, sectors }: Props) {
 
             <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* ── Page header ── */}
-                <div className="mb-6 flex items-start justify-between gap-4">
-                    <div>
+                <div className="mb-6 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+                    <div className="min-w-0">
                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1">
                             <Building2 className="size-3.5" />
                             Espace entreprise
                         </div>
                         <h1 className="text-2xl font-extrabold tracking-tight text-ink">{company.name}</h1>
-                        <p className="mt-0.5 text-sm text-slate-500">{user.email}</p>
+                        <p className="mt-0.5 text-sm break-words text-slate-500">{user.email}</p>
                     </div>
 
                     {/* Status badge */}

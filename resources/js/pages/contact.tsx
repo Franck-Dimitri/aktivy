@@ -75,7 +75,7 @@ function Logo({ light = false }: { light?: boolean }) {
 const labelClass = 'mb-1.5 block text-sm font-semibold text-slate-700';
 
 const inputClass = (error?: string) =>
-    `w-full rounded-xl border bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:bg-white focus:ring-4 ${
+    `w-full rounded-xl border bg-slate-50 px-4 py-3 text-base text-slate-900 sm:text-sm placeholder-slate-400 outline-none transition focus:bg-white focus:ring-4 ${
         error ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : 'border-slate-200 hover:border-slate-300 focus:border-green-500 focus:ring-green-100'
     }`;
 
@@ -264,7 +264,7 @@ export default function Contact({ formToken = '', paymentLogos }: { formToken?: 
                 <section className="relative pb-24">
                     <div className="mx-auto grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:px-8">
                         {/* panneau clair : canaux et étapes */}
-                        <aside className="ct-up rounded-[2rem] border border-slate-200/80 bg-slate-50/70 p-7 [animation-delay:220ms] sm:p-9">
+                        <aside className="ct-up rounded-[2rem] border border-slate-200/80 bg-slate-50/70 p-5 [animation-delay:220ms] min-[390px]:p-7 sm:p-9">
                             <p className="text-sm font-semibold uppercase tracking-wider text-green-600">Nous joindre</p>
                             <h2 className="mt-2 text-2xl font-bold text-slate-900">Choisissez votre canal</h2>
 
@@ -276,7 +276,7 @@ export default function Contact({ formToken = '', paymentLogos }: { formToken?: 
                                                 <Icon name={c.icon} />
                                             </span>
                                             <span className="min-w-0 flex-1">
-                                                <span className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                                <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-slate-900">
                                                     {c.title}
                                                     {c.badge && (
                                                         <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700">
@@ -284,14 +284,14 @@ export default function Contact({ formToken = '', paymentLogos }: { formToken?: 
                                                         </span>
                                                     )}
                                                 </span>
-                                                <span className="mt-0.5 block truncate text-sm text-slate-500">{c.text}</span>
+                                                <span className="mt-0.5 block text-sm break-words text-slate-500">{c.text}</span>
                                             </span>
                                             {c.href && (
                                                 <Icon name="arrow" className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-1 group-hover:text-green-600" />
                                             )}
                                         </>
                                     );
-                                    const base = 'group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-3.5 transition';
+                                    const base = 'group flex items-center gap-3 rounded-2xl min-[390px]:gap-4 border border-slate-200 bg-white p-3.5 transition';
                                     return c.href ? (
                                         <a key={c.title} href={c.href} className={`${base} hover:-translate-y-0.5 hover:border-green-300 hover:shadow-lg hover:shadow-slate-900/5`}>
                                             {inner}

@@ -31,7 +31,7 @@ export default function TwoFactorChallenge() {
         }
 
         return {
-            title: 'Code d’authentification',
+            title: 'Code de vérification',
             description:
                 'Saisissez le code à 6 chiffres affiché par votre application d’authentification.',
             toggleText: 'utiliser un code de récupération',
@@ -95,7 +95,7 @@ export default function TwoFactorChallenge() {
                                                         <InputOTPSlot
                                                             key={index}
                                                             index={index}
-                                                            className="h-12 w-10 rounded-xl border sm:h-14 sm:w-12 border-slate-200 bg-slate-50 text-xl font-bold text-ink shadow-none first:rounded-xl last:rounded-xl"
+                                                            className="h-12 w-10 rounded-xl border sm:h-14 sm:w-12 border-slate-200 bg-white text-xl font-bold text-ink shadow-none first:rounded-xl last:rounded-xl"
                                                         />
                                                     ),
                                                 )}
@@ -113,11 +113,11 @@ export default function TwoFactorChallenge() {
                                 Continuer
                             </AuthPrimaryButton>
 
-                            <div className="text-center text-sm text-muted-foreground">
+                            <div className="text-center text-sm text-slate-500">
                                 <span>Ou </span>
                                 <button
                                     type="button"
-                                    className="cursor-pointer font-semibold text-motriks-deep underline-offset-4 hover:underline"
+                                    className="cursor-pointer font-semibold text-motriks-deep underline-offset-4 hover:text-motriks hover:underline"
                                     onClick={() =>
                                         toggleRecoveryMode(clearErrors)
                                     }

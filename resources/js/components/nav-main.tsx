@@ -50,9 +50,9 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
             {groups.map((group, gi) => (
                 <SidebarGroup key={group.label} className="p-0">
                     {gi > 0 && (
-                        <div className="mb-3 h-px bg-white/10 group-data-[collapsible=icon]:hidden" />
+                        <div className="mb-3 h-px bg-sidebar-border group-data-[collapsible=icon]:hidden" />
                     )}
-                    <SidebarGroupLabel className="mb-1 h-6 px-2 text-[10.5px] font-semibold tracking-wider text-green-100/40 group-data-[collapsible=icon]:hidden">
+                    <SidebarGroupLabel className="mb-1 h-6 px-2 text-[10.5px] font-semibold tracking-wider text-sidebar-foreground/45 group-data-[collapsible=icon]:hidden">
                         {group.label.toUpperCase()}
                     </SidebarGroupLabel>
 
@@ -69,24 +69,25 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
                                         aria-disabled={!available || undefined}
                                         className={cn(
                                             // Base
-                                            'h-10 rounded-xl px-3 text-[13.5px] font-medium transition-all duration-150',
+                                            'relative h-10 rounded-xl px-3 text-[13.5px] font-medium transition-all duration-150',
                                             '[&>svg]:size-[17px] [&>svg]:shrink-0 [&>svg]:transition-colors',
-                                            // Actif — fond blanc, texte vert, ombre
+                                            // Actif — couleur principale de la barre latérale : fond léger, texte et icône, repère à gauche
                                             active && [
-                                                'bg-white text-green-700 shadow shadow-green-950/20',
-                                                '[&>svg]:text-green-600',
-                                                'hover:bg-white hover:text-green-700',
+                                                'bg-sidebar-primary/15 font-semibold text-sidebar-primary ring-1 ring-sidebar-primary/15 ring-inset',
+                                                '[&>svg]:text-sidebar-primary',
+                                                'hover:bg-sidebar-primary/20 hover:text-sidebar-primary',
+                                                "before:absolute before:top-1/2 before:left-0 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-sidebar-primary before:content-[''] group-data-[collapsible=icon]:before:hidden",
                                             ],
                                             // Disponible non actif
                                             available && !active && [
-                                                'text-green-50/80 hover:bg-white/10 hover:text-white',
-                                                '[&>svg]:text-green-100/70 hover:[&>svg]:text-white',
+                                                'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                                                '[&>svg]:text-sidebar-foreground/65 hover:[&>svg]:text-sidebar-accent-foreground',
                                             ],
                                             // Indisponible
                                             !available && [
-                                                'cursor-default text-green-100/30',
-                                                'hover:bg-transparent hover:text-green-100/30',
-                                                '[&>svg]:text-green-100/25',
+                                                'cursor-default text-sidebar-foreground/30',
+                                                'hover:bg-transparent hover:text-sidebar-foreground/30',
+                                                '[&>svg]:text-sidebar-foreground/25',
                                                 'aria-disabled:pointer-events-auto aria-disabled:opacity-100',
                                             ],
                                         )}
@@ -100,7 +101,7 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
                                             <>
                                                 <item.icon />
                                                 <span className="flex-1 truncate">{item.title}</span>
-                                                <span className="shrink-0 rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-green-100/40 group-data-[collapsible=icon]:hidden">
+                                                <span className="shrink-0 rounded-md bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-medium text-sidebar-foreground/45 group-data-[collapsible=icon]:hidden">
                                                     bientôt
                                                 </span>
                                             </>

@@ -41,7 +41,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 )}
             </Form>
 
-            <p className="mt-8 rounded-xl bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
+            <p className="mt-6 rounded-xl bg-slate-50 px-4 py-3 text-[13px] leading-relaxed text-slate-600">
                 Vous vous connectez avec votre numéro de téléphone ? Demandez à
                 votre responsable de réinitialiser votre mot de passe.
             </p>
@@ -50,7 +50,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 }
 
 ForgotPassword.layout = {
-    title: 'Mot de passe oublié',
+    title: 'Mot de passe oublié ?',
     description:
         'Indiquez l’adresse e-mail de votre compte : nous vous envoyons un lien pour en choisir un nouveau.',
     showcase: 'security',

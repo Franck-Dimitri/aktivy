@@ -1,12 +1,11 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     Building2,
-    CalendarRange,
     Clock,
     Eye,
     Fuel,
-    MapPin,
     MapPinOff,
+    MoreHorizontal,
     Pencil,
     Pill,
     Plus,
@@ -16,6 +15,7 @@ import {
     ShoppingCart,
     Store,
     Trash2,
+    Users,
     Warehouse,
     type LucideIcon,
 } from 'lucide-react';
@@ -26,7 +26,9 @@ import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
-import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
+import { GlowStyles, MetricStrip } from '@/components/page/surface';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index as sitesIndex, create as siteCreate, show as siteShow, destroy as siteDestroy } from '@/routes/sites';
 import type { SiteListItem, SiteTypeOption } from '@/types';
@@ -55,8 +57,93 @@ const typeIcon: Record<string, LucideIcon> = {
     autre: Building2,
 };
 
-const iconBtn =
-    'flex size-9 items-center justify-center rounded-lg text-slate-400 transition-colors sm:size-8 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
+/** Carte compacte : toute la carte ouvre la fiche ; Modifier / Supprimer sont dans le menu « ⋯ ». */
+function SiteCard({ site, canDelete, onDelete }: { site: SiteListItem; canDelete: boolean; onDelete: () => void }) {
+    const showUrl = siteShow({ site: site.id }).url;
+    const TypeIcon = typeIcon[site.type] ?? Building2;
+    const inactive = site.status !== 'active';
+    const hostesses = site.active_affectations_count;
+
+    return (
+        <article className="group relative">
+            <Link
+                href={showUrl}
+                className="flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+            >
+                <div className="flex items-center gap-3 p-4 pr-12">
+                    <span className={cn('flex size-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-motriks-deep ring-1 ring-green-600/15 ring-inset', inactive && 'opacity-50 grayscale')}>
+                        <TypeIcon className="size-[18px]" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 items-center gap-2">
+                            <h3 className="truncate text-[15px] font-semibold text-ink transition-colors group-hover:text-motriks-deep">{site.name}</h3>
+                            {inactive && <StatusBadge tone={statusTone[site.status] ?? 'neutral'}>{site.status_label}</StatusBadge>}
+                        </div>
+                        <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] text-slate-500">
+                            <span className="shrink-0">{site.type_label}</span>
+                            <span aria-hidden className="text-slate-300">·</span>
+                            <span className="truncate">
+                                {site.city}
+                                {site.region && ` · ${site.region}`}
+                            </span>
+                            {!site.has_coordinates && <MapPinOff className="size-3.5 shrink-0 text-slate-300" aria-label="Position GPS non renseignée" />}
+                            {site.code && <span className="ml-auto shrink-0 font-mono text-[11px] text-slate-400">{site.code}</span>}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-2.5 text-xs">
+                    <span className={cn('flex min-w-0 items-center gap-1.5', hostesses > 0 ? 'font-medium text-motriks-deep' : 'text-slate-400')}>
+                        <Users className="size-3.5 shrink-0" />
+                        <span className="truncate">{hostesses > 0 ? `${hostesses} hôtesse${hostesses > 1 ? 's' : ''}` : 'Aucune hôtesse'}</span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1.5 text-slate-400">
+                        <Clock className="size-3.5 shrink-0" />
+                        {site.last_visit_at ? `Visite ${site.last_visit_at}` : 'Jamais visité'}
+                    </span>
+                </div>
+            </Link>
+
+            {/* Actions : hors du lien (pas de bouton dans un lien) */}
+            <div className="absolute top-3 right-3">
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            aria-label={`Actions pour ${site.name}`}
+                            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none data-[state=open]:bg-slate-100 data-[state=open]:text-ink"
+                        >
+                            <MoreHorizontal className="size-[18px]" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44 rounded-xl p-1">
+                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                            <Link href={showUrl}>
+                                <Eye className="size-4" />
+                                Voir la fiche
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                            <Link href={`${showUrl}?modifier=1`}>
+                                <Pencil className="size-4" />
+                                Modifier
+                            </Link>
+                        </DropdownMenuItem>
+                        {canDelete && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={onDelete} className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600 [&_svg]:text-red-500">
+                                    <Trash2 className="size-4" />
+                                    Supprimer
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </article>
+    );
+}
 
 export default function SitesIndex({ sites, types }: Props) {
     // Le superviseur crée des sites ; seul le gérant les supprime
@@ -153,103 +240,10 @@ export default function SitesIndex({ sites, types }: Props) {
                                 <EmptyState icon={Search} title="Aucun résultat" description="Aucun site ne correspond à votre recherche." />
                             </Panel>
                         ) : (
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                {visible.map((site) => {
-                                    const showUrl = siteShow({ site: site.id }).url;
-                                    const TypeIcon = typeIcon[site.type] ?? Building2;
-
-                                    return (
-                                        <GlowCard key={site.id} contentClassName="flex flex-col">
-                                            <Link
-                                                href={showUrl}
-                                                className="flex flex-1 flex-col p-5 pb-3 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
-                                            >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex min-w-0 items-center gap-3">
-                                                        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 text-motriks-deep ring-1 ring-inset ring-green-600/10 transition duration-300 group-hover:from-green-500 group-hover:to-green-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-green-600/30 group-hover:ring-0">
-                                                            <TypeIcon className="size-5" />
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <p className="line-clamp-1 font-semibold text-ink transition-colors group-hover:text-motriks-deep">{site.name}</p>
-                                                            <p className="text-xs text-slate-500">{site.type_label}</p>
-                                                        </div>
-                                                    </div>
-                                                    <StatusBadge tone={statusTone[site.status] ?? 'neutral'}>{site.status_label}</StatusBadge>
-                                                </div>
-
-                                                <div className="my-4 border-t border-slate-100" />
-
-                                                <div className="flex flex-col gap-2 text-xs text-slate-500">
-                                                    <div className="flex items-center gap-2">
-                                                        {site.has_coordinates ? (
-                                                            <MapPin className="size-3.5 shrink-0 text-motriks" />
-                                                        ) : (
-                                                            <MapPinOff className="size-3.5 shrink-0 text-slate-300" />
-                                                        )}
-                                                        <span className="truncate">
-                                                            {site.city}
-                                                            {site.region && ` · ${site.region}`}
-                                                        </span>
-                                                        {site.code && (
-                                                            <span className="ml-auto shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">
-                                                                {site.code}
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    {site.active_affectations_count > 0 && (
-                                                        <div className="flex items-center gap-2">
-                                                            <CalendarRange className="size-3.5 shrink-0 text-motriks" />
-                                                            <span>
-                                                                {site.active_affectations_count} hôtesse{site.active_affectations_count > 1 ? 's' : ''} affectée
-                                                                {site.active_affectations_count > 1 ? 's' : ''}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </Link>
-
-                                            {/* Pied de carte : dernière visite + actions rapides */}
-                                            <div className="flex items-center justify-between gap-2 px-5 pb-3">
-                                                <span className="flex min-w-0 items-center gap-2 text-xs text-slate-400">
-                                                    <Clock className="size-3.5 shrink-0 text-slate-300" />
-                                                    <span className="truncate">
-                                                        {site.last_visit_at ? `Dernière visite ${site.last_visit_at}` : 'Aucune visite enregistrée'}
-                                                    </span>
-                                                </span>
-                                                <div className="flex shrink-0 items-center">
-                                                    <Link
-                                                        href={showUrl}
-                                                        title="Voir la fiche"
-                                                        aria-label={`Voir ${site.name}`}
-                                                        className={`${iconBtn} hover:bg-green-50 hover:text-motriks-deep`}
-                                                    >
-                                                        <Eye className="size-4" />
-                                                    </Link>
-                                                    <Link
-                                                        href={`${showUrl}?modifier=1`}
-                                                        title="Modifier"
-                                                        aria-label={`Modifier ${site.name}`}
-                                                        className={`${iconBtn} hover:bg-green-50 hover:text-motriks-deep`}
-                                                    >
-                                                        <Pencil className="size-4" />
-                                                    </Link>
-                                                    {manageCompany && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => ask(site)}
-                                                            title="Supprimer"
-                                                            aria-label={`Supprimer ${site.name}`}
-                                                            className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
-                                                        >
-                                                            <Trash2 className="size-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </GlowCard>
-                                    );
-                                })}
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                                {visible.map((site) => (
+                                    <SiteCard key={site.id} site={site} canDelete={!!manageCompany} onDelete={() => ask(site)} />
+                                ))}
                             </div>
                         )}
                     </div>

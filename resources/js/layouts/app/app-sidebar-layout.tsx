@@ -16,7 +16,7 @@ export default function AppSidebarLayout({
             <AppSidebar />
             <AppContent
                 variant="sidebar"
-                className="min-w-0 overflow-x-clip bg-slate-100 dark:bg-background"
+                className="min-w-0 overflow-x-clip"
             >
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 <NoSiteBanner />

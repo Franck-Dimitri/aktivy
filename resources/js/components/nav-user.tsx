@@ -40,19 +40,19 @@ export function NavUser() {
                         <DropdownMenuTrigger asChild>
                             <SidebarMenuButton
                                 size="lg"
-                                className="rounded-xl border border-white/15 bg-white/10 text-white hover:bg-white/15 hover:text-white data-[state=open]:bg-white/15 data-[state=open]:text-white"
+                                className="rounded-xl border border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-primary/15 hover:text-sidebar-primary data-[state=open]:bg-sidebar-primary/15 data-[state=open]:text-sidebar-primary"
                                 data-test="sidebar-menu-button"
                             >
-                                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-xs font-bold text-green-700">
+                                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">
                                     {initials(auth.user.name)}
                                 </span>
                                 <div className="grid min-w-0 flex-1 text-left leading-tight">
                                     <span className="truncate text-sm font-semibold">{auth.user.name}</span>
-                                    <span className="truncate text-xs text-green-100/80">
+                                    <span className="truncate text-xs text-sidebar-foreground/80">
                                         {roleLabels[auth.user.role as keyof typeof roleLabels] ?? auth.user.role}
                                     </span>
                                 </div>
-                                <ChevronsUpDown className="ml-auto size-4 text-green-100/80" />
+                                <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/80" />
                             </SidebarMenuButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent

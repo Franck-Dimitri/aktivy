@@ -3,6 +3,7 @@ import { KeyRound, LockKeyhole } from 'lucide-react';
 import { useRef, type FormEvent } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import { toastFormError } from '@/lib/form-toast';
+import { passwordHint } from '@/lib/password-hint';
 import { edit } from '@/routes/security';
 /* @chisel-passkeys */
 import type { Props as ManagePasskeysProps } from '@/components/manage-passkeys';
@@ -19,13 +20,6 @@ type Props = {
     passwordRules: string;
 } /* @chisel-passkeys */ & ManagePasskeysProps /* @end-chisel-passkeys */ /* @chisel-2fa */ &
     ManageTwoFactorProps /* @end-chisel-2fa */;
-
-/** Traduit la règle du serveur (« minlength: 12; required: upper; … ») en une phrase courte. */
-function passwordHint(rules: string) {
-    const min = /minlength:\s*(\d+)/.exec(rules)?.[1] ?? '8';
-    const strict = /required:\s*(upper|digit|special)/.test(rules);
-    return strict ? `${min} caractères minimum, avec majuscule, chiffre et symbole.` : `${min} caractères minimum.`;
-}
 
 const EMPTY = { current_password: '', password: '', password_confirmation: '' };
 

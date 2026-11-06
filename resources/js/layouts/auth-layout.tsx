@@ -1,15 +1,6 @@
-import AuthLayoutTemplate from '@/layouts/auth/auth-showcase-layout';
+import AuthMotriksLayout from '@/layouts/auth/auth-motriks-layout';
 import type { AuthLayoutProps } from '@/types';
 
-export default function AuthLayout({
-    title = '',
-    description = '',
-    children,
-    ...props
-}: AuthLayoutProps) {
-    return (
-        <AuthLayoutTemplate title={title} description={description} {...props}>
-            {children}
-        </AuthLayoutTemplate>
-    );
+export default function AuthLayout(props: AuthLayoutProps) {
+    return <AuthMotriksLayout {...props} />;
 }

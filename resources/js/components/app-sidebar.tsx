@@ -51,7 +51,7 @@ export function AppSidebar() {
     const roleName = roleLabels[auth.user.role] ?? auth.user.role;
 
     return (
-        <Sidebar collapsible="icon" variant="sidebar" className="border-r-0">
+        <Sidebar collapsible="icon" variant="inset">
             {/* ── Logo ── */}
             <SidebarHeader className="p-0">
                 <div className="flex h-14 items-center px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
@@ -60,12 +60,12 @@ export function AppSidebar() {
                             <SidebarMenuButton
                                 size="lg"
                                 asChild
-                                className="h-auto rounded-xl p-2 hover:bg-white/10 active:bg-white/10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center"
+                                className="h-auto rounded-xl p-2 hover:bg-sidebar-accent active:bg-sidebar-accent group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center"
                             >
                                 <Link href={home} prefetch onClick={() => isMobile && setOpenMobile(false)}>
-                                    <MotriksMark className="size-8 rounded-lg shadow shadow-green-950/20" />
-                                    <span className="text-[18px] font-extrabold tracking-tight text-white group-data-[collapsible=icon]:hidden">
-                                        Motriks<span className="text-green-300">.</span>
+                                    <MotriksMark className="size-8 rounded-lg shadow-sm" />
+                                    <span className="text-[18px] font-extrabold tracking-tight text-sidebar-primary group-data-[collapsible=icon]:hidden">
+                                        Motriks<span className="text-sidebar-foreground/60">.</span>
                                     </span>
                                 </Link>
                             </SidebarMenuButton>
@@ -74,21 +74,21 @@ export function AppSidebar() {
                 </div>
 
                 {/* Bloc entreprise */}
-                <div className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl bg-white/10 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/20 text-[11px] font-bold text-white">
+                <div className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl bg-sidebar-accent px-3 py-2.5 group-data-[collapsible=icon]:hidden">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary/20 text-[11px] font-bold text-sidebar-primary">
                         {companyInitials(companyName)}
                     </span>
                     <div className="min-w-0">
-                        <p className="truncate text-[12.5px] font-semibold leading-tight text-white">
+                        <p className="truncate text-[12.5px] font-semibold leading-tight text-sidebar-primary">
                             {companyName}
                         </p>
-                        <p className="truncate text-[11px] leading-tight text-green-100/55">
+                        <p className="truncate text-[11px] leading-tight text-sidebar-foreground/55">
                             {roleName}
                         </p>
                     </div>
                 </div>
 
-                <div className="mx-3 h-px bg-white/10 group-data-[collapsible=icon]:mx-2" />
+                <div className="mx-3 h-px bg-sidebar-border group-data-[collapsible=icon]:mx-2" />
             </SidebarHeader>
 
             {/* ── Navigation ── */}
@@ -98,7 +98,7 @@ export function AppSidebar() {
 
             {/* ── Footer ── */}
             <SidebarFooter className="p-0">
-                <div className="mx-3 h-px bg-white/10 group-data-[collapsible=icon]:mx-2" />
+                <div className="mx-3 h-px bg-sidebar-border group-data-[collapsible=icon]:mx-2" />
 
                 {/* Aide */}
                 <div className="px-3 pt-1.5 group-data-[collapsible=icon]:px-2">
@@ -107,7 +107,7 @@ export function AppSidebar() {
                             <SidebarMenuButton
                                 asChild
                                 tooltip={{ children: 'Aide' }}
-                                className="h-9 rounded-xl px-3 text-[13px] text-green-100/80 hover:bg-white/10 hover:text-white [&>svg]:size-4 [&>svg]:text-green-100/70"
+                                className="h-9 rounded-xl px-3 text-[13px] text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:text-sidebar-foreground/70"
                             >
                                 <Link href={helpRoute().url} onClick={() => isMobile && setOpenMobile(false)}>
                                     <LifeBuoy />
@@ -118,7 +118,7 @@ export function AppSidebar() {
                     </SidebarMenu>
                 </div>
 
-                <div className="mx-3 h-px bg-white/10 group-data-[collapsible=icon]:mx-2" />
+                <div className="mx-3 h-px bg-sidebar-border group-data-[collapsible=icon]:mx-2" />
 
                 {/* Utilisateur */}
                 <div className="p-3 group-data-[collapsible=icon]:p-2">

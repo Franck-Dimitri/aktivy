@@ -53,7 +53,7 @@ export default function AuthMotriksLayout({ children, title, description, header
                     className="relative z-10 flex items-center justify-between gap-4 px-4 pt-4 sm:px-8 sm:pt-5"
                 >
                     <Link href={home()} aria-label="Motriks, page d’accueil" className="rounded-xl transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-offset-4 focus-visible:outline-none">
-                        <MotriksLogo className="[&>span:last-child]:text-xl sm:[&>span:last-child]:text-2xl [&>svg]:size-8 sm:[&>svg]:size-9" />
+                        <MotriksLogo className="h-7 sm:h-8" />
                     </Link>
                     <BackHome />
                 </motion.header>

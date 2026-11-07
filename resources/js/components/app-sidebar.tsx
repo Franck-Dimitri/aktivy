@@ -16,16 +16,10 @@ import { menuFor, roleLabels } from '@/lib/navigation';
 import { help as helpRoute } from '@/routes';
 import { show as onboardingShow } from '@/routes/onboarding';
 import type { MenuGroup } from '@/types';
+import MotriksLogo from '@/components/motriks-logo';
 import MotriksMark from '@/components/motriks-mark';
+import { initials } from '@/lib/initials';
 
-function companyInitials(name: string): string {
-    return name
-        .split(' ')
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 function pendingMenu(normalGroups: MenuGroup[]): MenuGroup[] {
     return [
@@ -54,19 +48,18 @@ export function AppSidebar() {
         <Sidebar collapsible="icon" variant="inset">
             {/* ── Logo ── */}
             <SidebarHeader className="p-0">
-                <div className="flex h-14 items-center px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+                <div className="flex h-14 items-center px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <SidebarMenuButton
                                 size="lg"
                                 asChild
-                                className="h-auto rounded-xl p-2 hover:bg-sidebar-accent active:bg-sidebar-accent group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:justify-center"
+                                className="h-auto rounded-xl p-2 hover:bg-sidebar-accent active:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-[10px] group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:hover:bg-transparent"
                             >
-                                <Link href={home} prefetch onClick={() => isMobile && setOpenMobile(false)}>
-                                    <MotriksMark className="size-8 rounded-lg shadow-sm" />
-                                    <span className="text-[18px] font-extrabold tracking-tight text-sidebar-primary group-data-[collapsible=icon]:hidden">
-                                        Motriks<span className="text-sidebar-foreground/60">.</span>
-                                    </span>
+                                <Link href={home} prefetch aria-label="Motriks, tableau de bord" className="group/logo" onClick={() => isMobile && setOpenMobile(false)}>
+                                    {/* Déplié : logo horizontal en blanc ; replié en icônes : le symbole seul */}
+                                    <MotriksLogo variant="white" className="h-[26px] group-data-[collapsible=icon]:hidden" />
+                                    <MotriksMark className="hidden size-8 rounded-[10px] shadow-sm shadow-black/15 ring-0 transition-transform duration-200 group-hover/logo:scale-105 group-data-[collapsible=icon]:flex" />
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -76,7 +69,7 @@ export function AppSidebar() {
                 {/* Bloc entreprise */}
                 <div className="mx-3 mb-3 flex items-center gap-2.5 rounded-xl bg-sidebar-accent px-3 py-2.5 group-data-[collapsible=icon]:hidden">
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary/20 text-[11px] font-bold text-sidebar-primary">
-                        {companyInitials(companyName)}
+                        {initials(companyName)}
                     </span>
                     <div className="min-w-0">
                         <p className="truncate text-[12.5px] font-semibold leading-tight text-sidebar-primary">

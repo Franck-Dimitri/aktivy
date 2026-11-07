@@ -22,6 +22,8 @@ class ProfileController extends Controller
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            // Seul gérant de l'entreprise (ou dernier administrateur) : la suppression n'est pas proposée
+            'deletionBlocker' => $request->user()->selfDeletionBlocker(),
         ]);
     }
 

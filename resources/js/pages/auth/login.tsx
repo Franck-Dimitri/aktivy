@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import type { DevAccount } from '@/components/auth/dev-test-accounts';
 import { LoginForm } from '@/components/auth/kit/login-form';
 /* @chisel-registration */
 import { register } from '@/routes';
@@ -7,14 +8,15 @@ import { register } from '@/routes';
 type Props = {
     status?: string;
     canResetPassword: boolean;
-    isDev?: boolean;
+    /** Comptes de démo : envoyés par le serveur en local uniquement (vide en production). */
+    devAccounts?: DevAccount[];
 };
 
-export default function Login({ status, canResetPassword, isDev }: Props) {
+export default function Login({ status, canResetPassword, devAccounts }: Props) {
     return (
         <>
             <Head title="Connexion" />
-            <LoginForm status={status} canResetPassword={canResetPassword} isDev={isDev ?? false} />
+            <LoginForm status={status} canResetPassword={canResetPassword} devAccounts={devAccounts} />
         </>
     );
 }

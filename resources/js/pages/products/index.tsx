@@ -9,7 +9,7 @@ import { Field, SelectInput, TextArea, TextInput, ToggleField } from '@/componen
 import { Modal } from '@/components/page/modal';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
-import { GlowStyles, MetricStrip } from '@/components/page/surface';
+import { MetricStrip } from '@/components/page/surface';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
@@ -621,7 +621,6 @@ export default function ProductsIndex({ products, stats, units }: Props) {
     return (
         <>
             <Head title="Produits" />
-            <GlowStyles />
 
             <Page
                 title="Produits"

@@ -3,7 +3,7 @@ import { FlaskConical, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import AuthStatus from '@/components/auth/auth-status';
-import DevTestAccounts from '@/components/auth/dev-test-accounts';
+import DevTestAccounts, { type DevAccount } from '@/components/auth/dev-test-accounts';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { StaggerItem } from './auth-card';
@@ -31,7 +31,7 @@ function validate({ login, password }: Fields): Partial<Record<keyof Fields, str
     return errors;
 }
 
-export function LoginForm({ status, canResetPassword, isDev }: { status?: string; canResetPassword: boolean; isDev: boolean }) {
+export function LoginForm({ status, canResetPassword, devAccounts = [] }: { status?: string; canResetPassword: boolean; devAccounts?: DevAccount[] }) {
     const form = useForm<Fields>({ login: '', password: '', remember: false });
     const { data, setData, errors, processing } = form;
 
@@ -120,8 +120,9 @@ export function LoginForm({ status, canResetPassword, isDev }: { status?: string
                 </StaggerItem>
             </form>
 
-            {isDev && (
+            {devAccounts.length > 0 && (
                 <DevAccountsDock
+                    accounts={devAccounts}
                     currentLogin={data.login}
                     onSelect={(login, password, autoSubmit) => {
                         const values = { ...data, login, password };
@@ -136,7 +137,7 @@ export function LoginForm({ status, canResetPassword, isDev }: { status?: string
 }
 
 /** Comptes de test (environnement local uniquement) : tiroir rattaché à la page, hors de la carte animée. */
-function DevAccountsDock({ currentLogin, onSelect }: { currentLogin: string; onSelect: (login: string, password: string, autoSubmit?: boolean) => void }) {
+function DevAccountsDock({ accounts, currentLogin, onSelect }: { accounts: DevAccount[]; currentLogin: string; onSelect: (login: string, password: string, autoSubmit?: boolean) => void }) {
     const [open, setOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
@@ -145,8 +146,9 @@ function DevAccountsDock({ currentLogin, onSelect }: { currentLogin: string; onS
     return createPortal(
         <div className="theme-light fixed bottom-4 left-4 z-50 flex flex-col items-start gap-2">
             {open && (
-                <div className="max-h-[70dvh] w-[min(420px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 text-ink shadow-2xl">
+                <div className="max-h-[70dvh] w-[min(380px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 text-ink shadow-2xl">
                     <DevTestAccounts
+                        accounts={accounts}
                         currentLogin={currentLogin}
                         onSelectAccount={(login, password, autoSubmit) => {
                             onSelect(login, password, autoSubmit);

@@ -62,5 +62,4 @@ VerifyEmail.layout = {
     title: 'Confirmez votre adresse e-mail',
     description:
         'Cliquez sur le lien que nous venons de vous envoyer pour accéder à votre espace.',
-    showcase: 'verify',
 };

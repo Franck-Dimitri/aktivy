@@ -1,5 +1,5 @@
 import { MapPin, Package, TrendingUp } from 'lucide-react';
-import { GlowCard } from '@/components/page/surface';
+import { SurfaceCard } from '@/components/page/surface';
 import { formatMoney } from './types';
 import type { EventSales } from './types';
 
@@ -24,27 +24,27 @@ export function TabVentes({ sales }: Props) {
         <div className="flex flex-col gap-5">
             {/* ── KPIs ── */}
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-                <GlowCard className="col-span-2 lg:col-span-1" contentClassName="p-4">
+                <SurfaceCard className="col-span-2 lg:col-span-1" contentClassName="p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">CA total</p>
                     <p className="mt-1.5 text-2xl font-black tabular-nums text-slate-900">
                         {formatMoney(sales.revenue)}
                     </p>
                     <p className="mt-0.5 text-xs text-slate-400">FCFA</p>
-                </GlowCard>
-                <GlowCard contentClassName="p-4">
+                </SurfaceCard>
+                <SurfaceCard contentClassName="p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Unités vendues</p>
                     <p className="mt-1.5 text-2xl font-black tabular-nums text-slate-900">
                         {formatMoney(sales.units_sold)}
                     </p>
                     <p className="mt-0.5 text-xs text-slate-400">unités</p>
-                </GlowCard>
-                <GlowCard contentClassName="p-4">
+                </SurfaceCard>
+                <SurfaceCard contentClassName="p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Rapports soumis</p>
                     <p className="mt-1.5 text-2xl font-black tabular-nums text-slate-900">
                         {sales.reports_count}
                     </p>
                     <p className="mt-0.5 text-xs text-slate-400">journées</p>
-                </GlowCard>
+                </SurfaceCard>
             </div>
 
             {/* ── Par PDV ── */}
@@ -53,7 +53,7 @@ export function TabVentes({ sales }: Props) {
                     <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">
                         <MapPin className="size-3.5" /> Par point de vente
                     </p>
-                    <GlowCard>
+                    <SurfaceCard>
                         <div className="divide-y divide-slate-50">
                             {sales.by_pdv.map((pdv, i) => (
                                 <div key={pdv.id} className="flex items-center gap-4 px-5 py-3.5">
@@ -86,7 +86,7 @@ export function TabVentes({ sales }: Props) {
                                 </div>
                             ))}
                         </div>
-                    </GlowCard>
+                    </SurfaceCard>
                 </div>
             )}
 
@@ -96,7 +96,7 @@ export function TabVentes({ sales }: Props) {
                     <p className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">
                         <Package className="size-3.5" /> Top produits
                     </p>
-                    <GlowCard>
+                    <SurfaceCard>
                         <div className="divide-y divide-slate-50">
                             {sales.by_product.map((p, i) => (
                                 <div key={p.name} className="flex items-center gap-4 px-5 py-3">
@@ -116,7 +116,7 @@ export function TabVentes({ sales }: Props) {
                                 </div>
                             ))}
                         </div>
-                    </GlowCard>
+                    </SurfaceCard>
                 </div>
             )}
         </div>

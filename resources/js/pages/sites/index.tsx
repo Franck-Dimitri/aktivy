@@ -26,7 +26,7 @@ import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
-import { GlowStyles, MetricStrip } from '@/components/page/surface';
+import { MetricStrip } from '@/components/page/surface';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
@@ -192,7 +192,6 @@ export default function SitesIndex({ sites, types }: Props) {
     return (
         <>
             <Head title="Sites" />
-            <GlowStyles />
 
             <Page
                 title="Sites"

@@ -10,6 +10,7 @@ import { index as activityIndex } from '@/routes/activity';
 import { show as dailyReportShow } from '@/routes/daily-reports';
 import { index as stockAlertsIndex } from '@/routes/stock-alerts';
 import { money, number } from '../reports/format';
+import { initials } from '@/lib/initials';
 
 type State = 'expected' | 'on_site' | 'done' | 'missing';
 
@@ -73,9 +74,6 @@ function formatPhone(phone: string): string {
     return m ? `+237 ${m[1]} ${m[2]} ${m[3]} ${m[4]}` : phone;
 }
 
-function initials(name: string | null) {
-    return (name ?? '?').trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
-}
 
 /** Ce que fait l'hôtesse en ce moment, en une ligne. */
 function statusLine(h: Hostess, now: string): string {

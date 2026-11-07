@@ -63,8 +63,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('abonnement', SubscriptionController::class)->name('company.subscription');
 
             Route::get('mes-donnees', [DataExportController::class, 'show'])->name('company.data-export');
-            Route::get('mes-donnees/telecharger', [DataExportController::class, 'download'])
-                ->middleware('throttle:5,1')
+            // Préparation en arrière-plan, puis téléchargement pendant 24 h
+            Route::post('mes-donnees/preparer', [DataExportController::class, 'prepare'])
+                ->middleware('throttle:5,10')
+                ->name('company.data-export.prepare');
+            Route::get('mes-donnees/{export}/telecharger', [DataExportController::class, 'download'])
+                ->middleware('throttle:20,1')
                 ->name('company.data-export.download');
 
             Route::resource('sites', SiteController::class)->only(['destroy']);

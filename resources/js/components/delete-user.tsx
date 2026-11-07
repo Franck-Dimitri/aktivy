@@ -1,13 +1,17 @@
-import { useForm } from '@inertiajs/react';
-import { LockKeyhole, TriangleAlert, UserX } from 'lucide-react';
+import { Link, useForm } from '@inertiajs/react';
+import { LifeBuoy, LockKeyhole, ShieldAlert, TriangleAlert, UserX } from 'lucide-react';
 import { useRef, useState, type FormEvent } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import { ActionButton } from '@/components/page/buttons';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { PasswordField, SettingsCard } from '@/pages/settings/settings-kit';
+import { help } from '@/routes';
 
-/** Fermeture du compte : bouton discret, puis confirmation par mot de passe. */
-export default function DeleteUser() {
+/**
+ * Fermeture du compte : bouton discret, puis confirmation par mot de passe.
+ * `blocker` : raison pour laquelle le compte ne peut pas être supprimé (seul gérant de l'entreprise…).
+ */
+export default function DeleteUser({ blocker }: { blocker?: string | null }) {
     const [open, setOpen] = useState(false);
     const passwordInput = useRef<HTMLInputElement>(null);
     const form = useForm({ password: '' });
@@ -29,6 +33,26 @@ export default function DeleteUser() {
             onFinish: () => form.reset('password'),
         });
     };
+
+    if (blocker) {
+        return (
+            <SettingsCard icon={UserX} title="Supprimer mon compte" description="Votre compte est indispensable à votre entreprise.">
+                <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+                    <p className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600" data-test="delete-user-blocked">
+                        <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
+                        {blocker}
+                    </p>
+                    <Link
+                        href={help().url}
+                        className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-xs transition-colors hover:border-slate-300 hover:bg-slate-50"
+                    >
+                        <LifeBuoy className="size-4" />
+                        Contacter le support
+                    </Link>
+                </div>
+            </SettingsCard>
+        );
+    }
 
     return (
         <SettingsCard icon={UserX} tone="danger" title="Supprimer mon compte" description="Vous serez déconnecté et ne pourrez plus vous connecter avec ces identifiants.">

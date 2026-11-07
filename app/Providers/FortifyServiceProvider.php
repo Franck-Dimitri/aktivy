@@ -13,6 +13,7 @@ use App\Http\Responses\LoginResponse;
 use App\Http\Responses\PasskeyLoginResponse;
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Support\Demo\DemoAccounts;
 use App\Support\PhoneNumber;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -129,7 +130,8 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
             'status' => $request->session()->get('status'),
-            'isDev' => app()->environment('local', 'testing'),
+            // Comptes de démo proposés en local uniquement ; en production, rien n'est envoyé au navigateur
+            'devAccounts' => app()->environment('local', 'testing') ? DemoAccounts::forLoginPage() : [],
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [

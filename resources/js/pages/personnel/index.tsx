@@ -7,13 +7,14 @@ import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
-import { GlowStyles, MetricStrip } from '@/components/page/surface';
+import { MetricStrip } from '@/components/page/surface';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index as personnelIndex, create as personnelCreate, show as personnelShow, destroy as personnelDestroy } from '@/routes/personnel';
 import type { RoleOption, StaffListItem } from '@/types';
 import { CreateMemberModal } from './create-member-modal';
+import { initials } from '@/lib/initials';
 
 type Props = {
     staff: StaffListItem[];
@@ -56,14 +57,6 @@ const statusFilters: { value: StatusFilter; label: string }[] = [
     { value: 'suspended', label: 'Suspendus' },
 ];
 
-function initials(name: string) {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 const chipBase =
     'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
@@ -163,7 +156,6 @@ export default function PersonnelIndex({ staff, roles }: Props) {
     return (
         <>
             <Head title="Personnel" />
-            <GlowStyles />
 
             <Page
                 title="Personnel"

@@ -44,16 +44,8 @@
                     {{-- Marque --}}
                     <tr>
                         <td style="padding:0 4px 20px 4px;">
-                            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                                <tr>
-                                    <td width="28" valign="middle" style="width:28px;">
-                                        <img src="{{ asset('images/logo-email.png') }}" width="28" height="28" alt="" style="display:block; width:28px; height:28px;">
-                                    </td>
-                                    <td valign="middle" style="padding-left:9px; font-size:18px; font-weight:700; letter-spacing:-0.3px; color:#0f172a;">
-                                        {{ config('app.name') }}
-                                    </td>
-                                </tr>
-                            </table>
+                            {{-- Logo horizontal en PNG (3×), les messageries n'affichent pas le SVG --}}
+                            <img src="{{ asset('images/logo-email.png') }}" width="182" height="28" alt="{{ config('app.name') }}" style="display:block; width:182px; height:28px; border:0;">
                         </td>
                     </tr>
 

@@ -2,7 +2,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
-import MotriksMark from '@/components/motriks-mark';
+import MotriksLogo from '@/components/motriks-logo';
 
 /* ------------------------------------------------------------------ */
 /*  Contenu modifiable                                                 */
@@ -65,9 +65,8 @@ function Icon({ name, className = 'h-5 w-5' }: { name: IconName; className?: str
 
 function Logo({ light = false }: { light?: boolean }) {
     return (
-        <Link href="/" className="flex items-center gap-2.5">
-            <MotriksMark />
-            <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>Motriks</span>
+        <Link href="/" aria-label="Motriks, accueil" className="flex items-center">
+            <MotriksLogo variant={light ? 'white' : 'color'} className="h-7" />
         </Link>
     );
 }

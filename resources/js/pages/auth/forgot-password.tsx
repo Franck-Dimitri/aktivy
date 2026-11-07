@@ -53,7 +53,6 @@ ForgotPassword.layout = {
     title: 'Mot de passe oublié ?',
     description:
         'Indiquez l’adresse e-mail de votre compte : nous vous envoyons un lien pour en choisir un nouveau.',
-    showcase: 'security',
     headerLink: {
         text: 'Vous l’avez retrouvé ?',
         label: 'Se connecter',

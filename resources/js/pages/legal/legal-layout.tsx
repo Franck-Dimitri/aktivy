@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
-import MotriksMark from '@/components/motriks-mark';
+import MotriksLogo from '@/components/motriks-logo';
 
 /* ------------------------------------------------------------------ */
 /*  Informations légales : à compléter UNE seule fois ici               */
@@ -100,9 +100,8 @@ export default function LegalLayout({
                 {/* en-tête */}
                 <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
-                        <Link href={LEGAL_INFO.homeUrl} className="flex items-center gap-2.5">
-                            <MotriksMark />
-                            <span className="text-xl font-extrabold tracking-tight text-slate-900">{LEGAL_INFO.product}</span>
+                        <Link href={LEGAL_INFO.homeUrl} aria-label={`${LEGAL_INFO.product}, accueil`} className="flex items-center">
+                            <MotriksLogo className="h-7" />
                         </Link>
                         <Link
                             href={LEGAL_INFO.homeUrl}

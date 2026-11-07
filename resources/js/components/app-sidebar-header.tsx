@@ -17,6 +17,7 @@ import { roleLabels } from '@/lib/navigation';
 import { toUrl } from '@/lib/utils';
 import { edit as profileEdit } from '@/routes/profile';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
+import { initials } from '@/lib/initials';
 
 const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const MONTHS_FR = [
@@ -29,14 +30,6 @@ function todayLabel(): string {
     return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-function initials(name: string): string {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
     const { auth } = usePage().props;

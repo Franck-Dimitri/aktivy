@@ -82,5 +82,4 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 ResetPassword.layout = {
     title: 'Nouveau mot de passe',
     description: 'Il remplacera l’ancien dès que vous l’aurez enregistré.',
-    showcase: 'security',
 };

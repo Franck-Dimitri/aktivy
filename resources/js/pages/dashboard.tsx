@@ -5,13 +5,14 @@ import { ActionLink } from '@/components/page/buttons';
 import { EmptyState } from '@/components/page/empty-state';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
-import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
+import { SurfaceCard, MetricStrip } from '@/components/page/surface';
 import { SetupChecklist, type SetupState } from '@/components/setup-checklist';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { create as personnelCreate } from '@/routes/personnel';
 import { index as sitesIndex, create as siteCreate, show as siteShow } from '@/routes/sites';
 import { WeeklyTargetsPrompt, type WeeklyTargetsSummary } from '@/components/weekly-targets-prompt';
+import { initials } from '@/lib/initials';
 
 type Stats = {
     sites_total: number;
@@ -74,14 +75,6 @@ const visitStatusTone: Record<string, StatusTone> = {
     active: 'success',
 };
 
-function initials(name: string) {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 function LiveDot({ className }: { className?: string }) {
     return (
@@ -283,7 +276,6 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
     return (
         <>
             <Head title="Tableau de bord" />
-            <GlowStyles />
 
             <Page
                 title="Tableau de bord"
@@ -338,7 +330,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
 
                         {/* Performance + présence */}
                         <div className="grid gap-6 lg:grid-cols-3">
-                            <GlowCard className="h-full lg:col-span-2" contentClassName="flex h-full flex-col p-6">
+                            <SurfaceCard className="h-full lg:col-span-2" contentClassName="flex h-full flex-col p-6">
                                 <div>
                                     <h3 className="text-base font-semibold text-ink">Performance du jour</h3>
                                     <p className="mt-0.5 text-sm text-slate-500">Comparée à la moyenne quotidienne de la semaine.</p>
@@ -361,9 +353,9 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                         unit="FCFA"
                                     />
                                 </div>
-                            </GlowCard>
+                            </SurfaceCard>
 
-                            <GlowCard className="h-full" contentClassName="flex h-full flex-col p-6">
+                            <SurfaceCard className="h-full" contentClassName="flex h-full flex-col p-6">
                                 <div>
                                     <h3 className="text-base font-semibold text-ink">Équipe et sites</h3>
                                     <p className="mt-0.5 text-sm text-slate-500">État du terrain en ce moment.</p>
@@ -378,7 +370,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                     />
                                     <RingGauge value={sitesRate} label="Sites actifs" caption={`${stats.sites_active} sur ${stats.sites_total}`} />
                                 </div>
-                            </GlowCard>
+                            </SurfaceCard>
                         </div>
 
                         {/* Activité récente + sites */}

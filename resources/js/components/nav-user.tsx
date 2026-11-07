@@ -12,15 +12,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { roleLabels } from '@/lib/navigation';
 import { useLogoutDialog } from '@/components/logout-dialog';
 import { edit as profileEdit } from '@/routes/profile';
+import { initials } from '@/lib/initials';
 
-function initials(name: string): string {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 export function NavUser() {
     const { auth } = usePage().props;

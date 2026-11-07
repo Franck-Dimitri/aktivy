@@ -11,15 +11,12 @@ import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
 import { CardBody, SaveFooter, SettingsCard, SettingsRow } from './settings-kit';
+import { initials } from '@/lib/initials';
 
 const chip = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium ring-1';
 
-function initials(name: string) {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-    return parts.slice(0, 2).map((p) => Array.from(p)[0]).join('').toUpperCase() || '?';
-}
 
-export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
+export default function Profile({ mustVerifyEmail, status, deletionBlocker }: { mustVerifyEmail: boolean; status?: string; deletionBlocker?: string | null }) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const user = auth.user;
     const form = useForm({ name: user.name, email: user.email ?? '' });
@@ -123,7 +120,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                 </form>
             </SettingsCard>
 
-            <DeleteUser />
+            <DeleteUser blocker={deletionBlocker} />
         </>
     );
 }

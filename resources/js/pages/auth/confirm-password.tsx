@@ -69,5 +69,4 @@ ConfirmPassword.layout = {
     title: 'Confirmez votre mot de passe',
     description:
         'Cette zone touche à la sécurité de votre compte. Saisissez à nouveau votre mot de passe pour continuer.',
-    showcase: 'security',
 };

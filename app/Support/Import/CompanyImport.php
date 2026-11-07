@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -64,6 +65,9 @@ class CompanyImport
     public array $errors = [];
 
     public int $created = 0;
+
+    /** Mot de passe provisoire chiffré une seule fois pour tout le fichier (bcrypt est volontairement lent). */
+    private ?string $passwordHash = null;
 
     public int $skipped = 0;
 
@@ -294,14 +298,16 @@ class CompanyImport
     {
         $member = $this->company->users()->create([
             ...$data,
-            'password' => $this->password,
+            // Déjà chiffré : le cast « hashed » du modèle ne le rechiffre pas
+            'password' => $this->passwordHash ??= Hash::make((string) $this->password),
             'status' => AccountStatus::Active,
             // Mot de passe provisoire commun : chacun choisit le sien à la première connexion
             'must_change_password' => true,
         ]);
 
         if ($member->email !== null) {
-            dispatch(fn () => $member->sendEmailVerificationNotification())->afterResponse();
+            // Par la file d'attente : 500 e-mails ne retiennent pas la requête
+            dispatch(fn () => $member->sendEmailVerificationNotification());
         }
     }
 }

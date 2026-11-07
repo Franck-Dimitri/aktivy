@@ -41,7 +41,6 @@ export default function TwoFactorChallenge() {
     setLayoutProps({
         title: authConfigContent.title,
         description: authConfigContent.description,
-        showcase: 'two-factor',
     });
 
     const toggleRecoveryMode = (clearErrors: () => void): void => {

@@ -75,5 +75,4 @@ ChangePassword.layout = {
     title: 'Choisissez votre mot de passe',
     description:
         'Votre compte a été créé avec un mot de passe provisoire. Remplacez-le par un mot de passe que vous seul connaissez.',
-    showcase: 'security',
 };

@@ -6,6 +6,7 @@ use App\Enums\AccountStatus;
 use App\Enums\Role;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\Demo\DemoAccounts;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -33,30 +34,24 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        DB::transaction(function () {
-            // Mot de passe de tous les comptes démo : « password »
-            $this->account(Role::SuperAdmin, null, 'Super Admin', email: 'admin@motriks.test', password: 'password');
+        // Jamais en production : ces comptes ont tous le mot de passe « password », connu de tous
+        if (app()->isProduction()) {
+            $this->command?->error('Seeder de démonstration refusé en production (mots de passe connus de tous).');
 
-            $demo = $this->company('demo-distribution', [
-                'name' => 'Démo Distribution',
+            return;
+        }
+
+        DB::transaction(function () {
+            $demo = $this->company(DemoAccounts::COMPANY_SLUG, [
+                'name' => DemoAccounts::COMPANY_NAME,
                 'email' => 'contact@demo.test',
                 'phone' => '+237233000000',
                 'city' => 'Douala',
             ]);
 
-            $this->account(Role::CompanyAdmin, $demo, 'Gérant Démo', email: 'gerant@demo.test', password: 'password');
-            $this->account(Role::Supervisor, $demo, 'Superviseur Démo', email: 'superviseur@demo.test', password: 'password');
-            $this->account(Role::Accountant, $demo, 'Comptable Démo', email: 'comptable@demo.test', password: 'password');
-            $this->account(Role::FieldAgent, $demo, 'Hôtesse Démo', phone: '+237690000001', password: 'password');
-
-            // Entreprise et comptes de test de développement
-            $bennett = $this->company('bennett-lynn-trading', [
-                'name' => 'Bennett Lynn Trading',
-                'email' => 'franckdimitrio000@gmail.com',
-            ]);
-
-            $this->account(Role::CompanyAdmin, $bennett, 'Franck Dimitri (Responsable)', email: 'franckdimitrio000@gmail.com', password: 'franckdimitrio000@gmail.com');
-            $this->account(Role::FieldAgent, $bennett, 'Franck Dimitri (Hôtesse)', email: 'franckdimitrio009@gmail.com', phone: '+237676383986', password: 'Lapersonne2020');
+            foreach (DemoAccounts::all() as $account) {
+                $this->account($account['role'], $account['demoCompany'] ? $demo : null, $account['name'], DemoAccounts::PASSWORD, $account['email'], $account['phone']);
+            }
         });
     }
 

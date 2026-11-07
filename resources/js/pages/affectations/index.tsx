@@ -9,7 +9,7 @@ import { Field, SelectInput, TextArea, TextInput } from '@/components/page/form-
 import { Modal } from '@/components/page/modal';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
-import { GlowStyles, MetricStrip } from '@/components/page/surface';
+import { MetricStrip } from '@/components/page/surface';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,7 @@ import {
 import { show as personnelShow } from '@/routes/personnel';
 import { show as siteShow } from '@/routes/sites';
 import type { AffectationListItem, AffectationSelectOption, AffectationStats, AffectationStatus } from '@/types';
+import { initials } from '@/lib/initials';
 
 type StatusOption = { value: string; label: string };
 
@@ -66,14 +67,6 @@ const roleText: Record<string, string> = {
     accountant: 'text-slate-600',
 };
 
-function initials(name: string) {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 /** « 14/10/2026 » → « 2026-10-14 » (format attendu par <input type="date">). */
 function toIso(date: string | null) {
@@ -609,7 +602,6 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
     return (
         <>
             <Head title="Affectations" />
-            <GlowStyles />
 
             <Page
                 title="Affectations"

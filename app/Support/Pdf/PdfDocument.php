@@ -11,25 +11,66 @@ use Illuminate\Support\Facades\Storage;
 /**
  * Rend une vue Blade en PDF (A4) et la renvoie en téléchargement.
  * Aucune ressource distante n'est chargée : images et logo sont intégrés au document.
+ *
+ * Les documents suivent la présentation d'un document Word : Times New Roman 12 pt
+ * (servie par Liberation Serif, de mêmes dimensions et sous licence libre), marges de 2,5 cm,
+ * numérotation « Page X sur Y ».
  */
 class PdfDocument
 {
+    /** Police des documents, déclarée dans pdf/layout.blade.php. */
+    public const FONT = 'Times New Roman';
+
+    /** Marge gauche et droite, en points (2,5 cm). */
+    private const SIDE_MARGIN_PT = 70.87;
+
     public static function download(string $view, array $data, string $filename): Response
     {
+        // Le moteur PDF y range les dimensions des polices : dossier inscriptible par le serveur
+        $fontCache = storage_path('fonts');
+        if (! is_dir($fontCache)) {
+            mkdir($fontCache, 0775, true);
+        }
+
         $options = new Options;
-        $options->set('defaultFont', 'DejaVu Sans');
+        $options->set('defaultFont', self::FONT);
         $options->set('isRemoteEnabled', false);
-        $options->setChroot(storage_path());
+        $options->set('fontDir', $fontCache);
+        $options->set('fontCache', $fontCache);
+        $options->setChroot([storage_path(), resource_path('fonts')]);
 
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml(view($view, $data)->render(), 'UTF-8');
         $dompdf->setPaper('A4');
         $dompdf->render();
 
+        self::numberPages($dompdf);
+
+        $dompdf->addInfo('Title', (string) ($data['title'] ?? ''));
+        $dompdf->addInfo('Author', (string) ($data['company']->name ?? config('app.name')));
+        $dompdf->addInfo('Creator', config('app.name'));
+
         return response($dompdf->output(), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
+    }
+
+    /**
+     * « Page X sur Y » en bas à droite de chaque page, sur la ligne du pied de page.
+     */
+    private static function numberPages(Dompdf $dompdf): void
+    {
+        $margin = self::SIDE_MARGIN_PT;
+
+        // Largeur exacte du texte sur chaque page, pour l'aligner sur la marge droite
+        $dompdf->getCanvas()->page_script(function (int $page, int $count, $canvas, $metrics) use ($margin) {
+            $font = $metrics->getFont(self::FONT) ?? $metrics->getFont('serif');
+            $text = "Page {$page} sur {$count}";
+            $size = 9;
+
+            $canvas->text($canvas->get_width() - $margin - $metrics->getTextWidth($text, $font, $size), $canvas->get_height() - 51, $text, $font, $size, [0.35, 0.35, 0.35]);
+        });
     }
 
     /**

@@ -138,7 +138,9 @@ npm run dev                # Vite HMR
 
 ## Comptes de test
 
-Voir [`TEST_ACCOUNTS.md`](TEST_ACCOUNTS.md) pour la liste complète des comptes.
+En local, le seeder crée des comptes de démonstration (liste dans `app/Support/Demo/DemoAccounts.php`),
+proposés en un clic sur la page de connexion. Ils n'existent pas en production.
+Ne jamais écrire de vrai identifiant ni de mot de passe dans le dépôt.
 
 ```bash
 # Réinitialiser toutes les données

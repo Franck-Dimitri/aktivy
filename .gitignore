@@ -43,3 +43,5 @@ yarn-error.log
 /opencode.json
 /opencode.jsonc
 /storage/backups
+# Cache des polices des documents PDF (dompdf)
+/storage/fonts

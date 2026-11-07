@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { CalendarRange, Clock, Mail, MapPin, Pencil, Phone, Store, Timer, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { ActionButton } from '@/components/page/buttons';
@@ -62,6 +62,8 @@ function Metric({ label, value, sub }: { label: string; value: React.ReactNode; 
 }
 
 export default function PersonnelShow({ member, stats, affectations = [], recent_visits = [], roles = [], statuses = [], documents = [], document_types = [] }: Props) {
+    // Supprimer ou désactiver un compte : le gérant seul
+    const { manageCompany } = usePage().props.auth.can;
     // Ouvre directement le modal quand on arrive depuis l'icône « Modifier » de la liste (?modifier=1)
     const [editing, setEditing] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('modifier'));
 
@@ -101,14 +103,16 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
                         <ActionButton variant="secondary" icon={<Pencil />} onClick={() => setEditing(true)}>
                             Modifier
                         </ActionButton>
-                        <ActionButton
-                            variant="secondary"
-                            icon={<Trash2 />}
-                            onClick={() => ask(member)}
-                            className="border-transparent bg-transparent text-red-600 shadow-none hover:bg-red-50"
-                        >
-                            Supprimer
-                        </ActionButton>
+                        {manageCompany && (
+                            <ActionButton
+                                variant="secondary"
+                                icon={<Trash2 />}
+                                onClick={() => ask(member)}
+                                className="border-transparent bg-transparent text-red-600 shadow-none hover:bg-red-50"
+                            >
+                                Supprimer
+                            </ActionButton>
+                        )}
                     </>
                 }
             >

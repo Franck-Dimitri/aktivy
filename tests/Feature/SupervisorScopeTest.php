@@ -174,4 +174,41 @@ class SupervisorScopeTest extends TestCase
         $this->actingAs($this->manager)->get(route('reports.objectives'))
             ->assertInertia(fn ($page) => $page->has('targets.hostesses', 2)->whereNot('targets.global', null));
     }
+
+    public function test_only_the_manager_can_delete_or_deactivate_an_account()
+    {
+        $payload = fn (string $status) => [
+            'name' => $this->myHostess->name,
+            'phone' => $this->myHostess->phone,
+            'email' => $this->myHostess->email,
+            'role' => Role::FieldAgent->value,
+            'status' => $status,
+        ];
+
+        // Le superviseur modifie la fiche de son hôtesse, mais ne la désactive ni ne la supprime
+        $this->actingAs($this->supervisor)->put(route('personnel.update', $this->myHostess), $payload('active'))
+            ->assertSessionHasNoErrors();
+        $this->actingAs($this->supervisor)->put(route('personnel.update', $this->myHostess), $payload('suspended'))
+            ->assertForbidden();
+        $this->actingAs($this->supervisor)->delete(route('personnel.destroy', $this->myHostess))->assertForbidden();
+        $this->assertSame('active', $this->myHostess->fresh()->status->value);
+
+        // Le gérant peut les deux
+        $this->actingAs($this->manager)->put(route('personnel.update', $this->myHostess), $payload('suspended'))
+            ->assertSessionHasNoErrors();
+        $this->assertSame('suspended', $this->myHostess->fresh()->status->value);
+
+        $this->actingAs($this->manager)->delete(route('personnel.destroy', $this->myHostess))->assertRedirect();
+    }
+
+    public function test_a_deleted_account_stays_in_the_database_but_can_no_longer_be_used()
+    {
+        $this->actingAs($this->manager)->delete(route('personnel.destroy', $this->myHostess))->assertRedirect();
+
+        $this->assertSoftDeleted($this->myHostess);
+        $this->assertNull(User::find($this->myHostess->id));
+
+        $this->actingAs($this->manager)->get(route('personnel.index'))
+            ->assertInertia(fn ($page) => $page->where('staff', fn ($staff) => collect($staff)->pluck('id')->doesntContain($this->myHostess->id)));
+    }
 }

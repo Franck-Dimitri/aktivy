@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { Eye, EyeOff, Mail, Phone, ShieldCheck, User } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -24,6 +24,8 @@ type Props = {
 };
 
 export default function PersonnelEdit({ member, roles, statuses }: Props) {
+    // Supprimer ou désactiver un compte : le gérant seul
+    const { manageCompany } = usePage().props.auth.can;
     const [showPassword, setShowPassword] = useState(false);
     const { data, setData, put, processing, errors } = useForm({
         name: member.name,
@@ -84,13 +86,15 @@ export default function PersonnelEdit({ member, roles, statuses }: Props) {
                                 </SelectInput>
                             </Field>
 
-                            <Field label="Statut" htmlFor="status" required error={errors.status}>
-                                <SelectInput id="status" value={data.status} onChange={(e) => setData('status', e.target.value)} error={errors.status}>
-                                    {statuses.map((s) => (
-                                        <option key={s.value} value={s.value}>{s.label}</option>
-                                    ))}
-                                </SelectInput>
-                            </Field>
+                            {manageCompany && (
+                                <Field label="Statut" htmlFor="status" required error={errors.status}>
+                                    <SelectInput id="status" value={data.status} onChange={(e) => setData('status', e.target.value)} error={errors.status}>
+                                        {statuses.map((s) => (
+                                            <option key={s.value} value={s.value}>{s.label}</option>
+                                        ))}
+                                    </SelectInput>
+                                </Field>
+                            )}
                         </div>
                     </Panel>
 

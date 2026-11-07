@@ -13,7 +13,7 @@ import {
     Package,
     PackageX,
     ScrollText,
-    Settings2,
+    Palette,
     ShoppingCart,
     TrendingUp,
     Users,
@@ -153,7 +153,7 @@ function baseMenu(role: Role): MenuGroup[] {
         groups.push({
             label: 'Entreprise',
             items: [
-                { title: 'Paramètres', icon: Settings2, href: companySettings().url },
+                { title: 'Identité & marque', icon: Palette, href: companySettings().url },
                 { title: 'Importer des fichiers', icon: FileUp, href: companyImport().url },
                 { title: 'Abonnement', icon: CreditCard, href: companySubscription().url },
                 { title: 'Mes données', icon: DatabaseBackup, href: dataExport() },

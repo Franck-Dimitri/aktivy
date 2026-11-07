@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Eye, EyeOff, Mail, Phone, ShieldCheck, User } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -27,6 +27,8 @@ type Props = {
 
 /** Modal d'édition d'un membre. À monter uniquement quand il est ouvert. */
 export function EditMemberModal({ member, roles, statuses, onClose }: Props) {
+    // Supprimer ou désactiver un compte : le gérant seul
+    const { manageCompany } = usePage().props.auth.can;
     const [showPassword, setShowPassword] = useState(false);
     const { data, setData, put, processing, errors } = useForm({
         name: member.name,
@@ -87,13 +89,15 @@ export function EditMemberModal({ member, roles, statuses, onClose }: Props) {
                                 ))}
                             </SelectInput>
                         </Field>
-                        <Field label="Statut" htmlFor="edit-status" required error={errors.status}>
-                            <SelectInput id="edit-status" value={data.status} onChange={(e) => setData('status', e.target.value)} error={errors.status}>
-                                {statuses.map((s) => (
-                                    <option key={s.value} value={s.value}>{s.label}</option>
-                                ))}
-                            </SelectInput>
-                        </Field>
+                        {manageCompany && (
+                            <Field label="Statut" htmlFor="edit-status" required error={errors.status}>
+                                <SelectInput id="edit-status" value={data.status} onChange={(e) => setData('status', e.target.value)} error={errors.status}>
+                                    {statuses.map((s) => (
+                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                    ))}
+                                </SelectInput>
+                            </Field>
+                        )}
                     </div>
 
                     <div className="border-t border-slate-100 pt-5">

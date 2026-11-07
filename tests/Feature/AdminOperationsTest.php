@@ -1,0 +1,244 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\Module;
+use App\Http\Controllers\Admin\ImpersonationController;
+use App\Models\AuditLog;
+use App\Models\CompanyModule;
+use App\Models\SubscriptionPayment;
+use App\Models\SupportRequest;
+use App\Models\User;
+use App\Notifications\LiveNotification;
+use App\Notifications\ModuleExpiring;
+use App\Notifications\SupportReplied;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\AnonymousNotifiable;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
+use Tests\TestCase;
+
+/**
+ * Administration, priorité 2 : abonnements et factures, journal d'audit, boîte de support,
+ * connexion « en tant que ».
+ */
+class AdminOperationsTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $admin;
+
+    private User $manager;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+        $this->admin = User::factory()->superAdmin()->create();
+        $this->manager = User::factory()->create();
+    }
+
+    /** Entreprise en essai : les modules de la fabrique (sans fin) sont remplacés par l'essai de 14 jours. */
+    private function startTrial(): void
+    {
+        $this->manager->company->modules()->delete();
+        $this->manager->company->startTrial();
+    }
+
+    private function pay(array $overrides = []): TestResponse
+    {
+        return $this->actingAs($this->admin)->post(route('admin.subscriptions.payments.store', $this->manager->company), [
+            'amount' => 36000,
+            'method' => 'orange_money',
+            'reference' => 'OM-123456',
+            'paid_at' => today()->toDateString(),
+            'period_end' => today()->addMonth()->toDateString(),
+            'modules' => [Module::Terrain->value, Module::Stocks->value],
+            ...$overrides,
+        ]);
+    }
+
+    // ── Abonnements ───────────────────────────────────────────────────────
+
+    public function test_only_the_super_admin_opens_the_operations_pages()
+    {
+        foreach ([route('admin.subscriptions.index'), route('admin.audit.index'), route('admin.support.index')] as $url) {
+            $this->actingAs($this->manager)->get($url)->assertForbidden();
+            $this->actingAs($this->admin)->get($url)->assertOk();
+        }
+    }
+
+    public function test_a_payment_creates_a_numbered_invoice_and_extends_the_modules()
+    {
+        Notification::fake();
+        $this->startTrial();
+
+        $this->pay()->assertSessionHasNoErrors();
+        $this->pay(['amount' => 14500])->assertSessionHasNoErrors();
+
+        $payments = SubscriptionPayment::orderBy('id')->get();
+        $year = now()->format('Y');
+        $this->assertSame(["FAC-{$year}-0001", "FAC-{$year}-0002"], $payments->pluck('invoice_number')->all());
+
+        $terrain = CompanyModule::where('company_id', $this->manager->company_id)->where('module', Module::Terrain->value)->first();
+        $this->assertFalse($terrain->is_trial, 'un module payé sort de l’essai');
+        $this->assertSame(today()->addMonth()->toDateString(), $terrain->ends_on->toDateString());
+
+        // Un module non coché reste en essai
+        $this->assertTrue(CompanyModule::where('company_id', $this->manager->company_id)->where('module', Module::Events->value)->first()->is_trial);
+
+        Notification::assertSentTo($this->manager, LiveNotification::class, fn ($n) => $n->type === 'payment_received');
+        $this->assertDatabaseHas('audit_logs', ['action' => 'subscription.payment_recorded', 'company_id' => $this->manager->company_id]);
+    }
+
+    public function test_extending_modules_needs_an_end_date()
+    {
+        $this->pay(['period_end' => null])->assertSessionHasErrors('period_end');
+        $this->pay(['paid_at' => today()->addDay()->toDateString()])->assertSessionHasErrors('paid_at');
+        $this->assertSame(0, SubscriptionPayment::count());
+    }
+
+    public function test_the_invoice_is_a_pdf_for_the_admin_and_the_company_manager_only()
+    {
+        $this->pay();
+        $payment = SubscriptionPayment::firstOrFail();
+
+        $admin = $this->actingAs($this->admin)->get(route('admin.subscriptions.invoice', $payment))->assertOk();
+        $this->assertStringStartsWith('%PDF', $admin->getContent());
+
+        $own = $this->actingAs($this->manager)->get(route('company.invoices.show', $payment))->assertOk();
+        $this->assertStringStartsWith('%PDF', $own->getContent());
+
+        $this->actingAs(User::factory()->create())->get(route('company.invoices.show', $payment))->assertNotFound();
+
+        $this->actingAs($this->manager)->get(route('company.subscription'))
+            ->assertInertia(fn ($page) => $page->where('payments.0.invoice_number', $payment->invoice_number));
+    }
+
+    public function test_a_reminder_is_sent_for_the_next_deadline_only_when_there_is_one()
+    {
+        Notification::fake();
+
+        // Modules de la fabrique : sans date de fin, rien à rappeler
+        $this->actingAs($this->admin)->post(route('admin.subscriptions.remind', $this->manager->company))->assertStatus(422);
+
+        $this->startTrial();
+        $this->actingAs($this->admin)->post(route('admin.subscriptions.remind', $this->manager->company))->assertSessionHasNoErrors();
+
+        Notification::assertSentTo($this->manager, ModuleExpiring::class);
+    }
+
+    // ── Journal d'audit ───────────────────────────────────────────────────
+
+    public function test_the_audit_log_can_be_filtered_on_failed_logins()
+    {
+        AuditLog::record('auth.login_failed', $this->manager, new: ['login' => $this->manager->email], actor: $this->manager);
+        AuditLog::record('auth.login', $this->manager, actor: $this->manager);
+
+        $this->actingAs($this->admin)->get(route('admin.audit.index', ['group' => 'auth.login_failed']))
+            ->assertInertia(fn ($page) => $page
+                ->component('admin/audit/index')
+                ->where('logs.data', fn ($rows) => collect($rows)->every(fn ($r) => $r['action'] === 'auth.login_failed') && count($rows) === 1)
+                ->where('failed_last_24h', 1));
+    }
+
+    // ── Support ───────────────────────────────────────────────────────────
+
+    public function test_help_and_contact_messages_are_kept_in_the_support_inbox()
+    {
+        Mail::fake();
+
+        $this->actingAs($this->manager)->post(route('help.support'), [
+            'topic' => 'bug',
+            'message' => 'Le rapport ne s’envoie pas depuis ce matin.',
+        ])->assertSessionHasNoErrors();
+        auth()->logout();
+
+        $this->post(route('contact'), [
+            'name' => 'Awa Prospect',
+            'email' => 'awa@example.com',
+            'subject' => 'Demande de démonstration',
+            'message' => 'Nous avons 12 hôtesses, pouvez-vous nous montrer l’application ?',
+            'form_token' => encrypt(now()->subMinute()->timestamp),
+            'website' => '',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('support_requests', ['source' => 'help', 'company_id' => $this->manager->company_id, 'status' => 'new']);
+        $this->assertDatabaseHas('support_requests', ['source' => 'contact', 'email' => 'awa@example.com']);
+    }
+
+    public function test_the_admin_replies_by_email_and_can_close_the_request()
+    {
+        Notification::fake();
+        $request = SupportRequest::create([
+            'source' => 'contact', 'topic' => 'Tarifs', 'name' => 'Awa', 'email' => 'awa@example.com', 'message' => 'Combien coûte la formule Pro ?',
+        ]);
+
+        $this->actingAs($this->admin)->post(route('admin.support.reply', $request), [
+            'body' => 'Bonjour Awa, la formule Pro coûte 14 500 FCFA par mois.',
+            'resolve' => true,
+        ])->assertSessionHasNoErrors();
+
+        Notification::assertSentTo(new AnonymousNotifiable, SupportReplied::class, fn ($n, $channels, $notifiable) => array_key_exists('awa@example.com', (array) $notifiable->routes['mail']));
+        $this->assertSame('resolved', $request->fresh()->status);
+        $this->assertTrue($request->replies()->first()->emailed);
+    }
+
+    // ── Connexion « en tant que » ─────────────────────────────────────────
+
+    public function test_the_admin_sees_the_manager_space_and_comes_back()
+    {
+        $lastLogin = $this->manager->last_login_at;
+
+        $this->actingAs($this->admin)
+            ->post(route('admin.companies.managers.impersonate', [$this->manager->company, $this->manager]))
+            ->assertRedirect();
+
+        $this->assertAuthenticatedAs($this->manager);
+        $this->assertSame($this->admin->id, session(ImpersonationController::SESSION_KEY));
+        $this->assertEquals($lastLogin, $this->manager->fresh()->last_login_at, 'ce n’est pas une connexion du gérant');
+        $this->assertDatabaseMissing('audit_logs', ['action' => 'auth.login', 'user_id' => $this->manager->id]);
+
+        $this->get(route('dashboard'))->assertInertia(fn ($page) => $page->where('auth.impersonator.id', $this->admin->id));
+
+        // Les actions faites pendant la session sont marquées dans le journal
+        AuditLog::record('reports.exported', $this->manager->company, new: ['format' => 'pdf']);
+        $this->assertSame($this->admin->name, AuditLog::where('action', 'reports.exported')->first()->new_values['par_admin']);
+
+        $this->post(route('impersonation.stop'))->assertRedirect(route('admin.companies.show', $this->manager->company_id));
+        $this->assertAuthenticatedAs($this->admin);
+        $this->assertNull(session(ImpersonationController::SESSION_KEY));
+        $this->assertDatabaseHas('audit_logs', ['action' => 'admin.impersonation_started']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'admin.impersonation_ended']);
+    }
+
+    public function test_personal_settings_are_blocked_while_impersonating()
+    {
+        $this->actingAs($this->admin)->post(route('admin.companies.managers.impersonate', [$this->manager->company, $this->manager]));
+        $hash = $this->manager->fresh()->password;
+
+        $this->put(route('user-password.update'), [
+            'current_password' => 'password',
+            'password' => 'Nouveau-Motriks-2026!',
+            'password_confirmation' => 'Nouveau-Motriks-2026!',
+        ]);
+
+        $this->assertSame($hash, $this->manager->fresh()->password);
+    }
+
+    public function test_impersonation_is_refused_when_it_does_not_make_sense()
+    {
+        $invited = User::factory()->mustChangePassword()->create();
+        $this->actingAs($this->admin)->post(route('admin.companies.managers.impersonate', [$invited->company, $invited]))->assertStatus(422);
+
+        $other = User::factory()->create()->company;
+        $this->actingAs($this->admin)->post(route('admin.companies.managers.impersonate', [$other, $this->manager]))->assertNotFound();
+
+        $this->actingAs($this->manager)->post(route('admin.companies.managers.impersonate', [$this->manager->company, $this->manager]))->assertForbidden();
+
+        // Sans session « en tant que », le retour est refusé
+        $this->actingAs($this->manager)->post(route('impersonation.stop'))->assertForbidden();
+    }
+}

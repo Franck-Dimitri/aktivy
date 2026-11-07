@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Http\Controllers\Admin\ImpersonationController;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -53,6 +54,12 @@ class AuditLog extends Model
     public static function record(string $action, ?Model $auditable = null, ?array $old = null, ?array $new = null, ?User $actor = null): self
     {
         $actor ??= Auth::user();
+
+        // Action faite par le super administrateur connecté « en tant que » : on le note
+        $impersonatorId = app()->bound('session') ? app('session')->get(ImpersonationController::SESSION_KEY) : null;
+        if ($impersonatorId && $impersonatorId !== $actor?->id) {
+            $new = [...($new ?? []), 'par_admin' => User::find($impersonatorId)?->name];
+        }
 
         $companyId = $auditable instanceof Company
             ? $auditable->id

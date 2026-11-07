@@ -7,6 +7,7 @@ use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\CompanyModule;
+use App\Models\SupportRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -125,6 +126,7 @@ class DashboardController extends Controller
                 'status' => $c->status->value,
                 'created_at' => $c->created_at?->format('d/m/Y'),
             ]),
+            'support_new' => SupportRequest::where('status', 'new')->count(),
             'month_label' => $today->locale('fr')->isoFormat('MMMM YYYY'),
         ]);
     }

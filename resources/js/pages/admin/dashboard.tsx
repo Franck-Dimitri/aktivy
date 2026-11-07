@@ -5,6 +5,7 @@ import {
     CheckCircle2,
     ClipboardList,
     Clock,
+    LifeBuoy,
     MailWarning,
     Moon,
     Plus,
@@ -23,6 +24,7 @@ import {
     show as companyShow,
 } from '@/routes/admin/companies';
 import { index as onboardingIndex } from '@/routes/admin/onboarding';
+import { index as supportIndex } from '@/routes/admin/support';
 
 type CompanyLink = { id: number; name: string };
 
@@ -64,6 +66,7 @@ type Props = {
         created_at: string | null;
     })[];
     month_label: string;
+    support_new: number;
 };
 
 const STATUS: Record<string, { label: string; tone: StatusTone }> = {
@@ -132,6 +135,7 @@ export default function AdminDashboard({
     unverified_managers,
     recent_companies,
     month_label,
+    support_new,
 }: Props) {
     return (
         <>
@@ -143,6 +147,19 @@ export default function AdminDashboard({
                 className="max-w-6xl"
                 actions={
                     <>
+                        {support_new > 0 && (
+                            <Link
+                                href={
+                                    supportIndex({ query: { statut: 'new' } })
+                                        .url
+                                }
+                                className={buttonClass('secondary', 'md')}
+                            >
+                                <LifeBuoy />
+                                {support_new} demande
+                                {support_new > 1 ? 's' : ''} de support
+                            </Link>
+                        )}
                         {companies.pending_with_file > 0 && (
                             <Link
                                 href={onboardingIndex().url}

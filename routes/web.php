@@ -2,11 +2,15 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\CompanyManagerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CompanyModuleController;
 use App\Http\Controllers\Admin\CompanyRequestController;
 use App\Http\Controllers\Admin\DocumentController;
+use App\Http\Controllers\Admin\ImpersonationController;
+use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
+use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\ContactController;
@@ -99,6 +103,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('notifications/{notification}', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('notifications/tout-lu', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 
+    // Fin d'une connexion « en tant que » : retour au compte du super administrateur
+    Route::post('connexion-en-tant-que/quitter', [ImpersonationController::class, 'stop'])->name('impersonation.stop');
+
     // Photos des rapports journaliers (fichiers privés, accès contrôlé)
     Route::get('rapports/photos/{photo}', [ReportPhotoController::class, 'show'])->name('report-photos.show');
 
@@ -117,6 +124,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('entreprises/{company}/gerants/{user}/confirmation', [CompanyManagerController::class, 'resendVerification'])->name('companies.managers.verification');
             Route::post('entreprises/{company}/gerants/{user}/invitation', [CompanyManagerController::class, 'resendInvitation'])->name('companies.managers.invitation');
             Route::post('entreprises/{company}/gerants/{user}/mot-de-passe', [CompanyManagerController::class, 'sendPasswordReset'])->name('companies.managers.password');
+            Route::post('entreprises/{company}/gerants/{user}/connexion', [ImpersonationController::class, 'start'])->name('companies.managers.impersonate');
+
+            // Abonnements : échéances, paiements reçus, factures, relances
+            Route::get('abonnements', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');
+            Route::post('entreprises/{company}/paiements', [AdminSubscriptionController::class, 'store'])->name('subscriptions.payments.store');
+            Route::post('entreprises/{company}/relance', [AdminSubscriptionController::class, 'remind'])->name('subscriptions.remind');
+            Route::get('factures/{payment}', [AdminSubscriptionController::class, 'invoice'])->name('subscriptions.invoice');
+
+            // Journal d'audit de la plateforme
+            Route::get('journal', [AuditLogController::class, 'index'])->name('audit.index');
+
+            // Boîte de support
+            Route::get('support', [SupportController::class, 'index'])->name('support.index');
+            Route::get('support/{supportRequest}', [SupportController::class, 'show'])->name('support.show');
+            Route::post('support/{supportRequest}/reponse', [SupportController::class, 'reply'])->name('support.reply');
+            Route::put('support/{supportRequest}/statut', [SupportController::class, 'updateStatus'])->name('support.status');
             Route::post('entreprises/{company}/suspendre', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
             Route::post('entreprises/{company}/reactiver', [AdminCompanyController::class, 'reactivate'])->name('companies.reactivate');
             Route::get('entreprises/{company}/modules', [CompanyModuleController::class, 'index'])->name('companies.modules');

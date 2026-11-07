@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SupportRequest;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,6 +66,17 @@ class ContactController
             'message.min' => 'Votre message est trop court (10 caractères minimum).',
         ]);
 
+        // Gardé pour être suivi dans l'administration, même si l'e-mail ne part pas
+        SupportRequest::create([
+            'source' => 'contact',
+            'topic' => $data['subject'],
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'phone' => $data['phone'] ?? null,
+            'company_name' => $data['company'] ?? null,
+            'message' => $data['message'],
+        ]);
+
         // Adresse qui reçoit les messages (par défaut : l'adresse d'expédition configurée dans .env)
         $recipient = config('mail.from.address');
 
@@ -88,11 +100,8 @@ class ContactController
                     ->subject('['.config('app.name').'] '.$data['subject'].' - '.$data['name']);
             });
         } catch (Throwable $e) {
+            // Le message est enregistré : le support le verra dans l'administration
             Log::error('Échec envoi message de contact : '.$e->getMessage());
-
-            return back()->withErrors([
-                'message' => "Votre message n'a pas pu être envoyé. Réessayez ou écrivez-nous sur WhatsApp.",
-            ]);
         }
 
         return back();

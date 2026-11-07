@@ -92,6 +92,12 @@ class PdfDocument
         return 'data:'.$mime.';base64,'.base64_encode(Storage::disk($disk)->get($path));
     }
 
+    /** Logo de Motriks (PNG transparent), pour les documents émis par Motriks : factures. */
+    public static function motriksLogo(): string
+    {
+        return 'data:image/png;base64,'.base64_encode((string) file_get_contents(resource_path('images/motriks-logo-pdf.png')));
+    }
+
     /** Logo de l'entreprise, s'il y en a un. */
     public static function logo(Company $company): ?string
     {

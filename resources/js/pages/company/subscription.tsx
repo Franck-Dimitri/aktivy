@@ -1,8 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import { CheckCircle2, Clock, Lock, Mail } from 'lucide-react';
+import { CheckCircle2, Clock, Download, Lock, Mail } from 'lucide-react';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
 import { contact } from '@/routes';
+import { show as invoiceShow } from '@/routes/company/invoices';
 import { subscription as companySubscription } from '@/routes/company';
 
 type ModuleRow = {
@@ -23,7 +24,11 @@ function Badge({ m }: { m: ModuleRow }) {
     return <StatusBadge tone="success">{m.ends_on ? `Actif jusqu’au ${m.ends_on}` : 'Actif'}</StatusBadge>;
 }
 
-export default function CompanySubscription({ modules }: { modules: ModuleRow[] }) {
+type Payment = { id: number; invoice_number: string; amount: number; currency: string; method: string; paid_at: string; period_end: string | null };
+
+const amount = new Intl.NumberFormat('fr-FR');
+
+export default function CompanySubscription({ modules, payments = [] }: { modules: ModuleRow[]; payments?: Payment[] }) {
     const active = modules.filter((m) => m.active).length;
 
     return (
@@ -50,6 +55,30 @@ export default function CompanySubscription({ modules }: { modules: ModuleRow[] 
                             ))}
                         </ul>
                     </Panel>
+
+                    {payments.length > 0 && (
+                        <Panel title="Paiements et factures">
+                            <ul className="divide-y divide-slate-100">
+                                {payments.map((p) => (
+                                    <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm">
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-ink">
+                                                {amount.format(p.amount)} {p.currency === 'XAF' ? 'FCFA' : p.currency}
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                Facture {p.invoice_number} · {p.method} · payée le {p.paid_at}
+                                                {p.period_end ? ` · jusqu’au ${p.period_end}` : ''}
+                                            </p>
+                                        </div>
+                                        <a href={invoiceShow(p.id).url} className="inline-flex items-center gap-1.5 text-xs font-semibold text-motriks-deep hover:underline">
+                                            <Download className="size-3.5" />
+                                            Télécharger la facture
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </Panel>
+                    )}
 
                     <Panel>
                         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">

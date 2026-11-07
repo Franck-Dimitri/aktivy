@@ -134,6 +134,12 @@ class Company extends Model
         return $this->hasMany(Event::class);
     }
 
+    /** Paiements d'abonnement reçus, avec leurs factures. */
+    public function subscriptionPayments(): HasMany
+    {
+        return $this->hasMany(SubscriptionPayment::class);
+    }
+
     public function modules(): HasMany
     {
         return $this->hasMany(CompanyModule::class);

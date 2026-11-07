@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SupportRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -54,6 +55,19 @@ class HelpController extends Controller
         $recipient = config('motriks.support.email');
         $topic = self::TOPICS[$data['topic']];
 
+        // Gardée pour être suivie dans l'administration, même si l'e-mail ne part pas
+        SupportRequest::create([
+            'company_id' => $user->company_id,
+            'user_id' => $user->id,
+            'source' => 'help',
+            'topic' => $topic,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'message' => $data['message'],
+            'page' => ! empty($data['page']) ? Str::limit($data['page'], 490) : null,
+        ]);
+
         try {
             Mail::send(['emails.support-request', 'emails.text.support-request'], [
                 'topic' => $topic,
@@ -64,7 +78,7 @@ class HelpController extends Controller
                     'Téléphone' => $user->phone,
                     'Rôle' => $user->role?->label(),
                     'Entreprise' => $user->company ? $user->company->name.' (n° '.$user->company_id.')' : null,
-                    'Page' => $data['page'] ? Str::limit($data['page'], 200) : null,
+                    'Page' => ! empty($data['page']) ? Str::limit($data['page'], 200) : null,
                     'Navigateur' => Str::limit((string) $request->userAgent(), 160),
                 ]),
             ], function ($message) use ($recipient, $user, $topic) {
@@ -74,9 +88,8 @@ class HelpController extends Controller
                 }
             });
         } catch (Throwable $e) {
+            // La demande est enregistrée : le support la verra dans l'administration
             Log::error('Échec de l’envoi d’une demande de support : '.$e->getMessage(), ['user' => $user->id]);
-
-            return back()->with('error', 'Votre message n’a pas pu partir. Réessayez dans un instant.');
         }
 
         return back()->with('success', 'Message envoyé au support. Nous vous répondons sous 24 h'.($user->email ? ' par e-mail.' : '.'));

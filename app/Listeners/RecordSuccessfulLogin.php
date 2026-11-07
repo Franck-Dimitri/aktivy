@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Http\Controllers\Admin\ImpersonationController;
 use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Auth\Events\Login;
@@ -15,6 +16,11 @@ class RecordSuccessfulLogin
     public function handle(Login $event): void
     {
         if (! $event->user instanceof User) {
+            return;
+        }
+
+        // Basculement « en tant que » (entrée ou sortie) : ni dernière connexion, ni journal de connexion
+        if (app()->bound(ImpersonationController::SWITCHING)) {
             return;
         }
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\Company\DailyReportController;
 use App\Http\Controllers\Company\DashboardController;
 use App\Http\Controllers\Company\DataExportController;
 use App\Http\Controllers\Company\ImportController;
+use App\Http\Controllers\Company\InvoiceController;
 use App\Http\Controllers\Company\Events\EventActivateController;
 use App\Http\Controllers\Company\Events\EventController;
 use App\Http\Controllers\Company\Events\EventHostessController;
@@ -61,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('import/{type}', [ImportController::class, 'store'])->middleware('throttle:10,1')->name('company.import.store');
 
             Route::get('abonnement', SubscriptionController::class)->name('company.subscription');
+            Route::get('abonnement/factures/{payment}', [InvoiceController::class, 'show'])->name('company.invoices.show');
 
             Route::get('mes-donnees', [DataExportController::class, 'show'])->name('company.data-export');
             // Préparation en arrière-plan, puis téléchargement pendant 24 h

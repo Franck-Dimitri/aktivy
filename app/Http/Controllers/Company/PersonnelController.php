@@ -222,6 +222,9 @@ class PersonnelController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
+        // Activer ou désactiver un compte : le gérant seul
+        abort_if($validated['status'] !== $personnel->status->value && ! $request->user()->hasRole(Role::CompanyAdmin), 403);
+
         $personnel->fill([
             'name'   => $validated['name'],
             'phone'  => $validated['phone'] ?? null,
@@ -241,9 +244,14 @@ class PersonnelController extends Controller
             ->with('success', 'Profil mis à jour.');
     }
 
+    /**
+     * Supprimer un compte : le gérant seul. Le compte n'est pas effacé de la base (suppression douce) :
+     * il ne peut plus se connecter et disparaît de l'entreprise, mais son historique est conservé.
+     */
     public function destroy(Request $request, User $personnel): RedirectResponse
     {
         $this->authorizeCompany($request, $personnel);
+        abort_unless($request->user()->hasRole(Role::CompanyAdmin), 403);
 
         $personnel->affectations()
             ->where('status', AffectationStatus::Active)

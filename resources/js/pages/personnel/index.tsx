@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowUpDown, Eye, MapPin, MoreHorizontal, Pencil, Plus, Search, Trash2, Users, X } from 'lucide-react';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
@@ -80,6 +80,8 @@ function Chip({ active, onClick, count, children }: { active: boolean; onClick: 
 }
 
 export default function PersonnelIndex({ staff, roles }: Props) {
+    // Supprimer ou désactiver un compte : le gérant seul
+    const { manageCompany } = usePage().props.auth.can;
     // Fenêtre de création : montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
     const [creating, setCreating] = useState(false);
     const closeCreate = useCallback(() => setCreating(false), []);
@@ -274,7 +276,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                         ) : (
                             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                                 {visible.map((member) => (
-                                    <MemberCard key={member.id} member={member} onDelete={() => ask(member)} />
+                                    <MemberCard key={member.id} member={member} onDelete={manageCompany ? () => ask(member) : undefined} />
                                 ))}
                             </ul>
                         )}
@@ -296,7 +298,7 @@ function prettyPhone(phone: string) {
 }
 
 /** Carte compacte : toute la carte ouvre la fiche ; Modifier / Supprimer sont dans le menu « ⋯ ». */
-function MemberCard({ member, onDelete }: { member: StaffListItem; onDelete: () => void }) {
+function MemberCard({ member, onDelete }: { member: StaffListItem; onDelete?: () => void }) {
     const showUrl = personnelShow({ personnel: member.id }).url;
     const suspended = member.status === 'suspended';
     const onSite = !!member.on_site_now;
@@ -371,11 +373,15 @@ function MemberCard({ member, onDelete }: { member: StaffListItem; onDelete: () 
                                 Modifier
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={onDelete} className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600 [&_svg]:text-red-500">
-                            <Trash2 className="size-4" />
-                            Supprimer
-                        </DropdownMenuItem>
+                        {onDelete && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={onDelete} className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600 [&_svg]:text-red-500">
+                                    <Trash2 className="size-4" />
+                                    Supprimer
+                                </DropdownMenuItem>
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

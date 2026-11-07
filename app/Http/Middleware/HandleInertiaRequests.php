@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Enums\Module;
 use App\Enums\Role;
+use App\Http\Controllers\Admin\ImpersonationController;
 use App\Models\Affectation;
 use App\Models\User;
 use App\Support\Toast;
@@ -95,6 +96,10 @@ class HandleInertiaRequests extends Middleware
                 ],
                 // Modules payants actifs : le menu et les pages masquent ce qui n'est pas souscrit
                 'modules' => fn () => $request->user()?->company?->activeModules() ?? array_map(fn ($m) => $m->value, Module::cases()),
+                // Super administrateur connecté « en tant que » ce compte : bandeau et bouton de retour
+                'impersonator' => fn () => ($id = $request->session()->get(ImpersonationController::SESSION_KEY))
+                    ? User::find($id)?->only('id', 'name')
+                    : null,
                 // Hôtesse ou superviseur rattaché à aucun point de vente : un bandeau le lui dit
                 'noSite' => fn () => $this->hasNoSite($request->user()),
                 // Compteur de la cloche

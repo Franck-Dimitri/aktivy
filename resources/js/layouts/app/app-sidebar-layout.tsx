@@ -2,6 +2,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { ImpersonationBanner } from '@/components/impersonation-banner';
 import { InstallPrompt } from '@/components/install-prompt';
 import { NoSiteBanner } from '@/components/no-site-banner';
 import { OfflineSync } from '@/components/offline-sync';
@@ -19,6 +20,7 @@ export default function AppSidebarLayout({
                 className="min-w-0 overflow-x-clip"
             >
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
+                <ImpersonationBanner />
                 <NoSiteBanner />
                 <OfflineSync />
                 {/* Téléphone : installer l'application, puis activer les notifications */}

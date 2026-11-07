@@ -145,6 +145,14 @@ class LiveNotification extends TextNotification
             'company.subscription');
     }
 
+    public static function paymentReceived(string $invoice, int $amount, string $currency, ?string $endsOn): self
+    {
+        return new self('payment_received', 'module',
+            "Paiement reçu · {$invoice}",
+            'Merci ! '.PdfDocument::money($amount, $currency).' enregistrés'.($endsOn ? ", abonnement prolongé jusqu’au {$endsOn}" : '').'. La facture est dans votre page Abonnement.',
+            'company.subscription');
+    }
+
     public static function moduleDeactivated(string $module): self
     {
         return new self('module_deactivated', 'module',

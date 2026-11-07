@@ -46,6 +46,8 @@ export type Auth = {
     modules: string[];
     /** Notifications non lues (cloche). */
     unreadNotifications: number;
+    /** Super administrateur connecté « en tant que » ce compte. */
+    impersonator: { id: number; name: string } | null;
 };
 
 /* @chisel-passkeys */

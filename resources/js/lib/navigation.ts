@@ -4,6 +4,7 @@ import {
     ClipboardCheck,
     ClipboardList,
     CreditCard,
+    LifeBuoy,
     DatabaseBackup,
     FileBarChart,
     FileUp,
@@ -23,6 +24,9 @@ import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as adminOnboarding } from '@/routes/admin/onboarding';
 import { index as adminCompanies } from '@/routes/admin/companies';
+import { index as adminAudit } from '@/routes/admin/audit';
+import { index as adminSubscriptions } from '@/routes/admin/subscriptions';
+import { index as adminSupport } from '@/routes/admin/support';
 import { edit as companySettings } from '@/routes/company/settings';
 import { subscription as companySubscription } from '@/routes/company';
 import { index as companyImport } from '@/routes/company/import';
@@ -106,8 +110,9 @@ function baseMenu(role: Role): MenuGroup[] {
                         href: adminOnboarding(),
                     },
                     { title: 'Entreprises', icon: Building2, href: adminCompanies().url },
-                    { title: 'Abonnements', icon: CreditCard },
-                    { title: 'Journal d’audit', icon: ScrollText },
+                    { title: 'Abonnements', icon: CreditCard, href: adminSubscriptions().url },
+                    { title: 'Support', icon: LifeBuoy, href: adminSupport().url },
+                    { title: 'Journal d’audit', icon: ScrollText, href: adminAudit().url },
                 ],
             },
         ];

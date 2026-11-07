@@ -1,7 +1,10 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
+    Banknote,
+    BellRing,
     Blocks,
     ClipboardList,
+    Eye,
     FileText,
     KeyRound,
     Mail,
@@ -16,6 +19,14 @@ import {
     Wallet,
 } from 'lucide-react';
 import { useState } from 'react';
+import {
+    PaymentsPanel,
+    type PaymentRow,
+} from '@/components/admin/payments-panel';
+import {
+    RecordPaymentModal,
+    type Option,
+} from '@/components/admin/record-payment-modal';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { Field, SelectInput, TextInput } from '@/components/page/form-fields';
@@ -23,6 +34,7 @@ import { MetricRow } from '@/components/page/list-kit';
 import { Modal } from '@/components/page/modal';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
+import { auditLabel } from '@/lib/audit-actions';
 import { toastFormError } from '@/lib/form-toast';
 import { dashboard } from '@/routes/admin';
 import {
@@ -33,11 +45,13 @@ import {
     update as companyUpdate,
 } from '@/routes/admin/companies';
 import {
+    impersonate as managerImpersonate,
     invitation as managerInvitation,
     password as managerPassword,
     verification as managerVerification,
 } from '@/routes/admin/companies/managers';
 import { show as onboardingShow } from '@/routes/admin/onboarding';
+import { remind as subscriptionRemind } from '@/routes/admin/subscriptions';
 
 type Company = {
     id: number;
@@ -84,6 +98,13 @@ type Props = {
         at: string | null;
     }[];
     sectors: string[];
+    payments: PaymentRow[];
+    billing: {
+        modules: Option[];
+        methods: Option[];
+        active_keys: string[];
+        has_deadline: boolean;
+    };
 };
 
 const STATUS: Record<Company['status'], { label: string; tone: StatusTone }> = {
@@ -91,30 +112,6 @@ const STATUS: Record<Company['status'], { label: string; tone: StatusTone }> = {
     pending: { label: 'En attente', tone: 'warning' },
     rejected: { label: 'Rejetée', tone: 'danger' },
     suspended: { label: 'Suspendue', tone: 'neutral' },
-};
-
-/** Libellés du journal d'audit ; une action inconnue s'affiche telle quelle. */
-const ACTIONS: Record<string, string> = {
-    'auth.login': 'Connexion',
-    'auth.login_failed': 'Échec de connexion',
-    'company.registered': 'Inscription de l’entreprise',
-    'company.created_by_admin': 'Entreprise créée par l’administration',
-    'company.updated_by_admin': 'Informations corrigées par l’administration',
-    'company.suspended': 'Entreprise suspendue',
-    'company.reactivated': 'Entreprise réactivée',
-    'company.settings_updated': 'Identité & marque modifiée',
-    'company.reminders_updated': 'Horaires des rappels modifiés',
-    'company.data_exported': 'Export complet des données',
-    'module.activated': 'Module activé',
-    'module.deactivated': 'Module désactivé',
-    'reports.exported': 'Export des ventes',
-    'daily_report.corrected': 'Rapport corrigé',
-    'user.password_changed': 'Mot de passe changé',
-    'staff.document_removed': 'Document du personnel retiré',
-    'manager.verification_resent': 'E-mail de confirmation renvoyé',
-    'manager.invitation_resent': 'Invitation renvoyée',
-    'manager.invitation_opened': 'Invitation ouverte par le gérant',
-    'manager.password_reset_sent': 'Lien de nouveau mot de passe envoyé',
 };
 
 const number = new Intl.NumberFormat('fr-FR');
@@ -152,95 +149,109 @@ function EditCompanyModal({
             title="Modifier l’entreprise"
             description="Ces informations apparaissent sur les documents de l’entreprise."
         >
-            <form onSubmit={submit} className="flex flex-col gap-4">
-                <Field
-                    label="Nom"
-                    htmlFor="c-name"
-                    required
-                    error={errors.name}
-                >
-                    <TextInput
-                        id="c-name"
-                        value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
-                        error={errors.name}
-                    />
-                </Field>
-                <div className="grid gap-4 sm:grid-cols-2">
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
                     <Field
-                        label="Secteur"
-                        htmlFor="c-sector"
-                        error={errors.sector}
+                        label="Nom"
+                        htmlFor="c-name"
+                        required
+                        error={errors.name}
                     >
-                        <SelectInput
-                            id="c-sector"
-                            value={data.sector}
-                            onChange={(e) => setData('sector', e.target.value)}
+                        <TextInput
+                            id="c-name"
+                            value={data.name}
+                            onChange={(e) => setData('name', e.target.value)}
+                            error={errors.name}
+                        />
+                    </Field>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field
+                            label="Secteur"
+                            htmlFor="c-sector"
                             error={errors.sector}
                         >
-                            <option value="">—</option>
-                            {[
-                                ...new Set([
-                                    ...sectors,
-                                    ...(data.sector ? [data.sector] : []),
-                                ]),
-                            ].map((s) => (
-                                <option key={s} value={s}>
-                                    {s}
-                                </option>
-                            ))}
-                        </SelectInput>
-                    </Field>
-                    <Field label="Ville" htmlFor="c-city" error={errors.city}>
-                        <TextInput
-                            id="c-city"
-                            value={data.city}
-                            onChange={(e) => setData('city', e.target.value)}
+                            <SelectInput
+                                id="c-sector"
+                                value={data.sector}
+                                onChange={(e) =>
+                                    setData('sector', e.target.value)
+                                }
+                                error={errors.sector}
+                            >
+                                <option value="">—</option>
+                                {[
+                                    ...new Set([
+                                        ...sectors,
+                                        ...(data.sector ? [data.sector] : []),
+                                    ]),
+                                ].map((s) => (
+                                    <option key={s} value={s}>
+                                        {s}
+                                    </option>
+                                ))}
+                            </SelectInput>
+                        </Field>
+                        <Field
+                            label="Ville"
+                            htmlFor="c-city"
                             error={errors.city}
-                        />
-                    </Field>
-                </div>
-                <Field
-                    label="Adresse"
-                    htmlFor="c-address"
-                    error={errors.address}
-                >
-                    <TextInput
-                        id="c-address"
-                        value={data.address}
-                        onChange={(e) => setData('address', e.target.value)}
+                        >
+                            <TextInput
+                                id="c-city"
+                                value={data.city}
+                                onChange={(e) =>
+                                    setData('city', e.target.value)
+                                }
+                                error={errors.city}
+                            />
+                        </Field>
+                    </div>
+                    <Field
+                        label="Adresse"
+                        htmlFor="c-address"
                         error={errors.address}
-                    />
-                </Field>
-                <div className="grid gap-4 sm:grid-cols-2">
-                    <Field
-                        label="Téléphone"
-                        htmlFor="c-phone"
-                        error={errors.phone}
                     >
                         <TextInput
-                            id="c-phone"
-                            type="tel"
-                            value={data.phone}
-                            onChange={(e) => setData('phone', e.target.value)}
+                            id="c-address"
+                            value={data.address}
+                            onChange={(e) => setData('address', e.target.value)}
+                            error={errors.address}
+                        />
+                    </Field>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field
+                            label="Téléphone"
+                            htmlFor="c-phone"
                             error={errors.phone}
-                        />
-                    </Field>
-                    <Field
-                        label="E-mail de contact"
-                        htmlFor="c-email"
-                        error={errors.email}
-                    >
-                        <TextInput
-                            id="c-email"
-                            type="email"
-                            value={data.email}
-                            onChange={(e) => setData('email', e.target.value)}
+                        >
+                            <TextInput
+                                id="c-phone"
+                                type="tel"
+                                value={data.phone}
+                                onChange={(e) =>
+                                    setData('phone', e.target.value)
+                                }
+                                error={errors.phone}
+                            />
+                        </Field>
+                        <Field
+                            label="E-mail de contact"
+                            htmlFor="c-email"
                             error={errors.email}
-                        />
-                    </Field>
+                        >
+                            <TextInput
+                                id="c-email"
+                                type="email"
+                                value={data.email}
+                                onChange={(e) =>
+                                    setData('email', e.target.value)
+                                }
+                                error={errors.email}
+                            />
+                        </Field>
+                    </div>
                 </div>
-                <div className="flex justify-end gap-2 pt-2">
+                <footer className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-6 py-4 dark:border-sidebar-border dark:bg-white/[0.02]">
                     <ActionButton
                         type="button"
                         variant="secondary"
@@ -251,7 +262,7 @@ function EditCompanyModal({
                     <ActionButton type="submit" loading={processing}>
                         Enregistrer
                     </ActionButton>
-                </div>
+                </footer>
             </form>
         </Modal>
     );
@@ -259,9 +270,11 @@ function EditCompanyModal({
 
 function ManagerCard({
     companyId,
+    companyActive,
     manager,
 }: {
     companyId: number;
+    companyActive: boolean;
     manager: Manager;
 }) {
     const post = (url: string) =>
@@ -359,6 +372,32 @@ function ManagerCard({
                             >
                                 Envoyer un lien de nouveau mot de passe
                             </ActionButton>
+                            {companyActive && manager.status === 'active' && (
+                                <ActionButton
+                                    size="sm"
+                                    variant="secondary"
+                                    icon={<Eye />}
+                                    className="border-violet-200 text-violet-700 hover:bg-violet-50"
+                                    onClick={() => {
+                                        if (
+                                            !confirm(
+                                                `Ouvrir l’espace de ${manager.name} ? Vous verrez exactement ce qu’il voit ; vos actions seront notées dans le journal.`,
+                                            )
+                                        )
+                                            return;
+                                        router.post(
+                                            managerImpersonate({
+                                                company: companyId,
+                                                user: manager.id,
+                                            }).url,
+                                            {},
+                                            { onError: toastFormError },
+                                        );
+                                    }}
+                                >
+                                    Se connecter en tant que
+                                </ActionButton>
+                            )}
                         </>
                     )}
                 </div>
@@ -376,8 +415,11 @@ export default function AdminCompanyShow({
     modules,
     history,
     sectors,
+    payments,
+    billing,
 }: Props) {
     const [editing, setEditing] = useState(false);
+    const [paying, setPaying] = useState(false);
     const [confirming, setConfirming] = useState(false);
     const status = STATUS[company.status];
     const suspending = company.status === 'active';
@@ -526,12 +568,53 @@ export default function AdminCompanyShow({
                                             <ManagerCard
                                                 key={m.id}
                                                 companyId={company.id}
+                                                companyActive={
+                                                    company.status === 'active'
+                                                }
                                                 manager={m}
                                             />
                                         ))}
                                     </ul>
                                 )}
                             </Panel>
+
+                            <PaymentsPanel
+                                payments={payments}
+                                actions={
+                                    <div className="flex flex-wrap gap-2">
+                                        {billing.has_deadline && (
+                                            <ActionButton
+                                                size="sm"
+                                                variant="ghost"
+                                                icon={<BellRing />}
+                                                onClick={() =>
+                                                    router.post(
+                                                        subscriptionRemind(
+                                                            company.id,
+                                                        ).url,
+                                                        {},
+                                                        {
+                                                            preserveScroll: true,
+                                                            onError:
+                                                                toastFormError,
+                                                        },
+                                                    )
+                                                }
+                                            >
+                                                Relancer
+                                            </ActionButton>
+                                        )}
+                                        <ActionButton
+                                            size="sm"
+                                            variant="secondary"
+                                            icon={<Banknote />}
+                                            onClick={() => setPaying(true)}
+                                        >
+                                            Paiement reçu
+                                        </ActionButton>
+                                    </div>
+                                }
+                            />
 
                             <Panel
                                 title="Historique"
@@ -549,8 +632,7 @@ export default function AdminCompanyShow({
                                                 className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 px-5 py-2.5 text-sm"
                                             >
                                                 <span className="text-ink">
-                                                    {ACTIONS[h.action] ??
-                                                        h.action}
+                                                    {auditLabel(h.action)}
                                                     {h.user && (
                                                         <span className="text-slate-400">
                                                             {' '}
@@ -663,6 +745,16 @@ export default function AdminCompanyShow({
                     </div>
                 </div>
             </Page>
+
+            {paying && (
+                <RecordPaymentModal
+                    company={{ id: company.id, name: company.name }}
+                    modules={billing.modules}
+                    methods={billing.methods}
+                    activeKeys={billing.active_keys}
+                    onClose={() => setPaying(false)}
+                />
+            )}
 
             {editing && (
                 <EditCompanyModal

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\AccountStatus;
+use App\Enums\Module;
 use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\OnboardingController;
 use App\Models\AuditLog;
 use App\Models\Company;
+use App\Models\SubscriptionPayment;
 use App\Models\User;
 use App\Notifications\CompanyInvitation;
 use App\Support\PhoneNumber;
@@ -124,6 +126,13 @@ class CompanyController extends Controller
                     'at' => $log->created_at?->format('d/m/Y à H:i'),
                 ]),
             'sectors' => OnboardingController::SECTORS,
+            'payments' => SubscriptionController::payments($company->subscriptionPayments()->latest('paid_at')->latest('id')->limit(10)->get()),
+            'billing' => [
+                'modules' => collect(Module::cases())->map(fn (Module $m) => ['key' => $m->value, 'label' => $m->label()]),
+                'methods' => collect(SubscriptionPayment::METHODS)->map(fn ($label, $key) => ['key' => $key, 'label' => $label])->values(),
+                'active_keys' => $company->modules()->active()->get()->map(fn ($m) => $m->module->value)->values(),
+                'has_deadline' => $company->modules()->whereNotNull('ends_on')->exists(),
+            ],
         ]);
     }
 

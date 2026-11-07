@@ -31,4 +31,24 @@ return [
         'whatsapp' => env('SUPPORT_WHATSAPP'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Facturation
+    |--------------------------------------------------------------------------
+    |
+    | Mentions de Motriks sur les factures d'abonnement. Le NIU et le RCCM
+    | s'affichent seulement s'ils sont renseignés.
+    |
+    */
+
+    'billing' => [
+        'name' => env('BILLING_NAME', 'Motriks'),
+        'address' => env('BILLING_ADDRESS'),
+        'city' => env('BILLING_CITY', 'Douala, Cameroun'),
+        'phone' => env('BILLING_PHONE', env('SUPPORT_WHATSAPP')),
+        'email' => env('BILLING_EMAIL', env('SUPPORT_EMAIL', env('MAIL_FROM_ADDRESS'))),
+        'niu' => env('BILLING_NIU'),
+        'rccm' => env('BILLING_RCCM'),
+    ],
+
 ];

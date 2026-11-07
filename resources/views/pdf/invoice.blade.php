@@ -44,9 +44,11 @@
         <tbody>
             <tr>
                 <td>
-                    Abonnement à la plateforme {{ config('app.name') }}
+                    {{ $payment->plan ? 'Forfait '.$payment->plan->label() : 'Abonnement à la plateforme '.config('app.name') }}
                     @if ($period)<br><span class="detail">{{ $period }}</span>@endif
-                    @if ($modules->isNotEmpty())<br><span class="detail">Modules : {{ $modules->implode(', ') }}</span>@endif
+                    @if ($payment->extra_packs > 0)
+                        <br><span class="detail">{{ $payment->extra_packs }} pack{{ $payment->extra_packs > 1 ? 's' : '' }} d’extension (+{{ $pack['hostesses'] }} hôtesses et +{{ $pack['sites'] }} points de vente chacun)</span>
+                    @endif
                     @if ($payment->notes)<br><span class="detail">{{ $payment->notes }}</span>@endif
                 </td>
                 <td class="num">{{ $money($payment->amount) }}</td>

@@ -42,7 +42,9 @@ export type Auth = {
     };
     /** Hôtesse ou superviseur rattaché à aucun point de vente. */
     noSite: boolean;
-    /** Modules payants actifs de l'entreprise. */
+    /** Forfait en vigueur de l'entreprise. */
+    plan: { key: string; label: string } | null;
+    /** Fonctions comprises dans le forfait (modules internes). */
     modules: string[];
     /** Notifications non lues (cloche). */
     unreadNotifications: number;

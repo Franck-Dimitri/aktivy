@@ -10,6 +10,7 @@ export const AUDIT_ACTIONS: Record<string, string> = {
     'company.settings_updated': 'Identité & marque modifiée',
     'company.reminders_updated': 'Horaires des rappels modifiés',
     'company.data_exported': 'Export complet des données',
+    'plan.changed': 'Forfait modifié',
     'module.activated': 'Module activé',
     'module.deactivated': 'Module désactivé',
     'subscription.payment_recorded': 'Paiement enregistré',

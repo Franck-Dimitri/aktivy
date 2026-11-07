@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\AccountStatus;
-use App\Enums\Module;
+use App\Enums\Plan;
 use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\OnboardingController;
 use App\Models\AuditLog;
 use App\Models\Company;
-use App\Models\SubscriptionPayment;
 use App\Models\User;
 use App\Notifications\CompanyInvitation;
 use App\Support\PhoneNumber;
+use App\Support\Plans\PlanPresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -47,13 +47,16 @@ class CompanyController extends Controller
                     ? date('d/m/Y', strtotime($c->daily_reports_max_report_date))
                     : null,
                 'created_at' => $c->created_at?->format('d/m/Y'),
+                'plan' => $c->currentPlan()->shortLabel(),
+                'plan_key' => $c->currentPlan()->value,
+                'plan_trial' => $c->currentPlan() !== Plan::Starter && (bool) $c->plan_trial,
             ]);
 
         return Inertia::render('admin/companies/index', ['companies' => $companies]);
     }
 
     /**
-     * Fiche d'une entreprise : gérant, équipe, points de vente, usage, modules et historique.
+     * Fiche d'une entreprise : gérant, équipe, points de vente, usage, forfait et historique.
      */
     public function show(Company $company): Response
     {
@@ -108,11 +111,7 @@ class CompanyController extends Controller
                     ->sum('revenue'),
                 'last_report' => $company->dailyReports()->where('status', 'submitted')->max('report_date'),
             ],
-            'modules' => $company->modules()->active()->orderBy('module')->get()->map(fn ($m) => [
-                'label' => $m->module->label(),
-                'ends_on' => $m->ends_on?->format('d/m/Y'),
-                'is_trial' => (bool) $m->is_trial,
-            ]),
+            'plan' => PlanPresenter::state($company),
             'history' => AuditLog::query()
                 ->where('company_id', $company->id)
                 ->with('user:id,name')
@@ -128,10 +127,10 @@ class CompanyController extends Controller
             'sectors' => OnboardingController::SECTORS,
             'payments' => SubscriptionController::payments($company->subscriptionPayments()->latest('paid_at')->latest('id')->limit(10)->get()),
             'billing' => [
-                'modules' => collect(Module::cases())->map(fn (Module $m) => ['key' => $m->value, 'label' => $m->label()]),
-                'methods' => collect(SubscriptionPayment::METHODS)->map(fn ($label, $key) => ['key' => $key, 'label' => $label])->values(),
-                'active_keys' => $company->modules()->active()->get()->map(fn ($m) => $m->module->value)->values(),
-                'has_deadline' => $company->modules()->whereNotNull('ends_on')->exists(),
+                'plans' => SubscriptionController::planOptions(),
+                'methods' => SubscriptionController::methodOptions(),
+                'pack_price' => Plan::PACK_PRICE,
+                'can_remind' => $company->plan !== Plan::Starter && $company->plan_ends_on !== null,
             ],
         ]);
     }
@@ -145,7 +144,7 @@ class CompanyController extends Controller
 
     /**
      * Création directe d'une entreprise (sans dossier d'inscription) : elle est active tout de suite,
-     * avec l'essai des modules, et son gérant reçoit une invitation pour choisir son mot de passe.
+     * avec l'essai de Motriks Business, et son gérant reçoit une invitation pour choisir son mot de passe.
      */
     public function store(Request $request): RedirectResponse
     {

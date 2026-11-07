@@ -8,6 +8,7 @@ use App\Enums\SiteType;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\PhoneNumber;
+use App\Support\Plans\PlanUsage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -129,6 +130,12 @@ class CompanyImport
             return false;
         }
 
+        if ($message = $this->planLimitError($prepared)) {
+            $this->errors[] = $message;
+
+            return false;
+        }
+
         DB::transaction(function () use ($prepared) {
             foreach ($prepared as $data) {
                 $this->persist($data);
@@ -137,6 +144,34 @@ class CompanyImport
         });
 
         return true;
+    }
+
+    /**
+     * Le fichier ferait dépasser une limite du forfait (points de vente, hôtesses, back-office).
+     *
+     * @param  list<array<string, mixed>>  $prepared
+     */
+    private function planLimitError(array $prepared): ?string
+    {
+        $counts = [];
+        foreach ($prepared as $data) {
+            $key = match ($data['kind'] ?? null) {
+                'site' => 'sites',
+                'member' => PlanUsage::keyForRole($data['role']),
+                default => null,
+            };
+            if ($key) {
+                $counts[$key] = ($counts[$key] ?? 0) + 1;
+            }
+        }
+
+        foreach ($counts as $key => $count) {
+            if ($message = PlanUsage::exceeded($this->company, $key, $count)) {
+                return "Ce fichier ajouterait {$count} ligne".($count > 1 ? 's' : '').' : '.$message;
+            }
+        }
+
+        return null;
     }
 
     /** Ligne du fichier ramenée aux clés connues, quel que soit l'intitulé utilisé. */

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Company;
 
+use App\Support\Plans\PlanUsage;
 use App\Http\Controllers\Controller;
 
 use App\Enums\AccountStatus;
@@ -79,6 +80,12 @@ class PersonnelController extends Controller
 
         if ($errors = $this->identifierErrors($validated)) {
             return back()->withErrors($errors)->withInput();
+        }
+
+        // Limite du forfait : hôtesses d'un côté, utilisateurs du back-office de l'autre
+        $limitKey = PlanUsage::keyForRole(Role::from($validated['role']));
+        if ($limitKey && ($message = PlanUsage::exceeded($request->user()->company, $limitKey))) {
+            return back()->withErrors(['role' => $message])->withInput();
         }
 
         $member = $request->user()->company->users()->create([

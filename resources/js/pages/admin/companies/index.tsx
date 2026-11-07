@@ -8,7 +8,7 @@ import { TextInput } from '@/components/page/form-fields';
 import { Page } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { cn } from '@/lib/utils';
-import { create as companyCreate, index as companiesIndex, modules as companyModules, reactivate, show as companyShow, suspend } from '@/routes/admin/companies';
+import { create as companyCreate, index as companiesIndex, plan as companyPlan, reactivate, show as companyShow, suspend } from '@/routes/admin/companies';
 import { index as onboardingIndex, show as onboardingShow } from '@/routes/admin/onboarding';
 import { CompanyAvatar, MetricRow, QuietEmpty, Segmented } from '@/components/page/list-kit';
 
@@ -22,6 +22,9 @@ type Company = {
     sites_count: number;
     last_report: string | null;
     created_at: string | null;
+    plan: string;
+    plan_key: string;
+    plan_trial: boolean;
 };
 
 type Filter = 'all' | Company['status'];
@@ -174,7 +177,14 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                                 <Link href={companyShow(c.id).url} className="block truncate text-sm font-semibold text-ink hover:text-motriks-deep hover:underline">
                                                     {c.name}
                                                 </Link>
-                                                <p className="truncate text-xs text-slate-500">{[c.email, c.city].filter(Boolean).join(' · ') || '—'}</p>
+                                                <p className="truncate text-xs text-slate-500">
+                                                    <span className="font-semibold text-slate-700 dark:text-slate-200">
+                                                        {c.plan}
+                                                        {c.plan_trial ? ' (essai)' : ''}
+                                                    </span>
+                                                    {' · '}
+                                                    {[c.email, c.city].filter(Boolean).join(' · ') || '—'}
+                                                </p>
                                                 <p className="mt-0.5 text-[11px] text-slate-400 lg:hidden">
                                                     {plural(c.users_count, 'utilisateur')} · {plural(c.sites_count, 'site')}
                                                 </p>
@@ -210,9 +220,9 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                                     <FileText />
                                                     Dossier
                                                 </Link>
-                                                <Link href={companyModules(c.id).url} className={buttonClass('ghost', 'sm')}>
+                                                <Link href={companyPlan(c.id).url} className={buttonClass('ghost', 'sm')}>
                                                     <Blocks />
-                                                    Modules
+                                                    Forfait
                                                 </Link>
                                                 {c.status === 'active' && (
                                                     <ActionButton variant="icon-danger" size="sm" icon={<PauseCircle />} onClick={() => ask(c)}>

@@ -5,7 +5,7 @@ use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\CompanyManagerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\CompanyModuleController;
+use App\Http\Controllers\Admin\CompanyPlanController;
 use App\Http\Controllers\Admin\CompanyRequestController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Admin\ImpersonationController;
@@ -142,9 +142,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('support/{supportRequest}/statut', [SupportController::class, 'updateStatus'])->name('support.status');
             Route::post('entreprises/{company}/suspendre', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
             Route::post('entreprises/{company}/reactiver', [AdminCompanyController::class, 'reactivate'])->name('companies.reactivate');
-            Route::get('entreprises/{company}/modules', [CompanyModuleController::class, 'index'])->name('companies.modules');
-            Route::put('entreprises/{company}/modules/{module}', [CompanyModuleController::class, 'update'])->name('companies.modules.update');
-            Route::delete('entreprises/{company}/modules/{module}', [CompanyModuleController::class, 'destroy'])->name('companies.modules.destroy');
+            Route::get('entreprises/{company}/forfait', [CompanyPlanController::class, 'edit'])->name('companies.plan');
+            Route::put('entreprises/{company}/forfait', [CompanyPlanController::class, 'update'])->name('companies.plan.update');
 
             // Demandes d'inscription entreprises
             Route::prefix('onboarding')->name('onboarding.')->group(function () {

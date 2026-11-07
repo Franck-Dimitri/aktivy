@@ -21,6 +21,12 @@ class DailyReportPhoto extends Model
     /** Nombre maximal de photos par rapport. */
     public const MAX_PER_REPORT = 6;
 
+    /** Nombre de photos permis par rapport, selon le forfait de l'entreprise. */
+    public static function maxFor(?Company $company): int
+    {
+        return min(self::MAX_PER_REPORT, (int) ($company?->planLimits()['photos_per_report'] ?? self::MAX_PER_REPORT));
+    }
+
     public function report(): BelongsTo
     {
         return $this->belongsTo(DailyReport::class, 'daily_report_id');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Company;
 
+use App\Support\Plans\PlanUsage;
 use App\Http\Controllers\Controller;
 
 use App\Enums\AffectationStatus;
@@ -85,6 +86,10 @@ class SiteController extends Controller
         $company = $request->user()->company;
 
         // Validate unique code within the company
+        if ($message = PlanUsage::exceeded($company, 'sites')) {
+            return back()->withErrors(['name' => $message])->withInput();
+        }
+
         if (! empty($validated['code'])) {
             $exists = $company->sites()->where('code', $validated['code'])->exists();
             if ($exists) {

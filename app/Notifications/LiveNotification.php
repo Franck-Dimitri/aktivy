@@ -145,6 +145,14 @@ class LiveNotification extends TextNotification
             'company.subscription');
     }
 
+    public static function planChanged(string $plan, ?string $endsOn, bool $trial, int $packs = 0): self
+    {
+        return new self('plan_changed', 'module',
+            ($trial ? 'Essai' : 'Forfait')." · {$plan}",
+            ($trial ? 'Essai gratuit' : 'Actif').($endsOn ? " jusqu’au {$endsOn}" : ', sans date de fin').($packs ? ", avec {$packs} pack".($packs > 1 ? 's' : '').' +5 hôtesses / +5 points de vente' : '').'. Les fonctions de votre forfait sont disponibles dès maintenant.',
+            'company.subscription');
+    }
+
     public static function paymentReceived(string $invoice, int $amount, string $currency, ?string $endsOn): self
     {
         return new self('payment_received', 'module',

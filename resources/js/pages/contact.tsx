@@ -20,7 +20,7 @@ const CONTACT = {
 const SUBJECTS = [
     { label: 'Demande de démo' },
     { label: 'Devenir entreprise pilote' },
-    { label: 'Tarifs et modules' },
+    { label: 'Tarifs et forfaits' },
     { label: 'Support technique' },
     { label: 'Autre' },
 ];

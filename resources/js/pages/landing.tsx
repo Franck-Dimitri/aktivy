@@ -83,32 +83,41 @@ const LOCAL = [
     { icon: 'install', title: 'Installable', text: 'Application web installable sur Android, iOS et ordinateur, sans passer par une boutique.' },
 ];
 
-/* Prix : mettez vos tarifs ici (ex. '5 000 FCFA') */
+/* Forfaits Motriks : mêmes prix et mêmes limites que l'application (App\Enums\Plan) */
 const PLANS = [
     {
-        name: 'Gratuit',
-        price: '0',
-        unit: 'FCFA',
-        description: 'Pour démarrer et découvrir la plateforme.',
-        features: ['Socle entreprise', 'Statistiques de base', "Jusqu'à 5 utilisateurs", 'Rapports des dernières 24 h'],
+        name: 'Motriks Starter',
+        price: 'Gratuit',
+        unit: '',
+        description: 'Pour découvrir Motriks avec une petite équipe.',
+        features: ['3 hôtesses et 3 points de vente', 'Suivi terrain, même sans réseau', 'Rapports journaliers et chiffres du jour', 'Historique de 30 jours'],
         cta: 'Commencer gratuitement',
         highlight: false,
     },
     {
-        name: 'Modules payants',
-        price: 'Bientôt',
-        unit: 'par module / mois',
-        description: 'Activez uniquement ce dont vous avez besoin.',
-        features: ['Suivi terrain, présences, stocks', 'Reporting, primes, photos', 'Exports PDF et Excel', 'Historique de 12 mois', 'Essai gratuit de 7 jours'],
-        cta: 'Essayer 7 jours',
+        name: 'Motriks Pro',
+        price: '14 500',
+        unit: 'FCFA / mois',
+        description: 'Pour la PME qui pilote son réseau de vente.',
+        features: ['20 hôtesses et 20 points de vente', 'Stocks, rappels et notifications push', 'Ventes et objectifs par hôtesse', 'PDF à vos couleurs et exports Excel', '1 événement et 3 packs par mois'],
+        cta: 'Essayer 14 jours',
+        highlight: false,
+    },
+    {
+        name: 'Motriks Business',
+        price: '36 000',
+        unit: 'FCFA / mois',
+        description: 'Pour les agences et les marques en campagne.',
+        features: ['50 hôtesses et 50 points de vente', '3 événements et 10 packs par mois', '6 photos par rapport', 'Historique illimité', 'Mise en service offerte'],
+        cta: 'Essayer 14 jours',
         highlight: true,
     },
     {
-        name: 'Premium',
-        price: 'Bientôt',
-        unit: 'par an',
-        description: 'Pour aller plus loin avec l\'IA et la marque blanche.',
-        features: ['Module Intelligence Artificielle', 'Portail client et marque blanche', 'Multi-sites avancé et API', 'Historique de 24 mois', 'Support prioritaire'],
+        name: 'Motriks Entreprise',
+        price: '62 500',
+        unit: 'FCFA / mois',
+        description: 'Pour les grands réseaux et les groupes.',
+        features: ['120 hôtesses et 120 points de vente', 'Événements et packs illimités', 'PDF et exports illimités', 'Interlocuteur dédié'],
         cta: 'Nous contacter',
         highlight: false,
     },
@@ -117,8 +126,8 @@ const PLANS = [
 const FAQS = [
     { q: 'Mes données sont-elles protégées ?', a: 'Oui. Chaque entreprise dispose d\'un espace totalement isolé, les flux sont chiffrés (HTTPS), les sauvegardes sont quotidiennes et un journal d\'audit trace les actions sensibles.' },
     { q: 'Mes hôtesses ont-elles besoin d\'un smartphone récent ?', a: 'Non. L\'interface est légère et fonctionne sur un téléphone d\'entrée de gamme, même avec un réseau instable grâce au mode hors-ligne.' },
-    { q: 'Puis-je essayer avant de payer ?', a: 'Oui. L\'offre gratuite est sans engagement et les modules payants offrent 7 jours d\'essai sans carte bancaire.' },
-    { q: 'Que se passe-t-il si mon abonnement expire ?', a: 'Votre entreprise repasse automatiquement sur l\'offre gratuite et vos données sont conservées 90 jours pour vous laisser le temps de renouveler.' },
+    { q: 'Puis-je essayer avant de payer ?', a: 'Oui. Motriks Starter est gratuit et sans engagement, et toute nouvelle entreprise essaie Motriks Business pendant 14 jours, sans carte bancaire.' },
+    { q: 'Que se passe-t-il si mon abonnement expire ?', a: 'Votre entreprise passe automatiquement en Motriks Starter, le forfait gratuit. Vos données sont conservées : vous retrouvez tout dès que vous reprenez un forfait.' },
     { q: 'Puis-je récupérer mes données ?', a: 'Oui, à tout moment. Vous pouvez exporter l\'ensemble de vos données depuis la plateforme.' },
     { q: 'Puis-je importer mes fichiers Excel ?', a: 'Oui. L\'import reprend votre personnel, vos sites et vos produits pour démarrer en quelques minutes.' },
 ];
@@ -1279,7 +1288,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         <SectionTitle
                             eyebrow="Fonctionnalités"
                             title="Tout ce qu'il faut pour gérer le terrain"
-                            text="Des modules autonomes : vous activez uniquement ceux qui répondent à votre besoin."
+                            text="Chaque forfait ajoute des fonctions : du suivi terrain gratuit jusqu'aux campagnes et au reporting complet."
                         />
                         <FeatureGrid />
                     </div>
@@ -1398,11 +1407,11 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <SectionTitle
                             eyebrow="Tarifs"
-                            title="Payez uniquement ce que vous utilisez"
-                            text="Commencez gratuitement, activez des modules quand vous en avez besoin."
+                            title="Un forfait à la taille de votre réseau"
+                            text="Commencez gratuitement avec Motriks Starter, passez au forfait supérieur quand votre équipe grandit."
                         />
 
-                        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+                        <div className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
                             {PLANS.map((p) => (
                                 <div
                                     key={p.name}
@@ -1422,9 +1431,11 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     <p className="mt-2 text-sm text-slate-600">{p.description}</p>
                                     <p className="mt-6">
                                         <span className="text-4xl font-extrabold text-slate-900">{p.price}</span>
-                                        <span className="ml-2 text-sm text-slate-500">
-                                            {p.unit}
-                                        </span>
+                                        {p.unit && (
+                                            <span className="ml-2 text-sm text-slate-500">
+                                                {p.unit}
+                                            </span>
+                                        )}
                                     </p>
                                     <ul className="mt-6 flex-1 space-y-3">
                                         {p.features.map((f) => (
@@ -1449,7 +1460,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         </div>
 
                         <p className="mt-8 text-center text-sm text-slate-500">
-                            Les options Premium sont proposées uniquement en abonnement annuel.
+                            Pack d’extension : +5 hôtesses et +5 points de vente pour 6 500 FCFA par mois. Paiement à l’année : 10 mois payés pour 12.
                         </p>
                     </div>
                 </section>

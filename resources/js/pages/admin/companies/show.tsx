@@ -26,7 +26,9 @@ import {
 import {
     RecordPaymentModal,
     type Option,
+    type PlanOption,
 } from '@/components/admin/record-payment-modal';
+import { PlanUsageList, type PlanState } from '@/components/plans/plan-usage';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { Field, SelectInput, TextInput } from '@/components/page/form-fields';
@@ -39,7 +41,7 @@ import { toastFormError } from '@/lib/form-toast';
 import { dashboard } from '@/routes/admin';
 import {
     index as companiesIndex,
-    modules as companyModules,
+    plan as companyPlan,
     reactivate,
     suspend,
     update as companyUpdate,
@@ -52,6 +54,7 @@ import {
 } from '@/routes/admin/companies/managers';
 import { show as onboardingShow } from '@/routes/admin/onboarding';
 import { remind as subscriptionRemind } from '@/routes/admin/subscriptions';
+import { number } from '@/pages/reports/format';
 
 type Company = {
     id: number;
@@ -90,7 +93,7 @@ type Props = {
         revenue: number;
         last_report: string | null;
     };
-    modules: { label: string; ends_on: string | null; is_trial: boolean }[];
+    plan: PlanState;
     history: {
         id: number;
         action: string;
@@ -100,10 +103,10 @@ type Props = {
     sectors: string[];
     payments: PaymentRow[];
     billing: {
-        modules: Option[];
+        plans: PlanOption[];
         methods: Option[];
-        active_keys: string[];
-        has_deadline: boolean;
+        pack_price: number;
+        can_remind: boolean;
     };
 };
 
@@ -114,7 +117,6 @@ const STATUS: Record<Company['status'], { label: string; tone: StatusTone }> = {
     suspended: { label: 'Suspendue', tone: 'neutral' },
 };
 
-const number = new Intl.NumberFormat('fr-FR');
 
 function EditCompanyModal({
     company,
@@ -412,7 +414,7 @@ export default function AdminCompanyShow({
     team,
     sites,
     usage,
-    modules,
+    plan,
     history,
     sectors,
     payments,
@@ -466,11 +468,11 @@ export default function AdminCompanyShow({
                             Modifier
                         </ActionButton>
                         <Link
-                            href={companyModules(company.id).url}
+                            href={companyPlan(company.id).url}
                             className={buttonClass('secondary', 'md')}
                         >
                             <Blocks />
-                            Modules
+                            Forfait
                         </Link>
                         {company.has_file && (
                             <Link
@@ -582,7 +584,7 @@ export default function AdminCompanyShow({
                                 payments={payments}
                                 actions={
                                     <div className="flex flex-wrap gap-2">
-                                        {billing.has_deadline && (
+                                        {billing.can_remind && (
                                             <ActionButton
                                                 size="sm"
                                                 variant="ghost"
@@ -680,42 +682,24 @@ export default function AdminCompanyShow({
                             </Panel>
 
                             <Panel
-                                title="Modules actifs"
+                                title={plan.label}
+                                description={
+                                    plan.expired
+                                        ? `${plan.subscribed_label} terminé le ${plan.ends_on} : passée en Starter.`
+                                        : plan.key === 'starter'
+                                          ? 'Forfait gratuit, sans date de fin.'
+                                          : `${plan.trial ? 'Essai' : 'Forfait'} ${plan.ends_on ? `jusqu’au ${plan.ends_on}` : 'sans date de fin'}${plan.extra_packs ? ` · ${plan.extra_packs} pack${plan.extra_packs > 1 ? 's' : ''} +5/+5` : ''}.`
+                                }
                                 actions={
                                     <Link
-                                        href={companyModules(company.id).url}
+                                        href={companyPlan(company.id).url}
                                         className={buttonClass('ghost', 'sm')}
                                     >
-                                        Gérer
+                                        Changer
                                     </Link>
                                 }
                             >
-                                {modules.length === 0 ? (
-                                    <p className="px-5 py-6 text-sm text-slate-400">
-                                        Aucun module actif.
-                                    </p>
-                                ) : (
-                                    <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
-                                        {modules.map((m) => (
-                                            <li
-                                                key={m.label}
-                                                className="flex items-center justify-between gap-3 px-5 py-2.5 text-sm"
-                                            >
-                                                <span className="text-ink">
-                                                    {m.label}
-                                                </span>
-                                                <span className="text-xs text-slate-500">
-                                                    {m.is_trial
-                                                        ? 'Essai · '
-                                                        : ''}
-                                                    {m.ends_on
-                                                        ? `jusqu’au ${m.ends_on}`
-                                                        : 'sans fin'}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
+                                <PlanUsageList plan={plan} />
                             </Panel>
 
                             <Panel title={`Points de vente (${sites.length})`}>
@@ -749,9 +733,11 @@ export default function AdminCompanyShow({
             {paying && (
                 <RecordPaymentModal
                     company={{ id: company.id, name: company.name }}
-                    modules={billing.modules}
+                    plans={billing.plans}
                     methods={billing.methods}
-                    activeKeys={billing.active_keys}
+                    packPrice={billing.pack_price}
+                    currentPlan={plan.subscribed_key}
+                    currentPacks={plan.extra_packs}
                     onClose={() => setPaying(false)}
                 />
             )}

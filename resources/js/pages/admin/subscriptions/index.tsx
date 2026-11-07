@@ -17,6 +17,7 @@ import {
 import {
     RecordPaymentModal,
     type Option,
+    type PlanOption,
 } from '@/components/admin/record-payment-modal';
 import { ActionButton } from '@/components/page/buttons';
 import { TextInput } from '@/components/page/form-fields';
@@ -35,13 +36,17 @@ type Row = {
     id: number;
     name: string;
     status: string;
-    state: 'trial' | 'paying' | 'expired' | 'none';
-    active_modules: number;
-    total_modules: number;
-    next_end: string | null;
+    state: 'trial' | 'paying' | 'expired' | 'starter';
+    plan_key: string;
+    plan: string;
+    subscribed_plan: string;
+    subscribed_key: string;
+    ends_on: string | null;
     days_left: number | null;
     soon: boolean;
-    active_keys: string[];
+    extra_packs: number;
+    monthly_price: number;
+    can_remind: boolean;
     last_paid: string | null;
 };
 
@@ -54,11 +59,13 @@ type Props = {
         paying: number;
         soon: number;
         expired: number;
-        none: number;
+        starter: number;
+        mrr: number;
     };
     payments: PaymentRow[];
-    modules: Option[];
+    plans: PlanOption[];
     methods: Option[];
+    pack_price: number;
     soon_days: number;
 };
 
@@ -66,7 +73,7 @@ const STATE: Record<Row['state'], { label: string; tone: StatusTone }> = {
     trial: { label: 'En essai', tone: 'info' },
     paying: { label: 'Payant', tone: 'success' },
     expired: { label: 'Expiré', tone: 'danger' },
-    none: { label: 'Aucun module', tone: 'neutral' },
+    starter: { label: 'Gratuit', tone: 'neutral' },
 };
 
 type Filter = 'all' | 'soon' | Row['state'];
@@ -75,8 +82,9 @@ export default function AdminSubscriptions({
     rows,
     stats,
     payments,
-    modules,
+    plans,
     methods,
+    pack_price,
     soon_days,
 }: Props) {
     const [filter, setFilter] = useState<Filter>('all');
@@ -110,7 +118,7 @@ export default function AdminSubscriptions({
 
             <Page
                 title="Abonnements"
-                description="Échéances des entreprises, paiements reçus et factures. Le paiement en ligne viendra plus tard : enregistrez ici ce que vous recevez."
+                description="Forfait de chaque entreprise, échéances, paiements reçus et factures. Le paiement en ligne viendra plus tard : enregistrez ici ce que vous recevez."
                 className="max-w-6xl"
             >
                 <div className="flex flex-col gap-6">
@@ -124,9 +132,9 @@ export default function AdminSubscriptions({
                                 tone: 'green',
                             },
                             {
-                                label: 'Entreprises payantes',
-                                value: stats.paying,
-                                hint: `${stats.trial} en essai`,
+                                label: 'Revenu mensuel attendu',
+                                value: fcfa(stats.mrr),
+                                hint: `${stats.paying} forfait${stats.paying > 1 ? 's' : ''} payant${stats.paying > 1 ? 's' : ''} · ${stats.trial} en essai`,
                                 icon: Banknote,
                             },
                             {
@@ -138,9 +146,9 @@ export default function AdminSubscriptions({
                                 pulse: true,
                             },
                             {
-                                label: 'Expirées ou sans module',
-                                value: stats.expired + stats.none,
-                                hint: `${stats.expired} expirée${stats.expired > 1 ? 's' : ''}`,
+                                label: 'En Starter',
+                                value: stats.starter + stats.expired,
+                                hint: `dont ${stats.expired} forfait${stats.expired > 1 ? 's' : ''} expiré${stats.expired > 1 ? 's' : ''}`,
                                 icon: CircleSlash,
                                 tone: stats.expired ? 'red' : 'default',
                             },
@@ -176,8 +184,13 @@ export default function AdminSubscriptions({
                                     },
                                     {
                                         value: 'expired',
-                                        label: 'Expirées',
+                                        label: 'Expirés',
                                         count: stats.expired,
+                                    },
+                                    {
+                                        value: 'starter',
+                                        label: 'Starter',
+                                        count: stats.starter,
                                     },
                                 ]}
                             />
@@ -215,6 +228,9 @@ export default function AdminSubscriptions({
                                                 >
                                                     {r.name}
                                                 </Link>
+                                                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-white/10 dark:text-slate-200">
+                                                    {r.plan}
+                                                </span>
                                                 <StatusBadge
                                                     tone={STATE[r.state].tone}
                                                 >
@@ -230,19 +246,29 @@ export default function AdminSubscriptions({
                                                 )}
                                             </div>
                                             <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-slate-500">
-                                                <span>
-                                                    {r.active_modules}/
-                                                    {r.total_modules} modules
-                                                    actifs
-                                                </span>
-                                                <span className="inline-flex items-center gap-1">
-                                                    <CalendarClock className="size-3" />
-                                                    {r.next_end
-                                                        ? `Prochaine échéance le ${r.next_end}`
-                                                        : r.active_modules
-                                                          ? 'Sans date de fin'
-                                                          : '—'}
-                                                </span>
+                                                {r.state === 'expired' ? (
+                                                    <span>
+                                                        {r.subscribed_plan}{' '}
+                                                        terminé le {r.ends_on}
+                                                    </span>
+                                                ) : (
+                                                    r.state !== 'starter' && (
+                                                        <span className="inline-flex items-center gap-1">
+                                                            <CalendarClock className="size-3" />
+                                                            {r.ends_on
+                                                                ? `Jusqu’au ${r.ends_on}`
+                                                                : 'Sans date de fin'}
+                                                        </span>
+                                                    )
+                                                )}
+                                                {r.extra_packs > 0 && (
+                                                    <span>
+                                                        +{r.extra_packs} pack
+                                                        {r.extra_packs > 1
+                                                            ? 's'
+                                                            : ''}
+                                                    </span>
+                                                )}
                                                 <span>
                                                     {r.last_paid
                                                         ? `Dernier paiement le ${r.last_paid}`
@@ -251,8 +277,7 @@ export default function AdminSubscriptions({
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {(r.next_end ||
-                                                r.state === 'expired') && (
+                                            {r.can_remind && (
                                                 <ActionButton
                                                     size="sm"
                                                     variant="ghost"
@@ -286,9 +311,11 @@ export default function AdminSubscriptions({
             {paying && (
                 <RecordPaymentModal
                     company={{ id: paying.id, name: paying.name }}
-                    modules={modules}
+                    plans={plans}
                     methods={methods}
-                    activeKeys={paying.active_keys}
+                    packPrice={pack_price}
+                    currentPlan={paying.subscribed_key}
+                    currentPacks={paying.extra_packs}
                     onClose={() => setPaying(null)}
                 />
             )}

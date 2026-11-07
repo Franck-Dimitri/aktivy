@@ -21,7 +21,7 @@ import { logout } from '@/routes';
 import { store as onboardingStore } from '@/routes/onboarding';
 import { ActionButton } from '@/components/page/buttons';
 import { Field, FormActions, SelectInput, TextInput } from '@/components/page/form-fields';
-import { GlowCard, GlowStyles } from '@/components/page/surface';
+import { SurfaceCard } from '@/components/page/surface';
 import { cn } from '@/lib/utils';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -196,7 +196,7 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
             {/* Step 1 — Company info */}
             <div ref={step1Ref} hidden={step !== 0}>
                 <form onSubmit={goNext}>
-                    <GlowCard contentClassName="divide-y divide-slate-50">
+                    <SurfaceCard contentClassName="divide-y divide-slate-50">
                         <div className="px-6 py-5">
                             <p className="mb-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">Votre entreprise</p>
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -250,14 +250,14 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
                                 </ActionButton>
                             </FormActions>
                         </div>
-                    </GlowCard>
+                    </SurfaceCard>
                 </form>
             </div>
 
             {/* Step 2 — Documents */}
             <div hidden={step !== 1}>
                 <form onSubmit={submit}>
-                    <GlowCard contentClassName="divide-y divide-slate-50">
+                    <SurfaceCard contentClassName="divide-y divide-slate-50">
                         <div className="px-6 py-5">
                             <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">Documents requis</p>
                             <p className="mb-5 text-xs text-slate-500 leading-relaxed">
@@ -330,7 +330,7 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
                                 </ActionButton>
                             </FormActions>
                         </div>
-                    </GlowCard>
+                    </SurfaceCard>
                 </form>
             </div>
         </div>
@@ -342,7 +342,7 @@ function OnboardingForm({ company, sectors }: Pick<Props, 'company' | 'sectors'>
 function PendingView({ company, submittedAt }: { company: Company; submittedAt: string | null }) {
     return (
         <div className="flex flex-col gap-5">
-            <GlowCard contentClassName="p-6">
+            <SurfaceCard contentClassName="p-6">
                 <div className="flex items-start gap-4">
                     <div className="relative shrink-0">
                         <div className="flex size-12 items-center justify-center rounded-xl bg-motriks-soft ring-1 ring-motriks/20">
@@ -376,10 +376,10 @@ function PendingView({ company, submittedAt }: { company: Company; submittedAt: 
                         </div>
                     ))}
                 </div>
-            </GlowCard>
+            </SurfaceCard>
 
             {/* Submitted info recap */}
-            <GlowCard contentClassName="divide-y divide-slate-50">
+            <SurfaceCard contentClassName="divide-y divide-slate-50">
                 <div className="px-6 py-4">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Informations soumises</p>
                 </div>
@@ -398,7 +398,7 @@ function PendingView({ company, submittedAt }: { company: Company; submittedAt: 
                         </div>
                     ))}
                 </dl>
-            </GlowCard>
+            </SurfaceCard>
 
             <div className="flex justify-end">
                 <Link
@@ -425,7 +425,7 @@ function RejectedView({ company, sectors }: Pick<Props, 'company' | 'sectors'>) 
 
     return (
         <div className="flex flex-col gap-5">
-            <GlowCard contentClassName="p-6">
+            <SurfaceCard contentClassName="p-6">
                 <div className="flex items-start gap-4">
                     <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-red-50 ring-1 ring-red-200">
                         <AlertCircle className="size-6 text-red-500" />
@@ -445,7 +445,7 @@ function RejectedView({ company, sectors }: Pick<Props, 'company' | 'sectors'>) 
                         <p className="text-sm leading-relaxed text-red-700">{company.rejection_reason}</p>
                     </div>
                 )}
-            </GlowCard>
+            </SurfaceCard>
 
             <div className="flex flex-wrap items-center gap-3">
                 <ActionButton icon={<RefreshCw />} onClick={() => setResubmit(true)}>
@@ -485,7 +485,6 @@ export default function OnboardingPage({ company, user, sectors }: Props) {
     return (
         <>
             <Head title={pageTitle} />
-            <GlowStyles />
 
             <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* ── Page header ── */}

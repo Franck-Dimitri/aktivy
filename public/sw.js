@@ -63,7 +63,7 @@ self.addEventListener('push', (event) => {
         self.registration.showNotification(title, {
             body: payload.body || '',
             icon: payload.icon || '/icon-192.png',
-            badge: payload.badge || '/icon-192.png',
+            badge: payload.badge || '/badge-96.png',
             lang: payload.lang || 'fr',
             tag: payload.tag,
             renotify: Boolean(payload.tag),

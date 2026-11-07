@@ -24,7 +24,7 @@ import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { TextArea, TextInput } from '@/components/page/form-fields';
 import { Page } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
-import { GlowCard, GlowStyles } from '@/components/page/surface';
+import { SurfaceCard } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
@@ -359,7 +359,7 @@ function SummaryPanel({
     const pct = totalLines > 0 ? Math.round((filledCount / totalLines) * 100) : 0;
 
     return (
-        <GlowCard contentClassName="flex flex-col gap-5 p-5 sm:p-6">
+        <SurfaceCard contentClassName="flex flex-col gap-5 p-5 sm:p-6">
             <div>
                 <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Total de la journée</p>
                 <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 text-4xl font-extrabold tracking-tight text-ink tabular-nums">
@@ -428,7 +428,7 @@ function SummaryPanel({
                     {busy === 'draft' ? 'Sauvegarde…' : 'Enregistrer le brouillon'}
                 </ActionButton>
             </div>
-        </GlowCard>
+        </SurfaceCard>
     );
 }
 
@@ -705,7 +705,6 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     return (
         <>
             <Head title="Rapport journalier" />
-            <GlowStyles />
 
             <Page
                 title={report.site_name}
@@ -775,7 +774,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                         <>
                             <div className={twoCol}>
                                 <div className="flex min-w-0 flex-col gap-6">
-                                <GlowCard contentClassName="p-0">
+                                <SurfaceCard contentClassName="p-0">
                                     <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
                                         <div>
                                             <h3 className="text-base font-semibold text-ink">Ventes par produit</h3>
@@ -812,10 +811,10 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                             ))}
                                         </ul>
                                     )}
-                                </GlowCard>
+                                </SurfaceCard>
 
                                 {report.packs.length > 0 && (
-                                    <GlowCard contentClassName="p-5">
+                                    <SurfaceCard contentClassName="p-5">
                                         <h3 className="text-base font-semibold text-ink">Packs de l'événement</h3>
                                         <p className="mt-0.5 mb-4 text-sm text-slate-500">
                                             Comptez ici les packs vendus : leurs produits sont retirés du stock automatiquement.
@@ -858,11 +857,11 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                 );
                                             })}
                                         </div>
-                                    </GlowCard>
+                                    </SurfaceCard>
                                 )}
 
                                 {hasPhotos && (
-                                <GlowCard contentClassName="p-5">
+                                <SurfaceCard contentClassName="p-5">
                                     <h3 className="text-base font-semibold text-ink">Photos</h3>
                                     <p className="mt-0.5 mb-4 text-sm text-slate-500">
                                         Stand, rayon, rupture de stock… elles accompagnent votre rapport.
@@ -873,7 +872,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         uploadUrl={photoStore({ visit: visit.id }).url}
                                         deleteUrl={(photo) => photoDestroy({ visit: visit.id, photo }).url}
                                     />
-                                </GlowCard>
+                                </SurfaceCard>
                                 )}
                                 </div>
 
@@ -923,7 +922,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                         <div className={twoCol}>
                             <div className="flex min-w-0 flex-col gap-6">
                             {/* Ticket */}
-                            <GlowCard contentClassName="p-0">
+                            <SurfaceCard contentClassName="p-0">
                                 <div className="border-b border-dashed border-slate-200 px-5 py-4 sm:px-6">
                                     <h3 className="text-base font-semibold text-ink">Récapitulatif</h3>
                                     <p className="mt-0.5 text-sm text-slate-500">
@@ -987,10 +986,10 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         <span className="ml-1 text-sm font-medium text-slate-400">FCFA</span>
                                     </p>
                                 </div>
-                            </GlowCard>
+                            </SurfaceCard>
 
                             {lines.length > 0 && (
-                                <GlowCard contentClassName="p-0">
+                                <SurfaceCard contentClassName="p-0">
                                     <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
                                         <h3 className="text-base font-semibold text-ink">Contrôle du stock</h3>
                                         <p className="mt-0.5 text-sm text-slate-500">
@@ -1029,7 +1028,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                             </li>
                                         ))}
                                     </ul>
-                                </GlowCard>
+                                </SurfaceCard>
                             )}
                             </div>
 
@@ -1039,7 +1038,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     <strong>Le rapport ne pourra plus être modifié.</strong>
                                 </Notice>
 
-                                <GlowCard contentClassName="p-5">
+                                <SurfaceCard contentClassName="p-5">
                                     <label htmlFor="incident" className="text-base font-semibold text-ink">
                                         Signaler un incident
                                     </label>
@@ -1053,7 +1052,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         onChange={(e) => setIncidentNotes(e.target.value)}
                                         placeholder="Décrivez l'incident…"
                                     />
-                                </GlowCard>
+                                </SurfaceCard>
 
                                 <div className="flex flex-col gap-2.5">
                                     {missingReason && (
@@ -1085,7 +1084,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {/* ══════ SOUMIS : lecture seule ══════ */}
                     {isSubmitted && step !== 'incident' && (
                         <div className={twoCol}>
-                            <GlowCard contentClassName="p-0">
+                            <SurfaceCard contentClassName="p-0">
                                 <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
                                     <h3 className="text-base font-semibold text-ink">Détail par produit</h3>
                                 </div>
@@ -1122,7 +1121,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         </li>
                                     ))}
                                 </ul>
-                            </GlowCard>
+                            </SurfaceCard>
 
                             <div className="flex flex-col gap-6 lg:sticky lg:top-6">
                                 <div className="flex items-center gap-4 rounded-2xl bg-motriks-soft p-5 ring-1 ring-green-100">
@@ -1147,28 +1146,28 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </div>
 
                                 {(report.photos.length > 0 || (!report.validated && hasPhotos)) && (
-                                    <GlowCard contentClassName="p-5">
+                                    <SurfaceCard contentClassName="p-5">
                                         <h3 className="mb-3 text-sm font-semibold text-slate-500">Photos</h3>
                                         <ReportPhotos
                                             photos={report.photos}
                                             max={report.max_photos}
                                             uploadUrl={report.validated || !hasPhotos ? undefined : photoStore({ visit: visit.id }).url}
                                         />
-                                    </GlowCard>
+                                    </SurfaceCard>
                                 )}
 
                                 {report.notes && (
-                                    <GlowCard contentClassName="p-5">
+                                    <SurfaceCard contentClassName="p-5">
                                         <h3 className="mb-1.5 text-sm font-semibold text-slate-500">Notes du jour</h3>
                                         <p className="text-sm leading-relaxed text-ink">{report.notes}</p>
-                                    </GlowCard>
+                                    </SurfaceCard>
                                 )}
 
                                 {report.incident_notes && (
-                                    <GlowCard contentClassName="p-5">
+                                    <SurfaceCard contentClassName="p-5">
                                         <h3 className="mb-1.5 text-sm font-semibold text-amber-600">Incident signalé</h3>
                                         <p className="text-sm leading-relaxed text-amber-800">{report.incident_notes}</p>
-                                    </GlowCard>
+                                    </SurfaceCard>
                                 )}
 
                                 <div className="flex flex-col gap-2.5">
@@ -1198,7 +1197,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {/* ══════ SIGNALEMENT POST-SOUMISSION ══════ */}
                     {isSubmitted && step === 'incident' && (
                         <div className={twoCol}>
-                            <GlowCard contentClassName="p-5 sm:p-6">
+                            <SurfaceCard contentClassName="p-5 sm:p-6">
                                 <label htmlFor="flag" className="text-base font-semibold text-ink">
                                     Signalement / Correction
                                 </label>
@@ -1212,7 +1211,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     onChange={(e) => setIncidentNotes(e.target.value)}
                                     placeholder="Erreur de saisie, rupture non signalée, problème client…"
                                 />
-                            </GlowCard>
+                            </SurfaceCard>
                             <div className="flex flex-col gap-2.5 lg:sticky lg:top-6">
                                 <ActionButton
                                     onClick={submitFlag}

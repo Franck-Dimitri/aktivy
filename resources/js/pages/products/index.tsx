@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Archive, FileText, ImagePlus, Package, Pencil, Plus, RefreshCw, Search, Store, Tag, Trash2, Undo2, X } from 'lucide-react';
+import { Archive, FileText, ImagePlus, MoreHorizontal, Package, Pencil, Plus, RefreshCw, Search, Store, Tag, Trash2, Undo2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
@@ -9,7 +9,8 @@ import { Field, SelectInput, TextArea, TextInput, ToggleField } from '@/componen
 import { Modal } from '@/components/page/modal';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
-import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
+import { MetricStrip } from '@/components/page/surface';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
@@ -33,115 +34,85 @@ type Filter = 'all' | 'active' | 'inactive';
 /* Même liste que ProductController::UNITS (utilisée si `units` n'est pas fourni à la liste). */
 const FALLBACK_UNITS = ['pièce', 'carton', 'kg', 'g', 'litre', 'ml', 'sachet', 'boîte', 'palette'];
 
-const iconBtn =
-    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
-
 /* ───────────────────────── Carte produit ───────────────────────── */
 
 function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; onEdit: () => void; onDelete: () => void }) {
+    const [imageFailed, setImageFailed] = useState(false);
+    const deployed = product.sites_count > 0;
+
     return (
-        <GlowCard className="h-full" contentClassName="flex h-full flex-col">
-            {/* Zone cliquable : ouvre la fenêtre de modification */}
-            <button
-                type="button"
-                onClick={onEdit}
-                className="flex flex-1 cursor-pointer flex-col text-left focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
-            >
-                {/* Image : jamais rognée. Les marges blanches des photos se fondent dans le fond (mix-blend-multiply). */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50">
-                    {product.image_url ? (
+        <article className="group relative flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5">
+            {/* Toute la carte ouvre la fenêtre de modification */}
+            <button type="button" onClick={onEdit} aria-label={`Modifier ${product.name}`} className="flex flex-1 cursor-pointer items-center gap-3.5 rounded-t-2xl p-4 pr-12 text-left focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset">
+                {/* Vignette : jamais rognée, les marges blanches des photos se fondent dans le fond */}
+                <span className={cn('flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-200/70', !product.is_active && 'opacity-60')}>
+                    {product.image_url && !imageFailed ? (
                         <img
                             src={product.image_url}
-                            alt={product.name}
+                            alt=""
                             loading="lazy"
-                            className={cn(
-                                'h-full w-full object-contain p-4 mix-blend-multiply transition-transform duration-500 group-hover:scale-[1.04]',
-                                !product.is_active && 'grayscale',
-                            )}
+                            onError={() => setImageFailed(true)}
+                            className={cn('size-full object-contain p-1.5 mix-blend-multiply transition-transform duration-300 group-hover:scale-105', !product.is_active && 'grayscale')}
                         />
                     ) : (
-                        <div className="flex h-full items-center justify-center">
-                            <div className="flex size-14 items-center justify-center rounded-2xl bg-white text-slate-300 shadow-sm ring-1 ring-slate-200/70 transition-colors group-hover:text-motriks">
-                                <Package className="size-7" strokeWidth={1.5} />
-                            </div>
-                        </div>
+                        <Package className="size-6 text-slate-300" strokeWidth={1.5} aria-hidden />
                     )}
-
-                    {!product.is_active && (
-                        <div className="absolute top-3 left-3">
-                            <StatusBadge tone="neutral">Inactif</StatusBadge>
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex w-full flex-1 flex-col gap-3 border-t border-slate-100 p-5">
-                    <div className="min-w-0">
-                        <h3 className="truncate text-[15px] font-semibold text-ink transition-colors group-hover:text-motriks-deep">
-                            {product.name}
-                        </h3>
-                        {product.sku && <p className="mt-0.5 truncate font-mono text-xs text-slate-400">{product.sku}</p>}
-                    </div>
-
-                    {product.description && (
-                        <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">{product.description}</p>
-                    )}
-
-                    <div className="mt-auto flex items-end justify-between gap-3 pt-2">
-                        {product.price ? (
-                            <p className="text-lg font-semibold tracking-tight text-ink tabular-nums">
-                                {Number(product.price).toLocaleString('fr-FR')}{' '}
-                                <span className="text-xs font-medium text-slate-400">FCFA</span>
-                            </p>
-                        ) : (
-                            <p className="text-sm text-slate-400">Prix non défini</p>
-                        )}
-                        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">{product.unit}</span>
-                    </div>
-                </div>
-            </button>
-
-            {/* Pied de carte : déploiement + actions */}
-            <div className="flex items-center justify-between gap-2 border-t border-slate-100 py-2.5 pr-3 pl-5">
-                <span
-                    className={cn(
-                        'flex min-w-0 items-center gap-2 text-xs',
-                        product.sites_count > 0 ? 'font-medium text-motriks-deep' : 'text-slate-400',
-                    )}
-                >
-                    {product.sites_count > 0 ? (
-                        <span className="size-1.5 shrink-0 rounded-full bg-motriks" />
-                    ) : (
-                        <Store className="size-3.5 shrink-0" />
-                    )}
-                    <span className="truncate">
-                        {product.sites_count > 0
-                            ? `Sur ${product.sites_count} site${product.sites_count > 1 ? 's' : ''}`
-                            : 'Pas encore déployé'}
-                    </span>
                 </span>
 
-                <div className="flex shrink-0 items-center gap-0.5">
-                    <button
-                        type="button"
-                        onClick={onEdit}
-                        title="Modifier"
-                        aria-label={`Modifier ${product.name}`}
-                        className={cn(iconBtn, 'hover:bg-green-50 hover:text-motriks-deep')}
-                    >
-                        <Pencil className="size-[18px]" />
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onDelete}
-                        title="Archiver"
-                        aria-label={`Archiver ${product.name}`}
-                        className={cn(iconBtn, 'hover:bg-red-50 hover:text-red-600')}
-                    >
-                        <Trash2 className="size-[18px]" />
-                    </button>
-                </div>
+                <span className="min-w-0 flex-1">
+                    <span className="flex min-w-0 items-start gap-2">
+                        <span className="line-clamp-2 text-[15px] leading-snug font-semibold break-words text-ink transition-colors group-hover:text-motriks-deep">{product.name}</span>
+                        {!product.is_active && <StatusBadge tone="neutral">Inactif</StatusBadge>}
+                    </span>
+                    {product.description && <span className="mt-0.5 block truncate text-[13px] text-slate-500">{product.description}</span>}
+                    <span className="mt-1.5 flex items-baseline gap-1.5 tabular-nums">
+                        {product.price ? (
+                            <>
+                                <span className="text-[15px] font-semibold tracking-tight text-ink">{Number(product.price).toLocaleString('fr-FR')}</span>
+                                <span className="text-xs text-slate-400">FCFA / {product.unit}</span>
+                            </>
+                        ) : (
+                            <span className="text-[13px] text-slate-400">Prix non défini · {product.unit}</span>
+                        )}
+                    </span>
+                </span>
+            </button>
+
+            {/* Déploiement et référence */}
+            <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-2.5 text-xs">
+                <span className={cn('flex min-w-0 items-center gap-1.5', deployed ? 'font-medium text-motriks-deep' : 'text-slate-400')}>
+                    <Store className="size-3.5 shrink-0" />
+                    <span className="truncate">{deployed ? `Sur ${product.sites_count} site${product.sites_count > 1 ? 's' : ''}` : 'Pas encore déployé'}</span>
+                </span>
+                {product.sku && <span className="truncate font-mono text-[11px] text-slate-400">{product.sku}</span>}
             </div>
-        </GlowCard>
+
+            {/* Actions */}
+            <div className="absolute top-3 right-3">
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            aria-label={`Actions pour ${product.name}`}
+                            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none data-[state=open]:bg-slate-100 data-[state=open]:text-ink"
+                        >
+                            <MoreHorizontal className="size-[18px]" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44 rounded-xl p-1">
+                        <DropdownMenuItem onSelect={onEdit} className="cursor-pointer rounded-lg">
+                            <Pencil className="size-4" />
+                            Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onSelect={onDelete} className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600 [&_svg]:text-red-500">
+                            <Archive className="size-4" />
+                            Archiver
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </article>
     );
 }
 
@@ -650,7 +621,6 @@ export default function ProductsIndex({ products, stats, units }: Props) {
     return (
         <>
             <Head title="Produits" />
-            <GlowStyles />
 
             <Page
                 title="Produits"
@@ -744,7 +714,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                                 />
                             </Panel>
                         ) : (
-                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                                 {filtered.map((p) => (
                                     <ProductCard key={p.id} product={p} onEdit={() => openEdit(p)} onDelete={() => ask(p)} />
                                 ))}

@@ -21,8 +21,8 @@ export default function VerifyEmail({ status }: { status?: string }) {
                 </AuthStatus>
             )}
 
-            <div className="mb-8 flex items-start gap-4 rounded-2xl bg-slate-50 p-5">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-motriks text-ink">
+            <div className="mb-6 flex items-start gap-4 rounded-2xl bg-slate-50 p-5">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-motriks-soft text-motriks-deep">
                     <MailCheck className="size-5" />
                 </span>
                 <div className="min-w-0 text-sm leading-relaxed text-slate-600">
@@ -62,5 +62,4 @@ VerifyEmail.layout = {
     title: 'Confirmez votre adresse e-mail',
     description:
         'Cliquez sur le lien que nous venons de vous envoyer pour accéder à votre espace.',
-    showcase: 'verify',
 };

@@ -217,6 +217,29 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
+     * Pourquoi ce compte ne peut pas être supprimé par son titulaire (null : il peut l'être).
+     * Le gérant est le seul responsable de l'entreprise (on ne peut pas en ajouter un autre depuis
+     * l'application) : sans lui, l'entreprise resterait sans personne pour la gérer. Idem pour le
+     * dernier administrateur de la plateforme.
+     */
+    public function selfDeletionBlocker(): ?string
+    {
+        $others = fn (Builder $q) => $q->whereKeyNot($this->getKey())->where('status', AccountStatus::Active);
+
+        if ($this->hasRole(Role::SuperAdmin)
+            && ! $others(static::query()->where('role', Role::SuperAdmin))->exists()) {
+            return 'Vous êtes le seul administrateur de la plateforme : votre compte ne peut pas être supprimé tant qu’un autre administrateur n’a pas été désigné.';
+        }
+
+        if ($this->hasRole(Role::CompanyAdmin) && $this->company
+            && ! $others($this->company->users()->getQuery()->where('role', Role::CompanyAdmin))->exists()) {
+            return "Vous êtes le seul gérant de « {$this->company->name} » : supprimer votre compte laisserait l’entreprise sans responsable. Pour transmettre l’espace à quelqu’un d’autre ou le fermer, contactez le support.";
+        }
+
+        return null;
+    }
+
+    /**
      * Ce membre peut-il être géré par $viewer (fiche, documents, modification) ?
      */
     public function isManageableBy(User $viewer): bool

@@ -11,12 +11,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarToggle } from '@/components/sidebar-toggle';
 import { useLogoutDialog } from '@/components/logout-dialog';
 import { roleLabels } from '@/lib/navigation';
 import { toUrl } from '@/lib/utils';
 import { edit as profileEdit } from '@/routes/profile';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
+import { initials } from '@/lib/initials';
 
 const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const MONTHS_FR = [
@@ -29,14 +30,6 @@ function todayLabel(): string {
     return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-function initials(name: string): string {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
     const { auth } = usePage().props;
@@ -54,9 +47,9 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
 
     return (
         <>
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-xl sm:px-6 dark:border-sidebar-border dark:bg-background/80">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-border/70 bg-card/85 px-4 backdrop-blur-xl sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-                <SidebarTrigger className="-ml-2 size-10 shrink-0 text-slate-500 hover:bg-slate-100 md:-ml-1 md:size-7" />
+                <SidebarToggle className="-ml-2 md:-ml-1.5" />
                 {/* Téléphone (et application installée, sans bouton Retour du navigateur) : retour à la page parente */}
                 {parent ? (
                     <Link

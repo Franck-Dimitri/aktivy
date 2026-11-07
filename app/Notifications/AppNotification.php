@@ -59,7 +59,7 @@ abstract class AppNotification extends Notification implements ShouldQueue
             ->title(Str::limit($this->title(), 80))
             ->body(Str::limit($this->body(), 180))
             ->icon('/icon-192.png')
-            ->badge('/icon-192.png')
+            ->badge('/badge-96.png')
             ->lang('fr')
             // Même type, même cible : la nouvelle remplace l'ancienne au lieu de s'empiler
             ->tag($this->kind())
@@ -88,6 +88,7 @@ abstract class AppNotification extends Notification implements ShouldQueue
         'reminder' => ['Rappel', 'green'],
         'signup' => ['Inscription', 'teal'],
         'target' => ['Objectif', 'green'],
+        'export' => ['Mes données', 'green'],
     ];
 
     /** Phrase d'introduction de l'e-mail ; par défaut, le texte de la notification. */

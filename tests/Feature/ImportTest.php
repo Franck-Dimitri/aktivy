@@ -67,6 +67,11 @@ class ImportTest extends TestCase
         $this->post(route('login.store'), ['login' => '690000001', 'password' => 'Motriks-2026!']);
         $this->assertAuthenticatedAs($awa);
 
+        // Le mot de passe provisoire est chiffré une seule fois pour tout le fichier : il marche pour chacun
+        $this->post(route('logout'));
+        $this->post(route('login.store'), ['login' => '690000002', 'password' => 'Motriks-2026!']);
+        $this->assertAuthenticatedAs(User::where('phone', '+237690000002')->firstOrFail());
+
         $taken = $this->csv('personnel.csv', "Nom,Téléphone\nIntrus,690000099\n");
         $this->actingAs($manager)->post(route('company.import.store', 'personnel'), ['file' => $taken, 'password' => 'Motriks-2026!'])
             ->assertSessionHas('import_result', fn ($r) => ! $r['ok'] && str_contains($r['errors'][0], 'déjà utilisé'));

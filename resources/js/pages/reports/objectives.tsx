@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { index as reportsIndex, objectives as reportsObjectives } from '@/routes/reports';
 import { ReportTabs } from './report-tabs';
 import { TargetsPanel, type Targets } from './targets-panel';
+import { initials } from '@/lib/initials';
 
 type Period = 'week' | 'month' | 'last_week' | 'last_month';
 type Status = 'reached' | 'on_track' | 'behind' | 'none';
@@ -59,8 +60,6 @@ function periodLabel(o: Overview): string {
     const left = a.getMonth() === b.getMonth() ? String(a.getDate()) : a.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
     return `Semaine du ${left} au ${b.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`;
 }
-
-const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
 
 function HostessRow({ row, rank, overview }: { row: Row; rank: number | null; overview: Overview }) {
     const cur = unit(overview.currency);

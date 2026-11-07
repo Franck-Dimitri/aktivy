@@ -17,7 +17,7 @@ import { ActionButton, ActionLink, buttonClass } from '@/components/page/buttons
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
-import { GlowStyles, MetricStrip } from '@/components/page/surface';
+import { MetricStrip } from '@/components/page/surface';
 import { ReportPhotos, type ReportPhoto } from '@/components/report-photos';
 import { toastFormError } from '@/lib/form-toast';
 import {
@@ -200,7 +200,6 @@ export default function DailyReportShow({
     return (
         <>
             <Head title={`Rapport de ${report.agent_name ?? 'l’hôtesse'}`} />
-            <GlowStyles />
 
             <Page
                 title={report.agent_name ?? 'Compte supprimé'}

@@ -1,17 +1,20 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowUpDown, CalendarCheck, Eye, MapPin, Pencil, Phone, Plus, Search, Trash2, Users, X } from 'lucide-react';
+import { ArrowUpDown, Eye, MapPin, MoreHorizontal, Pencil, Plus, Search, Trash2, Users, X } from 'lucide-react';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
-import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
-import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
+import { StatusBadge } from '@/components/page/status-badge';
+import { MetricStrip } from '@/components/page/surface';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index as personnelIndex, create as personnelCreate, show as personnelShow, destroy as personnelDestroy } from '@/routes/personnel';
 import type { RoleOption, StaffListItem } from '@/types';
 import { CreateMemberModal } from './create-member-modal';
+import { initials } from '@/lib/initials';
 
 type Props = {
     staff: StaffListItem[];
@@ -23,17 +26,6 @@ type RoleFilter = 'all' | 'field_agent' | 'supervisor' | 'accountant';
 type StatusFilter = 'all' | 'active' | 'suspended';
 type SortKey = 'name' | 'visits';
 
-const roleTone: Record<string, StatusTone> = {
-    supervisor: 'info',
-    field_agent: 'success',
-    accountant: 'neutral',
-};
-
-const statusTone: Record<string, StatusTone> = {
-    active: 'success',
-    suspended: 'warning',
-};
-
 const roleShort: Record<string, string> = {
     supervisor: 'Superviseur',
     field_agent: 'Hôtesse',
@@ -41,12 +33,15 @@ const roleShort: Record<string, string> = {
 };
 
 const avatarTone: Record<string, string> = {
-    field_agent:
-        'from-green-50 to-green-100 text-motriks-deep ring-green-600/10 group-hover:from-green-500 group-hover:to-green-600 group-hover:shadow-green-600/30',
-    supervisor:
-        'from-blue-50 to-blue-100 text-blue-700 ring-blue-600/10 group-hover:from-blue-500 group-hover:to-blue-600 group-hover:shadow-blue-600/30',
-    accountant:
-        'from-slate-100 to-slate-200 text-slate-700 ring-slate-500/10 group-hover:from-slate-600 group-hover:to-slate-700 group-hover:shadow-slate-600/30',
+    field_agent: 'bg-green-50 text-motriks-deep ring-green-600/15',
+    supervisor: 'bg-blue-50 text-blue-700 ring-blue-600/15',
+    accountant: 'bg-slate-100 text-slate-600 ring-slate-500/15',
+};
+
+const roleText: Record<string, string> = {
+    field_agent: 'text-motriks-deep',
+    supervisor: 'text-blue-700',
+    accountant: 'text-slate-600',
 };
 
 const roleFilters: { value: RoleFilter; label: string }[] = [
@@ -62,17 +57,6 @@ const statusFilters: { value: StatusFilter; label: string }[] = [
     { value: 'suspended', label: 'Suspendus' },
 ];
 
-function initials(name: string) {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
-
-const iconBtn =
-    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
 
 const chipBase =
     'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
@@ -172,7 +156,6 @@ export default function PersonnelIndex({ staff, roles }: Props) {
     return (
         <>
             <Head title="Personnel" />
-            <GlowStyles />
 
             <Page
                 title="Personnel"
@@ -289,105 +272,10 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                 />
                             </Panel>
                         ) : (
-                            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                                {visible.map((member) => {
-                                    const showUrl = personnelShow({ personnel: member.id }).url;
-
-                                    return (
-                                        <li key={member.id} className="h-full [&>*]:h-full [&>*]:w-full">
-                                            <GlowCard contentClassName="flex h-full w-full flex-col">
-                                                {/* Zone cliquable : ouvre la fiche */}
-                                                <Link
-                                                    href={showUrl}
-                                                    className="flex flex-1 flex-col gap-5 p-5 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
-                                                >
-                                                    {/* En-tête */}
-                                                    <div className="flex items-start gap-4">
-                                                        <div
-                                                            className={`flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-sm font-bold ring-1 shadow-none ring-inset transition duration-300 group-hover:text-white group-hover:shadow-lg group-hover:ring-0 ${
-                                                                avatarTone[member.role] ?? avatarTone.accountant
-                                                            }`}
-                                                        >
-                                                            {initials(member.name)}
-                                                        </div>
-
-                                                        <div className="min-w-0 flex-1">
-                                                            <h3 className="truncate text-base font-semibold text-ink transition-colors group-hover:text-motriks-deep">
-                                                                {member.name}
-                                                            </h3>
-                                                            <div className="mt-1.5">
-                                                                <StatusBadge tone={roleTone[member.role] ?? 'neutral'}>
-                                                                    {roleShort[member.role] ?? member.role_label}
-                                                                </StatusBadge>
-                                                            </div>
-                                                        </div>
-
-                                                        <StatusBadge tone={statusTone[member.status] ?? 'neutral'}>{member.status_label}</StatusBadge>
-                                                    </div>
-
-                                                    {/* Détails */}
-                                                    <dl className="flex flex-col gap-2.5 border-t border-slate-100 pt-4 text-sm">
-                                                        <div className="flex items-center gap-3 text-slate-600">
-                                                            <Phone className="size-4 shrink-0 text-slate-400" />
-                                                            <dd className="truncate tabular-nums">{member.phone ?? 'Non renseigné'}</dd>
-                                                        </div>
-
-                                                        <div className={`flex items-center gap-3 ${member.on_site_now ? 'font-medium text-motriks-deep' : 'text-slate-400'}`}>
-                                                            <MapPin className="size-4 shrink-0" />
-                                                            <dd className="flex min-w-0 items-center gap-2">
-                                                                {member.on_site_now && (
-                                                                    <span className="relative flex size-2 shrink-0">
-                                                                        <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60 motion-reduce:animate-none" />
-                                                                        <span className="relative inline-flex size-2 rounded-full bg-green-500" />
-                                                                    </span>
-                                                                )}
-                                                                <span className="truncate">{member.on_site_now ?? 'Hors poste'}</span>
-                                                            </dd>
-                                                        </div>
-
-                                                        <div className="flex items-center gap-3 text-slate-600">
-                                                            <CalendarCheck className="size-4 shrink-0 text-slate-400" />
-                                                            <dd className="tabular-nums">
-                                                                {member.visits_count} visite{member.visits_count > 1 ? 's' : ''}
-                                                            </dd>
-                                                        </div>
-                                                    </dl>
-                                                </Link>
-
-                                                {/* Actions rapides */}
-                                                <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-3 py-2.5">
-                                                    <Link
-                                                        href={showUrl}
-                                                        className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-green-50 hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
-                                                    >
-                                                        <Eye className="size-4" />
-                                                        Voir la fiche
-                                                    </Link>
-
-                                                    <div className="flex shrink-0 items-center gap-0.5">
-                                                        <Link
-                                                            href={`${showUrl}?modifier=1`}
-                                                            title="Modifier"
-                                                            aria-label={`Modifier ${member.name}`}
-                                                            className={`${iconBtn} hover:bg-green-50 hover:text-motriks-deep`}
-                                                        >
-                                                            <Pencil className="size-[18px]" />
-                                                        </Link>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => ask(member)}
-                                                            title="Supprimer"
-                                                            aria-label={`Supprimer ${member.name}`}
-                                                            className={`${iconBtn} hover:bg-red-50 hover:text-red-600`}
-                                                        >
-                                                            <Trash2 className="size-[18px]" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </GlowCard>
-                                        </li>
-                                    );
-                                })}
+                            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                                {visible.map((member) => (
+                                    <MemberCard key={member.id} member={member} onDelete={() => ask(member)} />
+                                ))}
                             </ul>
                         )}
                     </div>
@@ -398,6 +286,100 @@ export default function PersonnelIndex({ staff, roles }: Props) {
 
             {dialog}
         </>
+    );
+}
+
+/** +237673390280 → +237 673 39 02 80 (lecture plus facile) ; les autres formats restent tels quels. */
+function prettyPhone(phone: string) {
+    const m = /^\+237(\d{3})(\d{2})(\d{2})(\d{2})$/.exec(phone.replace(/\s/g, ''));
+    return m ? `+237 ${m[1]} ${m[2]} ${m[3]} ${m[4]}` : phone;
+}
+
+/** Carte compacte : toute la carte ouvre la fiche ; Modifier / Supprimer sont dans le menu « ⋯ ». */
+function MemberCard({ member, onDelete }: { member: StaffListItem; onDelete: () => void }) {
+    const showUrl = personnelShow({ personnel: member.id }).url;
+    const suspended = member.status === 'suspended';
+    const onSite = !!member.on_site_now;
+
+    return (
+        <li className="group relative">
+            <Link
+                href={showUrl}
+                className="flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+            >
+                <div className="flex items-center gap-3 p-4 pr-12">
+                    <span className={cn('relative flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ring-1 ring-inset', avatarTone[member.role] ?? avatarTone.accountant, suspended && 'opacity-50 grayscale')}>
+                        {initials(member.name)}
+                        {onSite && (
+                            <span className="absolute -right-0.5 -bottom-0.5 flex size-3" aria-hidden>
+                                <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60 motion-reduce:animate-none" />
+                                <span className="relative inline-flex size-3 rounded-full bg-green-500 ring-2 ring-white" />
+                            </span>
+                        )}
+                    </span>
+
+                    <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 items-center gap-2">
+                            <h3 className="truncate text-[15px] font-semibold text-ink transition-colors group-hover:text-motriks-deep">{member.name}</h3>
+                            {suspended && <StatusBadge tone="warning">{member.status_label}</StatusBadge>}
+                        </div>
+                        <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] text-slate-500">
+                            <span className={cn('shrink-0 font-medium', roleText[member.role] ?? 'text-slate-600')}>{roleShort[member.role] ?? member.role_label}</span>
+                            {member.phone && (
+                                <>
+                                    <span aria-hidden className="text-slate-300">·</span>
+                                    <span className="truncate tabular-nums">{prettyPhone(member.phone)}</span>
+                                </>
+                            )}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-2.5 text-xs">
+                    <span className={cn('flex min-w-0 items-center gap-1.5', onSite ? 'font-medium text-motriks-deep' : 'text-slate-400')}>
+                        <MapPin className="size-3.5 shrink-0" />
+                        <span className="truncate">{onSite ? member.on_site_now : 'Hors poste'}</span>
+                    </span>
+                    <span className="shrink-0 text-slate-500 tabular-nums">
+                        <span className="font-semibold text-ink">{member.visits_count}</span> visite{member.visits_count > 1 ? 's' : ''}
+                    </span>
+                </div>
+            </Link>
+
+            {/* Actions : hors du lien (pas de bouton dans un lien) */}
+            <div className="absolute top-3 right-3">
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            aria-label={`Actions pour ${member.name}`}
+                            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none data-[state=open]:bg-slate-100 data-[state=open]:text-ink"
+                        >
+                            <MoreHorizontal className="size-[18px]" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44 rounded-xl p-1">
+                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                            <Link href={showUrl}>
+                                <Eye className="size-4" />
+                                Voir la fiche
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                            <Link href={`${showUrl}?modifier=1`}>
+                                <Pencil className="size-4" />
+                                Modifier
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onSelect={onDelete} className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600 [&_svg]:text-red-500">
+                            <Trash2 className="size-4" />
+                            Supprimer
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </li>
     );
 }
 

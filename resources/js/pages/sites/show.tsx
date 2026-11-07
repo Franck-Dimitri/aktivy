@@ -46,6 +46,7 @@ import { store as inventoryStore, update as inventoryUpdate, destroy as inventor
 import { show as dailyReportShow } from '@/routes/daily-reports';
 import type { SiteAffectation, SiteDetail, SiteStatusOption, SiteTypeOption, SiteVisit } from '@/types';
 import { EditSiteModal } from './edit-site-modal';
+import { initials } from '@/lib/initials';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
@@ -187,14 +188,6 @@ function formatDuration(minutes: number | null): string {
     return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`;
 }
 
-function initialsOf(name: string): string {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 function tabFromHash(): TabKey {
     if (typeof window === 'undefined') return 'apercu';
@@ -239,7 +232,7 @@ function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
                 size === 'sm' ? 'size-9 text-xs' : 'size-10 text-sm',
             )}
         >
-            {initialsOf(name)}
+            {initials(name)}
         </div>
     );
 }

@@ -1,4 +1,4 @@
-import { AlertTriangle, Bell, Building2, CalendarCheck, Camera, ClipboardList, CreditCard, FileCheck2, MapPinned, MessageSquarePlus, PackageX, Target, UserCheck, UserX, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, Bell, Building2, CalendarCheck, Camera, ClipboardList, CreditCard, DatabaseBackup, FileCheck2, MapPinned, MessageSquarePlus, PackageX, Target, UserCheck, UserX, type LucideIcon } from 'lucide-react';
 
 /** Catégories envoyées par le serveur (App\Notifications\*::kind()). */
 export type NotificationKind =
@@ -14,7 +14,8 @@ export type NotificationKind =
     | 'photo'
     | 'assignment'
     | 'event'
-    | 'module';
+    | 'module'
+    | 'export';
 
 export type NotificationItem = {
     id: string;
@@ -45,6 +46,7 @@ export const NOTIFICATION_KINDS: Record<NotificationKind, KindStyle> = {
     assignment: { icon: MapPinned, label: 'Affectations', tile: 'bg-cyan-50 text-cyan-700 ring-cyan-600/10', explain: 'Vous êtes affectée à un point de vente ou à un événement.' },
     event: { icon: CalendarCheck, label: 'Événements', tile: 'bg-orange-50 text-orange-600 ring-orange-600/10', explain: 'Un événement démarre demain, ou une nouvelle offre est disponible.' },
     module: { icon: CreditCard, label: 'Abonnement', tile: 'bg-slate-100 text-slate-600 ring-slate-500/10', explain: 'Un module est activé, désactivé ou arrive à échéance.' },
+    export: { icon: DatabaseBackup, label: 'Mes données', tile: 'bg-green-50 text-green-700 ring-green-600/10', explain: 'Votre export complet est prêt à télécharger.' },
 };
 
 export const FALLBACK_KIND: KindStyle = { icon: Bell, label: 'Autres', tile: 'bg-slate-100 text-slate-500 ring-slate-500/10' };

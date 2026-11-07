@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent as ReactM
 import { Link } from '@inertiajs/react';
 import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
+import MotriksLogo from '@/components/motriks-logo';
 import MotriksMark from '@/components/motriks-mark';
 
 /* ------------------------------------------------------------------ */
@@ -171,14 +172,11 @@ function Cross({ className = 'h-5 w-5 text-red-400' }: { className?: string }) {
     );
 }
 
-/* Logo : carré bleu nuit avec un M blanc. Remplacez par <img src="/logo.png"> si besoin. */
+/* Logo Motriks horizontal : vert sur fond clair, blanc sur fond sombre (light). */
 function Logo({ light = false }: { light?: boolean }) {
     return (
-        <Link href="/" className="flex items-center gap-2.5">
-            <MotriksMark />
-            <span className={`text-xl font-extrabold tracking-tight ${light ? 'text-white' : 'text-slate-900'}`}>
-                Motriks
-            </span>
+        <Link href="/" aria-label="Motriks, accueil" className="flex items-center">
+            <MotriksLogo variant={light ? 'white' : 'color'} className="h-7" />
         </Link>
     );
 }

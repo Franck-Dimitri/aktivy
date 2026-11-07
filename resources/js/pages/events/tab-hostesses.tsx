@@ -10,10 +10,9 @@ import { cn } from '@/lib/utils';
 import { destroy as hostessDestroy, store as hostessStore, update as hostessUpdate } from '@/routes/events/hostesses';
 import { ModalFooter, ModeCards, PickList, TabEmpty, TabToolbar } from './tab-kit';
 import type { AvailableHostess, EventData, EventHostess } from './types';
+import { initials } from '@/lib/initials';
 
 type Props = { event: EventData; availableHostesses: AvailableHostess[] };
-
-const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
 
 /** Ajout d'une hôtesse : une hôtesse de l'équipe, ou un compte créé pour l'événement. */
 function AddHostessModal({ event, available, onClose }: { event: EventData; available: AvailableHostess[]; onClose: () => void }) {

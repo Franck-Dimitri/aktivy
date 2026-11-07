@@ -63,7 +63,8 @@ class ProfileUpdateTest extends TestCase
 
     public function test_user_can_delete_their_account()
     {
-        $user = User::factory()->create();
+        // Une hôtesse : son compte n'est pas indispensable à l'entreprise
+        $user = User::factory()->fieldAgent()->create();
 
         $response = $this
             ->actingAs($user)

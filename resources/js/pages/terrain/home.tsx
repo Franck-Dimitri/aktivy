@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { Page } from '@/components/page/page';
-import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
+import { SurfaceCard, MetricStrip } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
@@ -653,7 +653,6 @@ export default function TerrainHome({
     return (
         <>
             <Head title="Tableau de bord" />
-            <GlowStyles />
 
             <Page
                 title="Tableau de bord"
@@ -712,7 +711,7 @@ export default function TerrainHome({
                     {/* ── Analyse + suivi ── */}
                     <div className="grid gap-6 lg:grid-cols-3">
                         {/* Tendance + comparaison */}
-                        <GlowCard className="lg:col-span-2" contentClassName="flex flex-col p-6">
+                        <SurfaceCard className="lg:col-span-2" contentClassName="flex flex-col p-6">
                             <div>
                                 <h3 className="text-base font-semibold text-ink">Activité des 7 derniers jours</h3>
                                 <p className="mt-0.5 text-sm text-slate-500">Visites et chiffre d'affaires jour par jour.</p>
@@ -737,13 +736,13 @@ export default function TerrainHome({
                                     format={(n) => n.toString()}
                                 />
                             </div>
-                        </GlowCard>
+                        </SurfaceCard>
 
                         {/* Colonne droite : jauges + rapports */}
                         <div className="flex flex-col gap-6">
                             {my_week_target && <WeekTargetCard target={my_week_target} />}
 
-                            <GlowCard contentClassName="flex flex-col p-6">
+                            <SurfaceCard contentClassName="flex flex-col p-6">
                                 <div>
                                     <h3 className="text-base font-semibold text-ink">Performance du mois</h3>
                                     <p className="mt-0.5 text-sm text-slate-500">Comparée au mois précédent.</p>
@@ -761,9 +760,9 @@ export default function TerrainHome({
                                     />
                                 </div>
                                 {my_target && <TargetProgress target={my_target} />}
-                            </GlowCard>
+                            </SurfaceCard>
 
-                            <GlowCard contentClassName="flex flex-col p-0">
+                            <SurfaceCard contentClassName="flex flex-col p-0">
                                 <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
                                     <div>
                                         <h3 className="text-base font-semibold text-ink">Mes rapports</h3>
@@ -822,7 +821,7 @@ export default function TerrainHome({
                                         />
                                     </div>
                                 )}
-                            </GlowCard>
+                            </SurfaceCard>
                         </div>
                     </div>
                 </div>

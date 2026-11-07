@@ -32,3 +32,6 @@ Schedule::command('reminders:run')->everyMinute()->withoutOverlapping()->runInBa
 
 // Modules payants qui arrivent à échéance : rappels au gérant (J-30, J-7, J-1, puis le lendemain)
 Schedule::command('subscriptions:reminders')->dailyAt('09:00');
+
+// Exports de données : fichiers effacés 24 h après leur préparation (et exports en échec ou bloqués)
+Schedule::command('model:prune', ['--model' => [\App\Models\DataExport::class]])->hourly();

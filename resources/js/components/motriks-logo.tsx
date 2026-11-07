@@ -1,13 +1,20 @@
 import { cn } from '@/lib/utils';
-import MotriksMark from '@/components/motriks-mark';
 
-export default function MotriksLogo({ className }: { className?: string }) {
+/**
+ * Logo Motriks horizontal (symbole + nom).
+ * - `color` : vert, pour les fonds clairs (connexion, site public, en-tête mobile)
+ * - `white` : blanc, pour la barre latérale verte et les fonds sombres
+ * La hauteur se règle avec className (« h-7 » par défaut), la largeur suit.
+ */
+export default function MotriksLogo({ variant = 'color', className }: { variant?: 'color' | 'white'; className?: string }) {
     return (
-        <span className={cn('flex items-center gap-2.5', className)}>
-            <MotriksMark />
-            <span className="text-2xl font-extrabold tracking-tight text-ink dark:text-white">
-                Motriks<span className="text-motriks">.</span>
-            </span>
-        </span>
+        <img
+            src="/images/logos/motriks-logo.svg"
+            alt="Motriks"
+            width={1212}
+            height={186.5}
+            draggable={false}
+            className={cn('h-7 w-auto shrink-0 select-none', variant === 'white' && 'brightness-0 invert', className)}
+        />
     );
 }

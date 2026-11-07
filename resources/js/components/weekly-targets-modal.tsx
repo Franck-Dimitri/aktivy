@@ -8,6 +8,7 @@ import { Modal } from '@/components/page/modal';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { show as weeklyShow, store as weeklyStore } from '@/routes/weekly-targets';
+import { initials } from '@/lib/initials';
 
 type Week = 'current' | 'next';
 
@@ -40,9 +41,6 @@ function dayMonth(iso: string, withMonth = true) {
     return new Date(`${iso}T00:00:00`).toLocaleDateString('fr-FR', withMonth ? { day: 'numeric', month: 'long' } : { day: 'numeric' });
 }
 
-function initials(name: string) {
-    return name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
-}
 
 /** Saisie des objectifs de la semaine, facultatifs. À monter uniquement quand il est ouvert. */
 export function WeeklyTargetsModal({ onClose, initialWeek = 'current' }: { onClose: () => void; initialWeek?: Week }) {

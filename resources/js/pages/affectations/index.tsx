@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { CalendarRange, Clock, FileText, MapPin, Pencil, Plus, Search, StickyNote, Store, Trash2, User, X } from 'lucide-react';
+import { CalendarRange, Clock, FileText, MapPin, MoreHorizontal, Pencil, Plus, Search, StickyNote, Store, Trash2, User, X } from 'lucide-react';
 import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
@@ -9,7 +9,8 @@ import { Field, SelectInput, TextArea, TextInput } from '@/components/page/form-
 import { Modal } from '@/components/page/modal';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
-import { GlowCard, GlowStyles, MetricStrip } from '@/components/page/surface';
+import { MetricStrip } from '@/components/page/surface';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
@@ -24,6 +25,7 @@ import {
 import { show as personnelShow } from '@/routes/personnel';
 import { show as siteShow } from '@/routes/sites';
 import type { AffectationListItem, AffectationSelectOption, AffectationStats, AffectationStatus } from '@/types';
+import { initials } from '@/lib/initials';
 
 type StatusOption = { value: string; label: string };
 
@@ -54,25 +56,17 @@ const roleShort: Record<string, string> = {
 };
 
 const avatarTone: Record<string, string> = {
-    field_agent:
-        'from-green-50 to-green-100 text-motriks-deep ring-green-600/10 group-hover:from-green-500 group-hover:to-green-600 group-hover:shadow-green-600/30',
-    supervisor:
-        'from-blue-50 to-blue-100 text-blue-700 ring-blue-600/10 group-hover:from-blue-500 group-hover:to-blue-600 group-hover:shadow-blue-600/30',
-    accountant:
-        'from-slate-100 to-slate-200 text-slate-700 ring-slate-500/10 group-hover:from-slate-600 group-hover:to-slate-700 group-hover:shadow-slate-600/30',
+    field_agent: 'bg-green-50 text-motriks-deep ring-green-600/15',
+    supervisor: 'bg-blue-50 text-blue-700 ring-blue-600/15',
+    accountant: 'bg-slate-100 text-slate-600 ring-slate-500/15',
 };
 
-const iconBtn =
-    'flex size-9 items-center justify-center rounded-xl text-slate-400 transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none';
+const roleText: Record<string, string> = {
+    field_agent: 'text-motriks-deep',
+    supervisor: 'text-blue-700',
+    accountant: 'text-slate-600',
+};
 
-function initials(name: string) {
-    return name
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-}
 
 /** « 14/10/2026 » → « 2026-10-14 » (format attendu par <input type="date">). */
 function toIso(date: string | null) {
@@ -84,110 +78,100 @@ function toIso(date: string | null) {
 /* ───────────────────────── Carte affectation ───────────────────────── */
 
 function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void; onDelete: () => void }) {
-    return (
-        <GlowCard className="h-full" contentClassName="flex h-full flex-col">
-            <div className="flex flex-1 flex-col gap-5 p-5">
-                {/* Membre + statut */}
-                <div className="flex items-start gap-4">
-                    <div
-                        className={cn(
-                            'flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-sm font-bold shadow-none ring-1 ring-inset transition duration-300 group-hover:text-white group-hover:shadow-lg group-hover:ring-0',
-                            avatarTone[a.agent_role] ?? avatarTone.accountant,
-                        )}
-                    >
-                        {initials(a.agent_name)}
-                    </div>
+    const memberUrl = personnelShow({ personnel: a.agent_id }).url;
+    const siteUrl = siteShow({ site: a.site_id }).url;
+    const ended = a.status !== 'active';
+    const slot = a.slot_start && a.slot_end ? `${a.slot_start} – ${a.slot_end}` : null;
 
-                    <div className="min-w-0 flex-1">
-                        <Link
-                            href={personnelShow({ personnel: a.agent_id }).url}
-                            className="block truncate text-base font-semibold text-ink transition-colors hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
-                        >
+    return (
+        <article className="group relative flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-[border-color,box-shadow] duration-200 hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5">
+            {/* Membre */}
+            <div className="flex items-center gap-3 p-4 pr-12">
+                <span className={cn('relative flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ring-1 ring-inset', avatarTone[a.agent_role] ?? avatarTone.accountant, ended && 'opacity-50 grayscale')}>
+                    {initials(a.agent_name)}
+                    {a.is_current && (
+                        <span className="absolute -right-0.5 -bottom-0.5 flex size-3" aria-hidden>
+                            <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60 motion-reduce:animate-none" />
+                            <span className="relative inline-flex size-3 rounded-full bg-green-500 ring-2 ring-white" />
+                        </span>
+                    )}
+                </span>
+                <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 items-center gap-2">
+                        <Link href={memberUrl} className="truncate text-[15px] font-semibold text-ink transition-colors hover:text-motriks-deep focus-visible:underline focus-visible:outline-none">
                             {a.agent_name}
                         </Link>
-                        <div className="mt-1.5">
-                            <StatusBadge tone="info">{roleShort[a.agent_role] ?? a.agent_role}</StatusBadge>
-                        </div>
+                        {ended && <StatusBadge tone={statusTone[a.status] ?? 'neutral'}>{a.status_label}</StatusBadge>}
                     </div>
-
-                    <StatusBadge tone={statusTone[a.status] ?? 'neutral'}>{a.status_label}</StatusBadge>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-[13px]">
+                        <span className={cn('font-medium', roleText[a.agent_role] ?? 'text-slate-600')}>{roleShort[a.agent_role] ?? a.agent_role}</span>
+                        <span aria-hidden className="text-slate-300">·</span>
+                        <span className={a.is_current ? 'font-medium text-motriks-deep' : 'text-slate-400'}>{a.is_current ? 'En poste' : 'Hors poste'}</span>
+                    </p>
                 </div>
+            </div>
 
-                {/* Site */}
-                <Link
-                    href={siteShow({ site: a.site_id }).url}
-                    className="flex items-center gap-3 rounded-xl bg-slate-50 px-3.5 py-3 transition-colors hover:bg-green-50 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
-                >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-motriks shadow-sm ring-1 ring-slate-200/70">
-                        <Store className="size-4" />
-                    </span>
-                    <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-ink">{a.site_name}</span>
-                        <span className="block truncate text-xs text-slate-500">{a.site_city}</span>
-                    </span>
+            {/* Point de vente, période, créneau */}
+            <div className="flex flex-col gap-1.5 border-t border-slate-100 px-4 py-3 text-[13px]">
+                <Link href={siteUrl} className="flex min-w-0 items-center gap-2 text-slate-700 transition-colors hover:text-motriks-deep focus-visible:underline focus-visible:outline-none">
+                    <Store className="size-3.5 shrink-0 text-slate-400" />
+                    <span className="truncate font-medium">{a.site_name}</span>
+                    {a.site_city && <span className="shrink-0 text-slate-400">· {a.site_city}</span>}
                 </Link>
-
-                {/* Détails */}
-                <dl className="flex flex-col gap-2.5 text-sm">
-                    <div className="flex items-center gap-3 text-slate-600">
-                        <CalendarRange className="size-4 shrink-0 text-slate-400" />
-                        <dd className="truncate tabular-nums">
-                            {a.starts_on} <span className="text-slate-400">→</span> {a.ends_on ?? 'Permanent'}
-                        </dd>
-                    </div>
-
-                    <div className={cn('flex items-center gap-3', a.slot_start && a.slot_end ? 'text-slate-600' : 'text-slate-400')}>
-                        <Clock className="size-4 shrink-0 text-slate-400" />
-                        <dd className="tabular-nums">
-                            {a.slot_start && a.slot_end ? `${a.slot_start} – ${a.slot_end}` : 'Pas de créneau défini'}
-                        </dd>
-                    </div>
-
-                    {a.notes && (
-                        <div className="flex items-start gap-3 text-slate-500">
-                            <StickyNote className="mt-0.5 size-4 shrink-0 text-slate-400" />
-                            <dd className="line-clamp-2 text-xs leading-relaxed">{a.notes}</dd>
-                        </div>
-                    )}
-                </dl>
+                <p className="flex items-center gap-2 text-slate-500 tabular-nums">
+                    <CalendarRange className="size-3.5 shrink-0 text-slate-400" />
+                    {a.starts_on} <span className="text-slate-300">→</span> {a.ends_on ?? 'Permanent'}
+                </p>
+                <p className={cn('flex items-center gap-2 tabular-nums', slot ? 'text-slate-500' : 'text-slate-400')}>
+                    <Clock className="size-3.5 shrink-0 text-slate-400" />
+                    {slot ?? 'Sans créneau'}
+                </p>
+                {a.notes && (
+                    <p className="flex min-w-0 items-center gap-2 text-xs text-slate-400" title={a.notes}>
+                        <StickyNote className="size-3.5 shrink-0" />
+                        <span className="truncate">{a.notes}</span>
+                    </p>
+                )}
             </div>
 
-            {/* Pied de carte */}
-            <div className="flex items-center justify-between gap-2 border-t border-slate-100 py-2.5 pr-3 pl-5">
-                <span className={cn('flex items-center gap-2 text-xs', a.is_current ? 'font-medium text-motriks-deep' : 'text-slate-400')}>
-                    {a.is_current ? (
-                        <span className="relative flex size-2">
-                            <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60 motion-reduce:animate-none" />
-                            <span className="relative inline-flex size-2 rounded-full bg-green-500" />
-                        </span>
-                    ) : (
-                        <span className="size-2 rounded-full bg-slate-300" />
-                    )}
-                    {a.is_current ? 'En poste' : 'Hors poste'}
-                </span>
-
-                <div className="flex shrink-0 items-center gap-0.5">
-                    <button
-                        type="button"
-                        onClick={onEdit}
-                        title="Modifier"
-                        aria-label={`Modifier l'affectation de ${a.agent_name}`}
-                        className={cn(iconBtn, 'hover:bg-green-50 hover:text-motriks-deep')}
-                    >
-                        <Pencil className="size-[18px]" />
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onDelete}
-                        title="Supprimer"
-                        aria-label={`Supprimer l'affectation de ${a.agent_name}`}
-                        className={cn(iconBtn, 'hover:bg-red-50 hover:text-red-600')}
-                    >
-                        <Trash2 className="size-[18px]" />
-                    </button>
-                </div>
+            {/* Actions */}
+            <div className="absolute top-3 right-3">
+                <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            aria-label={`Actions pour l’affectation de ${a.agent_name}`}
+                            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none data-[state=open]:bg-slate-100 data-[state=open]:text-ink"
+                        >
+                            <MoreHorizontal className="size-[18px]" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52 rounded-xl p-1">
+                        <DropdownMenuItem onSelect={onEdit} className="cursor-pointer rounded-lg">
+                            <Pencil className="size-4" />
+                            Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                            <Link href={memberUrl}>
+                                <User className="size-4" />
+                                Voir le membre
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                            <Link href={siteUrl}>
+                                <Store className="size-4" />
+                                Voir le point de vente
+                            </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onSelect={onDelete} className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600 [&_svg]:text-red-500">
+                            <Trash2 className="size-4" />
+                            Supprimer
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
-        </GlowCard>
+        </article>
     );
 }
 
@@ -618,7 +602,6 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
     return (
         <>
             <Head title="Affectations" />
-            <GlowStyles />
 
             <Page
                 title="Affectations"
@@ -728,7 +711,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                 />
                             </Panel>
                         ) : (
-                            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                                 {filtered.map((a) => (
                                     <AffectationCard key={a.id} a={a} onEdit={() => openEdit(a)} onDelete={() => ask(a)} />
                                 ))}

@@ -14,7 +14,7 @@ import { EmptyState } from '@/components/page/empty-state';
 import { SelectInput, TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
-import { GlowStyles, MetricStrip } from '@/components/page/surface';
+import { MetricStrip } from '@/components/page/surface';
 import {
     index as dailyReportsIndex,
     show as dailyReportShow,
@@ -96,7 +96,6 @@ export default function DailyReportsIndex({
     return (
         <>
             <Head title="Rapports journaliers" />
-            <GlowStyles />
 
             <Page
                 title="Rapports journaliers"

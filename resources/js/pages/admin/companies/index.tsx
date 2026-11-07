@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Blocks, Building2, CheckCircle2, Clock, FileText, Inbox, PauseCircle, PlayCircle, Search, Store, Users } from 'lucide-react';
+import { Blocks, Building2, CheckCircle2, Clock, FileText, Inbox, PauseCircle, PlayCircle, Plus, Search, Store, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
@@ -8,7 +8,7 @@ import { TextInput } from '@/components/page/form-fields';
 import { Page } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { cn } from '@/lib/utils';
-import { index as companiesIndex, modules as companyModules, reactivate, suspend } from '@/routes/admin/companies';
+import { create as companyCreate, index as companiesIndex, modules as companyModules, reactivate, show as companyShow, suspend } from '@/routes/admin/companies';
 import { index as onboardingIndex, show as onboardingShow } from '@/routes/admin/onboarding';
 import { CompanyAvatar, MetricRow, QuietEmpty, Segmented } from '@/components/page/list-kit';
 
@@ -106,11 +106,17 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                 description={`${plural(companies.length, 'entreprise')} sur la plateforme.`}
                 className="max-w-6xl"
                 actions={
-                    <Link href={onboardingIndex().url} className={buttonClass('secondary', 'md')}>
-                        <Inbox />
-                        Demandes d’inscription
-                        {counts.pending > 0 && <span className="rounded-md bg-amber-100 px-1.5 text-[11px] font-bold text-amber-700 tabular-nums">{counts.pending}</span>}
-                    </Link>
+                    <>
+                        <Link href={onboardingIndex().url} className={buttonClass('secondary', 'md')}>
+                            <Inbox />
+                            Demandes d’inscription
+                            {counts.pending > 0 && <span className="rounded-md bg-amber-100 px-1.5 text-[11px] font-bold text-amber-700 tabular-nums">{counts.pending}</span>}
+                        </Link>
+                        <Link href={companyCreate().url} className={buttonClass('primary', 'md')}>
+                            <Plus />
+                            Créer une entreprise
+                        </Link>
+                    </>
                 }
             >
                 <MetricRow
@@ -165,7 +171,9 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                         <div role="cell" className="flex min-w-0 items-center gap-3.5">
                                             <CompanyAvatar name={c.name} muted={c.status !== 'active'} />
                                             <div className="min-w-0">
-                                                <p className="truncate text-sm font-semibold text-ink">{c.name}</p>
+                                                <Link href={companyShow(c.id).url} className="block truncate text-sm font-semibold text-ink hover:text-motriks-deep hover:underline">
+                                                    {c.name}
+                                                </Link>
                                                 <p className="truncate text-xs text-slate-500">{[c.email, c.city].filter(Boolean).join(' · ') || '—'}</p>
                                                 <p className="mt-0.5 text-[11px] text-slate-400 lg:hidden">
                                                     {plural(c.users_count, 'utilisateur')} · {plural(c.sites_count, 'site')}

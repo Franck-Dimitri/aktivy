@@ -38,7 +38,7 @@ export function CompanyAvatar({ name, muted, className }: { name: string; muted?
     );
 }
 
-export type Metric = { label: string; value: number; hint?: string; icon: LucideIcon; tone?: 'default' | 'amber' | 'red' | 'green' | 'blue'; pulse?: boolean };
+export type Metric = { label: string; value: number | string; hint?: string; icon: LucideIcon; tone?: 'default' | 'amber' | 'red' | 'green' | 'blue'; pulse?: boolean };
 
 const METRIC_ICON: Record<NonNullable<Metric['tone']>, string> = {
     default: 'bg-slate-100 text-slate-500',
@@ -65,7 +65,7 @@ export function MetricRow({ items }: { items: Metric[] }) {
                     <div className="min-w-0">
                         <dt className="flex items-center gap-2 truncate text-xs font-medium text-slate-500">
                             {label}
-                            {pulse && value > 0 && (
+                            {pulse && typeof value === 'number' && value > 0 && (
                                 <span className="relative flex size-1.5">
                                     <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-70 motion-reduce:animate-none" />
                                     <span className="relative inline-flex size-1.5 rounded-full bg-amber-500" />

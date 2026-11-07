@@ -2,10 +2,13 @@
 
 use App\Enums\Role;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
+use App\Http\Controllers\Admin\CompanyManagerController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CompanyModuleController;
 use App\Http\Controllers\Admin\CompanyRequestController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\NotificationController;
@@ -59,6 +62,11 @@ Route::get('/confidentialite', function () use ($paymentLogos) {
 })->name('confidentialite');
 
 // Page "Nous contacter"
+// Invitation d'un gérant dont l'entreprise a été créée par le super administrateur (lien signé, 7 jours)
+Route::get('/invitation/{user}', [InvitationController::class, 'accept'])
+    ->middleware(['signed', 'throttle:10,1'])
+    ->name('invitation.accept');
+
 Route::get('/contact', [ContactController::class, 'show'])->name('contact');
 Route::post('/contact', [ContactController::class, 'send'])
     ->middleware('throttle:5,1')
@@ -98,10 +106,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
-            Route::inertia('/', 'admin/dashboard')->name('dashboard');
+            Route::get('/', AdminDashboardController::class)->name('dashboard');
 
             // Entreprises clientes
             Route::get('entreprises', [AdminCompanyController::class, 'index'])->name('companies.index');
+            Route::get('entreprises/creer', [AdminCompanyController::class, 'create'])->name('companies.create');
+            Route::post('entreprises', [AdminCompanyController::class, 'store'])->name('companies.store');
+            Route::get('entreprises/{company}', [AdminCompanyController::class, 'show'])->name('companies.show');
+            Route::put('entreprises/{company}', [AdminCompanyController::class, 'update'])->name('companies.update');
+            Route::post('entreprises/{company}/gerants/{user}/confirmation', [CompanyManagerController::class, 'resendVerification'])->name('companies.managers.verification');
+            Route::post('entreprises/{company}/gerants/{user}/invitation', [CompanyManagerController::class, 'resendInvitation'])->name('companies.managers.invitation');
+            Route::post('entreprises/{company}/gerants/{user}/mot-de-passe', [CompanyManagerController::class, 'sendPasswordReset'])->name('companies.managers.password');
             Route::post('entreprises/{company}/suspendre', [AdminCompanyController::class, 'suspend'])->name('companies.suspend');
             Route::post('entreprises/{company}/reactiver', [AdminCompanyController::class, 'reactivate'])->name('companies.reactivate');
             Route::get('entreprises/{company}/modules', [CompanyModuleController::class, 'index'])->name('companies.modules');

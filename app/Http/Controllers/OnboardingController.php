@@ -16,7 +16,7 @@ use Inertia\Response;
 
 class OnboardingController extends Controller
 {
-    private const SECTORS = [
+    public const SECTORS = [
         'FMCG / Grande consommation',
         'Cosmétique / Beauté',
         'Alimentaire / Boisson',

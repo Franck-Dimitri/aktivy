@@ -11,6 +11,11 @@ type Props = {
 
 export default function PasskeyRegistration({ onSuccess }: Props) {
     const [name, setName] = useState(() => {
+        // Absent pendant le rendu serveur (SSR)
+        if (typeof navigator === 'undefined') {
+            return '';
+        }
+
         const ua = navigator.userAgent;
 
         const browser = [

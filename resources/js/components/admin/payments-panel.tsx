@@ -2,6 +2,7 @@ import { Download } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Panel } from '@/components/page/page';
 import { invoice as invoiceDownload } from '@/routes/admin/subscriptions';
+import { number } from '@/pages/reports/format';
 
 export type PaymentRow = {
     id: number;
@@ -11,12 +12,12 @@ export type PaymentRow = {
     amount: number;
     currency: string;
     method: string;
+    plan?: string | null;
+    extra_packs?: number;
     reference: string | null;
     paid_at: string;
     period_end: string | null;
 };
-
-const number = new Intl.NumberFormat('fr-FR');
 
 /** Montant en francs CFA, au format français. */
 export const fcfa = (amount: number, currency = 'XAF') =>
@@ -62,7 +63,12 @@ export function PaymentsPanel({
                                     )}
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                    {p.invoice_number} · {p.method}
+                                    {p.invoice_number}
+                                    {p.plan ? ` · ${p.plan}` : ''}
+                                    {p.extra_packs
+                                        ? ` + ${p.extra_packs} pack${p.extra_packs > 1 ? 's' : ''}`
+                                        : ''}{' '}
+                                    · {p.method}
                                     {p.reference
                                         ? ` · réf. ${p.reference}`
                                         : ''}{' '}

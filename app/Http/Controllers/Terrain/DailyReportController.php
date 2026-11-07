@@ -79,7 +79,7 @@ class DailyReportController extends Controller
                 'corrected'        => $report->corrected_at !== null,
                 'packs'            => $this->packs($report),
                 'photos'           => $report->photos()->oldest()->get()->map->toView(),
-                'max_photos'       => DailyReportPhoto::MAX_PER_REPORT,
+                'max_photos'       => DailyReportPhoto::maxFor($report->company),
                 'lines' => $report->lines->map(fn ($l) => [
                     'restocked'     => $restocked[$l->id] ?? 0,
                     'stock_gap'     => $l->stock_gap,

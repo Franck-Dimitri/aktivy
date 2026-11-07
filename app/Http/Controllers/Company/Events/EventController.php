@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Company\Events;
 
+use App\Support\Plans\PlanUsage;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Presenters\EventPresenter;
@@ -42,6 +43,10 @@ class EventController extends Controller
             'location'    => 'nullable|string|max:255',
             'city'        => 'nullable|string|max:100',
         ]);
+
+        if ($message = PlanUsage::exceeded($request->user()->company, 'events_per_month')) {
+            return back()->withErrors(['name' => $message])->withInput();
+        }
 
         $event = $request->user()->company->events()->create([
             ...$data,

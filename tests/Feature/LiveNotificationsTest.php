@@ -110,15 +110,12 @@ class LiveNotificationsTest extends TestCase
         Notification::assertSentTo($other, LiveNotification::class, fn ($n) => $n->type === 'assigned_to_event');
     }
 
-    public function test_module_changes_reach_the_manager_and_signups_reach_the_platform_admin()
+    public function test_plan_changes_reach_the_manager_and_signups_reach_the_platform_admin()
     {
         $admin = User::factory()->superAdmin()->create();
 
-        $this->actingAs($admin)->delete(route('admin.companies.modules.destroy', [$this->manager->company, 'stocks']))->assertSessionHasNoErrors();
-        $this->assertTrue($this->live($this->manager, 'module_deactivated'));
-
-        $this->actingAs($admin)->put(route('admin.companies.modules.update', [$this->manager->company, 'stocks']), ['ends_on' => now()->addMonth()->toDateString()])->assertSessionHasNoErrors();
-        $this->assertTrue($this->live($this->manager, 'module_activated'));
+        $this->actingAs($admin)->put(route('admin.companies.plan.update', $this->manager->company), ['plan' => 'pro', 'ends_on' => now()->addMonth()->toDateString()])->assertSessionHasNoErrors();
+        $this->assertTrue($this->live($this->manager, 'plan_changed'));
 
         auth()->logout();
         $this->post(route('register.store'), [

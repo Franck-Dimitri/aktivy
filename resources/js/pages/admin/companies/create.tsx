@@ -37,7 +37,7 @@ export default function AdminCompanyCreate({ sectors }: { sectors: string[] }) {
 
             <Page
                 title="Créer une entreprise"
-                description="L’entreprise est active tout de suite, avec 14 jours d’essai de tous les modules. Son gérant reçoit un e-mail pour choisir son mot de passe."
+                description="L’entreprise est active tout de suite, avec 14 jours d’essai de Motriks Business. Son gérant reçoit un e-mail pour choisir son mot de passe."
                 className="max-w-3xl"
             >
                 <form onSubmit={submit} className="flex flex-col gap-6">

@@ -33,8 +33,9 @@ class ReportPhotoController extends Controller
             'photo.uploaded' => 'La photo n’a pas pu être envoyée (connexion coupée ?). Réessayez.',
         ]);
 
-        if ($report->photos()->count() >= DailyReportPhoto::MAX_PER_REPORT) {
-            return back()->withErrors(['photo' => 'Ce rapport a déjà '.DailyReportPhoto::MAX_PER_REPORT.' photos (maximum).']);
+        $max = DailyReportPhoto::maxFor($report->company);
+        if ($report->photos()->count() >= $max) {
+            return back()->withErrors(['photo' => 'Ce rapport a déjà '.$max.' photo'.($max > 1 ? 's' : '').' (maximum de votre forfait).']);
         }
 
         $file = $validated['photo'];

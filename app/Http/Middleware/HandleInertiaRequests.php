@@ -94,7 +94,11 @@ class HandleInertiaRequests extends Middleware
                     // Équipe, sites, catalogue, affectations, objectifs (le superviseur sur ses sites)
                     'manageTeam' => $request->user()?->hasRole(Role::CompanyAdmin, Role::Supervisor) ?? false,
                 ],
-                // Modules payants actifs : le menu et les pages masquent ce qui n'est pas souscrit
+                // Forfait en vigueur de l'entreprise
+                'plan' => fn () => ($company = $request->user()?->company)
+                    ? ['key' => $company->currentPlan()->value, 'label' => $company->currentPlan()->label()]
+                    : null,
+                // Fonctions du forfait : le menu et les pages masquent ce qui n'est pas compris
                 'modules' => fn () => $request->user()?->company?->activeModules() ?? array_map(fn ($m) => $m->value, Module::cases()),
                 // Super administrateur connecté « en tant que » ce compte : bandeau et bouton de retour
                 'impersonator' => fn () => ($id = $request->session()->get(ImpersonationController::SESSION_KEY))

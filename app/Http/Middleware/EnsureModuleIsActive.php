@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\Module;
+use App\Enums\Plan;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,10 +29,13 @@ class EnsureModuleIsActive
             return $next($request);
         }
 
-        abort_unless($request->isMethod('GET'), 403, "Le module « {$wanted->label()} » n’est pas actif pour votre entreprise.");
+        $needed = Plan::lowestWith($wanted);
+
+        abort_unless($request->isMethod('GET'), 403, "« {$wanted->label()} » n’est pas compris dans votre forfait {$company->currentPlan()->label()} : disponible à partir de {$needed->label()}.");
 
         return Inertia::render('module-locked', [
             'module' => ['label' => $wanted->label(), 'description' => $wanted->description()],
+            'plan' => ['current' => $company->currentPlan()->label(), 'needed' => $needed->label(), 'price' => $needed->price()],
         ])->toResponse($request);
     }
 }

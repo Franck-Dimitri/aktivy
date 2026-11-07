@@ -20,7 +20,8 @@ class AuditLogController extends Controller
         'auth.login_failed' => 'Échecs de connexion',
         'auth.' => 'Connexions',
         'company.' => 'Entreprises',
-        'module.' => 'Modules',
+        'plan.' => 'Forfaits',
+        'module.' => 'Modules (ancien)',
         'subscription.' => 'Abonnements',
         'manager.' => 'Aide aux gérants',
         'admin.' => 'Connexions « en tant que »',
@@ -94,7 +95,7 @@ class AuditLogController extends Controller
         'period_end' => 'jusqu’au', 'ends_on' => 'fin', 'trial' => 'essai', 'module' => 'module',
         'emailed' => 'envoyée par e-mail', 'resolved' => 'close', 'admin' => 'administrateur',
         'manager' => 'gérant', 'status' => 'statut', 'format' => 'format', 'from' => 'du', 'to' => 'au',
-        'login' => 'identifiant', 'name' => 'nom', 'par_admin' => 'par l’administrateur',
+        'login' => 'identifiant', 'plan' => 'forfait', 'extra_packs' => 'packs', 'name' => 'nom', 'par_admin' => 'par l’administrateur',
     ];
 
     /**

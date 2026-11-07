@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\AffectationStatus;
 use App\Enums\Role;
-use App\Models\CompanyModule;
 use App\Models\ReminderLog;
 use App\Models\Site;
 use App\Models\Ticket;
@@ -169,7 +168,7 @@ class RemindersTest extends TestCase
         $event->hostesses()->create(['user_id' => $this->hostess->id]);
 
         $admin = User::factory()->superAdmin()->create();
-        CompanyModule::where('company_id', $this->manager->company_id)->where('module', 'stocks')->update(['ends_on' => '2026-11-12']);
+        $this->manager->company->update(['plan' => 'pro', 'plan_ends_on' => '2026-11-12']);
 
         $this->runAt('17:05');
 

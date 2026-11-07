@@ -1,4 +1,12 @@
-export const number = new Intl.NumberFormat('fr-FR');
+const frenchNumber = new Intl.NumberFormat('fr-FR');
+
+/**
+ * Nombres au format français. L'espace fine insécable (U+202F) d'Intl n'est pas dessinée par
+ * toutes les graisses de la police : « 42500 » au lieu de « 42 500 ». On utilise l'espace insécable.
+ */
+export const number = {
+    format: (value: number | bigint) => frenchNumber.format(value).replace(/\u202f/g, '\u00a0'),
+};
 
 /** Franc CFA (BEAC « XAF » ou BCEAO « XOF ») : affiché « FCFA », comme sur le terrain. */
 export const currencyLabel = (currency: string) => (currency === 'XAF' || currency === 'XOF' ? 'FCFA' : currency);

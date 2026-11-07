@@ -4,10 +4,10 @@ namespace App\Support\Reminders;
 
 use App\Enums\AccountStatus;
 use App\Enums\Module;
+use App\Enums\Plan;
 use App\Enums\Role;
 use App\Models\Affectation;
 use App\Models\Company;
-use App\Models\CompanyModule;
 use App\Models\DailyReport;
 use App\Models\Event;
 use App\Models\ReminderLog;
@@ -20,7 +20,6 @@ use App\Notifications\HostessesNotCheckedIn;
 use App\Notifications\ReminderNotification;
 use App\Support\Notifications\Notify;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
 
 /**
  * Rappels automatiques, évalués chaque minute (commande reminders:run).
@@ -264,9 +263,12 @@ class ReminderEngine
         }
 
         foreach ([7, 1] as $days) {
-            /** @var Collection<int, CompanyModule> $modules */
-            $modules = CompanyModule::whereDate('ends_on', $now->addDays($days)->toDateString())->with('company:id,name')->get();
-            $companies = $modules->pluck('company.name')->filter()->unique()->values()->all();
+            $companies = Company::query()
+                ->where('plan', '!=', Plan::Starter->value)
+                ->whereDate('plan_ends_on', $now->addDays($days)->toDateString())
+                ->orderBy('name')
+                ->pluck('name')
+                ->all();
 
             if ($companies) {
                 $this->once('subscriptions_expiring', "subscriptions-expiring:{$now->toDateString()}:{$days}", null, $admins, ReminderNotification::subscriptionsExpiring($companies, $days));

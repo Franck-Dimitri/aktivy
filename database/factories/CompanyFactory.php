@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\AccountStatus;
-use App\Enums\Module;
+use App\Enums\Plan;
 use App\Models\Company;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -29,27 +29,41 @@ class CompanyFactory extends Factory
             'phone' => '+2372'.fake()->numerify('########'),
             'primary_color' => fake()->hexColor(),
             'status' => AccountStatus::Active,
+            ...$this->definitionPlan(),
         ];
     }
 
     /**
-     * Comme les entreprises déjà inscrites : tous les modules payants, sans date de fin.
+     * Par défaut, Motriks Entreprise sans date de fin : toutes les fonctions, comme avant les forfaits.
+     * Les tests qui portent sur les forfaits choisissent le leur avec plan() ou starter().
      */
-    public function configure(): static
+    private function definitionPlan(): array
     {
-        return $this->afterCreating(function (Company $company) {
-            foreach (Module::cases() as $module) {
-                $company->modules()->create(['module' => $module->value, 'starts_on' => today()->subYear()->toDateString()]);
-            }
-        });
+        return ['plan' => Plan::Entreprise, 'plan_ends_on' => null, 'plan_trial' => false];
     }
 
     /**
-     * Entreprise sans aucun module payant (offre gratuite).
+     * Forfait donné, éventuellement jusqu'à une date ou en essai.
+     */
+    public function plan(Plan $plan, ?string $endsOn = null, bool $trial = false): static
+    {
+        return $this->state(fn () => ['plan' => $plan, 'plan_ends_on' => $endsOn, 'plan_trial' => $trial]);
+    }
+
+    /**
+     * Motriks Starter, le forfait gratuit.
+     */
+    public function starter(): static
+    {
+        return $this->plan(Plan::Starter);
+    }
+
+    /**
+     * Ancien nom : entreprise sans fonction payante, c'est-à-dire en Starter.
      */
     public function withoutModules(): static
     {
-        return $this->afterCreating(fn (Company $company) => $company->modules()->delete());
+        return $this->starter();
     }
 
     /**

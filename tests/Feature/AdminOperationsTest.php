@@ -2,15 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Enums\Module;
+use App\Enums\Plan;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Models\AuditLog;
-use App\Models\CompanyModule;
 use App\Models\SubscriptionPayment;
 use App\Models\SupportRequest;
 use App\Models\User;
 use App\Notifications\LiveNotification;
-use App\Notifications\ModuleExpiring;
+use App\Notifications\PlanExpiring;
 use App\Notifications\SupportReplied;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
@@ -40,10 +39,10 @@ class AdminOperationsTest extends TestCase
         $this->manager = User::factory()->create();
     }
 
-    /** Entreprise en essai : les modules de la fabrique (sans fin) sont remplacés par l'essai de 14 jours. */
+    /** Entreprise en essai : le forfait de la fabrique (sans fin) est remplacé par l'essai de 14 jours. */
     private function startTrial(): void
     {
-        $this->manager->company->modules()->delete();
+        $this->manager->company->setPlan(Plan::Starter);
         $this->manager->company->startTrial();
     }
 
@@ -54,8 +53,9 @@ class AdminOperationsTest extends TestCase
             'method' => 'orange_money',
             'reference' => 'OM-123456',
             'paid_at' => today()->toDateString(),
+            'plan' => Plan::Business->value,
+            'extra_packs' => 1,
             'period_end' => today()->addMonth()->toDateString(),
-            'modules' => [Module::Terrain->value, Module::Stocks->value],
             ...$overrides,
         ]);
     }
@@ -70,32 +70,33 @@ class AdminOperationsTest extends TestCase
         }
     }
 
-    public function test_a_payment_creates_a_numbered_invoice_and_extends_the_modules()
+    public function test_a_payment_creates_a_numbered_invoice_and_sets_the_plan()
     {
         Notification::fake();
         $this->startTrial();
 
         $this->pay()->assertSessionHasNoErrors();
-        $this->pay(['amount' => 14500])->assertSessionHasNoErrors();
+        $this->pay(['amount' => 14500, 'plan' => Plan::Pro->value, 'extra_packs' => 0])->assertSessionHasNoErrors();
 
         $payments = SubscriptionPayment::orderBy('id')->get();
         $year = now()->format('Y');
         $this->assertSame(["FAC-{$year}-0001", "FAC-{$year}-0002"], $payments->pluck('invoice_number')->all());
+        $this->assertSame(Plan::Business, $payments->first()->plan);
+        $this->assertSame(1, $payments->first()->extra_packs);
 
-        $terrain = CompanyModule::where('company_id', $this->manager->company_id)->where('module', Module::Terrain->value)->first();
-        $this->assertFalse($terrain->is_trial, 'un module payé sort de l’essai');
-        $this->assertSame(today()->addMonth()->toDateString(), $terrain->ends_on->toDateString());
-
-        // Un module non coché reste en essai
-        $this->assertTrue(CompanyModule::where('company_id', $this->manager->company_id)->where('module', Module::Events->value)->first()->is_trial);
+        $company = $this->manager->company->fresh();
+        $this->assertSame(Plan::Pro, $company->currentPlan());
+        $this->assertFalse($company->plan_trial, 'un forfait payé sort de l’essai');
+        $this->assertSame(today()->addMonth()->toDateString(), $company->plan_ends_on->toDateString());
 
         Notification::assertSentTo($this->manager, LiveNotification::class, fn ($n) => $n->type === 'payment_received');
         $this->assertDatabaseHas('audit_logs', ['action' => 'subscription.payment_recorded', 'company_id' => $this->manager->company_id]);
     }
 
-    public function test_extending_modules_needs_an_end_date()
+    public function test_a_payment_needs_a_paid_plan_and_an_end_date()
     {
         $this->pay(['period_end' => null])->assertSessionHasErrors('period_end');
+        $this->pay(['plan' => Plan::Starter->value])->assertSessionHasErrors('plan');
         $this->pay(['paid_at' => today()->addDay()->toDateString()])->assertSessionHasErrors('paid_at');
         $this->assertSame(0, SubscriptionPayment::count());
     }
@@ -121,13 +122,13 @@ class AdminOperationsTest extends TestCase
     {
         Notification::fake();
 
-        // Modules de la fabrique : sans date de fin, rien à rappeler
+        // Forfait de la fabrique : sans date de fin, rien à rappeler
         $this->actingAs($this->admin)->post(route('admin.subscriptions.remind', $this->manager->company))->assertStatus(422);
 
         $this->startTrial();
         $this->actingAs($this->admin)->post(route('admin.subscriptions.remind', $this->manager->company))->assertSessionHasNoErrors();
 
-        Notification::assertSentTo($this->manager, ModuleExpiring::class);
+        Notification::assertSentTo($this->manager, PlanExpiring::class);
     }
 
     // ── Journal d'audit ───────────────────────────────────────────────────

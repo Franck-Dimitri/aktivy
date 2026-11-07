@@ -25,6 +25,7 @@ import {
 } from '@/routes/admin/companies';
 import { index as onboardingIndex } from '@/routes/admin/onboarding';
 import { index as supportIndex } from '@/routes/admin/support';
+import { number } from '@/pages/reports/format';
 
 type CompanyLink = { id: number; name: string };
 
@@ -51,7 +52,7 @@ type Props = {
         created_at: string | null;
     })[];
     inactive_days: number;
-    trials_ending: (CompanyLink & { ends_on: string; days_left: number })[];
+    trials_ending: (CompanyLink & { plan: string; ends_on: string; days_left: number })[];
     unverified_managers: {
         id: number;
         name: string;
@@ -76,7 +77,6 @@ const STATUS: Record<string, { label: string; tone: StatusTone }> = {
     suspended: { label: 'Suspendue', tone: 'neutral' },
 };
 
-const number = new Intl.NumberFormat('fr-FR');
 
 /** Liste compacte d'une carte « À traiter » : une ligne par entreprise, avec un lien vers sa fiche. */
 function TodoList({
@@ -290,7 +290,7 @@ export default function AdminDashboard({
                                         key={t.id}
                                         id={t.id}
                                         title={t.name}
-                                        detail={`Fin le ${t.ends_on}`}
+                                        detail={`Essai ${t.plan} · fin le ${t.ends_on}`}
                                         aside={
                                             <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 tabular-nums">
                                                 <AlarmClock className="size-3" />

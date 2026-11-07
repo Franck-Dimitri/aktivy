@@ -23,7 +23,7 @@ class HelpController extends Controller
     public const TOPICS = [
         'question' => 'Une question sur l’utilisation',
         'bug' => 'Quelque chose ne fonctionne pas',
-        'billing' => 'Abonnement et modules',
+        'billing' => 'Abonnement et forfait',
         'idea' => 'Une suggestion',
     ];
 

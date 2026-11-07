@@ -3,20 +3,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\AccountStatus;
-use App\Enums\Module;
-use App\Enums\Role;
+use App\Enums\Plan;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Company;
-use App\Models\CompanyModule;
 use App\Models\SubscriptionPayment;
 use App\Notifications\LiveNotification;
-use App\Notifications\ModuleExpiring;
-use App\Support\Notifications\Notify;
+use App\Notifications\PlanExpiring;
 use App\Support\Pdf\PdfDocument;
+use App\Support\Plans\PlanPresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -24,7 +23,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Abonnements des entreprises : échéances, essais, paiements reçus (hors ligne) et factures.
+ * Abonnements des entreprises : forfaits en cours, échéances, essais, paiements reçus et factures.
  */
 class SubscriptionController extends Controller
 {
@@ -35,18 +34,16 @@ class SubscriptionController extends Controller
     {
         $today = today();
 
-        $companies = Company::query()
-            ->whereIn('status', [AccountStatus::Active, AccountStatus::Suspended])
-            ->with('modules')
-            ->orderBy('name')
-            ->get();
-
         $lastPayments = SubscriptionPayment::query()
             ->select('company_id', DB::raw('max(paid_at) as last_paid'))
             ->groupBy('company_id')
             ->pluck('last_paid', 'company_id');
 
-        $rows = $companies->map(fn (Company $c) => $this->row($c, $lastPayments[$c->id] ?? null));
+        $rows = Company::query()
+            ->whereIn('status', [AccountStatus::Active, AccountStatus::Suspended])
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Company $c) => $this->row($c, $lastPayments[$c->id] ?? null));
 
         $paidThisMonth = SubscriptionPayment::whereDate('paid_at', '>=', $today->copy()->startOfMonth()->toDateString())->sum('amount');
         $paidThisYear = SubscriptionPayment::whereDate('paid_at', '>=', $today->copy()->startOfYear()->toDateString())->sum('amount');
@@ -56,22 +53,26 @@ class SubscriptionController extends Controller
             'stats' => [
                 'paid_month' => (int) $paidThisMonth,
                 'paid_year' => (int) $paidThisYear,
+                // Revenu mensuel attendu des forfaits payants en cours (hors essais)
+                'mrr' => (int) $rows->where('state', 'paying')->sum('monthly_price'),
                 'trial' => $rows->where('state', 'trial')->count(),
                 'paying' => $rows->where('state', 'paying')->count(),
                 'soon' => $rows->where('soon', true)->count(),
                 'expired' => $rows->where('state', 'expired')->count(),
-                'none' => $rows->where('state', 'none')->count(),
+                'starter' => $rows->where('state', 'starter')->count(),
+                'by_plan' => collect(Plan::cases())->mapWithKeys(fn (Plan $p) => [$p->value => $rows->where('plan_key', $p->value)->count()]),
             ],
-            'payments' => $this->payments(SubscriptionPayment::query()->with('company:id,name')->latest('paid_at')->latest('id')->limit(50)->get()),
-            'modules' => collect(Module::cases())->map(fn (Module $m) => ['key' => $m->value, 'label' => $m->label()]),
-            'methods' => collect(SubscriptionPayment::METHODS)->map(fn ($label, $key) => ['key' => $key, 'label' => $label])->values(),
+            'payments' => self::payments(SubscriptionPayment::query()->with('company:id,name')->latest('paid_at')->latest('id')->limit(50)->get()),
+            'plans' => self::planOptions(),
+            'methods' => self::methodOptions(),
+            'pack_price' => Plan::PACK_PRICE,
             'soon_days' => self::SOON_DAYS,
         ]);
     }
 
     /**
-     * Enregistre un paiement reçu, prolonge les modules choisis jusqu'à la fin de la période
-     * (ils ne sont plus en essai) et prévient le gérant.
+     * Enregistre un paiement reçu : facture numérotée, forfait mis en place jusqu'à la fin de la
+     * période (il sort de l'essai), gérant prévenu.
      */
     public function store(Request $request, Company $company): RedirectResponse
     {
@@ -80,93 +81,76 @@ class SubscriptionController extends Controller
             'method' => ['required', Rule::in(array_keys(SubscriptionPayment::METHODS))],
             'reference' => ['nullable', 'string', 'max:120'],
             'paid_at' => ['required', 'date', 'before_or_equal:today'],
-            'period_end' => ['nullable', 'date', 'after_or_equal:paid_at'],
-            'modules' => ['array'],
-            'modules.*' => [Rule::in(array_map(fn (Module $m) => $m->value, Module::cases()))],
+            'plan' => ['required', Rule::in(array_map(fn (Plan $p) => $p->value, array_filter(Plan::cases(), fn (Plan $p) => $p !== Plan::Starter)))],
+            'extra_packs' => ['nullable', 'integer', 'min:0', 'max:50'],
+            'period_end' => ['required', 'date', 'after_or_equal:paid_at', 'after_or_equal:today'],
             'notes' => ['nullable', 'string', 'max:500'],
         ], [
             'paid_at.before_or_equal' => 'La date de paiement ne peut pas être dans le futur.',
-            'period_end.after_or_equal' => 'La fin de période doit être après la date de paiement.',
+            'period_end.after_or_equal' => 'La fin de période doit être après la date de paiement, et pas dans le passé.',
+            'plan.in' => 'Choisissez un forfait payant.',
         ], [
             'amount' => 'Le montant',
             'method' => 'Le moyen de paiement',
             'paid_at' => 'La date de paiement',
             'period_end' => 'La fin de période',
+            'plan' => 'Le forfait',
         ]);
 
-        $modules = array_values(array_unique($data['modules'] ?? []));
+        $plan = Plan::from($data['plan']);
+        $packs = (int) ($data['extra_packs'] ?? 0);
 
-        if ($modules !== [] && empty($data['period_end'])) {
-            return back()->withErrors(['period_end' => 'Indiquez jusqu’à quand les modules sont prolongés.']);
-        }
-
-        $payment = DB::transaction(function () use ($company, $data, $modules, $request) {
+        $payment = DB::transaction(function () use ($company, $data, $plan, $packs, $request) {
             $payment = SubscriptionPayment::create([
                 'company_id' => $company->id,
                 'invoice_number' => SubscriptionPayment::nextInvoiceNumber(),
                 'amount' => $data['amount'],
                 'currency' => $company->currency ?: 'XAF',
                 'method' => $data['method'],
+                'plan' => $plan,
+                'extra_packs' => $packs,
                 'reference' => $data['reference'] ?? null,
                 'paid_at' => $data['paid_at'],
-                'period_start' => $modules !== [] ? $data['paid_at'] : null,
-                'period_end' => $data['period_end'] ?? null,
-                'modules' => $modules ?: null,
+                'period_start' => $data['paid_at'],
+                'period_end' => $data['period_end'],
                 'notes' => $data['notes'] ?? null,
                 'recorded_by' => $request->user()->id,
             ]);
 
-            foreach ($modules as $key) {
-                $existing = CompanyModule::where('company_id', $company->id)->where('module', $key)->first();
-
-                CompanyModule::updateOrCreate(
-                    ['company_id' => $company->id, 'module' => $key],
-                    [
-                        // Un module encore actif garde sa date de départ
-                        'starts_on' => $existing?->isActive() ? $existing->starts_on->toDateString() : today()->toDateString(),
-                        'ends_on' => $data['period_end'],
-                        'is_trial' => false,
-                        'activated_by' => $request->user()->id,
-                        'notes' => 'Facture '.$payment->invoice_number,
-                    ],
-                );
-            }
+            $company->setPlan($plan, Carbon::parse($data['period_end']), trial: false, extraPacks: $packs);
 
             AuditLog::record('subscription.payment_recorded', $company, new: [
                 'invoice' => $payment->invoice_number,
                 'amount' => $payment->amount,
                 'method' => $payment->method,
-                'modules' => $modules,
-                'period_end' => $data['period_end'] ?? null,
+                'plan' => $plan->value,
+                'extra_packs' => $packs,
+                'period_end' => $data['period_end'],
             ]);
 
             return $payment;
         });
 
-        $this->notifyManagers($company, LiveNotification::paymentReceived(
+        CompanyPlanController::notifyManagers($company, LiveNotification::paymentReceived(
             $payment->invoice_number,
             $payment->amount,
             $payment->currency,
             $payment->period_end?->format('d/m/Y'),
         ));
 
-        return back()->with('success', "Paiement enregistré : facture {$payment->invoice_number}.");
+        return back()->with('success', "Paiement enregistré : facture {$payment->invoice_number}, {$plan->label()} jusqu’au {$payment->period_end->format('d/m/Y')}.");
     }
 
     /**
-     * Relance le gérant sur la prochaine échéance de ses modules (ou le dernier module expiré).
+     * Relance le gérant sur la fin de son forfait (ou de son essai), même s'il vient d'expirer.
      */
     public function remind(Company $company): RedirectResponse
     {
-        $modules = $company->modules()->whereNotNull('ends_on')->get();
-        $next = $modules->filter->isActive()->sortBy('ends_on')->first()
-            ?? $modules->sortByDesc('ends_on')->first();
+        abort_if($company->plan === Plan::Starter || $company->plan_ends_on === null, 422, 'Cette entreprise n’a aucune échéance à rappeler.');
 
-        abort_if($next === null, 422, 'Cette entreprise n’a aucune échéance à rappeler.');
-
-        $days = (int) today()->diffInDays($next->ends_on, false);
-        $this->notifyManagers($company, new ModuleExpiring($next->module->label(), $days < 0 ? -1 : $days, $next->ends_on->format('d/m/Y')));
-        AuditLog::record('subscription.reminder_sent', $company, new: ['module' => $next->module->value, 'ends_on' => $next->ends_on->toDateString()]);
+        $days = (int) today()->diffInDays($company->plan_ends_on, false);
+        CompanyPlanController::notifyManagers($company, new PlanExpiring($company->plan->label(), $days < 0 ? -1 : $days, $company->plan_ends_on->format('d/m/Y'), (bool) $company->plan_trial));
+        AuditLog::record('subscription.reminder_sent', $company, new: ['plan' => $company->plan->value, 'ends_on' => $company->plan_ends_on->toDateString()]);
 
         return back()->with('success', "Relance envoyée au gérant de « {$company->name} ».");
     }
@@ -200,7 +184,7 @@ class SubscriptionController extends Controller
             'billing' => $billing,
             'payment' => $payment,
             'client' => $payment->company,
-            'modules' => collect($payment->modules ?? [])->map(fn ($key) => Module::tryFrom($key)?->label())->filter()->values(),
+            'pack' => ['hostesses' => Plan::PACK_HOSTESSES, 'sites' => Plan::PACK_SITES],
         ], 'facture-'.strtolower($payment->invoice_number).'.pdf');
     }
 
@@ -218,48 +202,54 @@ class SubscriptionController extends Controller
             'amount' => $p->amount,
             'currency' => $p->currency,
             'method' => $p->methodLabel(),
+            'plan' => $p->plan?->label(),
+            'extra_packs' => $p->extra_packs,
             'reference' => $p->reference,
             'paid_at' => $p->paid_at->format('d/m/Y'),
             'period_end' => $p->period_end?->format('d/m/Y'),
         ]);
     }
 
+    /** @return list<array{key: string, label: string, price: int, accepts_packs: bool}> */
+    public static function planOptions(): array
+    {
+        return array_map(fn (Plan $p) => ['key' => $p->value, 'label' => $p->label(), 'price' => $p->price(), 'accepts_packs' => $p->acceptsPacks()], Plan::cases());
+    }
+
+    /** @return Collection<int, array{key: string, label: string}> */
+    public static function methodOptions(): Collection
+    {
+        return collect(SubscriptionPayment::METHODS)->map(fn ($label, $key) => ['key' => $key, 'label' => $label])->values();
+    }
+
     /** @return array<string, mixed> */
     private function row(Company $company, ?string $lastPaid): array
     {
-        $active = $company->modules->filter->isActive();
-        $ends = $active->pluck('ends_on')->filter()->sort()->values();
-        $nextEnd = $ends->first();
-        $daysLeft = $nextEnd ? (int) today()->diffInDays($nextEnd, false) : null;
+        $state = PlanPresenter::state($company);
 
-        $state = match (true) {
-            $active->isNotEmpty() && $active->every(fn ($m) => $m->is_trial) => 'trial',
-            $active->isNotEmpty() => 'paying',
-            $company->modules->isNotEmpty() => 'expired',
-            default => 'none',
+        $kind = match (true) {
+            $state['expired'] => 'expired',
+            $state['key'] === Plan::Starter->value => 'starter',
+            $state['trial'] => 'trial',
+            default => 'paying',
         };
 
         return [
             'id' => $company->id,
             'name' => $company->name,
             'status' => $company->status->value,
-            'state' => $state,
-            'active_modules' => $active->count(),
-            'total_modules' => count(Module::cases()),
-            'next_end' => $nextEnd?->format('d/m/Y'),
-            'next_end_iso' => $nextEnd?->toDateString(),
-            'days_left' => $daysLeft,
-            'soon' => $daysLeft !== null && $daysLeft <= self::SOON_DAYS,
-            'active_keys' => $active->map(fn ($m) => $m->module->value)->values(),
+            'state' => $kind,
+            'plan_key' => $state['key'],
+            'plan' => $state['label'],
+            'subscribed_plan' => $state['subscribed_label'],
+            'subscribed_key' => $state['subscribed_key'],
+            'ends_on' => $state['ends_on'],
+            'days_left' => $state['days_left'],
+            'soon' => $state['days_left'] !== null && $state['days_left'] <= self::SOON_DAYS,
+            'extra_packs' => $state['extra_packs'],
+            'monthly_price' => $state['monthly_price'],
+            'can_remind' => $company->plan !== Plan::Starter && $company->plan_ends_on !== null,
             'last_paid' => $lastPaid ? date('d/m/Y', strtotime($lastPaid)) : null,
         ];
-    }
-
-    private function notifyManagers(Company $company, $notification): void
-    {
-        $managers = $company->users()->where('role', Role::CompanyAdmin)->where('status', AccountStatus::Active)->get();
-        if ($managers->isNotEmpty()) {
-            Notify::send($managers, $notification);
-        }
     }
 }

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\AccountStatus;
+use App\Enums\Plan;
 use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
-use App\Models\CompanyModule;
 use App\Models\SupportRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -62,20 +62,19 @@ class DashboardController extends Controller
             ])
             ->values();
 
-        $trialsEnding = CompanyModule::query()
-            ->where('is_trial', true)
-            ->whereBetween('ends_on', [$today->toDateString(), $today->copy()->addDays(7)->toDateString()])
-            ->select('company_id', DB::raw('min(ends_on) as ends_on'))
-            ->groupBy('company_id')
+        $trialsEnding = Company::query()
+            ->where('plan', '!=', Plan::Starter->value)
+            ->where('plan_trial', true)
+            ->whereBetween('plan_ends_on', [$today->toDateString(), $today->copy()->addDays(7)->toDateString()])
+            ->orderBy('plan_ends_on')
             ->get()
-            ->map(fn ($row) => [
-                'id' => $row->company_id,
-                'name' => Company::find($row->company_id)?->name,
-                'ends_on' => date('d/m/Y', strtotime($row->ends_on)),
-                'days_left' => (int) $today->diffInDays($row->ends_on, true),
+            ->map(fn (Company $c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'plan' => $c->plan->label(),
+                'ends_on' => $c->plan_ends_on->format('d/m/Y'),
+                'days_left' => (int) $today->diffInDays($c->plan_ends_on, true),
             ])
-            ->filter(fn ($row) => $row['name'] !== null)
-            ->sortBy('days_left')
             ->values();
 
         $unverified = User::query()

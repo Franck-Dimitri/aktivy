@@ -1,31 +1,33 @@
 # Motriks
 
-> Motriks est une plateforme web de gestion d'équipes terrain pour les entreprises de distribution, d'animation commerciale et de promotion en Afrique francophone. Elle remplace les messages WhatsApp, les tableurs et les rapports papier par un seul outil : suivi des hôtesses et commerciaux, présences, stocks, ventes, rapports PDF et analyses par intelligence artificielle.
+> Motriks est une plateforme web de gestion d'équipes terrain pour les entreprises de distribution, d'animation commerciale et de promotion au Cameroun et en Afrique francophone. Elle remplace les messages WhatsApp, les tableurs et les rapports papier par un seul outil : suivi des hôtesses et des superviseurs, présences, points de vente, stocks, ventes et rapports PDF. Motriks est basée à Yaoundé (Cameroun).
 
 ## Fonctionnalités
 
-- Suivi des équipes terrain (hôtesses, superviseurs) et de leurs affectations par site
+- Suivi des équipes terrain (hôtesses, superviseurs) et de leurs affectations par point de vente
 - Saisie des ventes, des stocks et des présences depuis un téléphone, même avec un réseau instable (mode hors-ligne)
-- Tableaux de bord en temps réel et rapports PDF / Excel
+- Tableaux de bord en temps réel, objectifs, rapports PDF et exports Excel
 - Gestion des événements commerciaux (animations, dégustations, lancements)
-- Assistant d'intelligence artificielle qui signale où agir
+- Rappels automatiques (prise de service, rapports, stocks bas)
 - Espace isolé par entreprise, journal d'audit, sauvegardes quotidiennes
 
-## Offres
+## Forfaits (prix mensuels en FCFA)
 
-- Gratuit : socle entreprise, statistiques de base, jusqu'à 5 utilisateurs
-- Modules payants (bientôt) : suivi terrain, reporting, exports, essai gratuit de 7 jours
-- Premium (bientôt) : IA, marque blanche, API, support prioritaire
-- Paiement par Mobile Money (MTN MoMo, Orange Money) et carte bancaire
+- Motriks Starter : gratuit, sans limite de durée, pour démarrer (jusqu'à 3 hôtesses et 3 points de vente)
+- Motriks Pro : 14 500 FCFA par mois
+- Motriks Business : 36 000 FCFA par mois ; toute nouvelle entreprise l'essaie 14 jours gratuitement
+- Motriks Entreprise : 62 500 FCFA par mois
+- Paiement par Mobile Money (Orange Money, MTN MoMo)
 
 ## Pages
 
-- [Accueil](https://motriks.com/): présentation, fonctionnalités, tarifs et FAQ
+- [Accueil](https://motriks.com/): présentation, fonctionnalités, forfaits et FAQ
 - [Créer un espace entreprise](https://motriks.com/register): inscription gratuite
-- [Contact](https://motriks.com/contact): demande de démo ou question
+- [Contact](https://motriks.com/contact): demande de démonstration ou question
 - [Conditions d'utilisation](https://motriks.com/conditions)
 - [Politique de confidentialité](https://motriks.com/confidentialite)
 
 ## Contact
 
-- Email : contact@motriks.com
+- E-mail : contact@motriks.com
+- Adresse : Yaoundé, Cameroun

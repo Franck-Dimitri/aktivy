@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\AccountStatus;
 use App\Enums\Role;
+use App\Notifications\Auth\QueuedResetPassword;
+use App\Notifications\Auth\QueuedVerifyEmail;
 use App\Support\PhoneNumber;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -279,8 +281,19 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function sendEmailVerificationNotification(): void
     {
         if ($this->email !== null) {
-            parent::sendEmailVerificationNotification();
+            // En file d'attente : la page répond sans attendre le serveur d'e-mail
+            $this->notify(new QueuedVerifyEmail);
         }
+    }
+
+    /**
+     * Send the password reset notification (en file d'attente).
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new QueuedResetPassword($token));
     }
 
     /**

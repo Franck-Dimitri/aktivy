@@ -44,11 +44,18 @@ return [
     'billing' => [
         'name' => env('BILLING_NAME', 'Motriks'),
         'address' => env('BILLING_ADDRESS'),
-        'city' => env('BILLING_CITY', 'Douala, Cameroun'),
+        'city' => env('BILLING_CITY', 'Yaoundé, Cameroun'),
         'phone' => env('BILLING_PHONE', env('SUPPORT_WHATSAPP')),
         'email' => env('BILLING_EMAIL', env('SUPPORT_EMAIL', env('MAIL_FROM_ADDRESS'))),
         'niu' => env('BILLING_NIU'),
         'rccm' => env('BILLING_RCCM'),
+        // Moyens de paiement affichés sur les factures (seuls ceux renseignés apparaissent)
+        'orange_money' => env('BILLING_ORANGE_MONEY'),
+        'mtn_momo' => env('BILLING_MTN_MOMO'),
+        'bank' => env('BILLING_BANK'),
+        'card' => env('BILLING_CARD'),
+        // Conditions et mentions de bas de facture (ex. « TVA non applicable »), si besoin
+        'terms' => env('BILLING_TERMS'),
     ],
 
 ];

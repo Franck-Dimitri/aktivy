@@ -239,7 +239,6 @@ export default function Confidentialite({ paymentLogos }: { paymentLogos?: { nam
     return (
         <LegalLayout
             title="Politique de confidentialité"
-            metaDescription={`Comment ${L.product} collecte, utilise et protège les données personnelles.`}
             intro={
                 <p>
                     Quelles données {L.product} traite, pourquoi, avec qui elles sont partagées, combien de temps elles sont conservées et

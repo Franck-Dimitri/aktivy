@@ -287,7 +287,7 @@ export default function EventsIndex({ events }: { events: EventItem[] }) {
             <Page
                 title="Événements commerciaux"
                 description="Salons, foires et opérations promotionnelles."
-                className="max-w-6xl"
+               
                 actions={
                     events.length > 0 && (
                         <ActionButton icon={<Plus />} onClick={() => setCreating(true)}>

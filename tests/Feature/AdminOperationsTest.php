@@ -93,6 +93,22 @@ class AdminOperationsTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'subscription.payment_recorded', 'company_id' => $this->manager->company_id]);
     }
 
+    public function test_the_invoices_page_lists_every_invoice_and_the_subscription_page_only_the_last()
+    {
+        $this->pay();
+        $this->pay(['paid_at' => today()->toDateString()]);
+        $last = SubscriptionPayment::latest('paid_at')->latest('id')->firstOrFail();
+
+        $this->actingAs($this->manager)->get(route('company.invoices.index'))
+            ->assertInertia(fn ($page) => $page->component('company/invoices')
+                ->has('invoices', 2)
+                ->where('summary.count', 2)
+                ->where('invoices.0.invoice_number', $last->invoice_number));
+
+        $this->actingAs($this->manager)->get(route('company.subscription'))
+            ->assertInertia(fn ($page) => $page->has('payments', 1)->where('paymentsCount', 2));
+    }
+
     public function test_a_payment_needs_a_paid_plan_and_an_end_date()
     {
         $this->pay(['period_end' => null])->assertSessionHasErrors('period_end');
@@ -185,6 +201,26 @@ class AdminOperationsTest extends TestCase
         Notification::assertSentTo(new AnonymousNotifiable, SupportReplied::class, fn ($n, $channels, $notifiable) => array_key_exists('awa@example.com', (array) $notifiable->routes['mail']));
         $this->assertSame('resolved', $request->fresh()->status);
         $this->assertTrue($request->replies()->first()->emailed);
+    }
+
+    public function test_the_support_inbox_searches_and_opens_a_request_in_the_reply_window()
+    {
+        $tarifs = SupportRequest::create(['source' => 'contact', 'topic' => 'Tarifs', 'name' => 'Awa Mbarga', 'email' => 'awa@example.com', 'message' => 'Combien coûte Pro ?']);
+        SupportRequest::create(['source' => 'help', 'topic' => 'Rapport bloqué', 'name' => 'Paul', 'company_id' => $this->manager->company_id, 'message' => 'Le rapport ne part pas.']);
+
+        // Recherche sur le nom, l'e-mail, le sujet ou l'entreprise
+        $this->actingAs($this->admin)->get(route('admin.support.index', ['q' => 'awa@']))
+            ->assertInertia(fn ($page) => $page->component('admin/support/index')->has('requests.data', 1)->where('requests.data.0.topic', 'Tarifs')->where('selected', null));
+        $this->actingAs($this->admin)->get(route('admin.support.index', ['q' => $this->manager->company->name]))
+            ->assertInertia(fn ($page) => $page->has('requests.data', 1)->where('requests.data.0.topic', 'Rapport bloqué'));
+
+        // Un lien direct ouvre la boîte de réception, demande ouverte dans la fenêtre de réponse
+        $this->actingAs($this->admin)->get(route('admin.support.show', $tarifs))
+            ->assertRedirect(route('admin.support.index', ['demande' => $tarifs->id]));
+        $this->actingAs($this->admin)->get(route('admin.support.index', ['demande' => $tarifs->id]))
+            ->assertInertia(fn ($page) => $page->where('selected.id', $tarifs->id)->where('selected.email', 'awa@example.com')->has('selected.replies', 0));
+
+        $this->actingAs($this->manager)->get(route('admin.support.index'))->assertForbidden();
     }
 
     // ── Connexion « en tant que » ─────────────────────────────────────────

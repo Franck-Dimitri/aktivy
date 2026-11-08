@@ -1,17 +1,39 @@
+# Motriks : seules les pages publiques sont à explorer (accueil, contact, inscription, pages légales).
+# L'espace connecté exige une connexion ; les pages de connexion et de mot de passe portent « noindex ».
 User-agent: *
 Allow: /
+
+# Espace connecté et administration
 Disallow: /admin
 Disallow: /dashboard
 Disallow: /onboarding
 Disallow: /terrain
 Disallow: /settings
+Disallow: /aide
+Disallow: /notifications
+Disallow: /abonnement
+Disallow: /entreprise
+Disallow: /import
+Disallow: /mes-donnees
+Disallow: /activite
+Disallow: /rapports
+Disallow: /objectifs-semaine
+Disallow: /stock/
+Disallow: /tickets
 Disallow: /sites
 Disallow: /personnel
 Disallow: /affectations
 Disallow: /products
 Disallow: /events
+Disallow: /storage/
+
+# Liens personnels (e-mails, invitations, réinitialisation)
 Disallow: /email/
+Disallow: /invitation/
 Disallow: /reset-password/
 Disallow: /password/
+Disallow: /two-factor-challenge
+Disallow: /user/
+Disallow: /_inertia/
 
 Sitemap: https://motriks.com/sitemap.xml

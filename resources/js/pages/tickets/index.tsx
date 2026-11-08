@@ -114,7 +114,7 @@ export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
         <>
             <Head title="Tickets" />
 
-            <Page title="Tickets" description="Les demandes de votre équipe terrain, et vos réponses." className="max-w-5xl">
+            <Page title="Tickets" description="Les demandes de votre équipe terrain, et vos réponses.">
                 {tickets.length === 0 ? (
                     <div className="rounded-2xl border border-slate-200/80 bg-white dark:border-sidebar-border dark:bg-card">
                         <QuietEmpty icon={MessageCircleQuestion} title="Aucune demande pour le moment">

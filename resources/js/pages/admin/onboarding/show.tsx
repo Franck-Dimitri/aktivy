@@ -197,7 +197,7 @@ export default function AdminOnboardingShow({ company, admin }: Props) {
         <>
             <Head title={`Dossier — ${company.name}`} />
 
-            <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <div className="mx-auto flex w-full flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
                 {/* En-tête du dossier */}
                 <div className="flex flex-col gap-5">
                     <Link href={onboardingIndex().url} className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-ink">

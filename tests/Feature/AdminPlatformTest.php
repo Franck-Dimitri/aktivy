@@ -7,8 +7,8 @@ use App\Enums\Role;
 use App\Models\Company;
 use App\Models\User;
 use App\Notifications\CompanyInvitation;
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\Auth\QueuedResetPassword as ResetPassword;
+use App\Notifications\Auth\QueuedVerifyEmail as VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
@@ -48,10 +48,28 @@ class AdminPlatformTest extends TestCase
     {
         $manager = User::factory()->create();
 
-        foreach ([route('admin.dashboard'), route('admin.companies.create'), route('admin.companies.show', $manager->company)] as $url) {
+        foreach ([route('admin.dashboard'), route('admin.companies.index'), route('admin.companies.show', $manager->company)] as $url) {
             $this->actingAs($manager)->get($url)->assertForbidden();
             $this->actingAs($this->admin)->get($url)->assertOk();
         }
+
+        // La création se fait dans un modal de la liste : l'ancienne adresse l'ouvre
+        $this->actingAs($manager)->get(route('admin.companies.create'))->assertForbidden();
+        $this->actingAs($this->admin)->get(route('admin.companies.create'))->assertRedirect(route('admin.companies.index', ['creer' => 1]));
+        $this->actingAs($this->admin)->get(route('admin.companies.index'))
+            ->assertInertia(fn ($page) => $page->component('admin/companies/index')->has('sectors'));
+    }
+
+    public function test_the_dashboard_shows_the_last_30_days_and_the_plans()
+    {
+        $this->actingAs($this->admin)->get(route('admin.dashboard'))
+            ->assertInertia(fn ($page) => $page
+                ->has('series', 30)
+                ->where('series.29.date', today()->toDateString())
+                ->has('plans')
+                ->has('sectors')
+                ->where('paid_month', 0)
+                ->has('signups_month'));
     }
 
     public function test_the_dashboard_lists_what_needs_attention()

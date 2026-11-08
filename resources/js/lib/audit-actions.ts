@@ -26,6 +26,24 @@ export const AUDIT_ACTIONS: Record<string, string> = {
     'admin.impersonation_started': 'Connexion « en tant que » le gérant',
     'admin.impersonation_ended': 'Fin de la connexion « en tant que »',
     'support.replied': 'Réponse du support',
+    'staff.document_added': 'Document du personnel ajouté',
+    'import.done': 'Import de fichier terminé',
+    'daily_report.validated': 'Rapport validé',
 };
 
 export const auditLabel = (action: string) => AUDIT_ACTIONS[action] ?? action;
+
+/** Famille d'une action (icône et couleur dans le journal). */
+export type AuditFamily = 'login' | 'failed' | 'company' | 'billing' | 'admin' | 'support' | 'data' | 'account' | 'field';
+
+export function auditFamily(action: string): AuditFamily {
+    if (action === 'auth.login_failed') return 'failed';
+    if (action.startsWith('auth.')) return 'login';
+    if (action.startsWith('admin.') || action.startsWith('manager.') || action.endsWith('_by_admin')) return 'admin';
+    if (action.startsWith('subscription.') || action.startsWith('plan.') || action.startsWith('module.')) return 'billing';
+    if (action.startsWith('support.')) return 'support';
+    if (action.startsWith('reports.') || action.startsWith('import.') || action === 'company.data_exported') return 'data';
+    if (action.startsWith('company.')) return 'company';
+    if (action.startsWith('user.')) return 'account';
+    return 'field';
+}

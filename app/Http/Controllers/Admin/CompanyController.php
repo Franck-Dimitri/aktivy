@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -52,7 +53,11 @@ class CompanyController extends Controller
                 'plan_trial' => $c->currentPlan() !== Plan::Starter && (bool) $c->plan_trial,
             ]);
 
-        return Inertia::render('admin/companies/index', ['companies' => $companies]);
+        return Inertia::render('admin/companies/index', [
+            'companies' => $companies,
+            // Pour le formulaire « Créer une entreprise » (modal)
+            'sectors' => OnboardingController::SECTORS,
+        ]);
     }
 
     /**
@@ -78,6 +83,8 @@ class CompanyController extends Controller
                 'email' => $company->email,
                 'phone' => $company->phone,
                 'currency' => $company->currency ?: 'XAF',
+                // Logo enregistré par le gérant dans « Identité & marque »
+                'logo_url' => $company->logo_path ? Storage::disk('public')->url($company->logo_path) : null,
                 'created_at' => $company->created_at?->format('d/m/Y'),
                 'has_file' => $company->onboarding_completed_at !== null,
                 'rejection_reason' => $company->rejection_reason,
@@ -135,11 +142,12 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function create(): Response
+    /**
+     * La création se fait dans un modal de la liste des entreprises : l'ancienne adresse l'ouvre directement.
+     */
+    public function create(): RedirectResponse
     {
-        return Inertia::render('admin/companies/create', [
-            'sectors' => OnboardingController::SECTORS,
-        ]);
+        return redirect()->route('admin.companies.index', ['creer' => 1]);
     }
 
     /**
@@ -163,6 +171,10 @@ class CompanyController extends Controller
             'manager_email' => ['required', 'email', 'max:255', Rule::unique(User::class, 'email')],
             'manager_phone' => ['nullable', 'string', 'max:20', Rule::unique(User::class, 'phone')],
         ], [
+            'name.required' => 'Indiquez le nom de l’entreprise.',
+            'manager_name.required' => 'Indiquez le nom du gérant.',
+            'manager_email.required' => 'Indiquez l’e-mail du gérant : l’invitation y sera envoyée.',
+            'manager_email.email' => 'Cette adresse e-mail n’est pas valide.',
             'manager_email.unique' => 'Cette adresse e-mail est déjà utilisée par un autre compte.',
             'manager_phone.unique' => 'Ce numéro est déjà utilisé par un autre compte.',
         ], [

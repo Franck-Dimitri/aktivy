@@ -62,7 +62,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('import/{type}', [ImportController::class, 'store'])->middleware('throttle:10,1')->name('company.import.store');
 
             Route::get('abonnement', SubscriptionController::class)->name('company.subscription');
+            Route::get('abonnement/factures', [InvoiceController::class, 'index'])->name('company.invoices.index');
+            Route::get('abonnement/factures/{payment}/apercu', [InvoiceController::class, 'preview'])->name('company.invoices.preview');
             Route::get('abonnement/factures/{payment}', [InvoiceController::class, 'show'])->name('company.invoices.show');
+            Route::get('abonnement/factures/{payment}/telecharger', [InvoiceController::class, 'show'])->name('company.invoices.download');
 
             Route::get('mes-donnees', [DataExportController::class, 'show'])->name('company.data-export');
             // Préparation en arrière-plan, puis téléchargement pendant 24 h

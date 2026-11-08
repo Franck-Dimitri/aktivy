@@ -1,57 +1,96 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Lock } from 'lucide-react';
+import { ArrowRight, Check, Lock, ShieldCheck } from 'lucide-react';
 import { buttonClass } from '@/components/page/buttons';
-import { Page, Panel } from '@/components/page/page';
+import { Page } from '@/components/page/page';
+import { contact } from '@/routes';
 import { subscription as companySubscription } from '@/routes/company';
 import { number } from '@/pages/reports/format';
 
 type Props = {
     module: { label: string; description: string };
-    plan?: { current: string; needed: string; price: number };
+    plan?: { current: string; needed: string; price: number; highlights?: string[] };
 };
 
-const fcfa = number;
-
-/** Page affichée à la place d'une fonction que le forfait de l'entreprise ne comprend pas. */
+/**
+ * Page affichée à la place d'une fonction que le forfait ne comprend pas (lien verrouillé du menu) :
+ * ce qu'elle apporte, le forfait qui la débloque et comment y passer.
+ */
 export default function ModuleLocked({ module, plan }: Props) {
     const { auth } = usePage().props;
     const isManager = auth.user.role === 'company_admin';
+    const highlights = (plan?.highlights ?? []).slice(0, 5);
 
     return (
         <>
             <Head title={module.label} />
 
             <Page title={module.label}>
-                <Panel>
-                    <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-                        <span className="flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
-                            <Lock className="size-5" />
-                        </span>
-                        <h2 className="text-lg font-semibold text-ink">
-                            {plan
-                                ? `Disponible à partir de ${plan.needed}`
-                                : 'Non compris dans votre forfait'}
-                        </h2>
-                        <p className="max-w-md text-sm text-slate-600">
-                            {module.description}
-                        </p>
-                        <p className="max-w-md text-sm text-slate-500">
-                            {plan &&
-                                `Votre entreprise est en ${plan.current}. `}
-                            {isManager
-                                ? `Vos données sont conservées.${plan && plan.price > 0 ? ` ${plan.needed} : ${fcfa.format(plan.price)} FCFA par mois.` : ''}`
-                                : 'Vos données sont conservées. Parlez-en à votre gérant.'}
-                        </p>
-                        {isManager && (
-                            <Link
-                                href={companySubscription().url}
-                                className={buttonClass('primary', 'md', 'mt-2')}
-                            >
-                                Voir les forfaits
-                            </Link>
+                <div className="mx-auto w-full max-w-3xl">
+                    <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+                        {/* Ce que fait la fonction */}
+                        <div className="relative bg-gradient-to-b from-green-50/80 to-white px-6 pt-10 pb-8 text-center sm:px-12">
+                            <span className="relative mx-auto flex size-14 items-center justify-center rounded-2xl bg-white text-motriks-deep shadow-sm ring-1 ring-green-600/15">
+                                <Lock className="size-6" />
+                            </span>
+                            {plan && (
+                                <p className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold text-motriks-deep ring-1 ring-green-600/15">
+                                    Disponible avec {plan.needed}
+                                </p>
+                            )}
+                            <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-700">{module.description}</p>
+                        </div>
+
+                        {/* Le forfait qui la débloque */}
+                        {plan && (
+                            <div className="border-t border-slate-100 px-6 py-7 sm:px-12">
+                                <div className="flex flex-wrap items-baseline justify-between gap-3">
+                                    <p className="text-sm font-semibold text-ink">Avec {plan.needed}, vous avez aussi :</p>
+                                    {plan.price > 0 && (
+                                        <p className="text-sm text-slate-500">
+                                            <span className="text-lg font-semibold text-ink tabular-nums">{number.format(plan.price)}</span> FCFA /
+                                            mois
+                                        </p>
+                                    )}
+                                </div>
+                                {highlights.length > 0 && (
+                                    <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                                        {highlights.map((h) => (
+                                            <li key={h} className="flex items-start gap-2.5 text-sm text-slate-700">
+                                                <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-motriks text-white">
+                                                    <Check className="size-2.5" strokeWidth={3.5} />
+                                                </span>
+                                                {h}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
                         )}
-                    </div>
-                </Panel>
+
+                        {/* Comment y passer */}
+                        <div className="flex flex-col items-center gap-4 border-t border-slate-100 bg-slate-50/60 px-6 py-6 text-center sm:px-12">
+                            {isManager ? (
+                                <div className="flex flex-wrap justify-center gap-2.5">
+                                    <Link href={companySubscription().url} className={buttonClass('primary')}>
+                                        Voir les forfaits
+                                        <ArrowRight />
+                                    </Link>
+                                    <Link href={contact().url} className={buttonClass('secondary')}>
+                                        Nous contacter
+                                    </Link>
+                                </div>
+                            ) : (
+                                <p className="text-sm font-medium text-slate-700">
+                                    Parlez-en à votre gérant : c’est lui qui choisit le forfait de l’entreprise.
+                                </p>
+                            )}
+                            <p className="flex items-center gap-1.5 text-xs text-slate-500">
+                                <ShieldCheck className="size-3.5 text-motriks-deep" />
+                                {plan ? `Votre entreprise est en ${plan.current}. ` : ''}Vos données sont conservées.
+                            </p>
+                        </div>
+                    </section>
+                </div>
             </Page>
         </>
     );

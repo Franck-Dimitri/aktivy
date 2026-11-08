@@ -38,7 +38,7 @@ export function AppSidebar() {
     const { auth } = usePage().props;
     const { isMobile, setOpenMobile } = useSidebar();
     const isPending = auth.company?.status === 'pending' || auth.company?.status === 'rejected';
-    const normalGroups = menuFor(auth.user.role, auth.modules);
+    const normalGroups = menuFor(auth.user.role, auth.modules, auth.lockedModules);
     const groups = isPending ? pendingMenu(normalGroups) : normalGroups;
     const home = isPending ? onboardingShow().url : (groups[0].items[0].href ?? '/');
     const companyName = auth.company?.name ?? 'Motriks';
@@ -93,25 +93,29 @@ export function AppSidebar() {
             <SidebarFooter className="p-0">
                 <div className="mx-3 h-px bg-sidebar-border group-data-[collapsible=icon]:mx-2" />
 
-                {/* Aide */}
-                <div className="px-3 pt-1.5 group-data-[collapsible=icon]:px-2">
-                    <SidebarMenu>
-                        <SidebarMenuItem>
-                            <SidebarMenuButton
-                                asChild
-                                tooltip={{ children: 'Aide' }}
-                                className="h-9 rounded-xl px-3 text-[13px] text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:text-sidebar-foreground/70"
-                            >
-                                <Link href={helpRoute().url} onClick={() => isMobile && setOpenMobile(false)}>
-                                    <LifeBuoy />
-                                    <span>Aide</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </div>
+                {/* Aide : pas pour le super administrateur, c'est lui qui répond au support */}
+                {auth.user.role !== 'super_admin' && (
+                    <>
+                        <div className="px-3 pt-1.5 group-data-[collapsible=icon]:px-2">
+                            <SidebarMenu>
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        asChild
+                                        tooltip={{ children: 'Aide' }}
+                                        className="h-9 rounded-xl px-3 text-[13px] text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:text-sidebar-foreground/70"
+                                    >
+                                        <Link href={helpRoute().url} onClick={() => isMobile && setOpenMobile(false)}>
+                                            <LifeBuoy />
+                                            <span>Aide</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            </SidebarMenu>
+                        </div>
 
-                <div className="mx-3 h-px bg-sidebar-border group-data-[collapsible=icon]:mx-2" />
+                        <div className="mx-3 h-px bg-sidebar-border group-data-[collapsible=icon]:mx-2" />
+                    </>
+                )}
 
                 {/* Utilisateur */}
                 <div className="p-3 group-data-[collapsible=icon]:p-2">

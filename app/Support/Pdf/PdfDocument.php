@@ -26,6 +26,26 @@ class PdfDocument
 
     public static function download(string $view, array $data, string $filename): Response
     {
+        return self::respond(self::render($view, $data), $filename);
+    }
+
+    /**
+     * PDF prêt à envoyer : en téléchargement, ou affiché dans le navigateur (`$inline`, aperçu).
+     */
+    public static function respond(string $pdf, string $filename, bool $inline = false): Response
+    {
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => ($inline ? 'inline' : 'attachment').'; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * Contenu du PDF. `$numberPages` : « Page X sur Y » ajoutée par le moteur (documents au gabarit
+     * pdf/layout) ; un gabarit qui numérote lui-même ses pages (facture) passe false.
+     */
+    public static function render(string $view, array $data, bool|array $numberPages = true): string
+    {
         // Le moteur PDF y range les dimensions des polices : dossier inscriptible par le serveur
         $fontCache = storage_path('fonts');
         if (! is_dir($fontCache)) {
@@ -44,32 +64,39 @@ class PdfDocument
         $dompdf->setPaper('A4');
         $dompdf->render();
 
-        self::numberPages($dompdf);
+        if ($numberPages !== false) {
+            self::numberPages($dompdf, is_array($numberPages) ? $numberPages : []);
+        }
 
         $dompdf->addInfo('Title', (string) ($data['title'] ?? ''));
         $dompdf->addInfo('Author', (string) ($data['company']->name ?? config('app.name')));
         $dompdf->addInfo('Creator', config('app.name'));
 
-        return response($dompdf->output(), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-        ]);
+        return (string) $dompdf->output();
     }
 
     /**
      * « Page X sur Y » en bas à droite de chaque page, sur la ligne du pied de page.
      */
-    private static function numberPages(Dompdf $dompdf): void
+    /**
+     * @param  array{font?: string, margin?: float, bottom?: float, size?: float, color?: array<int, float>, format?: string}  $style
+     *                                                                                                                             réglages d'un gabarit autre que pdf/layout (ex. la facture)
+     */
+    private static function numberPages(Dompdf $dompdf, array $style = []): void
     {
-        $margin = self::SIDE_MARGIN_PT;
+        $margin = $style['margin'] ?? self::SIDE_MARGIN_PT;
+        $bottom = $style['bottom'] ?? 51;
+        $size = $style['size'] ?? 9;
+        $color = $style['color'] ?? [0.35, 0.35, 0.35];
+        $format = $style['format'] ?? 'Page %d sur %d';
+        $fontName = $style['font'] ?? self::FONT;
 
         // Largeur exacte du texte sur chaque page, pour l'aligner sur la marge droite
-        $dompdf->getCanvas()->page_script(function (int $page, int $count, $canvas, $metrics) use ($margin) {
-            $font = $metrics->getFont(self::FONT) ?? $metrics->getFont('serif');
-            $text = "Page {$page} sur {$count}";
-            $size = 9;
+        $dompdf->getCanvas()->page_script(function (int $page, int $count, $canvas, $metrics) use ($margin, $bottom, $size, $color, $format, $fontName) {
+            $font = $metrics->getFont($fontName) ?? $metrics->getFont('serif');
+            $text = sprintf($format, $page, $count);
 
-            $canvas->text($canvas->get_width() - $margin - $metrics->getTextWidth($text, $font, $size), $canvas->get_height() - 51, $text, $font, $size, [0.35, 0.35, 0.35]);
+            $canvas->text($canvas->get_width() - $margin - $metrics->getTextWidth($text, $font, $size), $canvas->get_height() - $bottom, $text, $font, $size, $color);
         });
     }
 
@@ -84,18 +111,27 @@ class PdfDocument
 
         $mime = Storage::disk($disk)->mimeType($path) ?: 'image/jpeg';
 
-        // Formats que le moteur PDF sait afficher
-        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/gif'], true)) {
+        // Formats que le moteur PDF sait afficher (le PNG exige l'extension GD de PHP)
+        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/gif'], true) || ($mime === 'image/png' && ! self::pngSupported())) {
             return null;
         }
 
         return 'data:'.$mime.';base64,'.base64_encode(Storage::disk($disk)->get($path));
     }
 
-    /** Logo de Motriks (PNG transparent), pour les documents émis par Motriks : factures. */
+    /**
+     * Logo de Motriks pour les documents émis par Motriks (factures). En JPEG sur fond blanc :
+     * le moteur PDF le lit sans l'extension GD, il s'affiche donc partout.
+     */
     public static function motriksLogo(): string
     {
-        return 'data:image/png;base64,'.base64_encode((string) file_get_contents(resource_path('images/motriks-logo-pdf.png')));
+        return 'data:image/jpeg;base64,'.base64_encode((string) file_get_contents(resource_path('images/motriks-logo-pdf.jpg')));
+    }
+
+    /** Le moteur PDF (dompdf) a besoin de l'extension GD pour afficher une image PNG. */
+    private static function pngSupported(): bool
+    {
+        return extension_loaded('gd');
     }
 
     /** Logo de l'entreprise, s'il y en a un. */

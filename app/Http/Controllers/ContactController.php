@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ContactMessageMail;
 use App\Models\SupportRequest;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\RedirectResponse;
@@ -9,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Inertia\Inertia;
+use App\Support\Seo\PublicPages;
 use Inertia\Response;
 use Throwable;
 
@@ -34,7 +35,7 @@ class ContactController
                 ->all()
             : [];
 
-        return Inertia::render('contact', [
+        return PublicPages::render('contact', [
             'formToken' => encrypt(now()->timestamp),
             'paymentLogos' => $paymentLogos,
         ]);
@@ -80,25 +81,9 @@ class ContactController
         // Adresse qui reçoit les messages (par défaut : l'adresse d'expédition configurée dans .env)
         $recipient = config('mail.from.address');
 
-        $body = implode("\n", [
-            'Nouveau message depuis la page Contact',
-            '',
-            'Sujet : '.$data['subject'],
-            'Nom : '.$data['name'],
-            'E-mail : '.$data['email'],
-            'Téléphone : '.($data['phone'] ?? '-'),
-            'Entreprise : '.($data['company'] ?? '-'),
-            '',
-            'Message :',
-            $data['message'],
-        ]);
-
+        // En file d'attente : le visiteur n'attend pas le serveur d'e-mail
         try {
-            Mail::raw($body, function ($message) use ($data, $recipient) {
-                $message->to($recipient)
-                    ->replyTo($data['email'], $data['name'])
-                    ->subject('['.config('app.name').'] '.$data['subject'].' - '.$data['name']);
-            });
+            Mail::to($recipient)->queue(new ContactMessageMail($data));
         } catch (Throwable $e) {
             // Le message est enregistré : le support le verra dans l'administration
             Log::error('Échec envoi message de contact : '.$e->getMessage());

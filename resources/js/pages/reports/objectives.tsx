@@ -166,7 +166,7 @@ export default function ReportObjectives({ overview, targets, currency, canEditT
             <Page
                 title="Ventes & objectifs"
                 description="Suivez qui atteint ses objectifs, semaine après semaine et mois après mois."
-                className="max-w-6xl"
+               
                 actions={
                     canEditTargets && (
                         <ActionButton icon={<Target />} onClick={() => setWeekly(true)}>

@@ -5,11 +5,7 @@ import { login } from '@/routes';
 export default function Register({ passwordRules }: { passwordRules: string }) {
     return (
         <>
-            <Seo
-                title="Créer un espace entreprise - Motriks"
-                description="Créez gratuitement l'espace de votre entreprise sur Motriks et pilotez vos hôtesses, vos stocks et vos ventes terrain en temps réel."
-                path="/register"
-            />
+            <Seo />
             <SignupForm passwordRules={passwordRules} />
         </>
     );

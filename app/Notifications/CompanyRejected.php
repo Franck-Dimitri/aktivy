@@ -15,6 +15,12 @@ class CompanyRejected extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    /** E-mail : 3 essais espacés si le serveur d'e-mail ne répond pas. */
+    public int $tries = 3;
+
+    /** @var list<int> */
+    public array $backoff = [60, 300];
+
     public function __construct(public Company $company, public string $reason) {}
 
     public function via(object $notifiable): array

@@ -54,7 +54,7 @@ export default function AdminOnboardingIndex({ companies, incomplete, flash }: P
             <Page
                 title="Demandes d'inscription"
                 description="Examinez les dossiers soumis et activez les nouveaux espaces clients."
-                className="max-w-6xl"
+               
                 actions={
                     <Link href={companiesIndex().url} className={buttonClass('secondary', 'md')}>
                         <Building2 />

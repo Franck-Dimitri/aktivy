@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import MotriksLogo from '@/components/motriks-logo';
+import { useAccountLinks } from '@/components/landing/auth-actions';
 
 const CONTACT = {
     email: 'contact@motriks.com',
@@ -42,8 +43,6 @@ const NAV_COLS = [
         title: 'Entreprise',
         links: [
             { label: 'Nous contacter', href: '/contact' },
-            { label: 'Connexion', href: '/login' },
-            { label: 'Créer un compte', href: '/register' },
         ],
     },
     {
@@ -56,6 +55,8 @@ const NAV_COLS = [
 ];
 
 export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name: string; url: string }[] }) {
+    // Connexion / inscription pour un visiteur, « Mon espace » pour un utilisateur connecté
+    const accountLinks = useAccountLinks();
     return (
         <footer className="relative overflow-hidden bg-slate-950 text-slate-400">
             <div
@@ -94,7 +95,7 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
                     </div>
 
                     {/* colonnes de liens */}
-                    {NAV_COLS.map((col) => (
+                    {NAV_COLS.map((col) => ({ ...col, links: col.title === 'Entreprise' ? [...col.links, ...accountLinks] : col.links })).map((col) => (
                         <div key={col.title}>
                             <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">{col.title}</h4>
                             <ul className="mt-5 space-y-3 text-sm">

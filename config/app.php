@@ -13,7 +13,9 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Motriks'),
+    // Nom de la marque, fixe : il apparaît dans les e-mails, les PDF et les titres de page, quelle que soit
+    // la valeur d'APP_NAME dans le .env (qui reste utilisée pour le cookie de session et le préfixe du cache)
+    'name' => 'Motriks',
 
     /*
     |--------------------------------------------------------------------------

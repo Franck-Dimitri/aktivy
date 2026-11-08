@@ -35,7 +35,7 @@ class EnsureModuleIsActive
 
         return Inertia::render('module-locked', [
             'module' => ['label' => $wanted->label(), 'description' => $wanted->description()],
-            'plan' => ['current' => $company->currentPlan()->label(), 'needed' => $needed->label(), 'price' => $needed->price()],
+            'plan' => ['current' => $company->currentPlan()->label(), 'needed' => $needed->label(), 'price' => $needed->price(), 'highlights' => $needed->highlights()],
         ])->toResponse($request);
     }
 }

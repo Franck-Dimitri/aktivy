@@ -4,6 +4,7 @@ import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
 import MotriksLogo from '@/components/motriks-logo';
 import MotriksMark from '@/components/motriks-mark';
+import { AuthMobileActions, AuthNavActions } from '@/components/landing/auth-actions';
 
 /* ------------------------------------------------------------------ */
 /*  Contenu modifiable                                                 */
@@ -953,46 +954,17 @@ function AssistantDemo() {
 /* ------------------------------------------------------------------ */
 
 /* Données structurées schema.org : l'éditeur, le site, le logiciel et la FAQ */
-const LANDING_JSON_LD = {
-    '@context': 'https://schema.org',
-    '@graph': [
-        {
-            '@type': 'Organization',
-            '@id': 'https://motriks.com/#organization',
-            name: 'Motriks',
-            url: 'https://motriks.com',
-            logo: 'https://motriks.com/icon-512.png',
-            email: 'contact@motriks.com',
-        },
-        {
-            '@type': 'WebSite',
-            '@id': 'https://motriks.com/#website',
-            name: 'Motriks',
-            url: 'https://motriks.com',
-            inLanguage: 'fr',
-            publisher: { '@id': 'https://motriks.com/#organization' },
-        },
-        {
-            '@type': 'SoftwareApplication',
-            name: 'Motriks',
-            url: 'https://motriks.com',
-            applicationCategory: 'BusinessApplication',
-            operatingSystem: 'Web',
-            inLanguage: 'fr',
-            description: "Plateforme de gestion d'équipes terrain : suivi des hôtesses, stocks, présences, rapports PDF et intelligence artificielle.",
-            offers: { '@type': 'Offer', price: '0', priceCurrency: 'XAF', name: 'Offre gratuite' },
-            publisher: { '@id': 'https://motriks.com/#organization' },
-        },
-        {
-            '@type': 'FAQPage',
-            mainEntity: FAQS.map((f) => ({
-                '@type': 'Question',
-                name: f.q,
-                acceptedAnswer: { '@type': 'Answer', text: f.a },
-            })),
-        },
-    ],
-};
+// Données structurées propres à l'accueil : la FAQ (organisation, site et application : PublicPages, côté serveur)
+const FAQ_JSON_LD = [
+    {
+        '@type': 'FAQPage',
+        mainEntity: FAQS.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+    },
+];
 
 export default function Landing({ paymentLogos }: { paymentLogos?: { name: string; url: string }[] }) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -1040,12 +1012,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
 
     return (
         <>
-            <Seo
-                title="Motriks - Pilotez vos équipes terrain en temps réel"
-                description="Motriks est la plateforme de gestion d'équipes terrain : suivi des hôtesses, stocks, présences, rapports PDF et intelligence artificielle."
-                path="/"
-                jsonLd={LANDING_JSON_LD}
-            />
+            <Seo jsonLd={FAQ_JSON_LD} />
 
             <div className="min-h-screen scroll-smooth bg-white font-sans text-slate-900 antialiased">
                 <style>{REVEAL_CSS}</style>
@@ -1087,20 +1054,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                             </Link>
                         </nav>
 
-                        <div className="hidden items-center gap-1 xl:flex">
-                            <Link href="/login" className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
-                                Connexion
-                            </Link>
-                            <Link
-                                href="/register"
-                                className="group flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-green-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-green-600/30 transition hover:bg-green-700"
-                            >
-                                Essai gratuit
-                                <svg className="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M5 12h14m-6-6l6 6-6 6" />
-                                </svg>
-                            </Link>
-                        </div>
+                        <AuthNavActions />
 
                         <button
                             type="button"
@@ -1133,14 +1087,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                         Contact
                                     </Link>
                                 </nav>
-                                <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
-                                    <Link href="/login" className="rounded-full border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold text-slate-700">
-                                        Connexion
-                                    </Link>
-                                    <Link href="/register" className="rounded-full bg-green-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-lg shadow-green-600/30">
-                                        Essai gratuit
-                                    </Link>
-                                </div>
+                                <AuthMobileActions />
                             </div>
                         )}
                     </div>

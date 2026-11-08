@@ -230,7 +230,7 @@ export default function ActivityIndex({ updated_at, currency, has_scope, totals,
 
             <Page
                 title="Activité du jour"
-                className="max-w-6xl"
+               
                 description={
                     <span className="inline-flex items-center gap-2">
                         <span className="relative flex size-2">

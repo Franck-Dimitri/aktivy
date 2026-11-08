@@ -3,15 +3,25 @@
 namespace App\Notifications;
 
 use App\Models\SupportRequest;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Réponse du support Motriks à une demande (centre d'aide ou formulaire de contact).
- * Envoyée tout de suite, pour savoir si elle est bien partie.
+ * En file d'attente : l'administrateur n'attend pas le serveur d'e-mail ; en cas d'échec,
+ * l'envoi est retenté, puis visible dans les tâches échouées (php artisan queue:failed).
  */
-class SupportReplied extends Notification
+class SupportReplied extends Notification implements ShouldQueue
 {
+    use Queueable;
+
+    public int $tries = 3;
+
+    /** @var list<int> */
+    public array $backoff = [60, 300];
+
     public function __construct(public SupportRequest $request, public string $body) {}
 
     public function via(object $notifiable): array

@@ -19,6 +19,12 @@ abstract class AppNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    /** Chaque canal (cloche, push, e-mail) est une tâche à part : 3 essais, espacés, si un service ne répond pas. */
+    public int $tries = 3;
+
+    /** @var list<int> Délai entre les tentatives, en secondes. */
+    public array $backoff = [30, 120];
+
     /** Envoyer aussi par e-mail (les notifications « temps réel » s'en tiennent à la cloche et au push). */
     protected bool $mail = true;
 

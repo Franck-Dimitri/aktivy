@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Company;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -25,7 +26,9 @@ class AuditLogController extends Controller
         'subscription.' => 'Abonnements',
         'manager.' => 'Aide aux gérants',
         'admin.' => 'Connexions « en tant que »',
+        'support.' => 'Support',
         'reports.' => 'Exports',
+        'import.' => 'Imports',
         'user.' => 'Comptes',
         'daily_report.' => 'Rapports',
         'staff.' => 'Personnel',
@@ -71,8 +74,14 @@ class AuditLogController extends Controller
                 'company' => $log->company?->name,
                 'ip' => $log->ip_address,
                 'at' => $log->created_at?->format('d/m/Y H:i'),
+                'time' => $log->created_at?->format('H:i'),
+                'day' => $log->created_at?->toDateString(),
+                'day_label' => $log->created_at ? $this->dayLabel($log->created_at) : null,
                 'details' => $this->details($log),
             ]);
+
+        $since = now()->subDay();
+        $last24h = AuditLog::query()->where('created_at', '>=', $since)->selectRaw('action, count(*) as total')->groupBy('action')->pluck('total', 'action');
 
         return Inertia::render('admin/audit/index', [
             'logs' => $logs,
@@ -85,8 +94,31 @@ class AuditLogController extends Controller
             ],
             'groups' => collect(self::GROUPS)->map(fn ($label, $key) => ['key' => $key, 'label' => $label])->values(),
             'companies' => Company::orderBy('name')->get(['id', 'name']),
-            'failed_last_24h' => AuditLog::where('action', 'auth.login_failed')->where('created_at', '>=', now()->subDay())->count(),
+            'failed_last_24h' => (int) ($last24h['auth.login_failed'] ?? 0),
+            // Les dernières 24 heures en un coup d'œil
+            'last_24h' => [
+                'total' => (int) $last24h->sum(),
+                'logins' => (int) ($last24h['auth.login'] ?? 0),
+                'failed' => (int) ($last24h['auth.login_failed'] ?? 0),
+                'admin' => (int) $last24h->filter(fn ($n, $action) => str_starts_with($action, 'admin.')
+                    || str_starts_with($action, 'subscription.')
+                    || str_starts_with($action, 'plan.')
+                    || str_ends_with($action, '_by_admin')
+                    || str_starts_with($action, 'manager.'))->sum(),
+            ],
         ]);
+    }
+
+    /** « Aujourd’hui », « Hier », puis « Mardi 3 novembre 2026 ». */
+    private function dayLabel(\DateTimeInterface $at): string
+    {
+        $day = Carbon::instance($at)->locale('fr');
+
+        return match (true) {
+            $day->isToday() => 'Aujourd’hui',
+            $day->isYesterday() => 'Hier',
+            default => ucfirst($day->isoFormat('dddd D MMMM YYYY')),
+        };
     }
 
     /** Noms des valeurs enregistrées, en français. */

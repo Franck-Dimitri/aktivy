@@ -108,7 +108,7 @@ export default function NotificationsIndex({ notifications }: { notifications: N
             <Page
                 title="Notifications"
                 description="Incidents, stocks critiques, demandes et absences qui vous concernent."
-                className="max-w-4xl"
+               
                 actions={
                     unread > 0 && (
                         <ActionButton variant="secondary" icon={<CheckCheck />} loading={marking} onClick={markAll}>

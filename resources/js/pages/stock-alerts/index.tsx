@@ -131,7 +131,7 @@ export default function StockAlertsIndex({ alerts }: { alerts: Alert[] }) {
         <>
             <Head title="Alertes de stock" />
 
-            <Page title="Alertes de stock" description="Produits sous leur seuil d’alerte, à réapprovisionner en priorité." className="max-w-6xl">
+            <Page title="Alertes de stock" description="Produits sous leur seuil d’alerte, à réapprovisionner en priorité.">
                 {alerts.length === 0 ? (
                     <section className="flex flex-col items-start gap-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-900/[0.03] sm:flex-row sm:items-center dark:border-sidebar-border dark:bg-card">
                         <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-motriks-soft text-motriks-deep ring-8 ring-motriks-soft/40">

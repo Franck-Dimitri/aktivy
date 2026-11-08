@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
 import MotriksLogo from '@/components/motriks-logo';
@@ -15,7 +15,7 @@ export const LEGAL_INFO = {
     legalForm: '[Forme juridique, ex. SARL]',
     rccm: '[Numéro RCCM]',
     niu: '[Numéro d\'identifiant unique (NIU)]',
-    address: '[Adresse du siège, ville, Cameroun]',
+    address: '[Adresse du siège], Yaoundé, Cameroun',
     email: 'contact@motriks.com',
     privacyEmail: 'contact@motriks.com',
     website: 'motriks.com',
@@ -55,20 +55,17 @@ type PaymentLogo = { name: string; url: string };
 
 export default function LegalLayout({
     title,
-    metaDescription,
     intro,
     sections,
     otherLink,
     paymentLogos,
 }: {
     title: string;
-    metaDescription: string;
     intro: ReactNode;
     sections: LegalSection[];
     otherLink: { href: string; label: string };
     paymentLogos?: PaymentLogo[];
 }) {
-    const path = usePage().url.split(/[?#]/)[0];
     const [current, setCurrent] = useState(sections[0]?.id ?? '');
 
     // met en évidence, dans le sommaire, la partie en cours de lecture
@@ -94,7 +91,7 @@ export default function LegalLayout({
 
     return (
         <>
-            <Seo title={`${title} - ${LEGAL_INFO.product}`} description={metaDescription} path={path} />
+            <Seo />
 
             <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
                 {/* en-tête */}

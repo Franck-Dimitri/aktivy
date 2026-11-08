@@ -15,6 +15,7 @@ use App\Models\AuditLog;
 use App\Models\User;
 use App\Support\Demo\DemoAccounts;
 use App\Support\PhoneNumber;
+use App\Support\Seo\PublicPages;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -151,7 +152,8 @@ class FortifyServiceProvider extends ServiceProvider
         /* @end-chisel-email-verification */
 
         /* @chisel-registration */
-        Fortify::registerView(fn () => Inertia::render('auth/register', [
+        // Page publique indexable : balises de référencement dans PublicPages
+        Fortify::registerView(fn () => PublicPages::render('register', [
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
         ]));
         /* @end-chisel-registration */

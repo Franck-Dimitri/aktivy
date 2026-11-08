@@ -35,7 +35,7 @@ export default function EventShow({ event, companySites, companyProducts, availa
         <>
             <Head title={event.name} />
 
-            <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <div className="mx-auto flex w-full flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
                 {/* En-tête */}
                 <header className="flex flex-col gap-5">
                     <Link href={eventsIndex().url} className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-ink">

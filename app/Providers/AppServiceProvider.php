@@ -6,9 +6,11 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -41,6 +43,15 @@ class AppServiceProvider extends ServiceProvider
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
         );
+
+        // Requêtes en boucle (N+1) : une relation chargée paresseusement lève une erreur en local et en test,
+        // et n'est que journalisée en production pour ne jamais casser une page
+        Model::preventLazyLoading();
+        if (app()->isProduction()) {
+            Model::handleLazyLoadingViolationUsing(function (Model $model, string $relation): void {
+                Log::warning('Relation chargée en boucle (N+1) : '.$model::class.'::'.$relation);
+            });
+        }
 
         Password::defaults(fn (): ?Password => app()->isProduction()
             ? Password::min(12)

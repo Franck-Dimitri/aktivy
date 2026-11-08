@@ -10,7 +10,7 @@ use App\Models\Company;
 use App\Models\SubscriptionPayment;
 use App\Notifications\LiveNotification;
 use App\Notifications\PlanExpiring;
-use App\Support\Pdf\PdfDocument;
+use App\Support\Billing\InvoiceDocument;
 use App\Support\Plans\PlanPresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -62,7 +62,6 @@ class SubscriptionController extends Controller
                 'starter' => $rows->where('state', 'starter')->count(),
                 'by_plan' => collect(Plan::cases())->mapWithKeys(fn (Plan $p) => [$p->value => $rows->where('plan_key', $p->value)->count()]),
             ],
-            'payments' => self::payments(SubscriptionPayment::query()->with('company:id,name')->latest('paid_at')->latest('id')->limit(50)->get()),
             'plans' => self::planOptions(),
             'methods' => self::methodOptions(),
             'pack_price' => Plan::PACK_PRICE,
@@ -160,32 +159,13 @@ class SubscriptionController extends Controller
         return self::invoicePdf($payment);
     }
 
-    /** Facture PDF d'un paiement, émise par Motriks à l'entreprise. */
-    public static function invoicePdf(SubscriptionPayment $payment): HttpResponse
+    /**
+     * Facture PDF d'un paiement, émise par Motriks à l'entreprise (gabarit pdf/invoice, voir InvoiceDocument).
+     * `$inline` : affichée dans le navigateur (aperçu) plutôt que téléchargée.
+     */
+    public static function invoicePdf(SubscriptionPayment $payment, bool $inline = false): HttpResponse
     {
-        $payment->loadMissing('company');
-        $billing = config('motriks.billing');
-
-        // L'en-tête et le pied de page des documents sont ceux de l'émetteur : Motriks
-        $issuer = new Company([
-            'name' => $billing['name'],
-            'email' => $billing['email'],
-            'phone' => $billing['phone'],
-            'address' => $billing['address'],
-            'city' => $billing['city'],
-            'primary_color' => '#0a6238',
-        ]);
-
-        return PdfDocument::download('pdf.invoice', [
-            'title' => 'Facture '.$payment->invoice_number,
-            'subtitle' => 'Abonnement à la plateforme '.config('app.name'),
-            'company' => $issuer,
-            'logo' => PdfDocument::motriksLogo(),
-            'billing' => $billing,
-            'payment' => $payment,
-            'client' => $payment->company,
-            'pack' => ['hostesses' => Plan::PACK_HOSTESSES, 'sites' => Plan::PACK_SITES],
-        ], 'facture-'.strtolower($payment->invoice_number).'.pdf');
+        return InvoiceDocument::response($payment, $inline);
     }
 
     /**
@@ -206,6 +186,7 @@ class SubscriptionController extends Controller
             'extra_packs' => $p->extra_packs,
             'reference' => $p->reference,
             'paid_at' => $p->paid_at->format('d/m/Y'),
+            'period_start' => $p->period_start?->format('d/m/Y'),
             'period_end' => $p->period_end?->format('d/m/Y'),
         ]);
     }

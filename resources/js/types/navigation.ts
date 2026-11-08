@@ -18,8 +18,10 @@ export type MenuItem = {
     title: string;
     icon: LucideIcon;
     href?: NonNullable<InertiaLinkProps['href']>;
-    /** Module payant requis : l'entrée est masquée si l'entreprise ne l'a pas. */
+    /** Module payant requis : sans lui, l'entrée est verrouillée (ou masquée pour les hôtesses). */
     module?: string;
+    /** Entrée verrouillée : nom court du forfait qui la débloque (ex. « Pro »). */
+    locked?: string;
 };
 
 export type MenuGroup = {

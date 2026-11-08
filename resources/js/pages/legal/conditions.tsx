@@ -223,7 +223,6 @@ export default function Conditions({ paymentLogos }: { paymentLogos?: { name: st
     return (
         <LegalLayout
             title="Conditions d'utilisation"
-            metaDescription={`Conditions générales d'utilisation de la plateforme ${L.product}.`}
             intro={
                 <p>
                     Les règles qui encadrent l'utilisation de {L.product} par votre entreprise et vos équipes : ce que nous fournissons, ce que

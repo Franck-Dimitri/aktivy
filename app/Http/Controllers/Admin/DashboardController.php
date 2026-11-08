@@ -6,7 +6,9 @@ use App\Enums\AccountStatus;
 use App\Enums\Plan;
 use App\Enums\Role;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\OnboardingController;
 use App\Models\Company;
+use App\Models\SubscriptionPayment;
 use App\Models\SupportRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +22,9 @@ class DashboardController extends Controller
 {
     /** Au-delà de ce nombre de jours sans rapport, une entreprise active est signalée. */
     private const INACTIVE_DAYS = 7;
+
+    /** Durée de la courbe d'activité, en jours. */
+    private const SERIES_DAYS = 30;
 
     public function __invoke(): Response
     {
@@ -94,6 +99,33 @@ class DashboardController extends Controller
                 'created_at' => $u->created_at?->format('d/m/Y'),
             ]);
 
+        // Rapports soumis et chiffre d'affaires déclaré, jour par jour sur 30 jours (jours vides compris)
+        $since = $today->copy()->subDays(self::SERIES_DAYS - 1);
+        $reportsByDay = DB::table('daily_reports')
+            ->where('status', 'submitted')
+            ->whereDate('report_date', '>=', $since->toDateString())
+            ->selectRaw('report_date, count(*) as total')
+            ->groupBy('report_date')
+            ->get()
+            ->mapWithKeys(fn ($row) => [substr((string) $row->report_date, 0, 10) => (int) $row->total]);
+        $revenueByDay = DB::table('daily_report_lines')
+            ->join('daily_reports', 'daily_reports.id', '=', 'daily_report_lines.daily_report_id')
+            ->where('daily_reports.status', 'submitted')
+            ->whereDate('daily_reports.report_date', '>=', $since->toDateString())
+            ->selectRaw('daily_reports.report_date as report_date, sum(daily_report_lines.revenue) as total')
+            ->groupBy('daily_reports.report_date')
+            ->get()
+            ->mapWithKeys(fn ($row) => [substr((string) $row->report_date, 0, 10) => (float) $row->total]);
+        $series = collect(range(0, self::SERIES_DAYS - 1))->map(function (int $i) use ($since, $reportsByDay, $revenueByDay) {
+            $day = $since->copy()->addDays($i)->toDateString();
+
+            return ['date' => $day, 'reports' => $reportsByDay[$day] ?? 0, 'revenue' => $revenueByDay[$day] ?? 0.0];
+        });
+
+        // Forfait en cours des entreprises actives (un essai compte dans son forfait)
+        $plans = Company::where('status', AccountStatus::Active)->get()
+            ->countBy(fn (Company $c) => $c->currentPlan()->value);
+
         return Inertia::render('admin/dashboard', [
             'companies' => [
                 'total' => (int) $byStatus->sum(),
@@ -126,6 +158,12 @@ class DashboardController extends Controller
                 'created_at' => $c->created_at?->format('d/m/Y'),
             ]),
             'support_new' => SupportRequest::where('status', 'new')->count(),
+            'series' => $series,
+            'signups_month' => Company::where('created_at', '>=', $monthStart)->count(),
+            'paid_month' => (int) SubscriptionPayment::whereDate('paid_at', '>=', $monthStart->toDateString())->sum('amount'),
+            'plans' => collect(Plan::cases())->map(fn (Plan $p) => ['key' => $p->value, 'label' => $p->label(), 'count' => (int) ($plans[$p->value] ?? 0)]),
+            // Pour le formulaire « Créer une entreprise » (modal)
+            'sectors' => OnboardingController::SECTORS,
             'month_label' => $today->locale('fr')->isoFormat('MMMM YYYY'),
         ]);
     }

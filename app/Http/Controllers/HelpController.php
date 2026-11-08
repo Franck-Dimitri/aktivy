@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SupportRequestMail;
 use App\Models\SupportRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -69,10 +70,11 @@ class HelpController extends Controller
         ]);
 
         try {
-            Mail::send(['emails.support-request', 'emails.text.support-request'], [
-                'topic' => $topic,
-                'body' => $data['message'],
-                'details' => array_filter([
+            // En file d'attente : l'utilisateur n'attend pas le serveur d'e-mail
+            Mail::to($recipient)->queue(new SupportRequestMail(
+                topic: $topic,
+                body: $data['message'],
+                details: array_filter([
                     'Nom' => $user->name,
                     'E-mail' => $user->email,
                     'Téléphone' => $user->phone,
@@ -81,12 +83,10 @@ class HelpController extends Controller
                     'Page' => ! empty($data['page']) ? Str::limit($data['page'], 200) : null,
                     'Navigateur' => Str::limit((string) $request->userAgent(), 160),
                 ]),
-            ], function ($message) use ($recipient, $user, $topic) {
-                $message->to($recipient)->subject('['.config('app.name').'] '.$topic.' · '.($user->company->name ?? $user->name));
-                if ($user->email) {
-                    $message->replyTo($user->email, $user->name);
-                }
-            });
+                subjectLine: '['.config('app.name').'] '.$topic.' · '.($user->company->name ?? $user->name),
+                replyToEmail: $user->email,
+                replyToName: $user->name,
+            ));
         } catch (Throwable $e) {
             // La demande est enregistrée : le support la verra dans l'administration
             Log::error('Échec de l’envoi d’une demande de support : '.$e->getMessage(), ['user' => $user->id]);

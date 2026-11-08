@@ -1,25 +1,15 @@
 import { Link, usePage } from '@inertiajs/react';
-import {
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar,
-} from '@/components/ui/sidebar';
+import { Lock } from 'lucide-react';
+import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { cn, toUrl } from '@/lib/utils';
 import type { MenuGroup } from '@/types';
 
 function useActiveItem(groups: MenuGroup[]) {
     const page = usePage();
-    const currentPath = new URL(
-        page.url,
-        typeof window !== 'undefined' ? window.location.origin : 'http://localhost',
-    ).pathname;
+    const currentPath = new URL(page.url, typeof window !== 'undefined' ? window.location.origin : 'http://localhost').pathname;
 
     // Toutes les URLs disponibles dans le menu
-    const allHrefs = groups
-        .flatMap((g) => g.items.filter((i) => i.href).map((i) => toUrl(i.href!)));
+    const allHrefs = groups.flatMap((g) => g.items.filter((i) => i.href).map((i) => toUrl(i.href!)));
 
     // Correspondance exacte, sinon parent (ex: /sites active sur /sites/1/edit)
     const matches = (href: string): boolean => {
@@ -29,9 +19,7 @@ function useActiveItem(groups: MenuGroup[]) {
     };
 
     // Seul l'item le plus spécifique est actif : /admin/onboarding l'emporte sur /admin
-    const activeHref = allHrefs
-        .filter(matches)
-        .sort((a, b) => b.length - a.length)[0];
+    const activeHref = allHrefs.filter(matches).sort((a, b) => b.length - a.length)[0];
 
     return (href: string): boolean => href === activeHref;
 }
@@ -49,9 +37,7 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
         <div className="flex flex-col gap-4 px-3 py-3 group-data-[collapsible=icon]:px-2">
             {groups.map((group, gi) => (
                 <SidebarGroup key={group.label} className="p-0">
-                    {gi > 0 && (
-                        <div className="mb-3 h-px bg-sidebar-border group-data-[collapsible=icon]:hidden" />
-                    )}
+                    {gi > 0 && <div className="mb-3 h-px bg-sidebar-border group-data-[collapsible=icon]:hidden" />}
                     <SidebarGroupLabel className="mb-1 h-6 px-2 text-[10.5px] font-semibold tracking-wider text-sidebar-foreground/45 group-data-[collapsible=icon]:hidden">
                         {group.label.toUpperCase()}
                     </SidebarGroupLabel>
@@ -60,12 +46,13 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
                         {group.items.map((item) => {
                             const active = item.href ? isActive(toUrl(item.href)) : false;
                             const available = !!item.href;
+                            const locked = item.locked;
 
                             return (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton
                                         asChild={available}
-                                        tooltip={{ children: item.title }}
+                                        tooltip={{ children: locked ? `${item.title} · avec Motriks ${locked}` : item.title }}
                                         aria-disabled={!available || undefined}
                                         className={cn(
                                             // Base
@@ -78,11 +65,19 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
                                                 'hover:bg-sidebar-primary/20 hover:text-sidebar-primary',
                                                 "before:absolute before:top-1/2 before:left-0 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-sidebar-primary before:content-[''] group-data-[collapsible=icon]:before:hidden",
                                             ],
+                                            // Verrouillé (forfait) : visible mais estompé, la page ouverte explique comment le débloquer
+                                            locked &&
+                                                !active && [
+                                                    'text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground/80',
+                                                    '[&>svg]:text-sidebar-foreground/40',
+                                                ],
                                             // Disponible non actif
-                                            available && !active && [
-                                                'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                                                '[&>svg]:text-sidebar-foreground/65 hover:[&>svg]:text-sidebar-accent-foreground',
-                                            ],
+                                            available &&
+                                                !locked &&
+                                                !active && [
+                                                    'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                                                    '[&>svg]:text-sidebar-foreground/65 hover:[&>svg]:text-sidebar-accent-foreground',
+                                                ],
                                             // Indisponible
                                             !available && [
                                                 'cursor-default text-sidebar-foreground/30',
@@ -92,7 +87,20 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
                                             ],
                                         )}
                                     >
-                                        {available ? (
+                                        {available && locked ? (
+                                            <Link
+                                                href={item.href!}
+                                                onClick={closeOnMobile}
+                                                aria-label={`${item.title}, disponible avec Motriks ${locked}`}
+                                            >
+                                                <item.icon />
+                                                <span className="flex-1 truncate">{item.title}</span>
+                                                <span className="flex shrink-0 items-center gap-1 rounded-md bg-sidebar-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">
+                                                    <Lock className="size-2.5" />
+                                                    {locked}
+                                                </span>
+                                            </Link>
+                                        ) : available ? (
                                             <Link href={item.href!} prefetch onClick={closeOnMobile}>
                                                 <item.icon />
                                                 <span>{item.title}</span>

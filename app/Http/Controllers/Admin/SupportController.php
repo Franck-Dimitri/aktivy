@@ -9,6 +9,7 @@ use App\Models\SupportRequest;
 use App\Notifications\SupportReplied;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -22,10 +23,17 @@ use Throwable;
  */
 class SupportController extends Controller
 {
+    /**
+     * Boîte de réception. `?demande=ID` ouvre la demande dans la fenêtre de réponse (prop `selected`,
+     * calculée seulement quand elle est demandée : l'ouverture recharge uniquement cette prop).
+     */
     public function index(Request $request): Response
     {
         $status = $request->query('statut');
         $status = array_key_exists((string) $status, SupportRequest::STATUSES) ? $status : null;
+        $search = trim((string) $request->query('q', ''));
+        $search = mb_substr($search, 0, 100);
+        $selectedId = $request->integer('demande') ?: null;
 
         $counts = SupportRequest::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
 
@@ -34,57 +42,123 @@ class SupportController extends Controller
                 ->with('company:id,name')
                 ->withCount('replies')
                 ->when($status, fn ($q) => $q->where('status', $status))
+                ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                    ->where('topic', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('company_name', 'like', "%{$search}%")
+                    ->orWhereHas('company', fn ($c) => $c->where('name', 'like', "%{$search}%"))))
                 ->latest()
+                ->latest('id')
                 ->paginate(30)
-                ->withQueryString()
+                // La demande ouverte ne suit pas d'une page à l'autre
+                ->appends($request->except(['demande', 'page']))
                 ->through(fn (SupportRequest $r) => [
                     'id' => $r->id,
                     'source' => $r->source,
                     'topic' => $r->topic,
                     'name' => $r->name,
+                    'email' => $r->email,
                     'company' => $r->company?->name ?? $r->company_name,
-                    'excerpt' => Str::limit($r->message, 140),
+                    'excerpt' => Str::limit(preg_replace('/\s+/', ' ', $r->message), 160),
                     'status' => $r->status,
                     'replies_count' => $r->replies_count,
-                    'at' => $r->created_at?->format('d/m/Y H:i'),
+                    'at' => $r->created_at?->format('d/m/Y à H:i'),
+                    'ago' => $r->created_at ? self::ago($r->created_at) : null,
                 ]),
             'status' => $status,
+            'search' => $search,
             'counts' => [
                 'all' => (int) $counts->sum(),
                 ...collect(SupportRequest::STATUSES)->map(fn ($label, $key) => (int) ($counts[$key] ?? 0))->all(),
             ],
+            'selected' => fn () => $selectedId ? self::detail(SupportRequest::find($selectedId)) : null,
+            'insights' => fn () => self::insights(),
         ]);
     }
 
-    public function show(SupportRequest $supportRequest): Response
+    /**
+     * Indicateurs de la boîte : demandes reçues cette semaine, résolues ce mois-ci, et délai médian
+     * de première réponse sur les 30 derniers jours (première réponse du support, pas la dernière).
+     *
+     * @return array{week: int, resolved_month: int, first_response_minutes: ?int, answered_30d: int}
+     */
+    private static function insights(): array
     {
+        $since = now()->subDays(30);
+
+        $delays = SupportRequest::query()
+            ->where('created_at', '>=', $since)
+            ->withMin('replies as first_reply_at', 'created_at')
+            ->get(['id', 'created_at'])
+            ->filter(fn (SupportRequest $r) => $r->first_reply_at !== null)
+            ->map(fn (SupportRequest $r) => max(0, (int) round($r->created_at->diffInMinutes(Carbon::parse($r->first_reply_at)))))
+            ->sort()
+            ->values();
+
+        return [
+            'week' => SupportRequest::where('created_at', '>=', now()->subDays(7))->count(),
+            'resolved_month' => SupportRequest::where('status', 'resolved')->where('resolved_at', '>=', now()->startOfMonth())->count(),
+            'first_response_minutes' => $delays->isEmpty() ? null : (int) $delays->median(),
+            'answered_30d' => $delays->count(),
+        ];
+    }
+
+    /** Lien direct vers une demande (notification, e-mail) : la boîte de réception, demande ouverte. */
+    public function show(SupportRequest $supportRequest): RedirectResponse
+    {
+        return redirect()->route('admin.support.index', ['demande' => $supportRequest->id]);
+    }
+
+    /** Date lisible : « il y a 5 minutes », « hier à 14:20 », puis la date complète. */
+    private static function ago(\DateTimeInterface $at): string
+    {
+        $at = Carbon::instance($at)->locale('fr');
+
+        return match (true) {
+            $at->gt(now()->subHour()) => $at->diffForHumans(),
+            $at->isToday() => 'aujourd’hui à '.$at->format('H:i'),
+            $at->isYesterday() => 'hier à '.$at->format('H:i'),
+            $at->gt(now()->subDays(6)->startOfDay()) => $at->isoFormat('dddd [à] HH:mm'),
+            $at->isCurrentYear() => $at->isoFormat('D MMM'),
+            default => $at->format('d/m/Y'),
+        };
+    }
+
+    /** @return array<string, mixed>|null */
+    private static function detail(?SupportRequest $supportRequest): ?array
+    {
+        if (! $supportRequest) {
+            return null;
+        }
+
         $supportRequest->load(['company:id,name', 'user:id,name,role', 'replies.user:id,name']);
 
-        return Inertia::render('admin/support/show', [
-            'request' => [
-                'id' => $supportRequest->id,
-                'source' => $supportRequest->source,
-                'source_label' => SupportRequest::SOURCES[$supportRequest->source] ?? $supportRequest->source,
-                'topic' => $supportRequest->topic,
-                'name' => $supportRequest->name,
-                'email' => $supportRequest->email,
-                'phone' => $supportRequest->phone,
-                'role' => $supportRequest->user?->role?->label(),
-                'company_id' => $supportRequest->company_id,
-                'company' => $supportRequest->company?->name ?? $supportRequest->company_name,
-                'message' => $supportRequest->message,
-                'page' => $supportRequest->page,
-                'status' => $supportRequest->status,
-                'at' => $supportRequest->created_at?->format('d/m/Y à H:i'),
-                'replies' => $supportRequest->replies->map(fn (SupportReply $reply) => [
-                    'id' => $reply->id,
-                    'body' => $reply->body,
-                    'author' => $reply->user?->name,
-                    'emailed' => $reply->emailed,
-                    'at' => $reply->created_at?->format('d/m/Y à H:i'),
-                ]),
-            ],
-        ]);
+        return [
+            'id' => $supportRequest->id,
+            'source' => $supportRequest->source,
+            'source_label' => SupportRequest::SOURCES[$supportRequest->source] ?? $supportRequest->source,
+            'topic' => $supportRequest->topic,
+            'name' => $supportRequest->name,
+            'email' => $supportRequest->email,
+            'phone' => $supportRequest->phone,
+            'role' => $supportRequest->user?->role?->label(),
+            'company_id' => $supportRequest->company_id,
+            'company' => $supportRequest->company?->name ?? $supportRequest->company_name,
+            'message' => $supportRequest->message,
+            'page' => $supportRequest->page,
+            'status' => $supportRequest->status,
+            'at' => $supportRequest->created_at?->format('d/m/Y à H:i'),
+            'ago' => $supportRequest->created_at ? self::ago($supportRequest->created_at) : null,
+            'replies' => $supportRequest->replies->map(fn (SupportReply $reply) => [
+                'id' => $reply->id,
+                'body' => $reply->body,
+                'author' => $reply->user?->name,
+                'emailed' => $reply->emailed,
+                'at' => $reply->created_at?->format('d/m/Y à H:i'),
+                'ago' => $reply->created_at ? self::ago($reply->created_at) : null,
+            ]),
+        ];
     }
 
     /**
@@ -97,11 +171,13 @@ class SupportController extends Controller
             'resolve' => ['boolean'],
         ], ['body.required' => 'Écrivez votre réponse.']);
 
+        // E-mail mis en file d'attente (envoyé par le worker, avec nouvelles tentatives en cas d'échec) :
+        // « emailed » signifie que l'envoi est programmé ; un échec de mise en file est signalé tout de suite
         $emailed = false;
         if ($supportRequest->email) {
             try {
                 Notification::route('mail', [$supportRequest->email => $supportRequest->name])
-                    ->notifyNow(new SupportReplied($supportRequest, $data['body']));
+                    ->notify(new SupportReplied($supportRequest, $data['body']));
                 $emailed = true;
             } catch (Throwable $e) {
                 Log::error('Réponse du support non envoyée : '.$e->getMessage(), ['support_request' => $supportRequest->id]);

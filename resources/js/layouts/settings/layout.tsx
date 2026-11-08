@@ -18,7 +18,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
-        <Page title="Mon compte" description="Vos informations personnelles et la sécurité de votre accès." className="max-w-5xl">
+        <Page title="Mon compte" description="Vos informations personnelles et la sécurité de votre accès.">
             <div className="grid items-start gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
                 <nav aria-label="Mon compte" className="lg:sticky lg:top-20">
                     {/* Téléphone : deux onglets côte à côte */}

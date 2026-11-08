@@ -9,8 +9,10 @@ use App\Http\Controllers\Admin\CompanyPlanController;
 use App\Http\Controllers\Admin\CompanyRequestController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Admin\ImpersonationController;
+use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
 use App\Http\Controllers\Admin\SupportController;
+use App\Http\Controllers\Admin\TrafficController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\ContactController;
@@ -19,8 +21,10 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReportPhotoController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Support\Seo\PublicPages;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -42,9 +46,9 @@ $paymentLogos = function (): array {
         : [];
 };
 
-// Landing page
+// Landing page (pages publiques : balises de référencement dans PublicPages)
 Route::get('/', function () use ($paymentLogos) {
-    return Inertia::render('landing', [
+    return PublicPages::render('landing', [
         'paymentLogos' => $paymentLogos(),
     ]);
 })->name('home');
@@ -52,15 +56,18 @@ Route::get('/', function () use ($paymentLogos) {
 // GET uniquement : Route::redirect accepte toutes les méthodes (dont QUERY), que Wayfinder ne sait pas typer
 Route::get('/accueil', fn () => redirect('/', 301))->name('landing');
 
+// Plan du site pour les moteurs de recherche (pages publiques, généré à la volée)
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+
 // Pages légales (accessibles sans connexion)
 Route::get('/conditions', function () use ($paymentLogos) {
-    return Inertia::render('legal/conditions', [
+    return PublicPages::render('conditions', [
         'paymentLogos' => $paymentLogos(),
     ]);
 })->name('conditions');
 
 Route::get('/confidentialite', function () use ($paymentLogos) {
-    return Inertia::render('legal/confidentialite', [
+    return PublicPages::render('confidentialite', [
         'paymentLogos' => $paymentLogos(),
     ]);
 })->name('confidentialite');
@@ -132,8 +139,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('entreprises/{company}/relance', [AdminSubscriptionController::class, 'remind'])->name('subscriptions.remind');
             Route::get('factures/{payment}', [AdminSubscriptionController::class, 'invoice'])->name('subscriptions.invoice');
 
+            // Toutes les factures émises par Motriks, et leur aperçu (PDF affiché dans l'application)
+            Route::get('factures', [AdminInvoiceController::class, 'index'])->name('invoices.index');
+            Route::get('factures/{payment}/apercu', [AdminInvoiceController::class, 'preview'])->name('invoices.preview');
+
             // Journal d'audit de la plateforme
             Route::get('journal', [AuditLogController::class, 'index'])->name('audit.index');
+            // Volet « Trafic du site » : audience des pages publiques, sans cookie
+            Route::get('journal/trafic', TrafficController::class)->name('traffic.index');
 
             // Boîte de support
             Route::get('support', [SupportController::class, 'index'])->name('support.index');

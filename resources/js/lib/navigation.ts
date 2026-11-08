@@ -13,6 +13,7 @@ import {
     MessageSquarePlus,
     Package,
     PackageX,
+    Receipt,
     ScrollText,
     Palette,
     ShoppingCart,
@@ -27,8 +28,10 @@ import { index as adminCompanies } from '@/routes/admin/companies';
 import { index as adminAudit } from '@/routes/admin/audit';
 import { index as adminSubscriptions } from '@/routes/admin/subscriptions';
 import { index as adminSupport } from '@/routes/admin/support';
+import { index as adminInvoices } from '@/routes/admin/invoices';
 import { edit as companySettings } from '@/routes/company/settings';
 import { subscription as companySubscription } from '@/routes/company';
+import { index as companyInvoices } from '@/routes/company/invoices';
 import { index as companyImport } from '@/routes/company/import';
 import { home as terrainHome, stats as terrainStats, planning as terrainPlanning, sales as terrainSales } from '@/routes/terrain';
 import { index as terrainReports } from '@/routes/terrain/reports';
@@ -44,7 +47,7 @@ import { index as eventsIndex } from '@/routes/events';
 import { index as ticketsIndex } from '@/routes/tickets';
 import { index as activityIndex } from '@/routes/activity';
 import { index as stockAlertsIndex } from '@/routes/stock-alerts';
-import type { MenuGroup, Role } from '@/types';
+import type { MenuGroup, MenuItem, Role } from '@/types';
 
 export const roleLabels: Record<Role, string> = {
     super_admin: 'Super administrateur',
@@ -59,11 +62,21 @@ export const roleLabels: Record<Role, string> = {
  * Pages that are not built yet have no `href` and show as "Bientôt".
  */
 /**
- * Menu du rôle, sans les entrées des modules payants que l'entreprise n'a pas.
+ * Menu du rôle. Les modules payants que l'entreprise n'a pas restent visibles avec un cadenas et le
+ * forfait qui les débloque (modèle freemium : on montre ce qu'on peut débloquer) ; la page ouverte
+ * explique alors comment y accéder. Les hôtesses, qui ne choisissent pas le forfait, ne les voient pas.
  */
-export function menuFor(role: Role, modules: string[]): MenuGroup[] {
+export function menuFor(role: Role, modules: string[], locked: Record<string, string> = {}): MenuGroup[] {
+    const included = (i: MenuItem) => !i.module || modules.includes(i.module);
+
     return baseMenu(role)
-        .map((g) => ({ ...g, items: g.items.filter((i) => !i.module || modules.includes(i.module)) }))
+        .map((g) => ({
+            ...g,
+            items:
+                role === 'field_agent'
+                    ? g.items.filter(included)
+                    : g.items.map((i) => (included(i) ? i : { ...i, locked: locked[i.module!] ?? 'Pro' })),
+        }))
         .filter((g) => g.items.length > 0);
 }
 
@@ -87,9 +100,7 @@ function baseMenu(role: Role): MenuGroup[] {
             },
             {
                 label: 'Support',
-                items: [
-                    { title: 'Tickets', icon: MessageSquarePlus, href: terrainTickets().url, module: 'demandes' },
-                ],
+                items: [{ title: 'Tickets', icon: MessageSquarePlus, href: terrainTickets().url, module: 'demandes' }],
             },
         ];
     }
@@ -111,6 +122,7 @@ function baseMenu(role: Role): MenuGroup[] {
                     },
                     { title: 'Entreprises', icon: Building2, href: adminCompanies().url },
                     { title: 'Abonnements', icon: CreditCard, href: adminSubscriptions().url },
+                    { title: 'Factures', icon: Receipt, href: adminInvoices().url },
                     { title: 'Support', icon: LifeBuoy, href: adminSupport().url },
                     { title: 'Journal d’audit', icon: ScrollText, href: adminAudit().url },
                 ],
@@ -129,9 +141,7 @@ function baseMenu(role: Role): MenuGroup[] {
                     icon: LayoutDashboard,
                     href: dashboard(),
                 },
-                ...(manages
-                    ? [{ title: 'Activité du jour', icon: ClipboardCheck, href: activityIndex().url, module: 'terrain' }]
-                    : []),
+                ...(manages ? [{ title: 'Activité du jour', icon: ClipboardCheck, href: activityIndex().url, module: 'terrain' }] : []),
                 { title: 'Rapports journaliers', icon: ClipboardList, href: dailyReportsIndex().url, module: 'terrain' },
                 { title: 'Ventes & objectifs', icon: FileBarChart, href: reportsIndex(), module: 'reporting' },
             ],
@@ -161,6 +171,7 @@ function baseMenu(role: Role): MenuGroup[] {
                 { title: 'Identité & marque', icon: Palette, href: companySettings().url },
                 { title: 'Importer des fichiers', icon: FileUp, href: companyImport().url },
                 { title: 'Abonnement', icon: CreditCard, href: companySubscription().url },
+                { title: 'Factures', icon: Receipt, href: companyInvoices().url },
                 { title: 'Mes données', icon: DatabaseBackup, href: dataExport() },
             ],
         });

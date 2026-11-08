@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\Module;
+use App\Enums\Plan;
 use App\Enums\Role;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Models\Affectation;
@@ -82,6 +83,8 @@ class HandleInertiaRequests extends Middleware
             'appUrl' => rtrim(config('app.url'), '/'),
             'auth' => [
                 'user' => $request->user(),
+                // Tableau de bord du rôle (Role::homeRoute) : bouton « Mon espace » du site public
+                'home' => $request->user()?->homeUrl(),
                 'company' => $request->user()?->company
                     ? [
                         ...$request->user()->company->only('id', 'name', 'logo_path', 'primary_color'),
@@ -100,6 +103,13 @@ class HandleInertiaRequests extends Middleware
                     : null,
                 // Fonctions du forfait : le menu et les pages masquent ce qui n'est pas compris
                 'modules' => fn () => $request->user()?->company?->activeModules() ?? array_map(fn ($m) => $m->value, Module::cases()),
+                // Fonctions non comprises, avec le forfait qui les débloque : le menu les montre avec un cadenas
+                'lockedModules' => fn () => ($company = $request->user()?->company)
+                    ? collect(Module::cases())
+                        ->reject(fn (Module $m) => $company->hasModule($m))
+                        ->mapWithKeys(fn (Module $m) => [$m->value => Plan::lowestWith($m)->shortLabel()])
+                        ->all()
+                    : [],
                 // Super administrateur connecté « en tant que » ce compte : bandeau et bouton de retour
                 'impersonator' => fn () => ($id = $request->session()->get(ImpersonationController::SESSION_KEY))
                     ? User::find($id)?->only('id', 'name')

@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
 import MotriksLogo from '@/components/motriks-logo';
+import { AuthMobileActions, AuthNavActions } from '@/components/landing/auth-actions';
 
 /* ------------------------------------------------------------------ */
 /*  Contenu modifiable                                                 */
@@ -158,11 +159,7 @@ export default function Contact({ formToken = '', paymentLogos }: { formToken?: 
 
     return (
         <>
-            <Seo
-                title="Nous contacter - Motriks"
-                description="Une question, une démo, un projet ? Contactez l'équipe Motriks, nous vous répondons sous 24 heures."
-                path="/contact"
-            />
+            <Seo />
 
             <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
                 <style>{PAGE_CSS}</style>
@@ -187,18 +184,7 @@ export default function Contact({ formToken = '', paymentLogos }: { formToken?: 
                             <span className="rounded-full bg-green-50 px-3.5 py-2 text-sm font-medium text-green-700">Contact</span>
                         </nav>
 
-                        <div className="hidden items-center gap-1 xl:flex">
-                            <Link href="/login" className="whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
-                                Connexion
-                            </Link>
-                            <Link
-                                href="/register"
-                                className="group flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-green-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-green-600/30 transition hover:bg-green-700"
-                            >
-                                Essai gratuit
-                                <Icon name="arrow" className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                            </Link>
-                        </div>
+                        <AuthNavActions />
 
                         <button
                             type="button"
@@ -221,14 +207,7 @@ export default function Contact({ formToken = '', paymentLogos }: { formToken?: 
                                     ))}
                                     <span className="rounded-2xl bg-green-50 px-4 py-3 text-sm font-medium text-green-700">Contact</span>
                                 </nav>
-                                <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
-                                    <Link href="/login" className="rounded-full border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold text-slate-700">
-                                        Connexion
-                                    </Link>
-                                    <Link href="/register" className="rounded-full bg-green-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-lg shadow-green-600/30">
-                                        Essai gratuit
-                                    </Link>
-                                </div>
+                                <AuthMobileActions />
                             </div>
                         )}
                     </div>

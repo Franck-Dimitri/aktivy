@@ -88,7 +88,7 @@ export default function CompanySettings({ company, reminders, timezone }: { comp
         <>
             <Head title="Identité & marque" />
 
-            <Page title="Identité & marque" description="Votre identité et vos coordonnées, reprises dans vos rapports PDF et Excel." className="max-w-6xl">
+            <Page title="Identité & marque" description="Votre identité et vos coordonnées, reprises dans vos rapports PDF et Excel.">
                 <form onSubmit={submit} className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
                     <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] dark:border-sidebar-border dark:bg-card">
                         <Section title="Identité" description="Le nom et le logo qui apparaissent en tête de vos documents.">

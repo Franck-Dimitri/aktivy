@@ -33,6 +33,8 @@ export type Company = {
 
 export type Auth = {
     user: User;
+    /** Tableau de bord du rôle (null si personne n’est connecté). */
+    home?: string | null;
     company: Company | null;
     can: {
         /** Gérant : suppression de sites, événements, export. */
@@ -46,6 +48,8 @@ export type Auth = {
     plan: { key: string; label: string } | null;
     /** Fonctions comprises dans le forfait (modules internes). */
     modules: string[];
+    /** Fonctions non comprises, avec le forfait (nom court) qui les débloque. */
+    lockedModules?: Record<string, string>;
     /** Notifications non lues (cloche). */
     unreadNotifications: number;
     /** Super administrateur connecté « en tant que » ce compte. */

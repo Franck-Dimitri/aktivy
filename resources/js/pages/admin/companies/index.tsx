@@ -1,14 +1,15 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Blocks, Building2, CheckCircle2, Clock, FileText, Inbox, PauseCircle, PlayCircle, Plus, Search, Store, Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { CreateCompanyModal } from '@/components/admin/create-company-modal';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { TextInput } from '@/components/page/form-fields';
 import { Page } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { cn } from '@/lib/utils';
-import { create as companyCreate, index as companiesIndex, plan as companyPlan, reactivate, show as companyShow, suspend } from '@/routes/admin/companies';
+import { index as companiesIndex, plan as companyPlan, reactivate, show as companyShow, suspend } from '@/routes/admin/companies';
 import { index as onboardingIndex, show as onboardingShow } from '@/routes/admin/onboarding';
 import { CompanyAvatar, MetricRow, QuietEmpty, Segmented } from '@/components/page/list-kit';
 
@@ -63,7 +64,23 @@ function LastReport({ date }: { date: string | null }) {
 
 const plural = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`;
 
-export default function AdminCompanies({ companies }: { companies: Company[] }) {
+export default function AdminCompanies({ companies, sectors }: { companies: Company[]; sectors: string[] }) {
+    // Création dans un modal ; l'ancienne adresse /admin/entreprises/creer arrive ici avec ?creer=1
+    const [creating, setCreating] = useState(false);
+    // Ouverture après l'hydratation (le rendu serveur ne connaît pas l'adresse du navigateur)
+    useEffect(() => {
+        if (new URLSearchParams(window.location.search).has('creer')) {
+            setCreating(true);
+        }
+    }, []);
+    const closeCreate = () => {
+        setCreating(false);
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('creer')) {
+            url.searchParams.delete('creer');
+            window.history.replaceState(window.history.state, '', url.toString());
+        }
+    };
     const [query, setQuery] = useState('');
     const [filter, setFilter] = useState<Filter>('all');
     const [target, setTarget] = useState<Company | null>(null);
@@ -88,16 +105,20 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
 
     const confirmToggle = () => {
         if (!target) return;
-        router.post((suspending ? suspend(target.id) : reactivate(target.id)).url, {}, {
-            preserveScroll: true,
-            onStart: () => setProcessing(true),
-            onSuccess: () => {
-                toast.success(suspending ? 'Entreprise suspendue' : 'Entreprise réactivée');
-                setOpen(false);
+        router.post(
+            (suspending ? suspend(target.id) : reactivate(target.id)).url,
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setProcessing(true),
+                onSuccess: () => {
+                    toast.success(suspending ? 'Entreprise suspendue' : 'Entreprise réactivée');
+                    setOpen(false);
+                },
+                onError: () => toast.error('L’opération a échoué, réessayez.'),
+                onFinish: () => setProcessing(false),
             },
-            onError: () => toast.error('L’opération a échoué, réessayez.'),
-            onFinish: () => setProcessing(false),
-        });
+        );
     };
 
     return (
@@ -107,18 +128,22 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
             <Page
                 title="Entreprises"
                 description={`${plural(companies.length, 'entreprise')} sur la plateforme.`}
-                className="max-w-6xl"
+
                 actions={
                     <>
                         <Link href={onboardingIndex().url} className={buttonClass('secondary', 'md')}>
                             <Inbox />
                             Demandes d’inscription
-                            {counts.pending > 0 && <span className="rounded-md bg-amber-100 px-1.5 text-[11px] font-bold text-amber-700 tabular-nums">{counts.pending}</span>}
+                            {counts.pending > 0 && (
+                                <span className="rounded-md bg-amber-100 px-1.5 text-[11px] font-bold text-amber-700 tabular-nums">
+                                    {counts.pending}
+                                </span>
+                            )}
                         </Link>
-                        <Link href={companyCreate().url} className={buttonClass('primary', 'md')}>
+                        <button type="button" onClick={() => setCreating(true)} className={buttonClass('primary', 'md')}>
                             <Plus />
                             Créer une entreprise
-                        </Link>
+                        </button>
                     </>
                 }
             >
@@ -126,8 +151,21 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                     items={[
                         { label: 'Entreprises', value: companies.length, hint: 'Tous statuts confondus', icon: Building2 },
                         { label: 'Actives', value: counts.active, hint: 'Accès ouvert', icon: CheckCircle2, tone: 'green' },
-                        { label: 'En attente', value: counts.pending, hint: 'Inscription à valider', icon: Clock, tone: counts.pending ? 'amber' : 'default', pulse: true },
-                        { label: 'Suspendues', value: counts.suspended, hint: 'Accès bloqué', icon: PauseCircle, tone: counts.suspended ? 'red' : 'default' },
+                        {
+                            label: 'En attente',
+                            value: counts.pending,
+                            hint: 'Inscription à valider',
+                            icon: Clock,
+                            tone: counts.pending ? 'amber' : 'default',
+                            pulse: true,
+                        },
+                        {
+                            label: 'Suspendues',
+                            value: counts.suspended,
+                            hint: 'Accès bloqué',
+                            icon: PauseCircle,
+                            tone: counts.suspended ? 'red' : 'default',
+                        },
                     ]}
                 />
 
@@ -146,7 +184,14 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                             ]}
                         />
                         <div className="lg:w-80">
-                            <TextInput icon={Search} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom, ville ou e-mail" aria-label="Rechercher une entreprise" className="h-9" />
+                            <TextInput
+                                icon={Search}
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Nom, ville ou e-mail"
+                                aria-label="Rechercher une entreprise"
+                                className="h-9"
+                            />
                         </div>
                     </div>
 
@@ -156,12 +201,17 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                         </QuietEmpty>
                     ) : (
                         <div role="table" aria-label="Entreprises">
-                            <div role="row" className="hidden grid-cols-[minmax(0,2.2fr)_repeat(3,minmax(0,1fr))_auto] gap-4 border-b border-slate-100 bg-slate-50/60 px-5 py-2.5 text-[11px] font-semibold tracking-wider text-slate-400 uppercase lg:grid dark:border-sidebar-border dark:bg-white/[0.02]">
+                            <div
+                                role="row"
+                                className="hidden grid-cols-[minmax(0,2.2fr)_repeat(3,minmax(0,1fr))_auto] gap-4 border-b border-slate-100 bg-slate-50/60 px-5 py-2.5 text-[11px] font-semibold tracking-wider text-slate-400 uppercase lg:grid dark:border-sidebar-border dark:bg-white/[0.02]"
+                            >
                                 <span role="columnheader">Entreprise</span>
                                 <span role="columnheader">Équipe</span>
                                 <span role="columnheader">Activité</span>
                                 <span role="columnheader">Statut</span>
-                                <span role="columnheader" className="w-[272px] text-right">Actions</span>
+                                <span role="columnheader" className="w-[272px] text-right">
+                                    Actions
+                                </span>
                             </div>
 
                             <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
@@ -174,7 +224,10 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                         <div role="cell" className="flex min-w-0 items-center gap-3.5">
                                             <CompanyAvatar name={c.name} muted={c.status !== 'active'} />
                                             <div className="min-w-0">
-                                                <Link href={companyShow(c.id).url} className="block truncate text-sm font-semibold text-ink hover:text-motriks-deep hover:underline">
+                                                <Link
+                                                    href={companyShow(c.id).url}
+                                                    className="block truncate text-sm font-semibold text-ink hover:text-motriks-deep hover:underline"
+                                                >
                                                     {c.name}
                                                 </Link>
                                                 <p className="truncate text-xs text-slate-500">
@@ -211,7 +264,10 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                                             <StatusBadge tone={STATUS[c.status].tone}>{STATUS[c.status].label}</StatusBadge>
                                         </div>
 
-                                        <div role="cell" className="col-span-2 flex items-center justify-between gap-2 lg:col-span-1 lg:w-[272px] lg:justify-end">
+                                        <div
+                                            role="cell"
+                                            className="col-span-2 flex items-center justify-between gap-2 lg:col-span-1 lg:w-[272px] lg:justify-end"
+                                        >
                                             <span className="text-xs lg:hidden">
                                                 <LastReport date={c.last_report} />
                                             </span>
@@ -259,6 +315,8 @@ export default function AdminCompanies({ companies }: { companies: Company[] }) 
                 loading={processing}
                 onConfirm={confirmToggle}
             />
+
+            {creating && <CreateCompanyModal sectors={sectors} onClose={closeCreate} />}
         </>
     );
 }

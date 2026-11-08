@@ -9,7 +9,8 @@ import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Motriks';
+// Nom de la marque, fixe (indépendant du .env)
+const appName = 'Motriks';
 
 // Pages publiques affichées sans le layout de l'application
 const PUBLIC_PAGES = ['welcome', 'landing', 'contact'];

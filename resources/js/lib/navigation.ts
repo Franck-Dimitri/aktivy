@@ -25,6 +25,7 @@ import { dashboard } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as adminOnboarding } from '@/routes/admin/onboarding';
 import { index as adminCompanies } from '@/routes/admin/companies';
+import { index as adminUsers } from '@/routes/admin/users';
 import { index as adminAudit } from '@/routes/admin/audit';
 import { index as adminSubscriptions } from '@/routes/admin/subscriptions';
 import { index as adminSupport } from '@/routes/admin/support';
@@ -121,6 +122,7 @@ function baseMenu(role: Role): MenuGroup[] {
                         href: adminOnboarding(),
                     },
                     { title: 'Entreprises', icon: Building2, href: adminCompanies().url },
+                    { title: 'Utilisateurs', icon: Users, href: adminUsers().url },
                     { title: 'Abonnements', icon: CreditCard, href: adminSubscriptions().url },
                     { title: 'Factures', icon: Receipt, href: adminInvoices().url },
                     { title: 'Support', icon: LifeBuoy, href: adminSupport().url },

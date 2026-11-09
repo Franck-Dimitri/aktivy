@@ -4,6 +4,7 @@ use App\Enums\Role;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\CompanyDocumentController as AdminCompanyDocumentController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\CompanyManagerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CompanyPlanController;
@@ -135,6 +136,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('entreprises/{company}/gerants/{user}/connexion', [ImpersonationController::class, 'start'])->name('companies.managers.impersonate');
             Route::put('entreprises/{company}/gerants/{user}', [CompanyManagerController::class, 'update'])->name('companies.managers.update');
             Route::post('entreprises/{company}/documents/{type}', [AdminCompanyDocumentController::class, 'store'])->name('companies.documents.store');
+
+            // Tous les comptes des entreprises clientes
+            Route::get('utilisateurs', [AdminUserController::class, 'index'])->name('users.index');
+            Route::put('utilisateurs/{user}', [AdminUserController::class, 'update'])->name('users.update');
+            Route::post('utilisateurs/{user}/suspendre', [AdminUserController::class, 'suspend'])->name('users.suspend');
+            Route::post('utilisateurs/{user}/reactiver', [AdminUserController::class, 'reactivate'])->name('users.reactivate');
+            Route::delete('utilisateurs/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+            Route::post('utilisateurs/{user}/restaurer', [AdminUserController::class, 'restore'])->whereNumber('user')->name('users.restore');
+            Route::post('utilisateurs/{user}/confirmation', [AdminUserController::class, 'resendVerification'])->name('users.verification');
+            Route::post('utilisateurs/{user}/mot-de-passe', [AdminUserController::class, 'sendPasswordReset'])->name('users.password');
 
             // Abonnements : échéances, paiements reçus, factures, relances
             Route::get('abonnements', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');

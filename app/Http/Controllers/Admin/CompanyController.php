@@ -111,6 +111,25 @@ class CompanyController extends Controller
                 'city' => $s->city,
                 'status' => $s->status->value,
             ]),
+            // Catalogue et stock cumulé sur tous les points de vente
+            'products' => $company->products()
+                ->withCount('siteProducts as sites_count')
+                ->withSum('siteProducts as total_stock', 'current_stock')
+                ->withCount(['siteProducts as low_count' => fn ($q) => $q->whereColumn('current_stock', '<=', 'alert_threshold')])
+                ->orderBy('name')
+                ->get()
+                ->map(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'unit' => $p->unit,
+                    'price' => $p->price !== null ? (float) $p->price : null,
+                    'description' => $p->description,
+                    'image_url' => $p->image ? Storage::disk('public')->url($p->image) : null,
+                    'active' => (bool) $p->is_active,
+                    'sites_count' => (int) $p->sites_count,
+                    'total_stock' => (int) $p->total_stock,
+                    'low_count' => (int) $p->low_count,
+                ]),
             'usage' => [
                 'reports' => (clone $reports30)->count(),
                 'active_hostesses' => $company->visits()->where('checked_in_at', '>=', $since)->distinct()->count('user_id'),

@@ -21,6 +21,7 @@ import {
 import { useState, type ReactNode } from 'react';
 import type { PaymentRow } from '@/components/admin/payments-panel';
 import { documentsCount, LegalDocumentsList, type LegalDocument } from '@/components/company/legal-documents';
+import { CompanyProducts, type CompanyProduct } from '@/components/admin/company-products';
 import { RecordPaymentModal, type Option, type PlanOption } from '@/components/admin/record-payment-modal';
 import { InvoicePreviewModal, type InvoiceUrls } from '@/components/invoices/invoice-preview';
 import { PlanUsageList, type PlanState } from '@/components/plans/plan-usage';
@@ -37,6 +38,7 @@ import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { currencyLabel, number } from '@/pages/reports/format';
 import { dashboard } from '@/routes/admin';
+import { index as usersIndex } from '@/routes/admin/users';
 import { index as companiesIndex, plan as companyPlan, reactivate, suspend, update as companyUpdate } from '@/routes/admin/companies';
 import { store as documentStore } from '@/routes/admin/companies/documents';
 import {
@@ -92,6 +94,7 @@ type Props = {
     };
     plan: PlanState;
     documents: LegalDocument[];
+    products: CompanyProduct[];
     history: {
         id: number;
         action: string;
@@ -118,7 +121,7 @@ const STATUS: Record<Company['status'], { label: string; tone: StatusTone }> = {
 /** Adresses admin du PDF des factures (objet stable, hors du composant). */
 const ADMIN_URLS: InvoiceUrls = { preview: (id) => invoicePreview(id).url, download: (id) => invoiceDownload(id).url };
 
-type Tab = 'overview' | 'billing' | 'team' | 'history';
+type Tab = 'overview' | 'billing' | 'team' | 'products' | 'history';
 
 const card = 'overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs';
 
@@ -489,7 +492,7 @@ function PaymentsList({ payments, onPreview }: { payments: Payment[]; onPreview:
     );
 }
 
-export default function AdminCompanyShow({ company, managers, team, sites, usage, plan, documents, history, sectors, payments, billing }: Props) {
+export default function AdminCompanyShow({ company, managers, team, sites, usage, plan, documents, products, history, sectors, payments, billing }: Props) {
     const [tab, setTab] = useState<Tab>('overview');
     const [editingManager, setEditingManager] = useState<Manager | null>(null);
     const [editing, setEditing] = useState(false);
@@ -670,6 +673,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                                 label: 'Équipe et sites',
                                 count: managers.length + team.supervisors + team.hostesses + team.accountants,
                             },
+                            { value: 'products', label: 'Produits', count: products.length },
                             { value: 'history', label: 'Historique', count: history.length },
                         ]}
                     />
@@ -793,7 +797,14 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                         <div className="flex min-w-0 flex-col gap-6">
                             <Card title={managers.length > 1 ? 'Gérants' : 'Gérant'}>{managersList}</Card>
-                            <Card title="Équipe">
+                            <Card
+                                title="Équipe"
+                                aside={
+                                    <Link href={usersIndex({ query: { company: company.id } }).url} className="text-xs font-semibold text-motriks-deep hover:underline">
+                                        Gérer les comptes
+                                    </Link>
+                                }
+                            >
                                 <dl className="grid grid-cols-3 divide-x divide-slate-100">
                                     {[
                                         ['Superviseurs', team.supervisors],
@@ -833,6 +844,8 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                         </Card>
                     </div>
                 )}
+
+                {tab === 'products' && <CompanyProducts products={products} currency={currencyLabel(company.currency)} />}
 
                 {tab === 'history' && (
                     <Card title="Historique" aside={<span className="text-xs text-slate-400">25 derniers événements</span>}>

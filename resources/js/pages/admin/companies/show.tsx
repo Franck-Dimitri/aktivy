@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import type { PaymentRow } from '@/components/admin/payments-panel';
+import { documentsCount, LegalDocumentsList, type LegalDocument } from '@/components/company/legal-documents';
 import { RecordPaymentModal, type Option, type PlanOption } from '@/components/admin/record-payment-modal';
 import { InvoicePreviewModal, type InvoiceUrls } from '@/components/invoices/invoice-preview';
 import { PlanUsageList, type PlanState } from '@/components/plans/plan-usage';
@@ -37,10 +38,12 @@ import { cn } from '@/lib/utils';
 import { currencyLabel, number } from '@/pages/reports/format';
 import { dashboard } from '@/routes/admin';
 import { index as companiesIndex, plan as companyPlan, reactivate, suspend, update as companyUpdate } from '@/routes/admin/companies';
+import { store as documentStore } from '@/routes/admin/companies/documents';
 import {
     impersonate as managerImpersonate,
     invitation as managerInvitation,
     password as managerPassword,
+    update as managerUpdate,
     verification as managerVerification,
 } from '@/routes/admin/companies/managers';
 import { preview as invoicePreview } from '@/routes/admin/invoices';
@@ -88,6 +91,7 @@ type Props = {
         last_report: string | null;
     };
     plan: PlanState;
+    documents: LegalDocument[];
     history: {
         id: number;
         action: string;
@@ -209,7 +213,17 @@ function EditCompanyModal({ company, sectors, onClose }: { company: Company; sec
     );
 }
 
-function ManagerCard({ companyId, companyActive, manager }: { companyId: number; companyActive: boolean; manager: Manager }) {
+function ManagerCard({
+    companyId,
+    companyActive,
+    manager,
+    onEdit,
+}: {
+    companyId: number;
+    companyActive: boolean;
+    manager: Manager;
+    onEdit: () => void;
+}) {
     const post = (url: string) => router.post(url, {}, { preserveScroll: true, onError: toastFormError });
 
     return (
@@ -235,13 +249,18 @@ function ManagerCard({ companyId, companyActive, manager }: { companyId: number;
                         {manager.last_login ? `Dernière connexion le ${manager.last_login}` : 'Jamais connecté'}
                     </p>
                 </div>
-                {manager.invited ? (
-                    <StatusBadge tone="warning">Invitation non ouverte</StatusBadge>
-                ) : manager.verified ? (
-                    <StatusBadge tone="success">E-mail confirmé</StatusBadge>
-                ) : (
-                    <StatusBadge tone="warning">E-mail non confirmé</StatusBadge>
-                )}
+                <div className="flex items-center gap-2">
+                    {manager.invited ? (
+                        <StatusBadge tone="warning">Invitation non ouverte</StatusBadge>
+                    ) : manager.verified ? (
+                        <StatusBadge tone="success">E-mail confirmé</StatusBadge>
+                    ) : (
+                        <StatusBadge tone="warning">E-mail non confirmé</StatusBadge>
+                    )}
+                    <button type="button" onClick={onEdit} aria-label={`Modifier ${manager.name}`} className={cn(buttonClass('ghost', 'sm'), 'px-2')}>
+                        <Pencil />
+                    </button>
+                </div>
             </div>
 
             {manager.email && (
@@ -327,6 +346,60 @@ function ManagerCard({ companyId, companyActive, manager }: { companyId: number;
                 </div>
             )}
         </li>
+    );
+}
+
+/** Corriger le nom, l'e-mail ou le téléphone du gérant ; une nouvelle adresse doit être confirmée. */
+function EditManagerModal({ companyId, manager, onClose }: { companyId: number; manager: Manager; onClose: () => void }) {
+    const { data, setData, put, processing, errors } = useForm({
+        name: manager.name,
+        email: manager.email ?? '',
+        phone: manager.phone ?? '',
+    });
+
+    const emailChanged = data.email.trim().toLowerCase() !== (manager.email ?? '').toLowerCase();
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(managerUpdate({ company: companyId, user: manager.id }).url, {
+            preserveScroll: true,
+            onSuccess: onClose,
+            onError: toastFormError,
+        });
+    };
+
+    return (
+        <Modal onClose={onClose} title="Modifier le gérant" description="Le mot de passe ne change pas : seul le gérant le choisit.">
+            <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
+                    <Field label="Nom complet" htmlFor="m-name" required error={errors.name}>
+                        <TextInput id="m-name" value={data.name} onChange={(e) => setData('name', e.target.value)} error={errors.name} />
+                    </Field>
+                    <Field label="E-mail" htmlFor="m-email" required error={errors.email}>
+                        <TextInput id="m-email" type="email" icon={Mail} value={data.email} onChange={(e) => setData('email', e.target.value)} error={errors.email} />
+                    </Field>
+                    <Field label="Téléphone" htmlFor="m-phone" hint="facultatif" error={errors.phone}>
+                        <TextInput id="m-phone" type="tel" icon={Phone} value={data.phone} onChange={(e) => setData('phone', e.target.value)} error={errors.phone} />
+                    </Field>
+                    {emailChanged && (
+                        <p className="flex items-start gap-2.5 rounded-xl border border-amber-200/70 bg-amber-50/60 px-4 py-3 text-sm text-amber-900">
+                            <MailCheck className="mt-0.5 size-4 shrink-0" />
+                            {manager.invited
+                                ? 'L’invitation sera envoyée à la nouvelle adresse.'
+                                : 'La nouvelle adresse devra être confirmée : un e-mail de confirmation y sera envoyé.'}
+                        </p>
+                    )}
+                </div>
+                <footer className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-6 py-4 dark:border-sidebar-border dark:bg-white/[0.02]">
+                    <ActionButton type="button" variant="secondary" onClick={onClose}>
+                        Annuler
+                    </ActionButton>
+                    <ActionButton type="submit" loading={processing}>
+                        Enregistrer
+                    </ActionButton>
+                </footer>
+            </form>
+        </Modal>
     );
 }
 
@@ -416,8 +489,9 @@ function PaymentsList({ payments, onPreview }: { payments: Payment[]; onPreview:
     );
 }
 
-export default function AdminCompanyShow({ company, managers, team, sites, usage, plan, history, sectors, payments, billing }: Props) {
+export default function AdminCompanyShow({ company, managers, team, sites, usage, plan, documents, history, sectors, payments, billing }: Props) {
     const [tab, setTab] = useState<Tab>('overview');
+    const [editingManager, setEditingManager] = useState<Manager | null>(null);
     const [editing, setEditing] = useState(false);
     const [paying, setPaying] = useState(false);
     const [confirming, setConfirming] = useState(false);
@@ -481,7 +555,13 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
         ) : (
             <ul className="divide-y divide-slate-100">
                 {managers.map((m) => (
-                    <ManagerCard key={m.id} companyId={company.id} companyActive={company.status === 'active'} manager={m} />
+                    <ManagerCard
+                        key={m.id}
+                        companyId={company.id}
+                        companyActive={company.status === 'active'}
+                        manager={m}
+                        onEdit={() => setEditingManager(m)}
+                    />
                 ))}
             </ul>
         );
@@ -644,6 +724,14 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                                     </dl>
                                 </Card>
 
+                                <Card title="Documents" aside={<span className="text-xs text-slate-400">{documentsCount(documents)}</span>}>
+                                    <LegalDocumentsList
+                                        documents={documents}
+                                        compact
+                                        uploadUrl={(type) => documentStore({ company: company.id, type }).url}
+                                    />
+                                </Card>
+
                                 <Card
                                     title="Dernier paiement"
                                     aside={
@@ -786,6 +874,8 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
             )}
 
             {editing && <EditCompanyModal company={company} sectors={sectors} onClose={() => setEditing(false)} />}
+
+            {editingManager && <EditManagerModal companyId={company.id} manager={editingManager} onClose={() => setEditingManager(null)} />}
 
             <InvoicePreviewModal invoice={preview} open={previewOpen} onClose={() => setPreviewOpen(false)} client={company.name} urls={ADMIN_URLS} />
 

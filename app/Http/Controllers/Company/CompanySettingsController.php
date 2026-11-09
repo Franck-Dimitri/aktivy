@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Company;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Support\Company\CompanyDocuments;
 use App\Support\Reminders\ReminderSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,6 +31,7 @@ class CompanySettingsController extends Controller
                 'primary_color' => $company->primary_color,
                 'logo_url' => $company->logo_path ? Storage::disk('public')->url($company->logo_path) : null,
             ],
+            'documents' => CompanyDocuments::present($company, fn (string $type) => route('company.documents.show', $type)),
             'reminders' => ReminderSettings::for($company)->all(),
             'timezone' => $company->timezone ?: config('app.timezone'),
         ]);

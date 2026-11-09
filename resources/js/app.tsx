@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { setupFlashToasts } from '@/hooks/use-flash-toast';
+import { setupDownloads } from '@/lib/download';
 import { setupOffline } from '@/lib/offline';
 import { setupInstallCapture } from '@/lib/pwa';
 import AppLayout from '@/layouts/app-layout';
@@ -24,6 +25,8 @@ const isPublicPage = (name: string) => PUBLIC_PAGES.includes(name) || PUBLIC_PRE
 setupFlashToasts();
 // Android : l'invitation à installer n'est envoyée qu'une fois, elle est mise de côté dès le démarrage
 setupInstallCapture();
+// Application installée : factures, exports et PDF téléchargés sans quitter l'application
+setupDownloads();
 
 void createInertiaApp({
     title: (title) => (title ? title : appName),

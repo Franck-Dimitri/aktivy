@@ -90,8 +90,11 @@ Route::middleware('auth')->group(function () {
     Route::put('password/change', [ChangePasswordController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('password.change.update');
+});
 
-    // Onboarding entreprise (accessible aux comptes pending/rejected)
+// Onboarding entreprise (accessible aux comptes pending/rejected) : e-mail confirmé d'abord,
+// puis le gérant présente ses documents
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onboarding', [OnboardingController::class, 'show'])->name('onboarding.show');
     Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
 });

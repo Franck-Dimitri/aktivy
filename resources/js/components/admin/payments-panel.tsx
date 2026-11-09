@@ -47,6 +47,7 @@ export function PaymentsPanel({ payments, showCompany = false, actions }: { paym
                             </div>
                             <a
                                 href={invoiceDownload(p.id).url}
+                                download
                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-motriks-deep hover:underline"
                             >
                                 <Download className="size-3.5" />

@@ -289,7 +289,7 @@ export default function CompanySubscription({ plan, plans, pack, payments = [], 
                                             <Eye />
                                             Voir
                                         </button>
-                                        <a href={invoiceDownload(p.id).url} className={buttonClass('secondary', 'sm')}>
+                                        <a href={invoiceDownload(p.id).url} download className={buttonClass('secondary', 'sm')}>
                                             <Download />
                                             Facture PDF
                                         </a>

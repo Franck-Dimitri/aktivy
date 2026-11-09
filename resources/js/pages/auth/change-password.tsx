@@ -4,6 +4,7 @@ import {
     AuthPrimaryButton,
 } from '@/components/auth/auth-field';
 import { Spinner } from '@/components/ui/spinner';
+import { passwordHint } from '@/lib/password-hint';
 import { logout } from '@/routes';
 import { update } from '@/routes/password/change';
 
@@ -36,6 +37,7 @@ export default function ChangePassword({ passwordRules }: Props) {
                             showStrength
                             error={errors.password}
                         />
+                        <p className="-mt-3 text-xs leading-snug text-slate-500">{passwordHint(passwordRules)}</p>
 
                         <AuthPasswordField
                             id="password_confirmation"

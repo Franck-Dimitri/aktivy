@@ -9,7 +9,7 @@ use App\Support\Import\CompanyImport;
 use App\Support\Import\Spreadsheet;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\Password;
+use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -62,7 +62,7 @@ class ImportController extends Controller
         $request->validate([
             'file' => ['required', 'file', 'mimes:xlsx,csv,txt', 'max:5120'],
             // Personnel : mot de passe provisoire commun, à changer à la première connexion
-            'password' => $type === 'personnel' ? ['required', 'string', Password::defaults()] : ['nullable'],
+            'password' => $type === 'personnel' ? ['required', ...User::PROVISIONAL_PASSWORD_RULES] : ['nullable'],
         ], [
             'file.required' => 'Choisissez un fichier Excel (.xlsx) ou CSV.',
             'file.mimes' => 'Le fichier doit être un Excel (.xlsx) ou un CSV.',

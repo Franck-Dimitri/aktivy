@@ -14,7 +14,6 @@ use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -70,7 +69,7 @@ class PersonnelController extends Controller
             'phone'    => ['nullable', 'string', 'max:25'],
             'email'    => ['nullable', 'email', 'max:255'],
             'role'     => ['required', 'string', 'in:'.implode(',', array_column($this->manageableRoles($request->user()), 'value'))],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => ['required', 'confirmed', ...User::PROVISIONAL_PASSWORD_RULES],
             'notes'    => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -218,7 +217,7 @@ class PersonnelController extends Controller
             'email'    => ['nullable', 'email', 'max:255'],
             'role'     => ['required', 'string', 'in:'.implode(',', array_column($this->manageableRoles($request->user()), 'value'))],
             'status'   => ['required', 'string', 'in:'.implode(',', array_column(self::MANAGEABLE_STATUSES, 'value'))],
-            'password' => ['nullable', 'confirmed', Password::defaults()],
+            'password' => ['nullable', 'confirmed', ...User::PROVISIONAL_PASSWORD_RULES],
         ]);
 
         if (empty($validated['phone']) && empty($validated['email'])) {

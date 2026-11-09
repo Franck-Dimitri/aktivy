@@ -53,7 +53,7 @@ function ImportCard({ item }: { item: ImportType }) {
                 )}
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <a href={importTemplate({ type: item.type }).url} className={buttonClass('secondary', 'md')}>
+                    <a href={importTemplate({ type: item.type }).url} download className={buttonClass('secondary', 'md')}>
                         <Download className="size-4" />
                         Modèle Excel
                     </a>

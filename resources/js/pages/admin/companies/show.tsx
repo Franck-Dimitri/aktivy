@@ -481,7 +481,7 @@ function PaymentsList({ payments, onPreview }: { payments: Payment[]; onPreview:
                             <Eye />
                             Voir
                         </button>
-                        <a href={invoiceDownload(p.id).url} className={buttonClass('secondary', 'sm')}>
+                        <a href={invoiceDownload(p.id).url} download className={buttonClass('secondary', 'sm')}>
                             <Download />
                             PDF
                         </a>

@@ -175,11 +175,11 @@ export default function ReportsIndex(props: Props) {
                 description="Ventes déclarées par vos hôtesses dans leurs rapports journaliers envoyés. Exportez-les en Excel pour votre comptabilité."
                 actions={
                     <div className="flex flex-wrap gap-2">
-                        <a href={pdfUrl} className={buttonClass('secondary', 'md')}>
+                        <a href={pdfUrl} download className={buttonClass('secondary', 'md')}>
                             <FileDown className="size-4" />
                             Synthèse PDF
                         </a>
-                        <a href={exportUrl} className={buttonClass('primary', 'md')}>
+                        <a href={exportUrl} download className={buttonClass('primary', 'md')}>
                             <FileSpreadsheet className="size-4" />
                             Exporter en Excel
                         </a>

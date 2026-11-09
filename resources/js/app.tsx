@@ -20,7 +20,9 @@ const PUBLIC_PAGES = ['welcome', 'landing', 'contact'];
 // Dossiers de pages publiques (ex. legal/conditions, legal/confidentialite)
 const PUBLIC_PREFIXES = ['legal/'];
 
-const isPublicPage = (name: string) => PUBLIC_PAGES.includes(name) || PUBLIC_PREFIXES.some((prefix) => name.startsWith(prefix));
+const isPublicPage = (name: string) =>
+    PUBLIC_PAGES.includes(name) ||
+    PUBLIC_PREFIXES.some((prefix) => name.startsWith(prefix));
 
 /*
  * Nouvelle version déployée pendant que la page était ouverte : les fichiers de l'ancienne version
@@ -32,7 +34,10 @@ if (typeof window !== 'undefined') {
     window.addEventListener('vite:preloadError', (event) => {
         const key = 'motriks:rechargement-version';
         try {
-            if (Date.now() - Number(window.sessionStorage.getItem(key) ?? 0) < 60_000) {
+            if (
+                Date.now() - Number(window.sessionStorage.getItem(key) ?? 0) <
+                60_000
+            ) {
                 return; // Déjà rechargé à l'instant : l'erreur vient d'ailleurs, on la laisse remonter
             }
             window.sessionStorage.setItem(key, String(Date.now()));

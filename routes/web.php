@@ -3,6 +3,7 @@
 use App\Enums\Role;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\CompanyDocumentController as AdminCompanyDocumentController;
 use App\Http\Controllers\Admin\CompanyManagerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CompanyPlanController;
@@ -132,6 +133,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('entreprises/{company}/gerants/{user}/invitation', [CompanyManagerController::class, 'resendInvitation'])->name('companies.managers.invitation');
             Route::post('entreprises/{company}/gerants/{user}/mot-de-passe', [CompanyManagerController::class, 'sendPasswordReset'])->name('companies.managers.password');
             Route::post('entreprises/{company}/gerants/{user}/connexion', [ImpersonationController::class, 'start'])->name('companies.managers.impersonate');
+            Route::put('entreprises/{company}/gerants/{user}', [CompanyManagerController::class, 'update'])->name('companies.managers.update');
+            Route::post('entreprises/{company}/documents/{type}', [AdminCompanyDocumentController::class, 'store'])->name('companies.documents.store');
 
             // Abonnements : échéances, paiements reçus, factures, relances
             Route::get('abonnements', [AdminSubscriptionController::class, 'index'])->name('subscriptions.index');

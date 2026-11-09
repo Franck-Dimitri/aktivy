@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\User;
 use App\Notifications\CompanyInvitation;
+use App\Support\Company\CompanyDocuments;
 use App\Support\PhoneNumber;
 use App\Support\Plans\PlanPresenter;
 use Illuminate\Http\RedirectResponse;
@@ -119,6 +120,7 @@ class CompanyController extends Controller
                 'last_report' => $company->dailyReports()->where('status', 'submitted')->max('report_date'),
             ],
             'plan' => PlanPresenter::state($company),
+            'documents' => CompanyDocuments::present($company, fn (string $type) => route('admin.onboarding.document', [$company, $type])),
             'history' => AuditLog::query()
                 ->where('company_id', $company->id)
                 ->with('user:id,name')

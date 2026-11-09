@@ -4,6 +4,7 @@ use App\Enums\Module;
 use App\Enums\Role;
 use App\Http\Controllers\Company\ActivityController;
 use App\Http\Controllers\Company\AffectationController;
+use App\Http\Controllers\Company\CompanyDocumentController;
 use App\Http\Controllers\Company\CompanySettingsController;
 use App\Http\Controllers\Company\DailyReportController;
 use App\Http\Controllers\Company\DashboardController;
@@ -55,6 +56,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // POST : le formulaire peut contenir un fichier (logo)
             Route::post('entreprise', [CompanySettingsController::class, 'update'])->name('company.settings.update');
             Route::put('entreprise/rappels', [CompanySettingsController::class, 'updateReminders'])->name('company.settings.reminders');
+            // Documents légaux : CNI du gérant (recto, verso), registre de commerce
+            Route::get('entreprise/documents/{type}', [CompanyDocumentController::class, 'show'])->name('company.documents.show');
+            Route::post('entreprise/documents/{type}', [CompanyDocumentController::class, 'store'])->name('company.documents.store');
 
             // Reprise des fichiers existants
             Route::get('import', [ImportController::class, 'index'])->name('company.import.index');

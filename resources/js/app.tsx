@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { setupFlashToasts } from '@/hooks/use-flash-toast';
 import { setupDownloads } from '@/lib/download';
+import { setupLiveRefresh } from '@/lib/live-refresh';
 import { setupOffline } from '@/lib/offline';
 import { setupInstallCapture } from '@/lib/pwa';
 import AppLayout from '@/layouts/app-layout';
@@ -46,6 +47,8 @@ setupFlashToasts();
 setupInstallCapture();
 // Application installée : factures, exports et PDF téléchargés sans quitter l'application
 setupDownloads();
+// Écran à jour tout seul : nouvelle notification ou changement qui concerne l'utilisateur
+setupLiveRefresh();
 
 void createInertiaApp({
     title: (title) => (title ? title : appName),

@@ -60,15 +60,19 @@ self.addEventListener('push', (event) => {
 
     const title = payload.title || 'Motriks';
     event.waitUntil(
-        self.registration.showNotification(title, {
-            body: payload.body || '',
-            icon: payload.icon || '/icon-192.png',
-            badge: payload.badge || '/badge-96.png',
-            lang: payload.lang || 'fr',
-            tag: payload.tag,
-            renotify: Boolean(payload.tag),
-            data: { url: payload.data?.url || '/' },
-        }),
+        Promise.all([
+            self.registration.showNotification(title, {
+                body: payload.body || '',
+                icon: payload.icon || '/icon-192.png',
+                badge: payload.badge || '/badge-96.png',
+                lang: payload.lang || 'fr',
+                tag: payload.tag,
+                renotify: Boolean(payload.tag),
+                data: { url: payload.data?.url || '/' },
+            }),
+            // Fenêtres Motriks ouvertes : elles mettent leurs données à jour (cf. resources/js/lib/live-refresh.ts)
+            self.clients.matchAll({ type: 'window' }).then((windows) => windows.forEach((w) => w.postMessage({ type: 'push-received' }))),
+        ]),
     );
 });
 

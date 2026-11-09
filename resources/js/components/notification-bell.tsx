@@ -29,9 +29,11 @@ export function NotificationBell() {
 
     useEffect(() => setUnread(unreadProp), [unreadProp]);
 
-    // Les données en cache ne valent plus si le nombre de non lues a changé entre deux pages
+    // Les données en cache ne valent plus si le nombre de non lues a changé (autre page, ou mise à jour
+    // en arrière-plan) : panneau ouvert, la nouvelle notification y apparaît tout de suite
     useEffect(() => {
         loadedAt.current = 0;
+        if (open) void load();
     }, [unreadProp]);
 
     const load = useCallback(async () => {

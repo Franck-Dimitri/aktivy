@@ -112,6 +112,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     // Aperçu de la cloche (JSON) : déclaré avant {notification} pour ne pas être pris pour un identifiant
     Route::get('notifications/apercu', [NotificationController::class, 'recent'])->name('notifications.recent');
+    // Pouls (JSON) : l'écran se met à jour tout seul quand une notification arrive
+    Route::get('notifications/pouls', [NotificationController::class, 'pulse'])->name('notifications.pulse');
     Route::get('notifications/{notification}', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('notifications/tout-lu', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 

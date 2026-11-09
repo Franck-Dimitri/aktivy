@@ -27,19 +27,22 @@ const isPublicPage = (name: string) => PUBLIC_PAGES.includes(name) || PUBLIC_PRE
  * n'existent plus, et un écran chargé à la demande (aperçu PDF…) échouerait. On recharge en silence
  * pour passer sur la nouvelle version ; une seule fois par minute, pour ne jamais boucler.
  */
-window.addEventListener('vite:preloadError', (event) => {
-    const key = 'motriks:rechargement-version';
-    try {
-        if (Date.now() - Number(window.sessionStorage.getItem(key) ?? 0) < 60_000) {
-            return; // Déjà rechargé à l'instant : l'erreur vient d'ailleurs, on la laisse remonter
+// Navigateur seulement : ce fichier est aussi chargé par le rendu serveur (SSR), où window n'existe pas
+if (typeof window !== 'undefined') {
+    window.addEventListener('vite:preloadError', (event) => {
+        const key = 'motriks:rechargement-version';
+        try {
+            if (Date.now() - Number(window.sessionStorage.getItem(key) ?? 0) < 60_000) {
+                return; // Déjà rechargé à l'instant : l'erreur vient d'ailleurs, on la laisse remonter
+            }
+            window.sessionStorage.setItem(key, String(Date.now()));
+        } catch {
+            // Stockage indisponible : on recharge quand même, une boucle reste impossible sans erreur répétée
         }
-        window.sessionStorage.setItem(key, String(Date.now()));
-    } catch {
-        // Stockage indisponible : on recharge quand même, une boucle reste impossible sans erreur répétée
-    }
-    event.preventDefault();
-    window.location.reload();
-});
+        event.preventDefault();
+        window.location.reload();
+    });
+}
 
 // Avant Inertia : le toast du premier chargement (connexion, lien d'e-mail…) ne doit pas être manqué
 setupFlashToasts();

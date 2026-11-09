@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
 import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
@@ -191,14 +191,24 @@ function Logo({ light = false }: { light?: boolean }) {
     );
 }
 
-function SectionTitle({ eyebrow, title, text, center = true }: { eyebrow?: string; title: string; text?: string; center?: boolean }) {
+/* Une seule taille pour tous les titres de section (h2) de la page, CTA final compris */
+const H2 = 'text-balance text-3xl font-bold tracking-[-0.03em] sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]';
+
+function Eyebrow({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
+    return <p className={`mb-4 text-sm font-medium ${dark ? 'text-green-400' : 'text-green-700'}`}>{children}</p>;
+}
+
+/* En-tête de section : titre à gauche, texte à droite sur ordinateur, l'un sous l'autre sur téléphone */
+function SectionTitle({ eyebrow, title, text, dark = false }: { eyebrow?: string; title: string; text?: string; dark?: boolean }) {
     return (
-        <div data-reveal className={`max-w-2xl ${center ? 'mx-auto text-center' : ''}`}>
-            {eyebrow && (
-                <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-green-600">{eyebrow}</p>
+        <div data-reveal className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-10">
+            <div className="lg:col-span-7">
+                {eyebrow && <Eyebrow dark={dark}>{eyebrow}</Eyebrow>}
+                <h2 className={`${H2} ${dark ? 'text-white' : 'text-slate-950'}`}>{title}</h2>
+            </div>
+            {text && (
+                <p className={`text-pretty text-base leading-relaxed sm:text-lg lg:col-span-5 lg:pb-1.5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{text}</p>
             )}
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{title}</h2>
-            {text && <p className="mt-4 text-lg text-slate-600">{text}</p>}
         </div>
     );
 }
@@ -518,69 +528,22 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
 }
 
 /* ------------------------------------------------------------------ */
-/*  Grille des fonctionnalités : bordure et halo qui suivent la souris   */
+/*  Grille des fonctionnalités : cases séparées par des filets fins      */
 /* ------------------------------------------------------------------ */
 
-const FEATURE_CSS = `
-.ft-card{--x:50%;--y:50%;background:radial-gradient(360px circle at var(--x) var(--y),rgba(34,197,94,.55),transparent 42%),#e2e8f0;transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s ease}
-.ft-card:hover{transform:translateY(-4px);box-shadow:0 24px 50px -24px rgba(21,128,61,.35)}
-.ft-glow{background:radial-gradient(420px circle at var(--x) var(--y),rgba(34,197,94,.09),transparent 45%);opacity:0;transition:opacity .35s ease}
-.ft-card:hover .ft-glow{opacity:1}
-.ft-icon::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.75) 50%,transparent 70%);transform:translateX(-120%);transition:transform .7s ease}
-.ft-card:hover .ft-icon::after{transform:translateX(120%)}
-@media (hover:none){.ft-card{background:#e2e8f0}}
-@media (prefers-reduced-motion:reduce){.ft-card,.ft-card:hover{transition:none;transform:none}.ft-icon::after{display:none}}
-`;
-
 function FeatureGrid() {
-    const gridRef = useRef<HTMLDivElement>(null);
-    const frame = useRef(0);
-
-    // une seule écoute pour toute la grille, limitée à une mise à jour par image
-    const onMove = (e: ReactMouseEvent<HTMLDivElement>) => {
-        const { clientX, clientY } = e;
-        if (frame.current) {
-            return;
-        }
-        frame.current = window.requestAnimationFrame(() => {
-            frame.current = 0;
-            gridRef.current?.querySelectorAll<HTMLElement>('.ft-card').forEach((card) => {
-                const r = card.getBoundingClientRect();
-                card.style.setProperty('--x', `${clientX - r.left}px`);
-                card.style.setProperty('--y', `${clientY - r.top}px`);
-            });
-        });
-    };
-
-    useEffect(() => () => window.cancelAnimationFrame(frame.current), []);
-
     return (
-        <>
-            <style>{FEATURE_CSS}</style>
-            <div ref={gridRef} onMouseMove={onMove} className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {FEATURES.map((f, i) => (
-                    <div data-reveal key={f.title}>
-                        <div className="ft-card group h-full rounded-3xl p-px">
-                            <div className="relative h-full overflow-hidden rounded-[calc(1.5rem-1px)] bg-white p-7">
-                                <div className="ft-glow pointer-events-none absolute inset-0" aria-hidden="true" />
-
-                                <div className="relative flex items-start justify-between">
-                                    <span className="ft-icon relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-green-100 text-green-700 ring-1 ring-inset ring-green-600/10 transition duration-300 group-hover:from-green-500 group-hover:to-green-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-green-600/30 group-hover:ring-0">
-                                        <Icon name={f.icon} className="relative h-[22px] w-[22px]" />
-                                    </span>
-                                    <span className="font-mono text-xs font-medium text-slate-300 transition group-hover:text-green-600">
-                                        {String(i + 1).padStart(2, '0')}
-                                    </span>
-                                </div>
-
-                                <h3 className="relative mt-6 text-lg font-bold tracking-tight text-slate-900">{f.title}</h3>
-                                <p className="relative mt-2 text-sm leading-relaxed text-slate-500">{f.text}</p>
-                            </div>
-                        </div>
+        <div data-reveal className="mt-14 overflow-hidden rounded-2xl border border-slate-200">
+            <div className="grid gap-px bg-slate-200 sm:grid-cols-2 lg:grid-cols-4">
+                {FEATURES.map((f) => (
+                    <div key={f.title} className="bg-white p-7 transition-colors duration-200 hover:bg-slate-50/70 sm:p-8">
+                        <Icon name={f.icon} className="h-5 w-5 text-green-600" />
+                        <h3 className="mt-5 text-base font-semibold tracking-tight text-slate-900 sm:mt-8">{f.title}</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-500">{f.text}</p>
                     </div>
                 ))}
             </div>
-        </>
+        </div>
     );
 }
 
@@ -1244,15 +1207,12 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 {/* --------------------------------- IA -------------------------------- */}
                 <section id="ia" className="scroll-mt-24 bg-slate-900 py-20 text-white">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div data-reveal className="mx-auto max-w-3xl text-center">
-                            <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-green-400">Intelligence artificielle</p>
-                            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
-                                Une IA utile, qui vous dit où agir
-                            </h2>
-                            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
-                                L'IA s'appuie sur les données déjà collectées : aucune saisie supplémentaire. Chaque recommandation indique les données sur lesquelles elle repose, et la décision finale reste la vôtre.
-                            </p>
-                        </div>
+                        <SectionTitle
+                            dark
+                            eyebrow="Intelligence artificielle"
+                            title="Une IA utile, qui vous dit où agir"
+                            text="L'IA s'appuie sur les données déjà collectées : aucune saisie supplémentaire. Chaque recommandation indique les données sur lesquelles elle repose, et la décision finale reste la vôtre."
+                        />
 
                         {/* à gauche la timeline ondulée, à droite la démo : même hauteur sur ordinateur */}
                         <div className="mt-14 grid items-stretch gap-12 lg:mt-16 lg:grid-cols-2 lg:gap-10">
@@ -1273,53 +1233,28 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                             title="Opérationnel en trois étapes"
                             text="Pensé pour les gérants, les responsables commerciaux, les agences d'hôtesses et leurs comptables."
                         />
-                        <div className="relative mt-16">
-                            {/* ligne qui relie les étapes (ordinateur) */}
-                            <div className="pointer-events-none absolute left-[16.66%] right-[16.66%] top-6 hidden h-px md:block" aria-hidden="true">
-                                <div className="h-full w-full bg-[linear-gradient(to_right,#039855_0,#039855_6px,transparent_6px,transparent_12px)] bg-[length:12px_1px] opacity-40" />
-                            </div>
-                            {/* ligne verticale (mobile) */}
-                            <div className="pointer-events-none absolute bottom-10 left-6 top-6 w-px bg-green-200 md:hidden" aria-hidden="true" />
+                        {/* étapes : un filet en haut de chaque colonne, l'étape en cours marquée d'un trait vert */}
+                        <ol data-reveal className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
+                            {STEPS.map((st, i) => (
+                                <li key={st.title} className="relative border-t border-slate-200 pt-6">
+                                    <span className="absolute -top-px left-0 h-px w-12 bg-green-600" aria-hidden="true" />
+                                    <div className="flex items-baseline justify-between gap-4 text-xs">
+                                        <span className="font-semibold text-green-700">Étape {i + 1}</span>
+                                        <span className="text-slate-400">{st.tag}</span>
+                                    </div>
+                                    <h3 className="mt-5 text-lg font-semibold tracking-tight text-slate-900">{st.title}</h3>
+                                    <p className="mt-2 text-[15px] leading-relaxed text-slate-500">{st.text}</p>
+                                </li>
+                            ))}
+                        </ol>
 
-                            <ol className="grid gap-8 md:grid-cols-3 md:gap-6">
-                                {STEPS.map((st, i) => (
-                                    <li data-reveal key={st.title} className="relative flex gap-5 md:flex-col md:items-center md:gap-0">
-                                        {/* pastille numérotée */}
-                                        <span className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-base font-extrabold text-green-700 shadow-lg shadow-green-900/10 ring-1 ring-green-200">
-                                            <span className="absolute inset-1 rounded-full bg-gradient-to-br from-green-500 to-green-600" />
-                                            <span className="relative text-white">{i + 1}</span>
-                                        </span>
-
-                                        {/* carte */}
-                                        <div className="group relative flex-1 overflow-hidden rounded-3xl border border-slate-200 bg-white p-7 transition duration-300 hover:-translate-y-1 hover:border-green-300 hover:shadow-xl hover:shadow-green-900/10 md:mt-6 md:w-full">
-                                            <span
-                                                className="pointer-events-none absolute -right-2 -top-4 select-none text-8xl font-extrabold leading-none text-slate-100 transition group-hover:text-green-50"
-                                                aria-hidden="true"
-                                            >
-                                                {String(i + 1).padStart(2, '0')}
-                                            </span>
-                                            <span className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-green-100 text-green-700 transition group-hover:bg-green-600 group-hover:text-white">
-                                                <Icon name={st.icon} className="h-5 w-5" />
-                                            </span>
-                                            <h3 className="relative mt-5 text-xl font-bold tracking-tight text-slate-900">{st.title}</h3>
-                                            <p className="relative mt-2 leading-relaxed text-slate-500">{st.text}</p>
-                                            <span className="relative mt-5 inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-inset ring-slate-200">
-                                                <Check className="h-3.5 w-3.5 text-green-600" />
-                                                {st.tag}
-                                            </span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ol>
-                        </div>
-
-                        <div className="mt-14 border-t border-slate-200 pt-10">
-                            <p data-reveal className="text-sm font-semibold uppercase tracking-wider text-slate-400">Conçu pour</p>
-                            <div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <div data-reveal className="mt-16 rounded-2xl bg-slate-50 p-7 sm:p-10">
+                            <p className="text-sm font-medium text-slate-500">Conçu pour</p>
+                            <div className="mt-6 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-4">
                                 {PERSONAS.map((p) => (
-                                    <div data-reveal key={p.title} className="border-l-2 border-green-500 pl-4">
-                                        <h3 className="font-bold text-slate-900">{p.title}</h3>
-                                        <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{p.text}</p>
+                                    <div key={p.title}>
+                                        <h3 className="text-[15px] font-semibold text-slate-900">{p.title}</h3>
+                                        <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{p.text}</p>
                                     </div>
                                 ))}
                             </div>
@@ -1335,14 +1270,13 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                             title="Pensé pour le terrain africain"
                             text="Connexion variable, téléphones d'entrée de gamme, paiement mobile : Motriks a été conçu avec ces contraintes."
                         />
-                        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        {/* quatre colonnes séparées par des filets verticaux, sans cartes */}
+                        <div data-reveal className="mt-14 grid gap-y-10 border-t border-slate-200 pt-10 sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-4 lg:gap-x-0 lg:divide-x lg:divide-slate-200">
                             {LOCAL.map((l) => (
-                                <div data-reveal key={l.title} className="rounded-2xl border border-slate-200 p-6">
-                                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-green-700">
-                                        <Icon name={l.icon} />
-                                    </span>
-                                    <h3 className="mt-5 text-lg font-bold text-slate-900">{l.title}</h3>
-                                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{l.text}</p>
+                                <div key={l.title} className="lg:px-8 lg:first:pl-0 lg:last:pr-0">
+                                    <Icon name={l.icon} className="h-5 w-5 text-green-600" />
+                                    <h3 className="mt-6 text-base font-semibold tracking-tight text-slate-900">{l.title}</h3>
+                                    <p className="mt-2 text-sm leading-relaxed text-slate-500">{l.text}</p>
                                 </div>
                             ))}
                         </div>
@@ -1413,38 +1347,33 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 </section>
 
                 {/* ---------------------------------- FAQ ------------------------------ */}
-                <section id="faq" className="scroll-mt-24 bg-slate-50 py-20 lg:py-28">
-                    <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20 lg:px-8">
+                <section id="faq" className="scroll-mt-24 py-20 lg:py-28">
+                    <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8">
                         {/* colonne gauche : titre et contact, fixe pendant le défilement */}
-                        <div className="lg:sticky lg:top-28 lg:self-start">
+                        <div className="lg:sticky lg:top-28 lg:col-span-5 lg:self-start">
                             <div data-reveal>
-                                <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-green-600">FAQ</p>
-                                <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-                                    Les réponses à vos questions
-                                </h2>
-                                <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-600">
+                                <Eyebrow>FAQ</Eyebrow>
+                                <h2 className={`${H2} text-slate-950`}>Les réponses à vos questions</h2>
+                                <p className="mt-5 max-w-md text-pretty text-base leading-relaxed text-slate-500 sm:text-lg">
                                     Sécurité, essai, abonnement, données : l'essentiel pour démarrer sereinement avec Motriks.
                                 </p>
                             </div>
 
-                            <div data-reveal className="mt-10 max-w-md rounded-3xl bg-slate-900 p-7 text-white shadow-xl shadow-slate-900/10">
-                                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-500/15 text-green-400">
-                                    <Icon name="chat" className="h-5 w-5" />
-                                </span>
-                                <p className="mt-5 text-lg font-bold">Vous ne trouvez pas votre réponse ?</p>
-                                <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                            <div data-reveal className="mt-10 max-w-md border-t border-slate-200 pt-8">
+                                <p className="text-[15px] font-semibold text-slate-900">Vous ne trouvez pas votre réponse ?</p>
+                                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
                                     Notre équipe vous répond directement, en général dans la journée.
                                 </p>
-                                <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
+                                <div className="mt-5 flex flex-wrap gap-2.5">
                                     <a
                                         href={`https://wa.me/${CONTACT.whatsapp}`}
-                                        className="inline-flex flex-1 items-center justify-center rounded-full bg-green-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-600"
+                                        className="inline-flex items-center justify-center rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
                                     >
                                         Écrire sur WhatsApp
                                     </a>
                                     <Link
                                         href="/contact"
-                                        className="inline-flex flex-1 items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                                        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
                                     >
                                         Nous contacter
                                     </Link>
@@ -1453,41 +1382,33 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         </div>
 
                         {/* colonne droite : accordéon */}
-                        <div className="divide-y divide-slate-200 border-y border-slate-200">
+                        <div data-reveal className="divide-y divide-slate-200 border-y border-slate-200 lg:col-span-7">
                             {FAQS.map((f, i) => {
                                 const open = openFaq === i;
                                 return (
-                                    <div data-reveal key={f.q} className="relative">
-                                        <span
-                                            className={`absolute -left-px top-0 h-full w-0.5 origin-top bg-green-500 transition-transform duration-500 ${open ? 'scale-y-100' : 'scale-y-0'}`}
-                                            aria-hidden="true"
-                                        />
+                                    <div key={f.q}>
                                         <button
                                             type="button"
                                             id={`faq-q-${i}`}
                                             onClick={() => setOpenFaq(open ? -1 : i)}
                                             aria-expanded={open}
                                             aria-controls={`faq-a-${i}`}
-                                            className="group flex w-full items-start gap-5 py-6 pl-5 pr-1 text-left sm:gap-6 sm:py-7"
+                                            className="group flex w-full items-center gap-6 py-6 text-left"
                                         >
-                                            <span className={`pt-1 font-mono text-xs font-semibold transition-colors ${open ? 'text-green-600' : 'text-slate-400'}`}>
-                                                {String(i + 1).padStart(2, '0')}
-                                            </span>
-                                            <span className={`flex-1 text-base font-semibold transition-colors sm:text-lg ${open ? 'text-slate-900' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                                            <span className={`flex-1 text-base font-medium transition-colors sm:text-[17px] ${open ? 'text-slate-950' : 'text-slate-700 group-hover:text-slate-950'}`}>
                                                 {f.q}
                                             </span>
-                                            <span
-                                                className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
-                                                    open
-                                                        ? 'rotate-45 border-green-600 bg-green-600 text-white'
-                                                        : 'border-slate-300 text-slate-500 group-hover:border-green-400 group-hover:text-green-600'
-                                                }`}
+                                            <svg
+                                                className={`h-4 w-4 shrink-0 transition-transform duration-300 ${open ? 'rotate-45 text-slate-900' : 'text-slate-400 group-hover:text-slate-700'}`}
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                viewBox="0 0 24 24"
                                                 aria-hidden="true"
                                             >
-                                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" viewBox="0 0 24 24">
-                                                    <path d="M12 5v14M5 12h14" />
-                                                </svg>
-                                            </span>
+                                                <path d="M12 5v14M5 12h14" />
+                                            </svg>
                                         </button>
                                         {/* ouverture fluide : la hauteur s'anime via grid-template-rows */}
                                         <div
@@ -1499,7 +1420,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                             }`}
                                         >
                                             <div className="overflow-hidden">
-                                                <p className="pb-7 pl-[3.25rem] pr-10 leading-relaxed text-slate-600 sm:pl-14">{f.a}</p>
+                                                <p className="max-w-2xl pb-6 pr-10 text-[15px] leading-relaxed text-slate-500">{f.a}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1512,7 +1433,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 {/* --------------------------------- CTA final ------------------------- */}
                 <section id="contact" className="scroll-mt-24 bg-green-600 py-20">
                     <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-                        <h2 data-reveal className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                        <h2 data-reveal className={`${H2} text-white`}>
                             Prêt à piloter vos équipes sans effort ?
                         </h2>
                         <p data-reveal className="mt-4 text-lg text-green-50">

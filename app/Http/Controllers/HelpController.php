@@ -57,7 +57,7 @@ class HelpController extends Controller
         $topic = self::TOPICS[$data['topic']];
 
         // Gardée pour être suivie dans l'administration, même si l'e-mail ne part pas
-        SupportRequest::create([
+        $supportRequest = SupportRequest::create([
             'company_id' => $user->company_id,
             'user_id' => $user->id,
             'source' => 'help',
@@ -86,6 +86,7 @@ class HelpController extends Controller
                 subjectLine: '['.config('app.name').'] '.$topic.' · '.($user->company->name ?? $user->name),
                 replyToEmail: $user->email,
                 replyToName: $user->name,
+                supportRequestId: $supportRequest->id,
             ));
         } catch (Throwable $e) {
             // La demande est enregistrée : le support la verra dans l'administration

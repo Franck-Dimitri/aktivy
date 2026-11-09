@@ -34,6 +34,21 @@ class NotificationController extends Controller
     }
 
     /**
+     * « Pouls » interrogé en arrière-plan par l'application (cf. resources/js/lib/live-refresh.ts) :
+     * dernière notification reçue et nombre de non lues, deux requêtes indexées. Quand l'un change,
+     * l'écran recharge ses données en silence ; sinon, rien d'autre n'est demandé au serveur.
+     */
+    public function pulse(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'latest' => $user->notifications()->latest()->value('id'),
+            'unread' => $user->unreadNotifications()->count(),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    /**
      * Ouvre ce dont parle la notification et la marque comme lue.
      */
     public function open(Request $request, string $notification): RedirectResponse

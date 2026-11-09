@@ -14,7 +14,6 @@ use App\Support\PhoneNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 
 class EventHostessController extends Controller
 {
@@ -62,7 +61,7 @@ class EventHostessController extends Controller
         $data = $request->validate([
             'name'          => 'required|string|max:255',
             'phone'         => 'required|string|max:25',
-            'password'      => ['required', 'string', Password::defaults()],
+            'password'      => ['required', ...User::PROVISIONAL_PASSWORD_RULES],
             'event_site_id' => ['nullable', 'integer', "exists:event_sites,id,event_id,{$event->id}"],
         ]);
 

@@ -68,7 +68,7 @@ class ContactController
         ]);
 
         // Gardé pour être suivi dans l'administration, même si l'e-mail ne part pas
-        SupportRequest::create([
+        $supportRequest = SupportRequest::create([
             'source' => 'contact',
             'topic' => $data['subject'],
             'name' => $data['name'],
@@ -83,7 +83,7 @@ class ContactController
 
         // En file d'attente : le visiteur n'attend pas le serveur d'e-mail
         try {
-            Mail::to($recipient)->queue(new ContactMessageMail($data));
+            Mail::to($recipient)->queue(new ContactMessageMail($data, $supportRequest->id));
         } catch (Throwable $e) {
             // Le message est enregistré : le support le verra dans l'administration
             Log::error('Échec envoi message de contact : '.$e->getMessage());

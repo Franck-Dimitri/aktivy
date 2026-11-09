@@ -53,12 +53,12 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
+        // Mot de passe choisi par l'utilisateur : 8 caractères, une majuscule, une minuscule et un chiffre.
+        // Le mot de passe provisoire donné par un gérant n'y est pas soumis (cf. User::PROVISIONAL_PASSWORD_RULES).
         Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
+            ? Password::min(8)
                 ->mixedCase()
-                ->letters()
                 ->numbers()
-                ->symbols()
                 ->uncompromised()
             : null,
         );

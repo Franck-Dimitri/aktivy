@@ -8,3 +8,10 @@ Entreprise : {!! $data['company'] ?? '-' !!}
 
 Message :
 {!! $data['message'] !!}
+@if (! empty($url))
+
+Ouvrir dans l’administration : {!! $url !!}
+@endif
+
+—
+Répondez directement à cet e-mail : la réponse partira à son auteur.

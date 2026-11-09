@@ -3,6 +3,8 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { setupFlashToasts } from '@/hooks/use-flash-toast';
+import { setupDownloads } from '@/lib/download';
+import { setupLiveRefresh } from '@/lib/live-refresh';
 import { setupOffline } from '@/lib/offline';
 import { setupInstallCapture } from '@/lib/pwa';
 import AppLayout from '@/layouts/app-layout';
@@ -20,10 +22,33 @@ const PUBLIC_PREFIXES = ['legal/'];
 
 const isPublicPage = (name: string) => PUBLIC_PAGES.includes(name) || PUBLIC_PREFIXES.some((prefix) => name.startsWith(prefix));
 
+/*
+ * Nouvelle version déployée pendant que la page était ouverte : les fichiers de l'ancienne version
+ * n'existent plus, et un écran chargé à la demande (aperçu PDF…) échouerait. On recharge en silence
+ * pour passer sur la nouvelle version ; une seule fois par minute, pour ne jamais boucler.
+ */
+window.addEventListener('vite:preloadError', (event) => {
+    const key = 'motriks:rechargement-version';
+    try {
+        if (Date.now() - Number(window.sessionStorage.getItem(key) ?? 0) < 60_000) {
+            return; // Déjà rechargé à l'instant : l'erreur vient d'ailleurs, on la laisse remonter
+        }
+        window.sessionStorage.setItem(key, String(Date.now()));
+    } catch {
+        // Stockage indisponible : on recharge quand même, une boucle reste impossible sans erreur répétée
+    }
+    event.preventDefault();
+    window.location.reload();
+});
+
 // Avant Inertia : le toast du premier chargement (connexion, lien d'e-mail…) ne doit pas être manqué
 setupFlashToasts();
 // Android : l'invitation à installer n'est envoyée qu'une fois, elle est mise de côté dès le démarrage
 setupInstallCapture();
+// Application installée : factures, exports et PDF téléchargés sans quitter l'application
+setupDownloads();
+// Écran à jour tout seul : nouvelle notification ou changement qui concerne l'utilisateur
+setupLiveRefresh();
 
 void createInertiaApp({
     title: (title) => (title ? title : appName),

@@ -142,7 +142,7 @@ function ExportAction({ current, lastExport }: { current: ExportState | null; la
                     <ActionButton variant="ghost" icon={<RefreshCw />} loading={sending} onClick={launch}>
                         Préparer à nouveau
                     </ActionButton>
-                    <a href={download({ export: current.id }).url} className={buttonClass('primary', 'md')}>
+                    <a href={download({ export: current.id }).url} download className={buttonClass('primary', 'md')}>
                         <Download className="size-4" />
                         Télécharger
                     </a>

@@ -26,7 +26,7 @@ class ContactMessageMail extends Mailable implements ShouldQueue
     /**
      * @param  array{name: string, email: string, phone?: ?string, company?: ?string, subject: string, message: string}  $data
      */
-    public function __construct(public array $data) {}
+    public function __construct(public array $data, public ?int $supportRequestId = null) {}
 
     public function envelope(): Envelope
     {
@@ -38,6 +38,23 @@ class ContactMessageMail extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
-        return new Content(text: 'emails.text.contact-message', with: ['data' => $this->data]);
+        // Même gabarit que les demandes du centre d'aide : coordonnées cliquables et lien vers l'administration
+        return new Content(
+            view: 'emails.support-request',
+            text: 'emails.text.contact-message',
+            with: [
+                'data' => $this->data,
+                'eyebrow' => 'Message de contact',
+                'topic' => $this->data['subject'],
+                'body' => $this->data['message'],
+                'details' => array_filter([
+                    'Nom' => $this->data['name'],
+                    'E-mail' => $this->data['email'],
+                    'Téléphone' => $this->data['phone'] ?? null,
+                    'Entreprise' => $this->data['company'] ?? null,
+                ]),
+                'url' => $this->supportRequestId ? route('admin.support.show', $this->supportRequestId) : null,
+            ],
+        );
     }
 }

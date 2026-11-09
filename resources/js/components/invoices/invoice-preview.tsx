@@ -2,8 +2,10 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { AlertCircle, Download, ExternalLink, FileText, Printer, RotateCw, X } from 'lucide-react';
 import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
 import { useEffect, useRef, useState } from 'react';
+import type { MouseEvent } from 'react';
 import { buttonClass, Spinner } from '@/components/page/buttons';
 import { DialogOverlay, DialogPortal } from '@/components/ui/dialog';
+import { saveBlob } from '@/lib/download';
 import { cn } from '@/lib/utils';
 import { currencyLabel, number } from '@/pages/reports/format';
 import { download as invoiceDownload, preview as invoicePreview } from '@/routes/company/invoices';
@@ -54,7 +56,7 @@ export type InvoiceUrls = { preview: (id: number) => string; download: (id: numb
 
 const COMPANY_URLS: InvoiceUrls = { preview: (id) => invoicePreview(id).url, download: (id) => invoiceDownload(id).url };
 
-type Load = { state: 'loading' } | { state: 'ready'; url: string; pdf: PDFDocumentProxy } | { state: 'error'; message: string };
+type Load = { state: 'loading' } | { state: 'ready'; url: string; blob: Blob; pdf: PDFDocumentProxy } | { state: 'error'; message: string };
 
 /** Erreur dont le message peut être montré tel quel. */
 class ShownError extends Error {}
@@ -134,7 +136,7 @@ export function InvoicePreviewModal({ invoice, open, onClose, client, status = '
             const pdf = await task.promise;
 
             if (!controller.signal.aborted) {
-                setLoad({ state: 'ready', url: objectUrl, pdf });
+                setLoad({ state: 'ready', url: objectUrl, blob, pdf });
             }
         })().catch((error: unknown) => {
             if (controller.signal.aborted) {
@@ -184,6 +186,17 @@ export function InvoicePreviewModal({ invoice, open, onClose, client, status = '
             setTimeout(() => frame.remove(), 60_000);
         };
         document.body.appendChild(frame);
+    };
+
+    // Le PDF affiché est celui du téléchargement : on l'enregistre directement (indispensable dans
+    // l'application installée sur iPhone, où suivre le lien ouvrirait le PDF sans retour possible)
+    const save = (event: MouseEvent<HTMLAnchorElement>) => {
+        if (load.state !== 'ready' || !shown) {
+            return; // Pas encore chargé : le lien `download` suit son cours (cf. lib/download)
+        }
+
+        event.preventDefault();
+        void saveBlob(load.blob, `facture-${shown.invoice_number.toLowerCase()}.pdf`);
     };
 
     const badge = STATUS[status];
@@ -263,7 +276,7 @@ export function InvoicePreviewModal({ invoice, open, onClose, client, status = '
                             Imprimer
                         </button>
                         {shown && (
-                            <a href={urls.download(shown.id)} className={cn(buttonClass('primary'), 'flex-1 sm:flex-none')}>
+                            <a href={urls.download(shown.id)} download onClick={save} className={cn(buttonClass('primary'), 'flex-1 sm:flex-none')}>
                                 <Download />
                                 Télécharger le PDF
                             </a>

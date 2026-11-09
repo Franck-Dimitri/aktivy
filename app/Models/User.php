@@ -56,6 +56,13 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     use HasFactory, HasPushSubscriptions, Notifiable, PasskeyAuthenticatable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
+     * Mot de passe provisoire donné par un gérant (membre du personnel, hôtesse d'événement, import) :
+     * libre, même « 12345 ». Le compte est créé avec must_change_password, et la personne choisit
+     * un vrai mot de passe (règles Password::defaults()) à sa première connexion.
+     */
+    public const PROVISIONAL_PASSWORD_RULES = ['string', 'min:4', 'max:255'];
+
+    /**
      * The model's default values for attributes.
      *
      * @var array<string, mixed>

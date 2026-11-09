@@ -238,7 +238,7 @@ export default function AdminInvoices({ invoices, filters, years, methods, summa
                                                     <Eye />
                                                     Voir
                                                 </button>
-                                                <a href={invoiceDownload(i.id).url} className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
+                                                <a href={invoiceDownload(i.id).url} download className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
                                                     <Download />
                                                     PDF
                                                 </a>

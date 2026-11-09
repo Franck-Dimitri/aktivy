@@ -33,7 +33,8 @@ class EnsureAccountIsActive
         $company = $user->company;
 
         if ($company?->isPending() || $company?->isRejected()) {
-            if ($request->routeIs('onboarding.show', 'onboarding.store', 'logout')) {
+            // La confirmation de l'e-mail reste accessible : elle se fait avant l'envoi du dossier
+            if ($request->routeIs('onboarding.show', 'onboarding.store', 'verification.*', 'logout')) {
                 return $next($request);
             }
             return redirect()->route('onboarding.show');

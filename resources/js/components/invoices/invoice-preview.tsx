@@ -18,6 +18,7 @@ export type InvoiceItem = {
     method: string;
     plan: string | null;
     extra_packs?: number;
+    supervisor_packs?: number;
     paid_at: string;
     period_start?: string | null;
     period_end: string | null;

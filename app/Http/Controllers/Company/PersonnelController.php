@@ -81,7 +81,7 @@ class PersonnelController extends Controller
             return back()->withErrors($errors)->withInput();
         }
 
-        // Limite du forfait : hôtesses d'un côté, utilisateurs du back-office de l'autre
+        // Limite du forfait : hôtesses d'un côté, superviseurs de l'autre (gérant et comptables non comptés)
         $limitKey = PlanUsage::keyForRole(Role::from($validated['role']));
         if ($limitKey && ($message = PlanUsage::exceeded($request->user()->company, $limitKey))) {
             return back()->withErrors(['role' => $message])->withInput();
@@ -226,6 +226,13 @@ class PersonnelController extends Controller
 
         if ($errors = $this->identifierErrors($validated, $personnel)) {
             return back()->withErrors($errors)->withInput();
+        }
+
+        // Changer de rôle (hôtesse → superviseur…) compte dans une autre limite du forfait
+        $limitKey = PlanUsage::keyForRole(Role::from($validated['role']));
+        if ($limitKey && $limitKey !== PlanUsage::keyForRole($personnel->role)
+            && ($message = PlanUsage::exceeded($request->user()->company, $limitKey))) {
+            return back()->withErrors(['role' => $message])->withInput();
         }
 
         // Activer ou désactiver un compte : le gérant seul

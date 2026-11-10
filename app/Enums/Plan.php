@@ -13,12 +13,17 @@ enum Plan: string
     case Business = 'business';
     case Entreprise = 'entreprise';
 
-    /** Pack d'extension : hôtesses et points de vente en plus, sans changer de forfait. */
-    public const PACK_PRICE = 6500;
+    /** Pack hôtesses : +5 hôtesses et +5 points de vente par mois, sans changer de forfait. */
+    public const PACK_PRICE = 11500;
 
     public const PACK_HOSTESSES = 5;
 
     public const PACK_SITES = 5;
+
+    /** Pack superviseur : +1 superviseur par mois, pour les forfaits où leur nombre est limité. */
+    public const SUPERVISOR_PACK_PRICE = 1500;
+
+    public const SUPERVISOR_PACK_SUPERVISORS = 1;
 
     public function label(): string
     {
@@ -41,15 +46,15 @@ enum Plan: string
         return match ($this) {
             self::Starter => 0,
             self::Pro => 14500,
-            self::Business => 36000,
-            self::Entreprise => 62500,
+            self::Business => 48000,
+            self::Entreprise => 88000,
         };
     }
 
     public function audience(): string
     {
         return match ($this) {
-            self::Starter => 'Pour découvrir Motriks avec une petite équipe. Gratuit pour toujours, dans ses limites.',
+            self::Starter => 'Pour découvrir Motriks avec une hôtesse et un point de vente. Gratuit pour toujours, dans ses limites.',
             self::Pro => 'Pour la PME qui pilote son réseau de vente : stocks, rappels et documents à son nom.',
             self::Business => 'Pour les agences et les marques qui mènent des campagnes en point de vente.',
             self::Entreprise => 'Pour les grands réseaux et les groupes, avec un interlocuteur dédié.',
@@ -71,24 +76,44 @@ enum Plan: string
     }
 
     /**
-     * Limites du forfait ; null = illimité.
+     * Limites du forfait ; null = illimité. Le gérant est toujours inclus et les comptables ne sont pas
+     * comptés : seuls les superviseurs ont une limite au back-office.
      *
-     * @return array{hostesses: int|null, sites: int|null, backoffice: int|null, events_per_month: int|null, packs_per_month: int|null, photos_per_report: int, history_days: int|null, pdf_per_month: int|null, excel_per_month: int|null, exports_per_month: int|null}
+     * @return array{hostesses: int|null, sites: int|null, supervisors: int|null, events_per_month: int|null, packs_per_month: int|null, photos_per_report: int, history_days: int|null, pdf_per_month: int|null, excel_per_month: int|null, exports_per_month: int|null}
      */
     public function limits(): array
     {
         return match ($this) {
-            self::Starter => ['hostesses' => 3, 'sites' => 3, 'backoffice' => 1, 'events_per_month' => 0, 'packs_per_month' => 1, 'photos_per_report' => 0, 'history_days' => 30, 'pdf_per_month' => 5, 'excel_per_month' => 0, 'exports_per_month' => 0],
-            self::Pro => ['hostesses' => 20, 'sites' => 20, 'backoffice' => 4, 'events_per_month' => 1, 'packs_per_month' => 3, 'photos_per_report' => 2, 'history_days' => 730, 'pdf_per_month' => 30, 'excel_per_month' => 10, 'exports_per_month' => 1],
-            self::Business => ['hostesses' => 50, 'sites' => 50, 'backoffice' => 6, 'events_per_month' => 3, 'packs_per_month' => 10, 'photos_per_report' => 6, 'history_days' => null, 'pdf_per_month' => 150, 'excel_per_month' => 50, 'exports_per_month' => 2],
-            self::Entreprise => ['hostesses' => 120, 'sites' => 120, 'backoffice' => 10, 'events_per_month' => null, 'packs_per_month' => null, 'photos_per_report' => 6, 'history_days' => null, 'pdf_per_month' => null, 'excel_per_month' => null, 'exports_per_month' => null],
+            self::Starter => ['hostesses' => 1, 'sites' => 1, 'supervisors' => 0, 'events_per_month' => 0, 'packs_per_month' => 1, 'photos_per_report' => 0, 'history_days' => 30, 'pdf_per_month' => 5, 'excel_per_month' => 0, 'exports_per_month' => 0],
+            self::Pro => ['hostesses' => 7, 'sites' => 7, 'supervisors' => 2, 'events_per_month' => 1, 'packs_per_month' => 3, 'photos_per_report' => 2, 'history_days' => 730, 'pdf_per_month' => 30, 'excel_per_month' => 10, 'exports_per_month' => 1],
+            self::Business => ['hostesses' => 35, 'sites' => 35, 'supervisors' => 6, 'events_per_month' => 3, 'packs_per_month' => 10, 'photos_per_report' => 6, 'history_days' => null, 'pdf_per_month' => 150, 'excel_per_month' => 50, 'exports_per_month' => 2],
+            self::Entreprise => ['hostesses' => 120, 'sites' => 120, 'supervisors' => null, 'events_per_month' => null, 'packs_per_month' => null, 'photos_per_report' => 6, 'history_days' => null, 'pdf_per_month' => null, 'excel_per_month' => null, 'exports_per_month' => null],
         };
     }
 
-    /** Les packs +5 hôtesses / +5 points de vente ne s'ajoutent qu'aux forfaits payants. */
+    /** Les packs hôtesses (+5 hôtesses / +5 points de vente) ne s'ajoutent qu'aux forfaits payants. */
     public function acceptsPacks(): bool
     {
         return $this !== self::Starter;
+    }
+
+    /** Les packs superviseur ne servent qu'aux forfaits payants où les superviseurs sont limités. */
+    public function acceptsSupervisorPacks(): bool
+    {
+        return $this->acceptsPacks() && $this->limits()['supervisors'] !== null;
+    }
+
+    /**
+     * Les deux packs d'extension, pour les pages (prix et contenu).
+     *
+     * @return array{hostesses: array{price: int, hostesses: int, sites: int}, supervisors: array{price: int, supervisors: int}}
+     */
+    public static function packCatalog(): array
+    {
+        return [
+            'hostesses' => ['price' => self::PACK_PRICE, 'hostesses' => self::PACK_HOSTESSES, 'sites' => self::PACK_SITES],
+            'supervisors' => ['price' => self::SUPERVISOR_PACK_PRICE, 'supervisors' => self::SUPERVISOR_PACK_SUPERVISORS],
+        ];
     }
 
     /**
@@ -122,6 +147,7 @@ enum Plan: string
             ],
             self::Entreprise => [
                 'Tout Business, sans limite d’événements ni de packs',
+                'Superviseurs illimités',
                 'PDF et exports illimités',
                 'Mise en service sur place',
                 'Interlocuteur dédié',

@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
 import { TextInput, ToggleField } from '@/components/page/form-fields';
 import { Page } from '@/components/page/page';
-import type { PlanState } from '@/components/plans/plan-usage';
+import { packSummary, type PackCatalog, type PlanState } from '@/components/plans/plan-usage';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { number } from '@/pages/reports/format';
@@ -21,14 +21,17 @@ export type CatalogPlan = {
     limits: Record<string, number | null>;
     highlights: string[];
     accepts_packs: boolean;
+    accepts_supervisor_packs: boolean;
 };
 
 type Props = {
     company: { id: number; name: string };
     plan: PlanState;
     plans: CatalogPlan[];
-    pack: { price: number; hostesses: number; sites: number };
+    packs: PackCatalog;
 };
+
+const MAX_PACKS = 50;
 
 /** Date du jour décalée, au format AAAA-MM-JJ (champ date). */
 const shift = (days: number, months = 0) => {
@@ -40,7 +43,7 @@ const shift = (days: number, months = 0) => {
 };
 
 const PRESETS: { label: string; value: () => string }[] = [
-    { label: '14 jours', value: () => shift(14) },
+    { label: '7 jours', value: () => shift(7) },
     { label: '1 mois', value: () => shift(0, 1) },
     { label: '3 mois', value: () => shift(0, 3) },
     { label: '1 an', value: () => shift(0, 12) },
@@ -49,12 +52,50 @@ const PRESETS: { label: string; value: () => string }[] = [
 
 const longDate = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
-const USAGE: { key: keyof PlanState['usage']; label: string; packs?: 'hostesses' | 'sites' }[] = [
-    { key: 'hostesses', label: 'Hôtesses', packs: 'hostesses' },
-    { key: 'sites', label: 'Points de vente', packs: 'sites' },
-    { key: 'backoffice', label: 'Utilisateurs du back-office' },
+const USAGE: { key: keyof PlanState['usage']; label: string }[] = [
+    { key: 'hostesses', label: 'Hôtesses' },
+    { key: 'sites', label: 'Points de vente' },
+    { key: 'supervisors', label: 'Superviseurs' },
     { key: 'events_per_month', label: 'Événements ce mois-ci' },
 ];
+
+/** Compteur − / + d'un pack, avec ce qu'il ajoute. */
+function PackCounter({ label, price, value, onChange, effect }: { label: string; price: number; value: number; onChange: (v: number) => void; effect: string }) {
+    return (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+                <p className="text-sm font-medium text-ink">{label}</p>
+                <p className="text-xs text-slate-500">{number.format(price)} FCFA / mois par pack</p>
+            </div>
+            <div className="flex items-center gap-3">
+                <p className="text-sm text-slate-500 sm:text-right">{value === 0 ? 'Aucun' : effect}</p>
+                <div className="inline-flex items-center rounded-xl border border-slate-200">
+                    <button
+                        type="button"
+                        aria-label={`Retirer un ${label.toLowerCase()}`}
+                        disabled={value === 0}
+                        onClick={() => onChange(Math.max(0, value - 1))}
+                        className="flex size-10 items-center justify-center rounded-l-xl text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+                    >
+                        <Minus className="size-4" />
+                    </button>
+                    <span className="w-10 text-center text-base font-semibold text-ink tabular-nums" aria-live="polite">
+                        {value}
+                    </span>
+                    <button
+                        type="button"
+                        aria-label={`Ajouter un ${label.toLowerCase()}`}
+                        disabled={value >= MAX_PACKS}
+                        onClick={() => onChange(Math.min(MAX_PACKS, value + 1))}
+                        className="flex size-10 items-center justify-center rounded-r-xl text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+                    >
+                        <Plus className="size-4" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 /** Étape du formulaire : numéro, titre, contenu. */
 function Step({ n, title, hint, children }: { n: number; title: string; hint?: string; children: ReactNode }) {
@@ -75,28 +116,41 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint?: s
 }
 
 /** Forfait d'une entreprise : choix du forfait, durée, essai et packs, avec un récapitulatif avant d'enregistrer. */
-export default function AdminCompanyPlan({ company, plan, plans, pack }: Props) {
+export default function AdminCompanyPlan({ company, plan, plans, packs }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         plan: plan.subscribed_key,
         ends_on: plan.ends_on_iso ?? '',
         trial: plan.trial,
         extra_packs: plan.extra_packs,
+        supervisor_packs: plan.supervisor_packs,
     });
 
     const selected = plans.find((p) => p.key === data.plan) ?? plans[0];
     const current = plans.find((p) => p.key === plan.subscribed_key);
     const isStarter = selected.key === 'starter';
-    const packs = selected.accepts_packs ? data.extra_packs : 0;
-    const monthly = selected.price + packs * pack.price;
+    const hostessPacks = selected.accepts_packs ? data.extra_packs : 0;
+    const supervisorPacks = selected.accepts_supervisor_packs ? data.supervisor_packs : 0;
+    const monthly = selected.price + hostessPacks * packs.hostesses.price + supervisorPacks * packs.supervisors.price;
     const activePreset = PRESETS.find((p) => p.value() === data.ends_on)?.label;
 
     const unchanged =
-        data.plan === plan.subscribed_key && data.ends_on === (plan.ends_on_iso ?? '') && data.trial === plan.trial && packs === plan.extra_packs;
+        data.plan === plan.subscribed_key &&
+        data.ends_on === (plan.ends_on_iso ?? '') &&
+        data.trial === plan.trial &&
+        hostessPacks === plan.extra_packs &&
+        supervisorPacks === plan.supervisor_packs;
+
+    // Ce que les packs ajoutent aux limites du forfait choisi
+    const extra: Partial<Record<keyof PlanState['usage'], number>> = {
+        hostesses: hostessPacks * packs.hostesses.hostesses,
+        sites: hostessPacks * packs.hostesses.sites,
+        supervisors: supervisorPacks * packs.supervisors.supervisors,
+    };
 
     // Utilisation actuelle face aux limites du forfait choisi (packs compris)
     const usage = USAGE.map((u) => {
         const base = selected.limits[u.key];
-        const limit = base === null || base === undefined ? null : base + (u.packs ? packs * pack[u.packs] : 0);
+        const limit = base === null || base === undefined ? null : base + (extra[u.key] ?? 0);
         const used = plan.usage[u.key];
 
         return { ...u, used, limit, over: limit !== null && used > limit };
@@ -110,6 +164,7 @@ export default function AdminCompanyPlan({ company, plan, plans, pack }: Props) 
             trial: p.key === 'starter' ? false : d.trial,
             ends_on: p.key === 'starter' ? '' : d.ends_on,
             extra_packs: p.accepts_packs ? d.extra_packs : 0,
+            supervisor_packs: p.accepts_supervisor_packs ? d.supervisor_packs : 0,
         }));
 
     const submit = (e: React.FormEvent) => {
@@ -120,7 +175,7 @@ export default function AdminCompanyPlan({ company, plan, plans, pack }: Props) 
     const currentText = plan.expired
         ? `${plan.subscribed_label} terminé le ${plan.ends_on} : l’entreprise est en Starter.`
         : `${plan.label}${plan.trial ? ' (essai)' : ''}${plan.ends_on ? ` jusqu’au ${plan.ends_on}` : ''}${
-              plan.extra_packs ? ` · ${plan.extra_packs} pack${plan.extra_packs > 1 ? 's' : ''}` : ''
+              packSummary(plan.extra_packs, plan.supervisor_packs) ? ` · ${packSummary(plan.extra_packs, plan.supervisor_packs)}` : ''
           }`;
 
     return (
@@ -256,42 +311,33 @@ export default function AdminCompanyPlan({ company, plan, plans, pack }: Props) 
 
                         {/* 3. Packs */}
                         {selected.accepts_packs && (
-                            <Step
-                                n={3}
-                                title="Packs d’extension"
-                                hint={`+${pack.hostesses} hôtesses et +${pack.sites} points de vente par pack, ${number.format(pack.price)} FCFA / mois.`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="inline-flex items-center rounded-xl border border-slate-200">
-                                        <button
-                                            type="button"
-                                            aria-label="Retirer un pack"
-                                            disabled={data.extra_packs === 0}
-                                            onClick={() => setData('extra_packs', Math.max(0, data.extra_packs - 1))}
-                                            className="flex size-10 items-center justify-center rounded-l-xl text-slate-500 hover:bg-slate-50 disabled:opacity-40"
-                                        >
-                                            <Minus className="size-4" />
-                                        </button>
-                                        <span className="w-12 text-center text-base font-semibold text-ink tabular-nums" aria-live="polite">
-                                            {data.extra_packs}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            aria-label="Ajouter un pack"
-                                            disabled={data.extra_packs >= 50}
-                                            onClick={() => setData('extra_packs', Math.min(50, data.extra_packs + 1))}
-                                            className="flex size-10 items-center justify-center rounded-r-xl text-slate-500 hover:bg-slate-50 disabled:opacity-40"
-                                        >
-                                            <Plus className="size-4" />
-                                        </button>
+                            <Step n={3} title="Packs d’extension" hint="Pour aller au-delà des limites du forfait, sans en changer.">
+                                <div className="flex flex-col divide-y divide-slate-100">
+                                    <div className="pb-4">
+                                        <PackCounter
+                                            label="Pack hôtesses"
+                                            price={packs.hostesses.price}
+                                            value={data.extra_packs}
+                                            onChange={(v) => setData('extra_packs', v)}
+                                            effect={`+${data.extra_packs * packs.hostesses.hostesses} hôtesses, +${data.extra_packs * packs.hostesses.sites} points de vente`}
+                                        />
+                                        {errors.extra_packs && <p className="mt-2 text-sm text-red-600">{errors.extra_packs}</p>}
                                     </div>
-                                    <p className="text-sm text-slate-500">
-                                        {data.extra_packs === 0
-                                            ? 'Aucun pack'
-                                            : `+${data.extra_packs * pack.hostesses} hôtesses, +${data.extra_packs * pack.sites} points de vente`}
-                                    </p>
+                                    {selected.accepts_supervisor_packs ? (
+                                        <div className="pt-4">
+                                            <PackCounter
+                                                label="Pack superviseur"
+                                                price={packs.supervisors.price}
+                                                value={data.supervisor_packs}
+                                                onChange={(v) => setData('supervisor_packs', v)}
+                                                effect={`+${data.supervisor_packs * packs.supervisors.supervisors} superviseur${data.supervisor_packs * packs.supervisors.supervisors > 1 ? 's' : ''}`}
+                                            />
+                                            {errors.supervisor_packs && <p className="mt-2 text-sm text-red-600">{errors.supervisor_packs}</p>}
+                                        </div>
+                                    ) : (
+                                        <p className="pt-4 text-sm text-slate-500">Superviseurs illimités dans ce forfait : pas de pack superviseur.</p>
+                                    )}
                                 </div>
-                                {errors.extra_packs && <p className="mt-2 text-sm text-red-600">{errors.extra_packs}</p>}
                             </Step>
                         )}
                     </div>
@@ -323,8 +369,14 @@ export default function AdminCompanyPlan({ company, plan, plans, pack }: Props) 
                                 )}
                                 {selected.accepts_packs && (
                                     <div className="flex justify-between gap-3">
-                                        <dt className="text-slate-500">Packs</dt>
-                                        <dd className="text-ink tabular-nums">{packs}</dd>
+                                        <dt className="text-slate-500">Packs hôtesses</dt>
+                                        <dd className="text-ink tabular-nums">{hostessPacks}</dd>
+                                    </div>
+                                )}
+                                {selected.accepts_supervisor_packs && (
+                                    <div className="flex justify-between gap-3">
+                                        <dt className="text-slate-500">Packs superviseur</dt>
+                                        <dd className="text-ink tabular-nums">{supervisorPacks}</dd>
                                     </div>
                                 )}
                             </dl>

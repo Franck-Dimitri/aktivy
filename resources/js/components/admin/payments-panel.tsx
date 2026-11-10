@@ -1,6 +1,7 @@
 import { Download } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Panel } from '@/components/page/page';
+import { packSummary } from '@/components/plans/plan-usage';
 import { invoice as invoiceDownload } from '@/routes/admin/subscriptions';
 import { currencyLabel, number } from '@/pages/reports/format';
 
@@ -14,6 +15,7 @@ export type PaymentRow = {
     method: string;
     plan?: string | null;
     extra_packs?: number;
+    supervisor_packs?: number;
     reference: string | null;
     paid_at: string;
     period_end: string | null;
@@ -40,7 +42,7 @@ export function PaymentsPanel({ payments, showCompany = false, actions }: { paym
                                 <p className="text-xs text-slate-500">
                                     {p.invoice_number}
                                     {p.plan ? ` · ${p.plan}` : ''}
-                                    {p.extra_packs ? ` + ${p.extra_packs} pack${p.extra_packs > 1 ? 's' : ''}` : ''} · {p.method}
+                                    {packSummary(p.extra_packs ?? 0, p.supervisor_packs ?? 0) ? ` + ${packSummary(p.extra_packs ?? 0, p.supervisor_packs ?? 0)}` : ''} · {p.method}
                                     {p.reference ? ` · réf. ${p.reference}` : ''} · reçu le {p.paid_at}
                                     {p.period_end ? ` · jusqu’au ${p.period_end}` : ''}
                                 </p>

@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\LiveNotification;
 use App\Notifications\PlanExpiring;
 use App\Notifications\SupportReplied;
+use App\Support\Billing\InvoiceDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Mail;
@@ -39,7 +40,7 @@ class AdminOperationsTest extends TestCase
         $this->manager = User::factory()->create();
     }
 
-    /** Entreprise en essai : le forfait de la fabrique (sans fin) est remplacé par l'essai de 14 jours. */
+    /** Entreprise en essai : le forfait de la fabrique (sans fin) est remplacé par l'essai de 7 jours. */
     private function startTrial(): void
     {
         $this->manager->company->setPlan(Plan::Starter);
@@ -49,7 +50,7 @@ class AdminOperationsTest extends TestCase
     private function pay(array $overrides = []): TestResponse
     {
         return $this->actingAs($this->admin)->post(route('admin.subscriptions.payments.store', $this->manager->company), [
-            'amount' => 36000,
+            'amount' => 48000 + Plan::PACK_PRICE,
             'method' => 'orange_money',
             'reference' => 'OM-123456',
             'paid_at' => today()->toDateString(),
@@ -91,6 +92,27 @@ class AdminOperationsTest extends TestCase
 
         Notification::assertSentTo($this->manager, LiveNotification::class, fn ($n) => $n->type === 'payment_received');
         $this->assertDatabaseHas('audit_logs', ['action' => 'subscription.payment_recorded', 'company_id' => $this->manager->company_id]);
+    }
+
+    public function test_a_payment_with_supervisor_packs_sets_them_and_lists_them_on_the_invoice()
+    {
+        Notification::fake();
+
+        $this->pay(['amount' => 14500 + 2 * Plan::SUPERVISOR_PACK_PRICE, 'plan' => Plan::Pro->value, 'extra_packs' => 0, 'supervisor_packs' => 2])
+            ->assertSessionHasNoErrors();
+
+        $payment = SubscriptionPayment::firstOrFail();
+        $this->assertSame(2, $payment->supervisor_packs);
+
+        $company = $this->manager->company->fresh();
+        $this->assertSame(2, $company->plan_supervisor_packs);
+        $this->assertSame(4, $company->planLimits()['supervisors']);
+        $this->assertContains('2 packs superviseur (+1 superviseur chacun)', InvoiceDocument::data($payment)['lines'][0]['details']);
+
+        // Entreprise : superviseurs illimités, le pack superviseur n'est pas retenu
+        $this->pay(['amount' => 88000, 'plan' => Plan::Entreprise->value, 'extra_packs' => 0, 'supervisor_packs' => 2])->assertSessionHasNoErrors();
+        $this->assertSame(0, SubscriptionPayment::latest('id')->firstOrFail()->supervisor_packs);
+        $this->assertSame(0, $this->manager->company->fresh()->plan_supervisor_packs);
     }
 
     public function test_the_invoices_page_lists_every_invoice_and_the_subscription_page_only_the_last()

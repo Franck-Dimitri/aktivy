@@ -72,9 +72,34 @@ self.addEventListener('push', (event) => {
             }),
             // Fenêtres Motriks ouvertes : elles mettent leurs données à jour (cf. resources/js/lib/live-refresh.ts)
             self.clients.matchAll({ type: 'window' }).then((windows) => windows.forEach((w) => w.postMessage({ type: 'push-received' }))),
+            updateBadge(),
         ]),
     );
 });
+
+/*
+ * Pastille sur l'icône de l'application installée (nombre de non lues), même application fermée.
+ * La notification est peut-être encore en cours d'enregistrement : le nombre est relevé un instant après.
+ * Sans réponse du serveur, un simple point signale qu'il y a du nouveau.
+ */
+async function updateBadge() {
+    if (!('setAppBadge' in self.navigator)) {
+        return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+
+    try {
+        const response = await fetch('/notifications/pouls', { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
+        if (!response.ok || response.redirected) {
+            throw new Error(String(response.status));
+        }
+        const { unread } = await response.json();
+        await (unread > 0 ? self.navigator.setAppBadge(unread) : self.navigator.clearAppBadge());
+    } catch {
+        await self.navigator.setAppBadge().catch(() => {});
+    }
+}
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();

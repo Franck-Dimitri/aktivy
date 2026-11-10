@@ -8,6 +8,7 @@ import { CompanyAvatar, QuietEmpty } from '@/components/page/list-kit';
 import { Page } from '@/components/page/page';
 import { Pagination, type Paginated } from '@/components/page/pagination';
 import { MetricStrip } from '@/components/page/surface';
+import { packSummary } from '@/components/plans/plan-usage';
 import { cn } from '@/lib/utils';
 import { currencyLabel, number } from '@/pages/reports/format';
 import { dashboard } from '@/routes/admin';
@@ -214,11 +215,8 @@ export default function AdminInvoices({ invoices, filters, years, methods, summa
                                             <div className="min-w-0 text-sm text-slate-600">
                                                 <p className="truncate">
                                                     {i.plan ?? '—'}
-                                                    {i.extra_packs > 0 && (
-                                                        <span className="text-slate-400">
-                                                            {' '}
-                                                            · +{i.extra_packs} pack{i.extra_packs > 1 ? 's' : ''}
-                                                        </span>
+                                                    {packSummary(i.extra_packs, i.supervisor_packs ?? 0) && (
+                                                        <span className="text-slate-400"> · +{packSummary(i.extra_packs, i.supervisor_packs ?? 0)}</span>
                                                     )}
                                                 </p>
                                                 {i.period_end && (

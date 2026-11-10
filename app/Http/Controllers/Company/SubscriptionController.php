@@ -23,7 +23,7 @@ class SubscriptionController extends Controller
         return Inertia::render('company/subscription', [
             'plan' => PlanPresenter::state($company),
             'plans' => PlanPresenter::catalog(),
-            'pack' => ['price' => Plan::PACK_PRICE, 'hostesses' => Plan::PACK_HOSTESSES, 'sites' => Plan::PACK_SITES],
+            'packs' => Plan::packCatalog(),
             'payments' => (clone $payments)->latest('paid_at')->latest('id')->limit(1)->get()->map(InvoiceController::present(...)),
             'paymentsCount' => $payments->count(),
             // Nom affiché dans l'en-tête de l'aperçu de facture

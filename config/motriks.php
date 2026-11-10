@@ -21,14 +21,15 @@ return [
     |
     | Adresse qui reçoit les demandes envoyées depuis le centre d'aide (par
     | défaut l'adresse d'expédition), et numéro WhatsApp du support au format
-    | international sans « + » (ex. 237690000000). Sans numéro, le bouton
-    | WhatsApp n'est pas affiché.
+    | international sans « + » (ex. 237690000000). Par défaut, le numéro de
+    | contact de la plateforme (le même que sur le site, resources/js/lib/contact.ts).
     |
     */
 
     'support' => [
         'email' => env('SUPPORT_EMAIL', env('MAIL_FROM_ADDRESS')),
-        'whatsapp' => env('SUPPORT_WHATSAPP'),
+        // « ?: » : une ligne SUPPORT_WHATSAPP= laissée vide dans .env garde le numéro par défaut
+        'whatsapp' => env('SUPPORT_WHATSAPP') ?: '237657439465',
     ],
 
     /*
@@ -45,7 +46,7 @@ return [
         'name' => env('BILLING_NAME', 'Motriks'),
         'address' => env('BILLING_ADDRESS'),
         'city' => env('BILLING_CITY', 'Yaoundé, Cameroun'),
-        'phone' => env('BILLING_PHONE', env('SUPPORT_WHATSAPP')),
+        'phone' => env('BILLING_PHONE') ?: '+237 657 43 94 65',
         'email' => env('BILLING_EMAIL', env('SUPPORT_EMAIL', env('MAIL_FROM_ADDRESS'))),
         'niu' => env('BILLING_NIU'),
         'rccm' => env('BILLING_RCCM'),

@@ -51,6 +51,7 @@ class InvoiceController extends Controller
                 'method' => $p->methodLabel(),
                 'plan' => $p->plan?->label(),
                 'extra_packs' => $p->extra_packs,
+                'supervisor_packs' => $p->supervisor_packs,
                 'reference' => $p->reference,
                 'paid_at' => $p->paid_at->format('d/m/Y'),
                 'period_start' => $p->period_start?->format('d/m/Y'),

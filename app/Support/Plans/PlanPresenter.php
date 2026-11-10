@@ -26,6 +26,7 @@ class PlanPresenter
             'limits' => $plan->limits(),
             'highlights' => $plan->highlights(),
             'accepts_packs' => $plan->acceptsPacks(),
+            'accepts_supervisor_packs' => $plan->acceptsSupervisorPacks(),
         ], Plan::cases());
     }
 
@@ -52,7 +53,8 @@ class PlanPresenter
             'ends_on_iso' => $endsOn?->toDateString(),
             'days_left' => $endsOn && ! $company->planExpired() ? (int) today()->diffInDays($endsOn, false) : null,
             'extra_packs' => $company->activeExtraPacks(),
-            'monthly_price' => $current->price() + $company->activeExtraPacks() * Plan::PACK_PRICE,
+            'supervisor_packs' => $company->activeSupervisorPacks(),
+            'monthly_price' => $company->monthlyPrice(),
             'limits' => $company->planLimits(),
             'usage' => PlanUsage::of($company),
         ];

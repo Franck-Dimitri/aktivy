@@ -80,19 +80,21 @@ class PlanTest extends TestCase
 
         $company = $manager->company->fresh();
         $this->assertSame(Plan::Business, $company->currentPlan());
-        $this->assertSame(50 + 2 * Plan::PACK_HOSTESSES, $company->planLimits()['hostesses']);
+        $this->assertSame(35 + 2 * Plan::PACK_HOSTESSES, $company->planLimits()['hostesses']);
+        $this->assertSame(48000 + 2 * Plan::PACK_PRICE, $company->monthlyPrice());
         $this->assertDatabaseHas('audit_logs', ['action' => 'plan.changed', 'company_id' => $company->id]);
 
         // Un essai a toujours une date de fin, et Starter n'a ni date ni pack
         $this->actingAs($admin)->put(route('admin.companies.plan.update', $company), ['plan' => 'pro', 'trial' => true])->assertSessionHasErrors('ends_on');
-        $this->actingAs($admin)->put(route('admin.companies.plan.update', $company), ['plan' => 'starter', 'extra_packs' => 3])->assertSessionHasNoErrors();
+        $this->actingAs($admin)->put(route('admin.companies.plan.update', $company), ['plan' => 'starter', 'extra_packs' => 3, 'supervisor_packs' => 2])->assertSessionHasNoErrors();
         $this->assertSame(0, $company->fresh()->plan_extra_packs);
+        $this->assertSame(0, $company->fresh()->plan_supervisor_packs);
         $this->assertNull($company->fresh()->plan_ends_on);
 
         $this->actingAs($manager)->put(route('admin.companies.plan.update', $company), ['plan' => 'entreprise'])->assertForbidden();
     }
 
-    public function test_a_newly_approved_company_gets_a_14_day_business_trial()
+    public function test_a_newly_approved_company_gets_a_7_day_business_trial()
     {
         $admin = User::factory()->superAdmin()->create();
         $company = Company::factory()->starter()->create(['status' => AccountStatus::Pending, 'onboarding_completed_at' => now()]);
@@ -103,7 +105,7 @@ class PlanTest extends TestCase
         $company->refresh();
         $this->assertSame(Plan::Business, $company->currentPlan());
         $this->assertTrue($company->plan_trial);
-        $this->assertSame(today()->addDays(14)->toDateString(), $company->plan_ends_on->toDateString());
+        $this->assertSame(today()->addDays(7)->toDateString(), $company->plan_ends_on->toDateString());
     }
 
     public function test_the_manager_is_reminded_before_the_plan_ends()
@@ -116,38 +118,100 @@ class PlanTest extends TestCase
         Notification::assertSentTo($manager, PlanExpiring::class);
     }
 
-    public function test_starter_limits_hostesses_sites_and_back_office_users()
+    /** Données d'un nouveau membre du personnel. */
+    private function member(string $role, string $phone): array
+    {
+        return [
+            'name' => 'Nouveau', 'phone' => $phone, 'role' => $role,
+            'password' => '12345', 'password_confirmation' => '12345',
+        ];
+    }
+
+    public function test_the_plans_follow_the_price_list_of_november_2026()
+    {
+        $this->assertSame([0, 14500, 48000, 88000], array_map(fn (Plan $p) => $p->price(), Plan::cases()));
+
+        $grid = array_map(fn (Plan $p) => array_intersect_key($p->limits(), array_flip(['hostesses', 'sites', 'supervisors'])), Plan::cases());
+        $this->assertSame([
+            ['hostesses' => 1, 'sites' => 1, 'supervisors' => 0],
+            ['hostesses' => 7, 'sites' => 7, 'supervisors' => 2],
+            ['hostesses' => 35, 'sites' => 35, 'supervisors' => 6],
+            ['hostesses' => 120, 'sites' => 120, 'supervisors' => null],
+        ], $grid);
+
+        $this->assertSame(11500, Plan::PACK_PRICE);
+        $this->assertSame(1500, Plan::SUPERVISOR_PACK_PRICE);
+    }
+
+    public function test_starter_limits_hostesses_sites_and_supervisors_but_not_accountants()
     {
         $manager = $this->managerOn(Plan::Starter);
         $company = $manager->company;
 
-        foreach (range(1, 3) as $i) {
-            $company->sites()->create(['name' => "Site {$i}", 'type' => 'autre', 'city' => 'Douala', 'created_by' => $manager->id]);
-            User::factory()->fieldAgent()->create(['company_id' => $company->id]);
-        }
+        $company->sites()->create(['name' => 'Site 1', 'type' => 'autre', 'city' => 'Douala', 'created_by' => $manager->id]);
+        User::factory()->fieldAgent()->create(['company_id' => $company->id]);
 
-        $this->actingAs($manager)->post(route('sites.store'), ['name' => 'Site 4', 'type' => 'autre', 'city' => 'Douala'])
+        $this->actingAs($manager)->post(route('sites.store'), ['name' => 'Site 2', 'type' => 'autre', 'city' => 'Douala'])
             ->assertSessionHasErrors('name');
+        $this->actingAs($manager)->post(route('personnel.store'), $this->member(Role::FieldAgent->value, '690001001'))->assertSessionHasErrors('role');
+        $this->actingAs($manager)->post(route('personnel.store'), $this->member(Role::Supervisor->value, '690001002'))
+            ->assertSessionHasErrors(['role' => 'Votre forfait Motriks Starter ne comprend pas de superviseur. Passez à Motriks Pro pour aller plus loin : contactez-nous.']);
 
-        $member = fn (string $role, string $phone) => [
-            'name' => 'Nouveau', 'phone' => $phone, 'role' => $role,
-            'password' => 'Motriks-2026!', 'password_confirmation' => 'Motriks-2026!',
-        ];
-        $this->actingAs($manager)->post(route('personnel.store'), $member(Role::FieldAgent->value, '690001001'))->assertSessionHasErrors('role');
-        // Starter : le gérant seul au back-office
-        $this->actingAs($manager)->post(route('personnel.store'), $member(Role::Accountant->value, '690001002'))->assertSessionHasErrors('role');
+        // Les comptables ne sont pas comptés
+        $this->actingAs($manager)->post(route('personnel.store'), $this->member(Role::Accountant->value, '690001003'))->assertSessionHasNoErrors();
 
-        $this->assertSame(3, $company->sites()->count());
-        $this->assertSame(3, $company->users()->where('role', Role::FieldAgent)->count());
+        $this->assertSame(1, $company->sites()->count());
+        $this->assertSame(1, $company->users()->where('role', Role::FieldAgent)->count());
+        $this->assertSame(0, $company->users()->where('role', Role::Supervisor)->count());
     }
 
-    public function test_a_pack_adds_five_hostesses_to_a_paid_plan()
+    public function test_pro_allows_two_supervisors_and_a_supervisor_pack_adds_one()
+    {
+        $manager = $this->managerOn(Plan::Pro, today()->addMonth()->toDateString());
+        $company = $manager->company;
+
+        $this->actingAs($manager)->post(route('personnel.store'), $this->member(Role::Supervisor->value, '690002001'))->assertSessionHasNoErrors();
+        $this->actingAs($manager)->post(route('personnel.store'), $this->member(Role::Supervisor->value, '690002002'))->assertSessionHasNoErrors();
+        $this->actingAs($manager)->post(route('personnel.store'), $this->member(Role::Supervisor->value, '690002003'))
+            ->assertSessionHasErrors(['role' => 'Votre forfait Motriks Pro permet 2 superviseurs, vous les avez atteints. Ajoutez un pack superviseur, ou passez à Motriks Business : contactez-nous.']);
+
+        $company->setPlan(Plan::Pro, today()->addMonth(), supervisorPacks: 1);
+        $this->assertSame(3, $company->fresh()->planLimits()['supervisors']);
+        $this->assertSame(14500 + Plan::SUPERVISOR_PACK_PRICE, $company->fresh()->monthlyPrice());
+        $this->actingAs($manager->fresh())->post(route('personnel.store'), $this->member(Role::Supervisor->value, '690002003'))->assertSessionHasNoErrors();
+    }
+
+    public function test_a_hostess_can_not_become_a_supervisor_beyond_the_plan()
+    {
+        $manager = $this->managerOn(Plan::Starter);
+        $hostess = User::factory()->fieldAgent()->create(['company_id' => $manager->company_id, 'phone' => '+237690003001']);
+
+        $this->actingAs($manager)->put(route('personnel.update', $hostess), [
+            'name' => $hostess->name, 'phone' => '690003001', 'role' => Role::Supervisor->value, 'status' => 'active',
+        ])->assertSessionHasErrors('role');
+
+        $this->assertSame(Role::FieldAgent, $hostess->fresh()->role);
+    }
+
+    public function test_entreprise_has_unlimited_supervisors_and_no_supervisor_pack()
+    {
+        $manager = $this->managerOn(Plan::Entreprise, today()->addMonth()->toDateString());
+        $manager->company->setPlan(Plan::Entreprise, today()->addMonth(), supervisorPacks: 3);
+
+        $company = $manager->company->fresh();
+        $this->assertNull($company->planLimits()['supervisors']);
+        $this->assertSame(0, $company->plan_supervisor_packs);
+        $this->assertSame(88000, $company->monthlyPrice());
+    }
+
+    public function test_a_hostess_pack_adds_five_hostesses_and_five_sites_to_a_paid_plan()
     {
         $manager = $this->managerOn(Plan::Pro, today()->addMonth()->toDateString());
         $manager->company->update(['plan_extra_packs' => 1]);
 
-        $this->assertSame(25, $manager->company->fresh()->planLimits()['hostesses']);
-        $this->assertSame(25, $manager->company->fresh()->planLimits()['sites']);
+        $this->assertSame(12, $manager->company->fresh()->planLimits()['hostesses']);
+        $this->assertSame(12, $manager->company->fresh()->planLimits()['sites']);
+        $this->assertSame(2, $manager->company->fresh()->planLimits()['supervisors']);
     }
 
     public function test_photos_per_report_follow_the_plan()

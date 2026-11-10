@@ -74,6 +74,8 @@ class SalesReport
         $row = $this->query()
             ->selectRaw('COALESCE(SUM(l.revenue), 0) as revenue')
             ->selectRaw('COALESCE(SUM(l.units_sold), 0) as units_sold')
+            // Dont ventes en boutique extérieure (hors stock des points de vente)
+            ->selectRaw('COALESCE(SUM(CASE WHEN l.external_shop IS NOT NULL THEN l.revenue ELSE 0 END), 0) as external_revenue')
             ->selectRaw('COUNT(DISTINCT r.id) as reports_count')
             ->selectRaw('COUNT(DISTINCT r.report_date) as days_count')
             ->selectRaw('COUNT(DISTINCT r.site_id) as sites_count')
@@ -83,6 +85,7 @@ class SalesReport
         return [
             'revenue' => (float) $row->revenue,
             'units_sold' => (int) $row->units_sold,
+            'external_revenue' => (float) $row->external_revenue,
             'reports_count' => (int) $row->reports_count,
             'days_count' => (int) $row->days_count,
             'sites_count' => (int) $row->sites_count,
@@ -122,7 +125,7 @@ class SalesReport
                 'u.name as hostess_name', 'u.phone as hostess_phone',
                 'e.name as event_name',
                 'l.product_name', 'l.unit', 'l.unit_price',
-                'l.opening_stock', 'l.units_sold', 'l.closing_stock', 'l.revenue', 'l.notes',
+                'l.opening_stock', 'l.units_sold', 'l.closing_stock', 'l.revenue', 'l.notes', 'l.external_shop',
             ])
             ->orderBy('r.report_date')
             ->orderBy('s.name')

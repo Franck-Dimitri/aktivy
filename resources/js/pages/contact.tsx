@@ -4,18 +4,12 @@ import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
 import MotriksLogo from '@/components/motriks-logo';
 import { AuthMobileActions, AuthNavActions } from '@/components/landing/auth-actions';
+import { CONTACT } from '@/lib/contact';
 
 /* ------------------------------------------------------------------ */
-/*  Contenu modifiable                                                 */
+/*  Contenu modifiable (coordonnées : resources/js/lib/contact.ts)     */
 /* ------------------------------------------------------------------ */
 
-/* À remplacer par vos vraies coordonnées */
-const CONTACT = {
-    email: 'contact@motriks.com',
-    whatsappLabel: '+237 000 000 000',
-    whatsappUrl: 'https://wa.me/237000000000',
-    hours: 'Lundi - Samedi, 8h - 18h',
-};
 
 /* Les libellés sont envoyés tels quels au serveur : ne pas les modifier sans adapter la validation */
 const SUBJECTS = [

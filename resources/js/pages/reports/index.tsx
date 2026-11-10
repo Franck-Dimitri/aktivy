@@ -47,6 +47,8 @@ type Props = {
     totals: {
         revenue: number;
         units_sold: number;
+        /** Dont ventes en boutique extérieure (hors stock des points de vente). */
+        external_revenue?: number;
         reports_count: number;
         days_count: number;
         sites_count: number;
@@ -250,7 +252,13 @@ export default function ReportsIndex(props: Props) {
                 {/* ── Chiffres clés ── */}
                 <MetricStrip
                     items={[
-                        { label: 'Chiffre d’affaires', value: money(totals.revenue, currency), sub: versus(totals.revenue, previous.totals.revenue) },
+                        {
+                            label: 'Chiffre d’affaires',
+                            value: money(totals.revenue, currency),
+                            sub: totals.external_revenue
+                                ? `${versus(totals.revenue, previous.totals.revenue)} · dont ${money(totals.external_revenue, currency)} en boutiques extérieures`
+                                : versus(totals.revenue, previous.totals.revenue),
+                        },
                         { label: 'Unités vendues', value: number.format(totals.units_sold), sub: versus(totals.units_sold, previous.totals.units_sold) },
                         { label: 'Rapports envoyés', value: number.format(totals.reports_count), sub: `${totals.sites_count} site${totals.sites_count > 1 ? 's' : ''} · ${totals.hostesses_count} hôtesse${totals.hostesses_count > 1 ? 's' : ''}` },
                         { label: 'Moyenne par jour d’activité', value: money(average, currency), sub: versus(average, previousAverage) },

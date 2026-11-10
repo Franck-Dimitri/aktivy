@@ -24,7 +24,7 @@ import { documentsCount, LegalDocumentsList, type LegalDocument } from '@/compon
 import { CompanyProducts, type CompanyProduct } from '@/components/admin/company-products';
 import { RecordPaymentModal, type Option, type PlanOption } from '@/components/admin/record-payment-modal';
 import { InvoicePreviewModal, type InvoiceUrls } from '@/components/invoices/invoice-preview';
-import { PlanUsageList, type PlanState } from '@/components/plans/plan-usage';
+import { packSummary, PlanUsageList, type PackCatalog, type PlanState } from '@/components/plans/plan-usage';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { Field, SelectInput, TextInput } from '@/components/page/form-fields';
@@ -106,7 +106,7 @@ type Props = {
     billing: {
         plans: PlanOption[];
         methods: Option[];
-        pack_price: number;
+        packs: PackCatalog;
         can_remind: boolean;
     };
 };
@@ -422,7 +422,7 @@ function PlanCard({ plan, companyId }: { plan: PlanState; companyId: number }) {
           ? 'Forfait gratuit, sans date de fin.'
           : `${plan.trial ? 'Essai' : 'Forfait'} ${plan.ends_on ? `jusqu’au ${plan.ends_on}` : 'sans date de fin'}${
                 plan.days_left !== null && !plan.expired ? ` · J-${plan.days_left}` : ''
-            }${plan.extra_packs ? ` · ${plan.extra_packs} pack${plan.extra_packs > 1 ? 's' : ''} d’extension` : ''}`;
+            }${packSummary(plan.extra_packs, plan.supervisor_packs) ? ` · ${packSummary(plan.extra_packs, plan.supervisor_packs)}` : ''}`;
 
     return (
         <section className={card}>
@@ -879,9 +879,10 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                     company={{ id: company.id, name: company.name }}
                     plans={billing.plans}
                     methods={billing.methods}
-                    packPrice={billing.pack_price}
+                    packs={billing.packs}
                     currentPlan={plan.subscribed_key}
                     currentPacks={plan.extra_packs}
+                    currentSupervisorPacks={plan.supervisor_packs}
                     onClose={() => setPaying(false)}
                 />
             )}

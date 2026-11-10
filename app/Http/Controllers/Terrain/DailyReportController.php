@@ -12,6 +12,7 @@ use App\Notifications\LiveNotification;
 use App\Support\Incident;
 use App\Support\Targets\TargetReachedCheck;
 use App\Support\Notifications\Notify;
+use App\Support\Reports\ExternalSales;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
 use App\Models\Visit;
@@ -78,6 +79,10 @@ class DailyReportController extends Controller
                 'validated'        => $report->isValidated(),
                 'corrected'        => $report->corrected_at !== null,
                 'packs'            => $this->packs($report),
+                // Ventes en boutique extérieure : produits du point de vente, sans effet sur son stock
+                'external_sales'    => ExternalSales::present($report),
+                'external_products' => ExternalSales::products($report),
+                'external_shops'    => ExternalSales::shopsUsedBy($request->user()),
                 'photos'           => $report->photos()->oldest()->get()->map->toView(),
                 'max_photos'       => DailyReportPhoto::maxFor($report->company),
                 'lines' => $report->lines->map(fn ($l) => [
@@ -193,7 +198,7 @@ class DailyReportController extends Controller
         });
 
         // Rapport envoyé : les responsables du site en sont prévenus ; objectif peut-être atteint
-        $report->load(['agent', 'site:id,name', 'lines']);
+        $report->load(['agent', 'site:id,name', 'lines', 'externalLines']);
         Notify::send(Notify::siteManagers($report->company_id, [$report->site_id]), LiveNotification::reportSubmitted($report));
         TargetReachedCheck::afterSubmit($report);
 
@@ -260,6 +265,7 @@ class DailyReportController extends Controller
             'packs'               => ['nullable', 'array'],
             'packs.*.id'          => ['required', 'integer'],
             'packs.*.quantity'    => ['required', 'integer', 'min:0'],
+            ...ExternalSales::RULES,
             ...$extraRules,
         ]);
     }
@@ -277,6 +283,11 @@ class DailyReportController extends Controller
             collect($validated['packs'] ?? [])->pluck('quantity', 'id')->all(),
             $lines->mapWithKeys(fn ($l) => [$l['id'] => $l['notes'] ?? null])->all(),
         );
+
+        // Absent de la requête (application pas encore mise à jour sur le téléphone) : on n'y touche pas
+        if (array_key_exists('external_sales', $validated)) {
+            ExternalSales::apply($report, $validated['external_sales'] ?? []);
+        }
     }
 
     /** Ajouter un signalement après soumission. */

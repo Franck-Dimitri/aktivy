@@ -75,12 +75,15 @@ class AdminUsersTest extends TestCase
         Notification::assertSentTo($hostess, QueuedVerifyEmail::class);
         $this->assertDatabaseHas('audit_logs', ['action' => 'user.updated_by_admin', 'company_id' => $this->manager->company_id]);
 
-        // Starter : un seul utilisateur du back-office, déjà pris par le gérant
+        // Starter : aucun superviseur ; les comptables, eux, ne sont pas comptés
         $this->manager->company->update(['plan' => Plan::Starter]);
         $other = User::factory()->fieldAgent()->create(['company_id' => $this->manager->company_id]);
         $this->actingAs($this->admin)->put(route('admin.users.update', $other), [
-            'name' => $other->name, 'phone' => $other->phone, 'role' => 'accountant',
+            'name' => $other->name, 'phone' => $other->phone, 'role' => 'supervisor',
         ])->assertSessionHasErrors('role');
+        $this->actingAs($this->admin)->put(route('admin.users.update', $other), [
+            'name' => $other->name, 'phone' => $other->phone, 'role' => 'accountant',
+        ])->assertSessionHasNoErrors();
 
         // Sans e-mail ni téléphone, impossible de se connecter
         $this->actingAs($this->admin)->put(route('admin.users.update', $other), [

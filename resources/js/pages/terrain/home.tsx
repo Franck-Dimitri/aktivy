@@ -578,10 +578,10 @@ export default function TerrainHome({
         setLoading(true);
         setGpsStatus('capturing');
 
-        const doCheckin = (lat?: number, lng?: number) => {
+        const doCheckin = (lat?: number, lng?: number, accuracy?: number) => {
             router.post(
                 visitStore().url,
-                { affectation_id: affectation.id, latitude: lat ?? null, longitude: lng ?? null },
+                { affectation_id: affectation.id, latitude: lat ?? null, longitude: lng ?? null, accuracy: accuracy ?? null },
                 {
                     onSuccess: () =>
                         toast.success('Service pris', {
@@ -600,14 +600,16 @@ export default function TerrainHome({
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     setGpsStatus('idle');
-                    doCheckin(pos.coords.latitude, pos.coords.longitude);
+                    doCheckin(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
                 },
                 () => {
                     setGpsStatus('denied');
                     toast.warning('GPS indisponible');
                     doCheckin();
                 },
-                { timeout: 8000 },
+                // Position fraîche et précise (GPS du téléphone, pas seulement le réseau) : le responsable
+                // voit exactement où le service a été pris
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 },
             );
         } else {
             setGpsStatus('denied');

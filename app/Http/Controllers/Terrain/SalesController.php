@@ -15,10 +15,11 @@ class SalesController extends Controller
     {
         $user = $request->user();
 
-        // Charger tous les rapports soumis avec lignes + image produit
+        // Charger tous les rapports soumis avec toutes leurs lignes (boutiques extérieures comprises) + image produit
         $reports = DailyReport::with([
-            'lines',
-            'lines.siteProduct.product:id,image',
+            'allLines',
+            'allLines.siteProduct.product:id,image',
+            'allLines.product:id,image',
             'site:id,name,city',
         ])
             ->where('user_id', $user->id)
@@ -26,9 +27,14 @@ class SalesController extends Controller
             ->orderByDesc('report_date')
             ->get();
 
-        $imageOf = fn ($line) => $line->siteProduct?->product?->image
-            ? asset('storage/' . $line->siteProduct->product->image)
-            : null;
+        // Les lignes du rapport, ventes en boutique extérieure comprises
+        $reports->each(fn (DailyReport $r) => $r->setRelation('lines', $r->allLines));
+
+        $imageOf = function ($line) {
+            $image = $line->siteProduct?->product?->image ?? $line->product?->image;
+
+            return $image ? asset('storage/' . $image) : null;
+        };
 
         // ── Grouper par mois ──
         $months = $reports
@@ -80,6 +86,8 @@ class SalesController extends Controller
                                     'units_sold'   => $l->units_sold,
                                     'revenue'      => $l->revenue,
                                     'notes'        => $l->notes,
+                                    // Vente en boutique extérieure (hors stock du point de vente)
+                                    'external_shop' => $l->external_shop,
                                     'image_url'    => $imageOf($l),
                                 ])
                                 ->values(),

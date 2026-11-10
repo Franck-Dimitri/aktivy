@@ -5,16 +5,11 @@ import { Seo } from '@/components/seo';
 import MotriksLogo from '@/components/motriks-logo';
 import MotriksMark from '@/components/motriks-mark';
 import { AuthMobileActions, AuthNavActions } from '@/components/landing/auth-actions';
+import { CONTACT } from '@/lib/contact';
 
 /* ------------------------------------------------------------------ */
-/*  Contenu modifiable                                                 */
+/*  Contenu modifiable (coordonnées : resources/js/lib/contact.ts)     */
 /* ------------------------------------------------------------------ */
-
-/* Coordonnées : remplacez le numéro WhatsApp par le vrai (format international, sans + ni espaces) */
-const CONTACT = {
-    email: 'contact@motriks.com',
-    whatsapp: '237000000000',
-};
 
 const NAV_LINKS = [
     { label: 'Fonctionnalités', href: '#fonctionnalites' },
@@ -90,8 +85,8 @@ const PLANS = [
         name: 'Motriks Starter',
         price: 'Gratuit',
         unit: '',
-        description: 'Pour découvrir Motriks avec une petite équipe.',
-        features: ['3 hôtesses et 3 points de vente', 'Suivi terrain, même sans réseau', 'Rapports journaliers et chiffres du jour', 'Historique de 30 jours'],
+        description: 'Pour découvrir Motriks avec une hôtesse.',
+        features: ['1 hôtesse et 1 point de vente', 'Suivi terrain, même sans réseau', 'Rapports journaliers et chiffres du jour', 'Historique de 30 jours'],
         cta: 'Commencer gratuitement',
         highlight: false,
     },
@@ -100,25 +95,25 @@ const PLANS = [
         price: '14 500',
         unit: 'FCFA / mois',
         description: 'Pour la PME qui pilote son réseau de vente.',
-        features: ['20 hôtesses et 20 points de vente', 'Stocks, rappels et notifications push', 'Ventes et objectifs par hôtesse', 'PDF à vos couleurs et exports Excel', '1 événement et 3 packs par mois'],
-        cta: 'Essayer 14 jours',
+        features: ['7 hôtesses, 7 points de vente et 2 superviseurs', 'Stocks, rappels et notifications push', 'Ventes et objectifs par hôtesse', 'PDF à vos couleurs et exports Excel', '1 événement et 3 packs par mois'],
+        cta: 'Essayer 7 jours',
         highlight: false,
     },
     {
         name: 'Motriks Business',
-        price: '36 000',
+        price: '48 000',
         unit: 'FCFA / mois',
         description: 'Pour les agences et les marques en campagne.',
-        features: ['50 hôtesses et 50 points de vente', '3 événements et 10 packs par mois', '6 photos par rapport', 'Historique illimité', 'Mise en service offerte'],
-        cta: 'Essayer 14 jours',
+        features: ['35 hôtesses, 35 points de vente et 6 superviseurs', '3 événements et 10 packs par mois', '6 photos par rapport', 'Historique illimité', 'Mise en service offerte'],
+        cta: 'Essayer 7 jours',
         highlight: true,
     },
     {
         name: 'Motriks Entreprise',
-        price: '62 500',
+        price: '88 000',
         unit: 'FCFA / mois',
         description: 'Pour les grands réseaux et les groupes.',
-        features: ['120 hôtesses et 120 points de vente', 'Événements et packs illimités', 'PDF et exports illimités', 'Interlocuteur dédié'],
+        features: ['120 hôtesses et 120 points de vente', 'Superviseurs illimités', 'Événements et packs illimités', 'PDF et exports illimités', 'Interlocuteur dédié'],
         cta: 'Nous contacter',
         highlight: false,
     },
@@ -127,7 +122,7 @@ const PLANS = [
 const FAQS = [
     { q: 'Mes données sont-elles protégées ?', a: 'Oui. Chaque entreprise dispose d\'un espace totalement isolé, les flux sont chiffrés (HTTPS), les sauvegardes sont quotidiennes et un journal d\'audit trace les actions sensibles.' },
     { q: 'Mes hôtesses ont-elles besoin d\'un smartphone récent ?', a: 'Non. L\'interface est légère et fonctionne sur un téléphone d\'entrée de gamme, même avec un réseau instable grâce au mode hors-ligne.' },
-    { q: 'Puis-je essayer avant de payer ?', a: 'Oui. Motriks Starter est gratuit et sans engagement, et toute nouvelle entreprise essaie Motriks Business pendant 14 jours, sans carte bancaire.' },
+    { q: 'Puis-je essayer avant de payer ?', a: 'Oui. Motriks Starter est gratuit et sans engagement, et toute nouvelle entreprise essaie Motriks Business pendant 7 jours, sans carte bancaire.' },
     { q: 'Que se passe-t-il si mon abonnement expire ?', a: 'Votre entreprise passe automatiquement en Motriks Starter, le forfait gratuit. Vos données sont conservées : vous retrouvez tout dès que vous reprenez un forfait.' },
     { q: 'Puis-je récupérer mes données ?', a: 'Oui, à tout moment. Vous pouvez exporter l\'ensemble de vos données depuis la plateforme.' },
     { q: 'Puis-je importer mes fichiers Excel ?', a: 'Oui. L\'import reprend votre personnel, vos sites et vos produits pour démarrer en quelques minutes.' },
@@ -1328,7 +1323,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     </ul>
                                     <Link
                                         href="/register"
-                                        className={`mt-8 rounded-xl px-5 py-3 text-center text-sm font-semibold transition ${
+                                        className={`mt-8 rounded-full px-5 py-3 text-center text-sm font-semibold transition ${
                                             p.highlight
                                                 ? 'bg-green-600 text-white hover:bg-green-700'
                                                 : 'border border-slate-200 text-slate-700 hover:border-green-300 hover:text-green-700'
@@ -1341,7 +1336,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         </div>
 
                         <p className="mt-8 text-center text-sm text-slate-500">
-                            Pack d’extension : +5 hôtesses et +5 points de vente pour 6 500 FCFA par mois. Paiement à l’année : 10 mois payés pour 12.
+                            Packs d’extension : +5 hôtesses et +5 points de vente pour 11 500 FCFA par mois, +1 superviseur pour 1 500 FCFA par mois. Paiement à l’année : 10 mois payés pour 12.
                         </p>
                     </div>
                 </section>
@@ -1431,24 +1426,37 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 </section>
 
                 {/* --------------------------------- CTA final ------------------------- */}
-                <section id="contact" className="scroll-mt-24 bg-green-600 py-20">
-                    <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-                        <h2 data-reveal className={`${H2} text-white`}>
-                            Prêt à piloter vos équipes sans effort ?
-                        </h2>
-                        <p data-reveal className="mt-4 text-lg text-green-50">
-                            Créez votre espace gratuitement en quelques minutes, sans carte bancaire.
-                        </p>
-                        <p data-reveal className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-green-100/90">
-                            Nous accompagnons un petit nombre d'entreprises pilotes : configuration offerte, formation des équipes et votre avis pour façonner le produit.
-                        </p>
-                        <div data-reveal className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                            <Link href="/register" className="rounded-xl bg-white px-6 py-3.5 text-base font-semibold text-green-700 shadow-lg transition hover:bg-green-50">
-                                Commencer gratuitement
-                            </Link>
-                            <a href={`https://wa.me/${CONTACT.whatsapp}`} className="rounded-xl border border-white/60 px-6 py-3.5 text-base font-semibold text-white transition hover:bg-green-700">
-                                Nous écrire sur WhatsApp
-                            </a>
+                {/* Encadré clair aligné sur la grille de la page : titre à gauche, boutons à droite */}
+                <section id="contact" className="scroll-mt-24 pb-20 lg:pb-28">
+                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                        <div data-reveal className="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-12 sm:px-10 sm:py-14 lg:px-14">
+                            <div className="grid gap-10 lg:grid-cols-12 lg:items-end">
+                                <div className="lg:col-span-7">
+                                    <Eyebrow>Démarrer</Eyebrow>
+                                    <h2 className={`${H2} text-slate-950`}>Essayez Motriks avec votre équipe</h2>
+                                    <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-slate-500 sm:text-lg">
+                                        Votre espace est prêt en quelques minutes, sans carte bancaire. Vous préférez en parler d'abord ? Écrivez-nous, on vous répond dans la journée.
+                                    </p>
+                                </div>
+                                <div className="flex flex-col gap-3 sm:flex-row lg:col-span-5 lg:justify-end">
+                                    <Link
+                                        href="/register"
+                                        className="inline-flex h-12 items-center justify-center rounded-full bg-green-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                                    >
+                                        Créer mon espace
+                                    </Link>
+                                    <a
+                                        href={`https://wa.me/${CONTACT.whatsapp}`}
+                                        className="inline-flex h-12 items-center justify-center rounded-full border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-800 transition-colors hover:border-slate-400 hover:text-slate-950"
+                                    >
+                                        Écrire sur WhatsApp
+                                    </a>
+                                </div>
+                            </div>
+
+                            <p className="mt-10 border-t border-slate-200 pt-6 text-sm leading-relaxed text-slate-500">
+                                <span className="font-medium text-slate-700">Entreprises pilotes :</span> nous configurons votre espace et formons vos équipes gratuitement, en échange de vos retours sur le produit.
+                            </p>
                         </div>
                     </div>
                 </section>

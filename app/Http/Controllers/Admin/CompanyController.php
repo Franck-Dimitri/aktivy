@@ -157,7 +157,7 @@ class CompanyController extends Controller
             'billing' => [
                 'plans' => SubscriptionController::planOptions(),
                 'methods' => SubscriptionController::methodOptions(),
-                'pack_price' => Plan::PACK_PRICE,
+                'packs' => Plan::packCatalog(),
                 'can_remind' => $company->plan !== Plan::Starter && $company->plan_ends_on !== null,
             ],
         ]);

@@ -147,7 +147,7 @@ class CompanyImport
     }
 
     /**
-     * Le fichier ferait dépasser une limite du forfait (points de vente, hôtesses, back-office).
+     * Le fichier ferait dépasser une limite du forfait (points de vente, hôtesses, superviseurs).
      *
      * @param  list<array<string, mixed>>  $prepared
      */

@@ -75,8 +75,13 @@ final class InvoiceDocument
 
         $details = array_values(array_filter([
             $period,
+            // Le contenu du pack hôtesses (+5 / +5) n'a pas changé avec la grille du 10 novembre 2026 :
+            // la ligne reste juste sur les factures déjà émises
             $payment->extra_packs > 0
-                ? $payment->extra_packs.' pack'.($payment->extra_packs > 1 ? 's' : '').' d’extension (+'.Plan::PACK_HOSTESSES.' hôtesses et +'.Plan::PACK_SITES.' points de vente chacun)'
+                ? $payment->extra_packs.' pack'.($payment->extra_packs > 1 ? 's' : '').' hôtesses (+'.Plan::PACK_HOSTESSES.' hôtesses et +'.Plan::PACK_SITES.' points de vente chacun)'
+                : null,
+            $payment->supervisor_packs > 0
+                ? $payment->supervisor_packs.' pack'.($payment->supervisor_packs > 1 ? 's' : '').' superviseur (+'.Plan::SUPERVISOR_PACK_SUPERVISORS.' superviseur chacun)'
                 : null,
             $payment->notes,
         ]));

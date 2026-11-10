@@ -1,11 +1,7 @@
 import { Link } from '@inertiajs/react';
 import MotriksLogo from '@/components/motriks-logo';
 import { useAccountLinks } from '@/components/landing/auth-actions';
-
-const CONTACT = {
-    email: 'contact@motriks.com',
-    whatsapp: '237000000000',
-};
+import { CONTACT } from '@/lib/contact';
 
 const ICON_PATHS = {
     chat: 'M21 12a8 8 0 01-11.500 7.200L4 20l1-4.500A8 8 0 1121 12z',

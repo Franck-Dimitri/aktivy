@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { RecordPaymentModal, type Option, type PlanOption } from '@/components/admin/record-payment-modal';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
 import { TextInput } from '@/components/page/form-fields';
+import { packSummary, type PackCatalog } from '@/components/plans/plan-usage';
 import { CompanyAvatar, QuietEmpty, Segmented } from '@/components/page/list-kit';
 import { Page } from '@/components/page/page';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -28,6 +29,7 @@ type Row = {
     days_left: number | null;
     soon: boolean;
     extra_packs: number;
+    supervisor_packs: number;
     monthly_price: number;
     can_remind: boolean;
     last_paid: string | null;
@@ -47,7 +49,7 @@ type Props = {
     };
     plans: PlanOption[];
     methods: Option[];
-    pack_price: number;
+    packs: PackCatalog;
     soon_days: number;
 };
 
@@ -97,7 +99,7 @@ function deadline(r: Row): { text: string; className: string } {
 }
 
 /** Abonnements : les forfaits et ce qu'ils rapportent, puis chaque entreprise avec son échéance. */
-export default function AdminSubscriptions({ rows, stats, plans, methods, pack_price, soon_days }: Props) {
+export default function AdminSubscriptions({ rows, stats, plans, methods, packs, soon_days }: Props) {
     const [planFilter, setPlanFilter] = useState<string | null>(null);
     const [status, setStatus] = useState<Status>('all');
     const [query, setQuery] = useState('');
@@ -333,7 +335,7 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, pack_p
                                                     <p className="mt-0.5 truncate text-sm text-slate-500">
                                                         {short(r.plan)}
                                                         {r.monthly_price > 0 && ` · ${number.format(r.monthly_price)} FCFA / mois`}
-                                                        {r.extra_packs > 0 && ` · +${r.extra_packs} pack${r.extra_packs > 1 ? 's' : ''}`}
+                                                        {packSummary(r.extra_packs, r.supervisor_packs) && ` · +${packSummary(r.extra_packs, r.supervisor_packs)}`}
                                                         {r.status === 'suspended' && ' · suspendue'}
                                                     </p>
                                                 </div>
@@ -420,9 +422,10 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, pack_p
                     company={{ id: paying.id, name: paying.name }}
                     plans={plans}
                     methods={methods}
-                    packPrice={pack_price}
+                    packs={packs}
                     currentPlan={paying.subscribed_key}
                     currentPacks={paying.extra_packs}
+                    currentSupervisorPacks={paying.supervisor_packs}
                     onClose={() => setPaying(null)}
                 />
             )}

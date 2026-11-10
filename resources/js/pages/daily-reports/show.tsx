@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { CheckinPlaceLine, isElsewhere, type CheckinPlace } from '@/components/checkin-place';
+import { ExternalSalesList, externalTotal, type ExternalShopSales } from '@/components/external-sales';
 import { ActionButton, ActionLink, buttonClass } from '@/components/page/buttons';
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
@@ -64,6 +66,8 @@ type Report = {
     duration_minutes: number | null;
     checkin_distance_m: number | null;
     off_site: boolean | null;
+    checkin_place: CheckinPlace | null;
+    external_sales: ExternalShopSales[];
     submitted_at: string | null;
     corrected_at: string | null;
     corrected_by: string | null;
@@ -92,13 +96,19 @@ function distance(meters: number): string {
 
 /** Position de la prise de service par rapport au site. */
 function CheckinPosition({ report }: { report: Report }) {
-    if (report.checkin_distance_m === null) {
+    const place = report.checkin_place;
+
+    if (!place || place.state === 'unknown') {
+        return <StatusBadge tone="neutral">Position non partagée</StatusBadge>;
+    }
+
+    if (place.state === 'unchecked') {
         return <StatusBadge tone="neutral">Position non vérifiée</StatusBadge>;
     }
 
-    return report.off_site ? (
+    return isElsewhere(place) ? (
         <StatusBadge tone="danger">
-            Pointage à {distance(report.checkin_distance_m)} du site
+            {place.state === 'other_site' ? `Pointage au point de vente « ${place.other_site} »` : `Pointage à ${distance(place.distance_m ?? 0)} du site`}
         </StatusBadge>
     ) : (
         <StatusBadge tone="success">Pointage sur le site</StatusBadge>
@@ -286,9 +296,11 @@ export default function DailyReportShow({
                                 label: 'CA déclaré',
                                 value: money(report.total_revenue, currency),
                                 sub:
-                                    report.status === 'submitted'
-                                        ? 'rapport soumis'
-                                        : 'brouillon en cours',
+                                    report.external_sales.length > 0
+                                        ? `dont ${money(externalTotal(report.external_sales), currency)} en boutiques ext.`
+                                        : report.status === 'submitted'
+                                          ? 'rapport soumis'
+                                          : 'brouillon en cours',
                             },
                             {
                                 label: 'Unités vendues',
@@ -308,18 +320,34 @@ export default function DailyReportShow({
                         ]}
                     />
 
-                    {report.off_site && (
+                    {report.checkin_place && isElsewhere(report.checkin_place) ? (
                         <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
                             <MapPin className="mt-0.5 size-5 shrink-0 text-amber-700" />
-                            <p className="text-sm text-amber-900">
-                                L’hôtesse a pris son service à{' '}
-                                <strong>
-                                    {distance(report.checkin_distance_m ?? 0)}
-                                </strong>{' '}
-                                du point de vente. Vérifiez avec elle qu’elle
-                                était bien sur place.
-                            </p>
+                            <div className="min-w-0 text-sm text-amber-900">
+                                <p>
+                                    {report.checkin_place.state === 'other_site' ? (
+                                        <>
+                                            L’hôtesse a pris son service au point de vente{' '}
+                                            <strong>« {report.checkin_place.other_site} »</strong>, à{' '}
+                                            <strong>{distance(report.checkin_place.distance_m ?? 0)}</strong> du sien.
+                                        </>
+                                    ) : (
+                                        <>
+                                            L’hôtesse a pris son service à{' '}
+                                            <strong>{distance(report.checkin_place.distance_m ?? 0)}</strong> de son point de vente.
+                                        </>
+                                    )}{' '}
+                                    Vérifiez avec elle qu’elle était bien sur place.
+                                </p>
+                                <CheckinPlaceLine place={report.checkin_place} className="mt-1.5 text-xs" />
+                            </div>
                         </div>
+                    ) : (
+                        report.checkin_place && (
+                            <p className="-mt-2 px-1 text-xs text-slate-500">
+                                Prise de service : <CheckinPlaceLine place={report.checkin_place} />
+                            </p>
+                        )
                     )}
 
                     {report.incident_notes && (
@@ -589,6 +617,17 @@ export default function DailyReportShow({
                             </div>
                         )}
                     </Panel>
+
+                    {report.external_sales.length > 0 && (
+                        <Panel
+                            title="Boutiques extérieures"
+                            description={`Mêmes produits et mêmes prix, vendus hors du point de vente : ${money(externalTotal(report.external_sales), currency)} compris dans le CA déclaré, sans effet sur le stock du site.`}
+                        >
+                            <div className="p-5">
+                                <ExternalSalesList sales={report.external_sales} className="sm:grid sm:grid-cols-2 sm:items-start" />
+                            </div>
+                        </Panel>
+                    )}
                 </div>
             </Page>
         </>

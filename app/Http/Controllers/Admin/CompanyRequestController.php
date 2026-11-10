@@ -89,7 +89,7 @@ class CompanyRequestController extends Controller
             'rejection_reason' => null,
         ]);
 
-        // 14 jours pour essayer tous les modules payants
+        // Essai de Motriks Business (Company::TRIAL_DAYS jours) pour découvrir toutes les fonctions
         $company->startTrial();
 
         $this->notifyCompany($company, new CompanyApproved($company));

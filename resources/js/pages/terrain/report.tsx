@@ -13,6 +13,7 @@ import {
     Plus,
     Save,
     Send,
+    Store,
     TriangleAlert,
     WifiOff,
     CloudUpload,
@@ -33,6 +34,16 @@ import { checkout as visitCheckout } from '@/routes/terrain/visit';
 import { store as photoStore, destroy as photoDestroy } from '@/routes/terrain/report/photos';
 import { ReportPhotos, type ReportPhoto } from '@/components/report-photos';
 import { queuedReports, queueReport, unqueueReport } from '@/lib/offline';
+import { ExternalSalesList, externalTotal, type ExternalShopSales } from '@/components/external-sales';
+import {
+    ExternalSalesEditor,
+    externalIncomplete,
+    externalPayload,
+    externalTotals,
+    shopsFromSales,
+    type ExternalProduct,
+    type ExternalShop,
+} from '@/components/terrain/external-sales-editor';
 
 /* ─── Types ─── */
 
@@ -78,6 +89,10 @@ type Report = {
     corrected: boolean;
     lines: ReportLine[];
     packs: PackOffer[];
+    /** Ventes en boutique extérieure : mêmes produits, mêmes prix, hors stock du point de vente. */
+    external_sales: ExternalShopSales[];
+    external_products: ExternalProduct[];
+    external_shops: string[];
     photos: ReportPhoto[];
     max_photos: number;
 };
@@ -442,6 +457,7 @@ type LocalDraft = {
     incident: string;
     counted?: Record<number, string>;
     reasons?: Record<number, string>;
+    external?: ExternalShop[];
 };
 
 const draftKey = (reportId: number) => `motriks:rapport:${reportId}`;
@@ -521,6 +537,8 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     // Clôture : stock compté (par défaut le stock théorique) et motif d'écart
     const [counted, setCounted] = useState<Record<number, string>>(restored?.counted ?? {});
     const [reasons, setReasons] = useState<Record<number, string>>(restored?.reasons ?? {});
+    // Ventes en boutique extérieure : par boutique, ses produits et leurs quantités
+    const [externalShops, setExternalShops] = useState<ExternalShop[]>(() => restored?.external ?? shopsFromSales(report.external_sales));
     const [busy, setBusy] = useState<Busy>(null);
     const [step, setStep] = useState<Step>('edit');
     const [confirmCheckout, setConfirmCheckout] = useState(false);
@@ -542,9 +560,10 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             incident: incidentNotes,
             counted,
             reasons,
+            external: externalShops,
         });
         setUnsynced(true);
-    }, [lines, packCounts, notes, incidentNotes, counted, reasons, isSubmitted, report.id]);
+    }, [lines, packCounts, notes, incidentNotes, counted, reasons, externalShops, isSubmitted, report.id]);
 
     // Unités de chaque produit consommées par les packs saisis
     const packUnits: Record<number, number> = {};
@@ -556,10 +575,14 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         }
     }
 
-    const totalSold = lines.reduce((s, l) => s + l.units_sold + (packUnits[l.id] ?? 0), 0);
+    // Boutiques extérieures : comptées dans la journée, sans toucher au stock du point de vente
+    const external = externalTotals(externalShops, report.external_products);
+    const externalBlocking = externalIncomplete(externalShops);
+    const totalSold = lines.reduce((s, l) => s + l.units_sold + (packUnits[l.id] ?? 0), 0) + external.units;
     const totalRevenue =
         lines.reduce((s, l) => s + l.units_sold * l.unit_price, 0) +
-        report.packs.reduce((s, p) => s + (packCounts[p.id] ?? 0) * p.value, 0);
+        report.packs.reduce((s, p) => s + (packCounts[p.id] ?? 0) * p.value, 0) +
+        external.revenue;
     const filledCount = lines.filter((l) => l.units_sold + (packUnits[l.id] ?? 0) > 0).length;
     const theoretical = (l: ReportLine) => Math.max(0, l.opening_stock + l.restocked - l.units_sold - (packUnits[l.id] ?? 0));
     const countOf = (l: ReportLine) => (counted[l.id] === undefined || counted[l.id] === '' ? theoretical(l) : Number(counted[l.id]));
@@ -597,7 +620,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             return;
         }
 
-        router.put(reportUpdate({ visit: visit.id }).url, { notes, lines: payloadLines(), packs: payloadPacks() }, {
+        router.put(reportUpdate({ visit: visit.id }).url, { notes, lines: payloadLines(), packs: payloadPacks(), external_sales: externalPayload(externalShops) }, {
             // La saisie reste à l'écran : rien n'est rechargé
             preserveState: true,
             preserveScroll: true,
@@ -632,6 +655,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             incident_notes: incidentNotes || null,
             lines: lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes, counted_stock: countOf(l), gap_reason: hasGap(l) ? reasons[l.id] : null })),
             packs: payloadPacks(),
+            external_sales: externalPayload(externalShops),
         };
 
         const queueForLater = () => {
@@ -860,6 +884,31 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </SurfaceCard>
                                 )}
 
+                                {report.external_products.length > 0 && (
+                                    <SurfaceCard contentClassName="p-5">
+                                        <div className="mb-4 flex items-start justify-between gap-3">
+                                            <div>
+                                                <h3 className="text-base font-semibold text-ink">Boutiques extérieures</h3>
+                                                <p className="mt-0.5 text-sm text-slate-500">
+                                                    Ventes faites ailleurs que sur votre point de vente, avec les mêmes produits et aux mêmes prix. Elles comptent dans votre journée mais ne sortent pas de votre stock.
+                                                </p>
+                                            </div>
+                                            {external.revenue > 0 && (
+                                                <span className="shrink-0 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold whitespace-nowrap text-motriks-deep ring-1 ring-green-200/60 tabular-nums">
+                                                    {formatMoney(external.revenue)} FCFA
+                                                </span>
+                                            )}
+                                        </div>
+                                        <ExternalSalesEditor
+                                            shops={externalShops}
+                                            products={report.external_products}
+                                            suggestions={report.external_shops}
+                                            onChange={setExternalShops}
+                                            disabled={busy !== null}
+                                        />
+                                    </SurfaceCard>
+                                )}
+
                                 {hasPhotos && (
                                 <SurfaceCard contentClassName="p-5">
                                     <h3 className="text-base font-semibold text-ink">Photos</h3>
@@ -896,8 +945,11 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                             <div className="sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 lg:hidden">
                                 <div className="flex items-center gap-3 rounded-2xl bg-white/90 p-2.5 pl-5 shadow-xl shadow-slate-900/10 ring-1 ring-slate-200 backdrop-blur-md">
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-xs text-slate-500">
-                                            {totalSold} unité{totalSold > 1 ? 's' : ''} · {filledCount} produit{filledCount > 1 ? 's' : ''}
+                                        <p className="truncate text-xs text-slate-500">
+                                            {totalSold} unité{totalSold > 1 ? 's' : ''}
+                                            {external.units > 0
+                                                ? ` · dont ${external.units} en boutique${external.units > 1 ? 's' : ''}`
+                                                : ` · ${filledCount} produit${filledCount > 1 ? 's' : ''}`}
                                         </p>
                                         <p className="truncate text-xl font-bold text-ink tabular-nums">
                                             {formatMoney(totalRevenue)}
@@ -930,7 +982,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </p>
                                 </div>
 
-                                {soldLines.length === 0 ? (
+                                {soldLines.length === 0 && external.units === 0 ? (
                                     <p className="px-5 py-10 text-center text-sm text-slate-400">Aucune vente saisie.</p>
                                 ) : (
                                     <ul className="divide-y divide-dashed divide-slate-200">
@@ -973,6 +1025,28 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         </p>
                                     </div>
                                 ))}
+
+                                {/* Ventes en boutique extérieure : une ligne par boutique */}
+                                {externalShops
+                                    .filter((s) => s.name.trim() !== '' && s.items.some((i) => i.product_id !== null))
+                                    .map((s) => {
+                                        const sold = externalTotals([s], report.external_products);
+
+                                        return (
+                                            <div key={`ext-${s.key}`} className="flex items-center gap-4 border-t border-dashed border-slate-200 px-5 py-3.5 sm:px-6">
+                                                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                                                    <Store className="size-4 text-slate-500" />
+                                                </span>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate text-sm font-medium text-ink">{s.name.trim()}</p>
+                                                    <p className="text-xs text-slate-400">
+                                                        Boutique extérieure · {sold.units} unité{sold.units > 1 ? 's' : ''}
+                                                    </p>
+                                                </div>
+                                                <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">{formatMoney(sold.revenue)}</p>
+                                            </div>
+                                        );
+                                    })}
 
                                 <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-dashed border-slate-200 px-5 py-5 sm:px-6">
                                     <div>
@@ -1058,10 +1132,15 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     {missingReason && (
                                         <p className="text-sm font-medium text-amber-700">Indiquez le motif de chaque écart de stock pour soumettre.</p>
                                     )}
+                                    {externalBlocking && (
+                                        <p className="text-sm font-medium text-amber-700">
+                                            Boutiques extérieures : donnez un nom à chaque boutique et choisissez chaque produit.
+                                        </p>
+                                    )}
                                     <ActionButton
                                         onClick={submitReport}
                                         loading={busy === 'submit'}
-                                        disabled={busy !== null || missingReason || queued}
+                                        disabled={busy !== null || missingReason || externalBlocking || queued}
                                         icon={<Send />}
                                         className="h-12 w-full rounded-2xl text-base"
                                     >
@@ -1084,6 +1163,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {/* ══════ SOUMIS : lecture seule ══════ */}
                     {isSubmitted && step !== 'incident' && (
                         <div className={twoCol}>
+                            <div className="flex min-w-0 flex-col gap-6">
                             <SurfaceCard contentClassName="p-0">
                                 <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
                                     <h3 className="text-base font-semibold text-ink">Détail par produit</h3>
@@ -1122,6 +1202,19 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     ))}
                                 </ul>
                             </SurfaceCard>
+
+                            {report.external_sales.length > 0 && (
+                                <SurfaceCard contentClassName="p-5">
+                                    <div className="mb-4 flex items-baseline justify-between gap-3">
+                                        <h3 className="text-base font-semibold text-ink">Boutiques extérieures</h3>
+                                        <span className="text-sm font-semibold text-motriks-deep tabular-nums">
+                                            {formatMoney(externalTotal(report.external_sales))} FCFA
+                                        </span>
+                                    </div>
+                                    <ExternalSalesList sales={report.external_sales} />
+                                </SurfaceCard>
+                            )}
+                            </div>
 
                             <div className="flex flex-col gap-6 lg:sticky lg:top-6">
                                 <div className="flex items-center gap-4 rounded-2xl bg-motriks-soft p-5 ring-1 ring-green-100">

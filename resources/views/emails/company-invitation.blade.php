@@ -15,7 +15,7 @@
 
     <x-email.callout tone="green">
         <strong>Ensuite :</strong> ajoutez vos points de vente et vos produits, invitez votre équipe, puis affectez vos hôtesses.
-        Vous profitez de 14 jours d’essai avec toutes les fonctionnalités.
+        Vous profitez de {{ \App\Models\Company::TRIAL_DAYS }} jours d’essai avec toutes les fonctionnalités.
     </x-email.callout>
 
     <x-email.button :href="$url">Choisir mon mot de passe</x-email.button>

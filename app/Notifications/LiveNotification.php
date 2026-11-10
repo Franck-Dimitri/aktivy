@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Enums\Plan;
 use App\Models\Affectation;
 use App\Models\Company;
 use App\Models\DailyReport;
@@ -11,6 +12,7 @@ use App\Models\EventPack;
 use App\Models\SiteProduct;
 use App\Models\User;
 use App\Models\Visit;
+use App\Support\CheckinPlace;
 use App\Support\Pdf\PdfDocument;
 
 /**
@@ -46,13 +48,23 @@ class LiveNotification extends TextNotification
 
     // ── Journée de l'hôtesse ─────────────────────────────────────────────
 
+    /**
+     * Où elle a pointé, dès la notification : le titre le dit quand ce n'est pas sur son point de vente.
+     * Les autres points de vente ne sont chargés que pour un pointage hors site.
+     */
     public static function shiftStarted(Visit $visit, User $hostess): self
     {
-        $offSite = $visit->isOffSite() ? ' · pointage hors site' : '';
+        $place = CheckinPlace::describe($visit, $visit->site, $visit->isOffSite() ? CheckinPlace::companySites($visit->company_id) : null);
+
+        $title = match ($place['state']) {
+            'other_site', 'off_site' => "{$hostess->name} a pris son service hors de son point de vente",
+            'unknown' => "{$hostess->name} a pris son service sans partager sa position",
+            default => "{$hostess->name} a pris son service",
+        };
 
         return new self('shift_started', 'presence',
-            "{$hostess->name} a pris son service",
-            "{$visit->site?->name} · arrivée à {$visit->checked_in_at->format('H:i')}{$offSite}.",
+            $title,
+            "{$visit->site?->name} · arrivée à {$visit->checked_in_at->format('H:i')} · {$place['short']}.",
             'activity.index');
     }
 
@@ -145,11 +157,16 @@ class LiveNotification extends TextNotification
             'company.subscription');
     }
 
-    public static function planChanged(string $plan, ?string $endsOn, bool $trial, int $packs = 0): self
+    public static function planChanged(string $plan, ?string $endsOn, bool $trial, int $packs = 0, int $supervisorPacks = 0): self
     {
+        $extras = array_filter([
+            $packs ? "{$packs} pack".($packs > 1 ? 's' : '').' hôtesses (+'.Plan::PACK_HOSTESSES.' hôtesses / +'.Plan::PACK_SITES.' points de vente)' : null,
+            $supervisorPacks ? "{$supervisorPacks} pack".($supervisorPacks > 1 ? 's' : '').' superviseur' : null,
+        ]);
+
         return new self('plan_changed', 'module',
             ($trial ? 'Essai' : 'Forfait')." · {$plan}",
-            ($trial ? 'Essai gratuit' : 'Actif').($endsOn ? " jusqu’au {$endsOn}" : ', sans date de fin').($packs ? ", avec {$packs} pack".($packs > 1 ? 's' : '').' +5 hôtesses / +5 points de vente' : '').'. Les fonctions de votre forfait sont disponibles dès maintenant.',
+            ($trial ? 'Essai gratuit' : 'Actif').($endsOn ? " jusqu’au {$endsOn}" : ', sans date de fin').($extras ? ', avec '.implode(' et ', $extras) : '').'. Les fonctions de votre forfait sont disponibles dès maintenant.',
             'company.subscription');
     }
 

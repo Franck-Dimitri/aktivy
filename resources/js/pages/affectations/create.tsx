@@ -1,6 +1,8 @@
 import { Head, useForm } from '@inertiajs/react';
-import { CalendarRange, Clock, FileText, MapPin, User } from 'lucide-react';
+import { CalendarRange, Clock, FileText, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { SitePicker, siteError } from '@/components/affectations/site-picker';
+import { cn } from '@/lib/utils';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { Field, FormActions, SelectInput, TextArea, TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
@@ -18,7 +20,7 @@ type Props = {
 
 export default function AffectationCreate({ sites, staff, default_site_id, default_agent_id }: Props) {
     const { data, setData, post, processing, errors } = useForm({
-        site_id: default_site_id ?? ('' as number | ''),
+        site_ids: default_site_id ? [default_site_id] : ([] as number[]),
         user_id: default_agent_id ?? ('' as number | ''),
         starts_on: '',
         ends_on: '',
@@ -27,11 +29,23 @@ export default function AffectationCreate({ sites, staff, default_site_id, defau
         notes: '',
     });
 
+    // Un superviseur peut superviser plusieurs points de vente : cases à cocher
+    const isSupervisor = staff.find((s) => s.value === data.user_id)?.role === 'supervisor';
+
+    const chooseMember = (userId: number | '') => {
+        const supervisor = staff.find((s) => s.value === userId)?.role === 'supervisor';
+        // Une hôtesse n'a qu'un point de vente : on garde le premier coché
+        setData((d) => ({ ...d, user_id: userId, site_ids: supervisor ? d.site_ids : d.site_ids.slice(0, 1) }));
+    };
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         post(affectationStore().url, {
             preserveScroll: true,
-            onSuccess: () => toast.success('Affectation créée', { description: 'Le membre a bien été affecté au site.' }),
+            onSuccess: () =>
+                toast.success(data.site_ids.length > 1 ? 'Affectations créées' : 'Affectation créée', {
+                    description: data.site_ids.length > 1 ? `Le superviseur suit ${data.site_ids.length} points de vente.` : 'Le membre a bien été affecté au site.',
+                }),
             onError: toastFormError,
         });
     };
@@ -43,13 +57,13 @@ export default function AffectationCreate({ sites, staff, default_site_id, defau
             <Page title="Nouvelle affectation" description="Assignez un membre à un point de vente.">
                 <form onSubmit={submit} className="mx-auto flex w-full max-w-3xl flex-col gap-6">
                     <Panel title="Qui et où">
-                        <div className="grid gap-5 p-6 sm:grid-cols-2">
+                        <div className={cn('grid gap-5 p-6', !isSupervisor && 'sm:grid-cols-2')}>
                             <Field label="Membre" htmlFor="user_id" required error={errors.user_id}>
                                 <SelectInput
                                     id="user_id"
                                     icon={User}
                                     value={data.user_id}
-                                    onChange={(e) => setData('user_id', Number(e.target.value) || '')}
+                                    onChange={(e) => chooseMember(Number(e.target.value) || '')}
                                     error={errors.user_id}
                                     required
                                 >
@@ -60,20 +74,21 @@ export default function AffectationCreate({ sites, staff, default_site_id, defau
                                 </SelectInput>
                             </Field>
 
-                            <Field label="Site" htmlFor="site_id" required error={errors.site_id}>
-                                <SelectInput
+                            <Field
+                                label={isSupervisor ? 'Points de vente supervisés' : 'Site'}
+                                htmlFor="site_id"
+                                hint={isSupervisor ? '(cochez-en un ou plusieurs)' : undefined}
+                                required
+                                error={siteError(errors)}
+                            >
+                                <SitePicker
                                     id="site_id"
-                                    icon={MapPin}
-                                    value={data.site_id}
-                                    onChange={(e) => setData('site_id', Number(e.target.value) || '')}
-                                    error={errors.site_id}
-                                    required
-                                >
-                                    <option value="">Choisir un site…</option>
-                                    {sites.map((s) => (
-                                        <option key={s.value} value={s.value}>{s.label}</option>
-                                    ))}
-                                </SelectInput>
+                                    sites={sites}
+                                    multiple={isSupervisor}
+                                    value={data.site_ids}
+                                    onChange={(ids) => setData('site_ids', ids)}
+                                    error={siteError(errors)}
+                                />
                             </Field>
                         </div>
                     </Panel>
@@ -117,7 +132,7 @@ export default function AffectationCreate({ sites, staff, default_site_id, defau
                     <FormActions>
                         <ActionLink href={affectationsIndex().url} variant="secondary">Annuler</ActionLink>
                         <ActionButton type="submit" loading={processing}>
-                            {processing ? 'Enregistrement…' : "Créer l'affectation"}
+                            {processing ? 'Enregistrement…' : data.site_ids.length > 1 ? `Créer les ${data.site_ids.length} affectations` : "Créer l'affectation"}
                         </ActionButton>
                     </FormActions>
                 </form>

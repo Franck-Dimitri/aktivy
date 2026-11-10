@@ -40,6 +40,8 @@ export type AffectationFormData = {
 export type AffectationSelectOption = {
     value: number;
     label: string;
+    /** Rôle du membre (« supervisor », « field_agent ») : un superviseur peut avoir plusieurs sites. */
+    role?: string;
     role_label?: string;
     phone?: string | null;
 };

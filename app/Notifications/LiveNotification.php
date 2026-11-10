@@ -107,6 +107,25 @@ class LiveNotification extends TextNotification
             $forHostess ? 'terrain.planning' : 'dashboard');
     }
 
+    /**
+     * Superviseur affecté à plusieurs points de vente d'un coup : une seule notification.
+     *
+     * @param  \Illuminate\Support\Collection<int, Affectation>  $affectations  sites chargés
+     */
+    public static function assignedToSites(\Illuminate\Support\Collection $affectations): self
+    {
+        $names = $affectations->map(fn (Affectation $a) => $a->site?->name)->filter()->values();
+        $shown = $names->count() > 3
+            ? $names->take(2)->implode(', ').' et '.($names->count() - 2).' autres'
+            : $names->slice(0, -1)->implode(', ').($names->count() > 1 ? ' et ' : '').$names->last();
+        $first = $affectations->first();
+
+        return new self('assigned_to_site', 'assignment',
+            "Vous supervisez {$names->count()} points de vente",
+            "{$shown}, à partir du {$first->starts_on->format('d/m/Y')}.",
+            'dashboard');
+    }
+
     public static function assignedToEvent(EventHostess $hostess, Event $event): self
     {
         $where = $hostess->eventSite ? " sur « {$hostess->eventSite->displayName()} »" : '';

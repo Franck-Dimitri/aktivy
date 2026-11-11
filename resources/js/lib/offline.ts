@@ -2,41 +2,7 @@ import { router } from '@inertiajs/react';
 
 const USER_KEY = 'motriks:utilisateur';
 
-/** Rapport soumis sans réseau : il part tout seul au retour de la connexion. */
-export type QueuedReport = {
-    reportId: number;
-    userId: number;
-    url: string;
-    payload: Record<string, unknown>;
-    siteName: string;
-};
-
-const QUEUE_KEY = 'motriks:rapports-a-envoyer';
-
-// Le stockage peut être indisponible (navigation privée, mémoire pleine) : la page fonctionne sans
-export function queuedReports(): QueuedReport[] {
-    try {
-        return JSON.parse(window.localStorage.getItem(QUEUE_KEY) ?? '[]') as QueuedReport[];
-    } catch {
-        return [];
-    }
-}
-
-function saveQueue(items: QueuedReport[]) {
-    try {
-        window.localStorage.setItem(QUEUE_KEY, JSON.stringify(items));
-    } catch {
-        // stockage indisponible : le rapport reste à l'écran
-    }
-}
-
-export function queueReport(item: QueuedReport) {
-    saveQueue([...queuedReports().filter((q) => q.reportId !== item.reportId), item]);
-}
-
-export function unqueueReport(reportId: number) {
-    saveQueue(queuedReports().filter((q) => q.reportId !== reportId));
-}
+// Les actions faites sans réseau attendent dans lib/outbox.ts et partent avec lib/sync.ts
 
 /**
  * Active le Service Worker et efface les pages gardées dès que le compte change :

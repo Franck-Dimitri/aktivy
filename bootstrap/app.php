@@ -3,6 +3,7 @@
 use App\Http\Middleware\BlockWhileImpersonating;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\HandleBackgroundSync;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\TrackPageView;
@@ -36,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             // Audience du site public (sans cookie), enregistrée après l'envoi de la réponse
             TrackPageView::class,
+            // Envois en arrière-plan du mode hors ligne de l'hôtesse : réponse JSON fiable
+            HandleBackgroundSync::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

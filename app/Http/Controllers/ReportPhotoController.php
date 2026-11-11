@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
+use App\Http\Middleware\HandleBackgroundSync;
 use App\Models\DailyReport;
 use App\Models\DailyReportPhoto;
 use App\Models\Visit;
@@ -11,6 +12,7 @@ use App\Support\Notifications\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -28,26 +30,39 @@ class ReportPhotoController extends Controller
         $validated = $request->validate([
             'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'caption' => ['nullable', 'string', 'max:200'],
+            // Photo prise hors ligne : identifiant choisi par le téléphone, pour ne pas la recevoir deux fois
+            'uuid' => ['nullable', 'uuid'],
         ], [
             'photo.max' => 'La photo dépasse 8 Mo.',
             'photo.uploaded' => 'La photo n’a pas pu être envoyée (connexion coupée ?). Réessayez.',
         ]);
 
+        $uuid = isset($validated['uuid']) ? strtolower($validated['uuid']) : null;
+        if ($uuid !== null && $report->photos()->where('uuid', $uuid)->exists()) {
+            HandleBackgroundSync::done($request);
+
+            return back();
+        }
+
         $max = DailyReportPhoto::maxFor($report->company);
         if ($report->photos()->count() >= $max) {
-            return back()->withErrors(['photo' => 'Ce rapport a déjà '.$max.' photo'.($max > 1 ? 's' : '').' (maximum de votre forfait).']);
+            throw ValidationException::withMessages(['photo' => 'Ce rapport a déjà '.$max.' photo'.($max > 1 ? 's' : '').' (maximum de votre forfait).']);
         }
 
         $file = $validated['photo'];
-        $report->photos()->create([
+        $photo = $report->photos()->make([
             'path' => $file->store("report-photos/{$report->company_id}/{$report->id}", 'local'),
             'caption' => $validated['caption'] ?? null,
             'size' => $file->getSize(),
         ]);
+        $photo->uuid = $uuid;
+        $photo->save();
 
         // Preuve photo : les responsables du site la voient arriver
         $report->loadMissing(['agent', 'site:id,name']);
         Notify::send(Notify::siteManagers($report->company_id, [$report->site_id]), LiveNotification::photoAdded($report, $validated['caption'] ?? null));
+
+        HandleBackgroundSync::done($request);
 
         return back()->with('success', 'Photo ajoutée.');
     }

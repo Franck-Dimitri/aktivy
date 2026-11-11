@@ -29,6 +29,16 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-title" content="Motriks">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        @if ($page['component'] === 'landing')
+            {{-- L'application installée n'affiche jamais la page d'accueil : direction l'espace de l'utilisateur
+                 ou la connexion (route /app), avant tout affichage. Couvre aussi les installations dont
+                 l'adresse de démarrage est encore « / ». --}}
+            <script>
+                if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                    window.location.replace('/app');
+                }
+            </script>
+        @endif
         {{-- Montserrat servie par l'application (vite.config.ts, fonts) et préchargée : pas de feuille Google Fonts
              bloquante ni de requête vers un autre domaine avant l'affichage --}}
         @fonts

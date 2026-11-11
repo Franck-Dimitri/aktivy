@@ -68,7 +68,7 @@ self.addEventListener('push', (event) => {
                 lang: payload.lang || 'fr',
                 tag: payload.tag,
                 renotify: Boolean(payload.tag),
-                data: { url: payload.data?.url || '/' },
+                data: { url: payload.data?.url || '/app' },
             }),
             // Fenêtres Motriks ouvertes : elles mettent leurs données à jour (cf. resources/js/lib/live-refresh.ts)
             self.clients.matchAll({ type: 'window' }).then((windows) => windows.forEach((w) => w.postMessage({ type: 'push-received' }))),
@@ -103,7 +103,7 @@ async function updateBadge() {
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const target = new URL(event.notification.data?.url || '/', self.location.origin).href;
+    const target = new URL(event.notification.data?.url || '/app', self.location.origin).href;
 
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
@@ -140,10 +140,40 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Ouverture de l'application installée (/app, ou / pour les anciennes installations)
+    if (request.mode === 'navigate' && (url.pathname === '/app' || url.pathname === '/')) {
+        event.respondWith(launch(request));
+
+        return;
+    }
+
     if (request.mode === 'navigate') {
         event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_PAGE)));
     }
 });
+
+/**
+ * Démarrage de l'application : en ligne, le serveur dirige vers l'espace de l'utilisateur. Sans réseau
+ * (ou réseau trop lent), l'espace hôtesse gardé en mémoire s'ouvre, comme une application mobile.
+ */
+async function launch(request) {
+    const kept = await (await caches.open(PAGES)).match('/terrain');
+    const network = fetch(request);
+
+    if (!kept) {
+        return network.catch(() => caches.match(OFFLINE_PAGE));
+    }
+
+    network.catch(() => {});
+
+    try {
+        const first = await Promise.race([network, new Promise((resolve) => setTimeout(resolve, NETWORK_TIMEOUT_MS, 'timeout'))]);
+
+        return first === 'timeout' ? kept : first;
+    } catch {
+        return kept;
+    }
+}
 
 /**
  * Garde la page complète : une navigation dans l'application ne charge que ses données,
@@ -207,7 +237,9 @@ async function networkFirst(request, url, isInertia) {
         }
 
         if (request.mode === 'navigate') {
-            return caches.match(OFFLINE_PAGE);
+            // Page jamais ouverte avec du réseau (ex. rapport d'une prise de service faite hors ligne) :
+            // l'accueil de l'hôtesse, qui reprend la journée gardée sur le téléphone
+            return (await cache.match('/terrain')) ?? caches.match(OFFLINE_PAGE);
         }
 
         throw error;

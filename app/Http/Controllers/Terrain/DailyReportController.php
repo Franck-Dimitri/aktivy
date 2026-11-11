@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Terrain;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\HandleBackgroundSync;
 use App\Models\DailyReport;
 use App\Models\DailyReportLine;
 use App\Models\DailyReportPhoto;
@@ -15,6 +16,7 @@ use App\Support\Notifications\Notify;
 use App\Support\Reports\ExternalSales;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
+use App\Support\Terrain\OfflineTime;
 use App\Models\Visit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -92,6 +94,8 @@ class DailyReportController extends Controller
                     'stock_gap'     => $l->stock_gap,
                     'gap_reason'    => $l->gap_reason,
                     'id'            => $l->id,
+                    // Repère stable de la ligne : la saisie faite hors ligne la retrouve par lui
+                    'site_product_id' => $l->site_product_id,
                     'product_name'  => $l->product_name,
                     'unit'          => $l->unit,
                     'unit_price'    => $l->unit_price,
@@ -142,14 +146,24 @@ class DailyReportController extends Controller
         abort_if($visit->user_id !== $request->user()->id, 403);
 
         $report = $visit->dailyReport()->firstOrFail();
+
+        // Brouillon envoyé depuis la file hors ligne après le rapport lui-même : plus rien à faire
+        if ($report->isSubmitted() && $request->boolean('queued')) {
+            HandleBackgroundSync::done($request);
+
+            return back();
+        }
+
         abort_if($report->isSubmitted(), 422, 'Ce rapport a déjà été soumis.');
 
-        $validated = $this->validateSales($request);
+        $validated = $this->validateSales($request, report: $report);
 
         DB::transaction(function () use ($report, $validated) {
             $report->update(['notes' => $validated['notes'] ?? null]);
             $this->applySales($report, $validated);
         });
+
+        HandleBackgroundSync::done($request);
 
         return back()->with('success', 'Brouillon sauvegardé.');
     }
@@ -163,6 +177,8 @@ class DailyReportController extends Controller
 
         // Renvoi automatique après une coupure : la première tentative a pu aboutir sans que le téléphone le sache
         if ($report->isSubmitted() && $request->boolean('queued')) {
+            HandleBackgroundSync::done($request);
+
             return redirect()->route('terrain.home');
         }
 
@@ -170,9 +186,13 @@ class DailyReportController extends Controller
 
         $validated = $this->validateSales($request, [
             'incident_notes' => ['nullable', 'string', 'max:2000'],
-        ]);
+            // Rapport soumis hors ligne : heure du téléphone
+            'submitted_at'   => ['nullable', 'date'],
+        ], $report);
 
-        DB::transaction(function () use ($report, $validated, $request) {
+        [$submittedAt, $offline] = OfflineTime::resolve($validated['submitted_at'] ?? null, 'submitted_at', $visit->checked_in_at);
+
+        DB::transaction(function () use ($report, $validated, $request, $submittedAt, $offline) {
             $report->update([
                 'notes'          => $validated['notes'] ?? null,
                 'incident_notes' => $validated['incident_notes'] ?? null,
@@ -189,8 +209,9 @@ class DailyReportController extends Controller
             }
 
             $report->update([
-                'status'       => 'submitted',
-                'submitted_at' => now(),
+                'status'           => 'submitted',
+                'submitted_at'     => $submittedAt,
+                'submit_synced_at' => $offline ? now() : null,
             ]);
 
             // « RAS », « aucun »… ne sont pas des incidents
@@ -203,6 +224,7 @@ class DailyReportController extends Controller
         $report->load(['agent', 'site:id,name', 'lines', 'externalLines']);
         Notify::send(Notify::siteManagers($report->company_id, [$report->site_id]), LiveNotification::reportSubmitted($report));
         TargetReachedCheck::afterSubmit($report);
+        HandleBackgroundSync::done($request);
 
         return redirect()->route('terrain.home')
             ->with('success', 'Rapport soumis avec succès. Bonne fin de journée !');
@@ -254,12 +276,14 @@ class DailyReportController extends Controller
      * @param  array<string, mixed>  $extraRules
      * @return array<string, mixed>
      */
-    private function validateSales(Request $request, array $extraRules = []): array
+    private function validateSales(Request $request, array $extraRules = [], ?DailyReport $report = null): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'notes'               => ['nullable', 'string', 'max:2000'],
             'lines'               => ['required', 'array'],
             'lines.*.id'          => ['required', 'integer'],
+            // Saisie faite hors ligne : la ligne n'avait pas encore de numéro, on la retrouve par son produit
+            'lines.*.site_product_id' => ['nullable', 'integer'],
             'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
             'lines.*.notes'       => ['nullable', 'string', 'max:500'],
             'lines.*.counted_stock' => ['nullable', 'integer', 'min:0'],
@@ -270,6 +294,39 @@ class DailyReportController extends Controller
             ...ExternalSales::RULES,
             ...$extraRules,
         ]);
+
+        if ($report !== null) {
+            $validated['lines'] = $this->resolveLines($report, $validated['lines']);
+            $validated['packs'] = $validated['packs'] ?? [];
+        }
+
+        return $validated;
+    }
+
+    /**
+     * Lignes saisies hors ligne : numéro provisoire (négatif) remplacé par celui de la ligne du rapport
+     * pour le même produit du point de vente. Une ligne introuvable est ignorée.
+     *
+     * @param  list<array<string, mixed>>  $lines
+     * @return list<array<string, mixed>>
+     */
+    private function resolveLines(DailyReport $report, array $lines): array
+    {
+        $known = $report->lines()->get(['id', 'site_product_id']);
+        $ids = $known->pluck('id')->all();
+        $bySiteProduct = $known->pluck('id', 'site_product_id');
+
+        return collect($lines)
+            ->map(function (array $line) use ($ids, $bySiteProduct) {
+                if (! in_array((int) $line['id'], $ids, true)) {
+                    $line['id'] = $bySiteProduct[$line['site_product_id'] ?? 0] ?? null;
+                }
+
+                return $line;
+            })
+            ->filter(fn (array $line) => $line['id'] !== null)
+            ->values()
+            ->all();
     }
 
     /**

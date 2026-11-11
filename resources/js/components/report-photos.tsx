@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
-import { Camera, ImageOff, Trash2 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { Camera, CloudUpload, ImageOff, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
 import { TextInput } from '@/components/page/form-fields';
@@ -9,6 +9,15 @@ import { toastFormError } from '@/lib/form-toast';
 
 export type ReportPhoto = { id: number; uuid: string; url: string; caption: string | null };
 
+/** Mode hors ligne de l'hôtesse : photos gardées sur le téléphone jusqu'au retour du réseau. */
+export type OfflinePhotos = {
+    /** Photos prises sans réseau, pas encore envoyées */
+    pending: { key: string; blob: Blob; caption: string | null }[];
+    /** La photo doit-elle passer par la file (pas de réseau, ou journée encore en attente) ? */
+    mustQueue: () => boolean;
+    queue: (photo: Blob, fileName: string, caption: string | null) => Promise<void>;
+};
+
 type Props = {
     photos: ReportPhoto[];
     /** Adresse d'envoi : absente, la galerie est en lecture seule. */
@@ -16,17 +25,33 @@ type Props = {
     /** Adresse de retrait d'une photo (par son uuid) : absente, les photos ne peuvent pas être retirées. */
     deleteUrl?: (photoUuid: string) => string;
     max?: number;
+    offline?: OfflinePhotos;
 };
 
 /**
  * Photos d'un rapport : vignettes, ajout depuis l'appareil photo ou la galerie
  * (réduites sur le téléphone avant l'envoi), et retrait.
  */
-export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6 }: Props) {
+export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6, offline }: Props) {
     const input = useRef<HTMLInputElement>(null);
     const [caption, setCaption] = useState('');
     const [uploading, setUploading] = useState(false);
-    const canAdd = uploadUrl !== undefined && photos.length < max;
+    const waiting = useMemo(() => offline?.pending ?? [], [offline?.pending]);
+    const total = photos.length + waiting.length;
+    const canAdd = uploadUrl !== undefined && total < max;
+
+    // Vignettes des photos en attente : adresses locales, libérées quand elles ne servent plus
+    const previews = useMemo(() => waiting.map((p) => ({ ...p, url: URL.createObjectURL(p.blob) })), [waiting]);
+    useEffect(() => () => previews.forEach((p) => URL.revokeObjectURL(p.url)), [previews]);
+
+    const keepForLater = async (photo: File) => {
+        if (!offline) return;
+        await offline.queue(photo, photo.name || 'photo.jpg', caption || null);
+        toast.success('Photo gardée sur le téléphone', { description: 'Elle partira toute seule au retour du réseau.' });
+        setCaption('');
+        setUploading(false);
+        if (input.current) input.current.value = '';
+    };
 
     const upload = async (file: File | undefined) => {
         if (!file || !uploadUrl) return;
@@ -38,6 +63,12 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6 }: Props) {
             quality: 0.8,
             minBytes: 400_000,
         });
+
+        if (offline?.mustQueue()) {
+            await keepForLater(photo);
+
+            return;
+        }
 
         router.post(
             uploadUrl,
@@ -52,6 +83,13 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6 }: Props) {
                     setCaption('');
                 },
                 onError: toastFormError,
+                // Réseau perdu pendant l'envoi : la photo attend sur le téléphone
+                onNetworkError: () => {
+                    if (!offline) return;
+                    void keepForLater(photo);
+
+                    return false;
+                },
                 onFinish: () => {
                     setUploading(false);
                     if (input.current) input.current.value = '';
@@ -72,7 +110,7 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6 }: Props) {
 
     return (
         <div className="flex flex-col gap-4">
-            {photos.length > 0 ? (
+            {total > 0 ? (
                 <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {photos.map((photo) => (
                         <li
@@ -106,6 +144,16 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6 }: Props) {
                                     <Trash2 className="size-4" />
                                 </button>
                             )}
+                        </li>
+                    ))}
+                    {previews.map((photo) => (
+                        <li key={photo.key} className="relative overflow-hidden rounded-xl bg-slate-100 ring-1 ring-sky-200">
+                            <img src={photo.url} alt={photo.caption ?? 'Photo en attente'} className="aspect-square w-full object-cover opacity-80" />
+                            <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1 text-[11px] font-semibold text-sky-700 shadow-sm">
+                                <CloudUpload className="size-3" />
+                                En attente
+                            </span>
+                            {photo.caption && <p className="truncate px-2 py-1.5 text-xs text-slate-600">{photo.caption}</p>}
                         </li>
                     ))}
                 </ul>
@@ -145,7 +193,7 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6 }: Props) {
                     </ActionButton>
                 </div>
             )}
-            {uploadUrl !== undefined && photos.length >= max && (
+            {uploadUrl !== undefined && total >= max && (
                 <p className="text-xs text-slate-400">
                     Maximum {max} photos par rapport.
                 </p>

@@ -20,6 +20,8 @@ class SiteTrafficTest extends TestCase
 
     private const ANDROID = 'Mozilla/5.0 (Linux; Android 13; SM-A145F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Mobile Safari/537.36';
 
+    private const DESKTOP = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -75,7 +77,8 @@ class SiteTrafficTest extends TestCase
         Queue::fake();
 
         $this->actingAs(User::factory()->create())->withHeaders(['User-Agent' => self::ANDROID])->get(route('dashboard'))->assertOk();
-        $this->actingAs(User::factory()->superAdmin()->create())->withHeaders(['User-Agent' => self::ANDROID])->get('/')->assertOk();
+        // Sur ordinateur : sur téléphone, un utilisateur connecté est envoyé directement dans son espace
+        $this->actingAs(User::factory()->superAdmin()->create())->withHeaders(['User-Agent' => self::DESKTOP])->get('/')->assertOk();
 
         Queue::assertNothingPushed();
     }

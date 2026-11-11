@@ -68,7 +68,7 @@ self.addEventListener('push', (event) => {
                 lang: payload.lang || 'fr',
                 tag: payload.tag,
                 renotify: Boolean(payload.tag),
-                data: { url: payload.data?.url || '/' },
+                data: { url: payload.data?.url || '/app' },
             }),
             // Fenêtres Motriks ouvertes : elles mettent leurs données à jour (cf. resources/js/lib/live-refresh.ts)
             self.clients.matchAll({ type: 'window' }).then((windows) => windows.forEach((w) => w.postMessage({ type: 'push-received' }))),
@@ -103,7 +103,7 @@ async function updateBadge() {
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const target = new URL(event.notification.data?.url || '/', self.location.origin).href;
+    const target = new URL(event.notification.data?.url || '/app', self.location.origin).href;
 
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {

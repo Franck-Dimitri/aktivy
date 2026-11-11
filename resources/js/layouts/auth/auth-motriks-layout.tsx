@@ -14,12 +14,15 @@ const CASCADING = ['auth/login', 'auth/register'];
 /** L'inscription, avec ses champs côte à côte, a une carte un peu plus large. */
 const CARD_WIDTH: Record<string, number> = { 'auth/register': 460 };
 
-/** Pastille : la flèche, dans son rond, glisse vers la gauche au survol. « Accueil » sur téléphone. */
+/**
+ * Pastille : la flèche, dans son rond, glisse vers la gauche au survol. « Accueil » sur téléphone.
+ * Absente dans l'application installée, qui n'a pas de page d'accueil (comme une application mobile).
+ */
 function BackHome() {
     return (
         <Link
             href={home()}
-            className="group flex h-10 items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1 pr-4 pl-1 text-sm font-semibold text-slate-700 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_8px_24px_-12px_rgba(2,122,72,0.25)] transition-all duration-300 hover:border-green-200 hover:text-ink hover:shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_28px_-12px_rgba(2,122,72,0.4)] focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="group flex h-10 [@media(display-mode:standalone)]:hidden items-center gap-2.5 rounded-full border border-slate-200 bg-white py-1 pr-4 pl-1 text-sm font-semibold text-slate-700 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_8px_24px_-12px_rgba(2,122,72,0.25)] transition-all duration-300 hover:border-green-200 hover:text-ink hover:shadow-[0_1px_2px_rgba(16,24,40,0.05),0_12px_28px_-12px_rgba(2,122,72,0.4)] focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-offset-2 focus-visible:outline-none"
         >
             <span className="relative flex size-8 items-center justify-center overflow-hidden rounded-full bg-motriks text-white shadow-sm shadow-green-700/30 transition-colors duration-300 group-hover:bg-motriks-deep">
                 {/* La flèche sort par la gauche pendant qu'une autre arrive par la droite */}
@@ -52,7 +55,7 @@ export default function AuthMotriksLayout({ children, title, description, header
                     transition={{ duration: 0.5, ease: EASE }}
                     className="relative z-10 flex items-center justify-between gap-4 px-4 pt-4 sm:px-8 sm:pt-5"
                 >
-                    <Link href={home()} aria-label="Motriks, page d’accueil" className="rounded-xl transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-offset-4 focus-visible:outline-none">
+                    <Link href={home()} aria-label="Motriks, page d’accueil" className="rounded-xl transition-opacity hover:opacity-80 [@media(display-mode:standalone)]:pointer-events-none focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-offset-4 focus-visible:outline-none">
                         <MotriksLogo className="h-7 sm:h-8" />
                     </Link>
                     <BackHome />

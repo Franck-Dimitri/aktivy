@@ -27,6 +27,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TelegramWebhookController;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Support\Seo\PublicPages;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -48,8 +49,17 @@ $paymentLogos = function (): array {
         : [];
 };
 
+// Ouverture de l'application installée (start_url du manifeste) : comme une application mobile,
+// l'espace de l'utilisateur s'il est connecté, sinon directement le formulaire de connexion.
+Route::get('/app', fn (Request $request) => redirect($request->user()?->homeUrl() ?? route('login')))->name('app');
+
 // Landing page (pages publiques : balises de référencement dans PublicPages)
-Route::get('/', function () use ($paymentLogos) {
+Route::get('/', function (Request $request) use ($paymentLogos) {
+    // Sur téléphone, un utilisateur connecté va directement dans son espace ; les visiteurs voient la landing
+    if ($request->user() && preg_match('/Android|iPhone|iPad|iPod|Mobile/i', (string) $request->userAgent())) {
+        return redirect($request->user()->homeUrl());
+    }
+
     return PublicPages::render('landing', [
         'paymentLogos' => $paymentLogos(),
     ]);

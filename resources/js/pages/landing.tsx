@@ -6,6 +6,7 @@ import MotriksLogo from '@/components/motriks-logo';
 import MotriksMark from '@/components/motriks-mark';
 import { AuthMobileActions, AuthNavActions } from '@/components/landing/auth-actions';
 import { CONTACT } from '@/lib/contact';
+import { isStandalone } from '@/lib/pwa';
 
 /* ------------------------------------------------------------------ */
 /*  Contenu modifiable (coordonnées : resources/js/lib/contact.ts)     */
@@ -929,6 +930,14 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
     const [openFaq, setOpenFaq] = useState(0);
     useScrollReveal();
 
+    // Application installée : jamais de page d'accueil (ex. après une déconnexion), comme une application mobile
+    const [inApp] = useState(() => typeof window !== 'undefined' && isStandalone());
+    useEffect(() => {
+        if (inApp) {
+            window.location.replace('/app');
+        }
+    }, [inApp]);
+
     // Arrivée depuis un lien du type /accueil#tarifs : on descend jusqu'à la section
     useEffect(() => {
         const id = window.location.hash.slice(1);
@@ -967,6 +976,10 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
         });
         return () => observer.disconnect();
     }, []);
+
+    if (inApp) {
+        return null;
+    }
 
     return (
         <>

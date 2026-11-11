@@ -65,9 +65,9 @@ class HostessReportingTest extends TestCase
         $report = DailyReport::where('user_id', $agent->id)->with('lines')->firstOrFail();
         $lines = [['id' => $report->lines->first()->id, 'units_sold' => $sold]];
 
-        $this->actingAs($agent)->put(route('terrain.report.update', $report->visit_id), ['lines' => $lines])
+        $this->actingAs($agent)->put(route('terrain.report.update', $report->visit), ['lines' => $lines])
             ->assertSessionHasNoErrors();
-        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => $lines,
             'incident_notes' => 'Présentoir abîmé',
         ])->assertSessionHasNoErrors();

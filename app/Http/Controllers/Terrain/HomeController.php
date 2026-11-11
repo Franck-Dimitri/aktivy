@@ -111,7 +111,7 @@ class HomeController extends Controller
         })->values()->toArray();
 
         // 5 derniers rapports soumis
-        $recentReports = DailyReport::with('site:id,name')
+        $recentReports = DailyReport::with(['site:id,name', 'visit:id,uuid'])
             ->where('user_id', $user->id)
             ->where('company_id', $user->company_id)
             ->where('status', 'submitted')
@@ -120,7 +120,9 @@ class HomeController extends Controller
             ->get()
             ->map(fn ($r) => [
                 'id'           => $r->id,
+                'uuid'         => $r->uuid,
                 'visit_id'     => $r->visit_id,
+                'visit_uuid'   => $r->visit->uuid,
                 'site_name'    => $r->site->name,
                 'report_date'  => $r->report_date->translatedFormat('d MMM Y'),
                 'report_date_iso' => $r->report_date->toDateString(),
@@ -145,6 +147,7 @@ class HomeController extends Controller
             ] : null,
             'visit' => $visit ? [
                 'id'               => $visit->id,
+                'uuid'             => $visit->uuid,
                 'status'           => $visit->status->value,
                 'checked_in_at'    => $visit->checked_in_at->format('H:i'),
                 'checked_out_at'   => $visit->checked_out_at?->format('H:i'),

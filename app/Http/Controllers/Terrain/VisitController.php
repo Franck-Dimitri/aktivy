@@ -37,6 +37,8 @@ class VisitController extends Controller
             'affectation_id' => ['required', 'integer'],
             'latitude'       => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'      => ['nullable', 'numeric', 'between:-180,180'],
+            // Rayon de précision annoncé par le téléphone, en mètres
+            'accuracy'       => ['nullable', 'numeric', 'min:0', 'max:1000000'],
         ]);
 
         // Seule une affectation active et en cours aujourd'hui permet de pointer (même règle que l'accueil)
@@ -58,6 +60,7 @@ class VisitController extends Controller
             'checkin_distance_m' => isset($validated['latitude'], $validated['longitude'])
                 ? $affectation->site->distanceTo((float) $validated['latitude'], (float) $validated['longitude'])
                 : null,
+            'checkin_accuracy_m' => isset($validated['latitude'], $validated['accuracy']) ? (int) round((float) $validated['accuracy']) : null,
             'status'             => 'in_progress',
         ]);
 

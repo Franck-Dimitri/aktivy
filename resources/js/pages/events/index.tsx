@@ -12,6 +12,7 @@ import { CreateEventModal } from './create-event-modal';
 
 type EventItem = {
     id: number;
+    uuid: string;
     name: string;
     status: 'draft' | 'active' | 'completed' | 'archived';
     status_label: string;
@@ -81,7 +82,7 @@ function LiveEvent({ event }: { event: EventItem }) {
     const t = timing(event);
 
     return (
-        <Link href={eventShow({ event: event.id }).url} className="group block rounded-2xl focus-visible:ring-4 focus-visible:ring-motriks/25 focus-visible:outline-none">
+        <Link href={eventShow({ event: event.uuid }).url} className="group block rounded-2xl focus-visible:ring-4 focus-visible:ring-motriks/25 focus-visible:outline-none">
             <article className="relative overflow-hidden rounded-2xl bg-[#04281a] p-6 text-white shadow-xl shadow-green-950/20 sm:p-7">
                 <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 size-72 rounded-full bg-motriks/40 blur-3xl" />
                 <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[length:28px_100%]" />
@@ -146,7 +147,7 @@ function EventCard({ event }: { event: EventItem }) {
     const faded = event.status === 'archived';
 
     return (
-        <Link href={eventShow({ event: event.id }).url} className="group block rounded-2xl focus-visible:ring-4 focus-visible:ring-motriks/20 focus-visible:outline-none">
+        <Link href={eventShow({ event: event.uuid }).url} className="group block rounded-2xl focus-visible:ring-4 focus-visible:ring-motriks/20 focus-visible:outline-none">
             <article
                 className={cn(
                     'flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-900/[0.03] transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-slate-300 group-hover:shadow-lg group-hover:shadow-slate-900/[0.06] dark:border-sidebar-border dark:bg-card',

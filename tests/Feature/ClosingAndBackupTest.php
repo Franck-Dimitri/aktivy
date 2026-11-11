@@ -40,7 +40,7 @@ class ClosingAndBackupTest extends TestCase
     {
         [, $agent, , $stock, $report] = $this->report();
 
-        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $report->lines->first()->id, 'units_sold' => 11]],
         ])->assertSessionHasErrors('lines');
 
@@ -54,7 +54,7 @@ class ClosingAndBackupTest extends TestCase
 
         $this->actingAs($manager)->post(route('sites.inventory.restock', [$site, $stock]), ['quantity' => 5]);
 
-        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $report->lines->first()->id, 'units_sold' => 14]],
         ])->assertSessionHasNoErrors();
 
@@ -66,7 +66,7 @@ class ClosingAndBackupTest extends TestCase
     {
         [, $agent, , $stock, $report] = $this->report();
 
-        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $report->lines->first()->id, 'units_sold' => 3, 'counted_stock' => 5]],
         ])->assertSessionHasErrors('lines');
 
@@ -79,7 +79,7 @@ class ClosingAndBackupTest extends TestCase
         [$manager, $agent, , $stock, $report] = $this->report();
         $lineId = $report->lines->first()->id;
 
-        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $lineId, 'units_sold' => 3, 'counted_stock' => 5, 'gap_reason' => 'Deux flacons cassés']],
         ])->assertSessionHasNoErrors();
 
@@ -104,8 +104,8 @@ class ClosingAndBackupTest extends TestCase
         [, $agent, , $stock, $report] = $this->report();
         $payload = ['lines' => [['id' => $report->lines->first()->id, 'units_sold' => 2]], 'queued' => true];
 
-        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), $payload)->assertRedirect(route('terrain.home'));
-        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), $payload)->assertRedirect(route('terrain.home'));
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit), $payload)->assertRedirect(route('terrain.home'));
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit), $payload)->assertRedirect(route('terrain.home'));
 
         // Le renvoi ne décompte pas le stock une seconde fois
         $this->assertSame(8, $stock->fresh()->current_stock);

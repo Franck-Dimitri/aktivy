@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { setAppBadge } from '@/lib/app-badge';
 import { pulse } from '@/routes/notifications';
 
 /*
@@ -55,6 +56,7 @@ async function check(): Promise<void> {
 
         const data = (await response.json()) as { latest: string | null; unread: number };
         const next = `${data.latest ?? ''}|${data.unread}`;
+        setAppBadge(data.unread);
 
         if (signature !== null && next !== signature) {
             refresh();
@@ -74,8 +76,10 @@ export function setupLiveRefresh(): void {
 
     // Chaque page affichée (navigation ou rechargement) porte des données fraîches : on relève le pouls
     router.on('navigate', (event) => {
-        const props = event.detail.page.props as { auth?: { user?: unknown } };
+        const props = event.detail.page.props as { auth?: { user?: unknown; unreadNotifications?: number } };
         loggedIn = Boolean(props.auth?.user);
+        // Pastille de l'icône : non lues du compte connecté, effacée à la déconnexion
+        setAppBadge(loggedIn ? (props.auth?.unreadNotifications ?? 0) : 0);
         signature = null;
         void check();
     });

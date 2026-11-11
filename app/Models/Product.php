@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +28,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable(['name', 'sku', 'description', 'unit', 'price', 'image', 'is_active', 'created_by'])]
 class Product extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     use HasFactory, SoftDeletes;
 
     protected function casts(): array

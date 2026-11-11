@@ -23,9 +23,9 @@ export function EventActionBar({ event }: { event: EventData }) {
         const options = { preserveScroll: true, onStart: () => setProcessing(true), onFinish: () => setProcessing(false), onSuccess: () => setPending(null) };
 
         if (shown === 'delete') {
-            router.delete(eventDestroy({ event: event.id }).url, options);
+            router.delete(eventDestroy({ event: event.uuid }).url, options);
         } else {
-            router.post(eventActivate({ event: event.id }).url, { action: shown }, options);
+            router.post(eventActivate({ event: event.uuid }).url, { action: shown }, options);
         }
     };
 

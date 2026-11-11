@@ -27,6 +27,7 @@ class CompanyRequestController extends Controller
             ->get()
             ->map(fn (Company $c) => [
                 'id'                       => $c->id,
+                'uuid'                     => $c->uuid,
                 'name'                     => $c->name,
                 'sector'                   => $c->sector,
                 'city'                     => $c->city,
@@ -56,6 +57,7 @@ class CompanyRequestController extends Controller
         return Inertia::render('admin/onboarding/show', [
             'company' => [
                 'id'                       => $company->id,
+                'uuid'                     => $company->uuid,
                 'name'                     => $company->name,
                 'sector'                   => $company->sector,
                 'city'                     => $company->city,
@@ -89,7 +91,7 @@ class CompanyRequestController extends Controller
             'rejection_reason' => null,
         ]);
 
-        // 14 jours pour essayer tous les modules payants
+        // Essai de Motriks Business (Company::TRIAL_DAYS jours) pour découvrir toutes les fonctions
         $company->startTrial();
 
         $this->notifyCompany($company, new CompanyApproved($company));

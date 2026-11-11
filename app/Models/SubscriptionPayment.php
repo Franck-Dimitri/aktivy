@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use App\Enums\Plan;
 use App\Models\Concerns\BelongsToCompany;
 use Carbon\CarbonImmutable;
@@ -21,14 +23,18 @@ use Illuminate\Support\Facades\DB;
  * @property CarbonImmutable|null $period_end
  * @property list<string>|null $modules
  * @property Plan|null $plan
- * @property int $extra_packs
+ * @property int $extra_packs Packs hôtesses (+5 hôtesses / +5 points de vente)
+ * @property int $supervisor_packs Packs superviseur (+1 superviseur)
  */
 #[Fillable([
-    'company_id', 'invoice_number', 'amount', 'currency', 'method', 'plan', 'extra_packs', 'reference',
+    'company_id', 'invoice_number', 'amount', 'currency', 'method', 'plan', 'extra_packs', 'supervisor_packs', 'reference',
     'paid_at', 'period_start', 'period_end', 'modules', 'notes', 'recorded_by',
 ])]
 class SubscriptionPayment extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     use BelongsToCompany;
 
     /** Moyens de paiement acceptés, avec leur libellé. */
@@ -47,6 +53,7 @@ class SubscriptionPayment extends Model
             'amount' => 'integer',
             'plan' => Plan::class,
             'extra_packs' => 'integer',
+            'supervisor_packs' => 'integer',
             'paid_at' => 'immutable_date',
             'period_start' => 'immutable_date',
             'period_end' => 'immutable_date',

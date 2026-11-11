@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Terrain;
 
+use App\Enums\Module;
+use App\Enums\Plan;
 use App\Http\Controllers\Controller;
 use App\Models\DailyReport;
 use App\Support\Incident;
+use App\Support\Reports\ExternalSales;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,7 +20,7 @@ class ReportHistoryController extends Controller
 
         $reports = DailyReport::where('user_id', $user->id)
             ->where('company_id', $user->company_id)
-            ->with(['site:id,name', 'lines', 'lines.siteProduct.product:id,image'])
+            ->with(['site:id,name', 'visit:id,uuid', 'lines','lines.siteProduct.product:id,image', 'externalLines'])
             ->latest('report_date')
             ->limit(30)
             ->get()
@@ -26,7 +29,9 @@ class ReportHistoryController extends Controller
 
                 return [
                     'id'               => $r->id,
+                    'uuid'             => $r->uuid,
                     'visit_id'         => $r->visit_id,
+                    'visit_uuid'       => $r->visit->uuid,
                     'site_name'        => $r->site->name,
                     'report_date'      => $r->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
                     'report_date_iso'  => $r->report_date->toDateString(),
@@ -50,11 +55,20 @@ class ReportHistoryController extends Controller
                             ? asset('storage/' . $l->siteProduct->product->image)
                             : null,
                     ])->values(),
+                    // Ventes en boutique extérieure, par boutique
+                    'external_sales'   => ExternalSales::present($r),
                 ];
             });
 
+        $company = $user->company;
+
         return Inertia::render('terrain/rapports', [
             'reports' => $reports,
+            // PDF du rapport : même règle que pour le gérant (fonction « rapports » du forfait)
+            'pdf' => [
+                'available' => $company->hasModule(Module::Reporting),
+                'plan' => Plan::lowestWith(Module::Reporting)->label(),
+            ],
         ]);
     }
 }

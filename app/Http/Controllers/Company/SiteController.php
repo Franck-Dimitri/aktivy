@@ -32,6 +32,7 @@ class SiteController extends Controller
             ->get()
             ->map(fn (Site $site) => [
                 'id' => $site->id,
+                'uuid' => $site->uuid,
                 'name' => $site->name,
                 'code' => $site->code,
                 'type' => $site->type->value,
@@ -123,13 +124,15 @@ class SiteController extends Controller
 
         // ── Affectations actives ──────────────────────────────────────────────
         $affectations = $site->affectations()
-            ->with('agent:id,name,phone,role')
+            ->with('agent:id,uuid,name,phone,role')
             ->where('status', 'active')
             ->orderBy('starts_on')
             ->get()
             ->map(fn ($a) => [
                 'id'          => $a->id,
+                'uuid'        => $a->uuid,
                 'agent_id'    => $a->user_id,
+                'agent_uuid'  => $a->agent->uuid,
                 'agent_name'  => $a->agent->name,
                 'agent_phone' => $a->agent->phone,
                 'starts_on'   => $a->starts_on->format('d/m/Y'),
@@ -141,13 +144,15 @@ class SiteController extends Controller
 
         // ── Visites récentes (10) ─────────────────────────────────────────────
         $recentVisits = $site->visits()
-            ->with('agent:id,name')
+            ->with('agent:id,uuid,name')
             ->latest('checked_in_at')
             ->limit(10)
             ->get()
             ->map(fn ($v) => [
                 'id'               => $v->id,
+                'uuid'             => $v->uuid,
                 'agent_id'         => $v->user_id,
+                'agent_uuid'       => $v->agent->uuid,
                 'agent_name'       => $v->agent->name,
                 'checked_in_at'    => $v->checked_in_at->format('d/m/Y H:i'),
                 'checked_out_at'   => $v->checked_out_at?->format('H:i'),
@@ -208,7 +213,7 @@ class SiteController extends Controller
 
         // ── Historique des hôtesses (toutes affectations) ────────────────────
         $allAffectations = $site->affectations()
-            ->with('agent:id,name,phone,role')
+            ->with('agent:id,uuid,name,phone,role')
             ->orderByDesc('starts_on')
             ->get();
 
@@ -223,6 +228,7 @@ class SiteController extends Controller
 
                 return [
                     'agent_id'    => $agent->id,
+                    'agent_uuid'  => $agent->uuid,
                     'agent_name'  => $agent->name,
                     'agent_phone' => $agent->phone,
                     'role_label'  => $agent->role?->label() ?? '',
@@ -245,6 +251,7 @@ class SiteController extends Controller
             ->get()
             ->map(fn ($sp) => [
                 'id'                 => $sp->id,
+                'uuid'               => $sp->uuid,
                 'product_id'         => $sp->product_id,
                 'product_name'       => $sp->product->name,
                 'product_sku'        => $sp->product->sku,
@@ -287,6 +294,7 @@ class SiteController extends Controller
         return Inertia::render('sites/show', [
             'site' => [
                 'id'           => $site->id,
+                'uuid'         => $site->uuid,
                 'name'         => $site->name,
                 'code'         => $site->code,
                 'type'         => $site->type->value,
@@ -322,6 +330,8 @@ class SiteController extends Controller
                 'month' => $monthData,
                 'year'  => $yearData,
             ],
+            // Chiffres du site : ce mois face au mois dernier, meilleurs produits et hôtesses sur 30 jours
+            'performance' => $this->performance($site),
             'affectations'    => $affectations,
             'recent_visits'   => $recentVisits,
             'hostess_history'   => $hostessHistory,
@@ -329,7 +339,7 @@ class SiteController extends Controller
             'inventory'         => $inventory,
             // Journal des mouvements de stock du site (les plus récents)
             'stock_movements'   => StockMovement::where('site_id', $site->id)
-                ->with(['siteProduct.product:id,name', 'author:id,name', 'dailyReport:id'])
+                ->with(['siteProduct.product:id,name', 'author:id,name', 'dailyReport:id,uuid'])
                 ->latest('id')
                 ->limit(50)
                 ->get()
@@ -344,6 +354,7 @@ class SiteController extends Controller
                     'author'          => $m->author?->name,
                     'notes'           => $m->notes,
                     'daily_report_id' => $m->daily_report_id,
+                    'daily_report_uuid' => $m->dailyReport?->uuid,
                 ]),
             'available_products'=> $availableProducts,
             // Options du modal « Modifier »
@@ -358,6 +369,92 @@ class SiteController extends Controller
         ]);
     }
 
+    /** Fenêtre des classements « meilleurs produits » et « meilleures hôtesses ». */
+    private const RANKING_DAYS = 30;
+
+    /**
+     * Chiffres de vente du site (rapports soumis, boutiques extérieures comprises) : ce mois-ci face au
+     * même nombre de jours du mois dernier, et les classements des 30 derniers jours.
+     *
+     * @return array<string, mixed>
+     */
+    private function performance(Site $site): array
+    {
+        $today = now()->startOfDay();
+        $monthStart = $today->copy()->startOfMonth();
+        // Comparaison juste : du 1er au même jour du mois dernier
+        $lastStart = $monthStart->copy()->subMonthNoOverflow();
+        $lastEnd = $lastStart->copy()->addDays($today->day - 1)->min($monthStart->copy()->subDay());
+        $rankingStart = $today->copy()->subDays(self::RANKING_DAYS - 1);
+
+        $lines = fn () => DB::table('daily_report_lines as l')
+            ->join('daily_reports as r', 'r.id', '=', 'l.daily_report_id')
+            ->where('r.site_id', $site->id)
+            ->where('r.status', 'submitted');
+
+        $period = function ($from, $to) use ($lines) {
+            $row = $lines()
+                ->whereDate('r.report_date', '>=', $from->toDateString())
+                ->whereDate('r.report_date', '<=', $to->toDateString())
+                ->selectRaw('COALESCE(SUM(l.revenue), 0) as revenue, COALESCE(SUM(l.units_sold), 0) as units, COUNT(DISTINCT r.id) as reports')
+                ->selectRaw('COALESCE(SUM(CASE WHEN l.external_shop IS NOT NULL THEN l.revenue ELSE 0 END), 0) as external')
+                ->first();
+
+            return [
+                'revenue' => (float) $row->revenue,
+                'units' => (int) $row->units,
+                'reports' => (int) $row->reports,
+                'external_revenue' => (float) $row->external,
+                'average_per_report' => $row->reports > 0 ? round($row->revenue / $row->reports) : 0.0,
+            ];
+        };
+
+        $ranking = $lines()->whereDate('r.report_date', '>=', $rankingStart->toDateString());
+        $rankingTotal = (float) (clone $ranking)->sum('l.revenue');
+
+        $products = (clone $ranking)
+            ->selectRaw('l.product_name as name, l.unit as unit, SUM(l.units_sold) as units, SUM(l.revenue) as revenue')
+            ->groupBy('l.product_name', 'l.unit')
+            // Expression et non l'alias : PostgreSQL (production) n'accepte pas d'alias dans HAVING
+            ->havingRaw('SUM(l.units_sold) > 0')
+            ->orderByDesc('revenue')
+            ->limit(5)
+            ->get()
+            ->map(fn ($p) => [
+                'name' => $p->name,
+                'unit' => $p->unit,
+                'units' => (int) $p->units,
+                'revenue' => (float) $p->revenue,
+                'share' => $rankingTotal > 0 ? round($p->revenue / $rankingTotal * 100) : 0,
+            ]);
+
+        $hostesses = (clone $ranking)
+            ->join('users as u', 'u.id', '=', 'r.user_id')
+            ->selectRaw('u.id as id, u.uuid as uuid, u.name as name, SUM(l.revenue) as revenue, SUM(l.units_sold) as units, COUNT(DISTINCT r.id) as days')
+            ->groupBy('u.id', 'u.uuid', 'u.name')
+            ->orderByDesc('revenue')
+            ->limit(5)
+            ->get()
+            ->map(fn ($h) => [
+                'id' => (int) $h->id,
+                'uuid' => $h->uuid,
+                'name' => $h->name,
+                'revenue' => (float) $h->revenue,
+                'units' => (int) $h->units,
+                'days' => (int) $h->days,
+            ]);
+
+        return [
+            'this_month' => $period($monthStart, $today),
+            'last_month' => $period($lastStart, $lastEnd),
+            'month_label' => $today->locale('fr')->isoFormat('MMMM'),
+            'ranking_days' => self::RANKING_DAYS,
+            'ranking_revenue' => $rankingTotal,
+            'best_products' => $products,
+            'best_hostesses' => $hostesses,
+        ];
+    }
+
     public function edit(Request $request, Site $site): Response
     {
         $this->authorizeCompany($request, $site);
@@ -365,6 +462,7 @@ class SiteController extends Controller
         return Inertia::render('sites/edit', [
             'site' => [
                 'id' => $site->id,
+                'uuid' => $site->uuid,
                 'name' => $site->name,
                 'code' => $site->code,
                 'type' => $site->type->value,

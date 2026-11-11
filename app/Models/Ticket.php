@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,6 +28,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['company_id', 'user_id', 'subject', 'body', 'priority', 'status', 'response', 'responded_by', 'responded_at'])]
 class Ticket extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     protected function casts(): array
     {
         return [

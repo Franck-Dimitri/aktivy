@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use App\Enums\AccountStatus;
 use App\Enums\Module;
 use App\Enums\Plan;
@@ -35,6 +37,8 @@ use Illuminate\Support\Str;
  * @property string|null $registration_doc_path
  * @property string|null $rejection_reason
  * @property Carbon|null $onboarding_completed_at
+ * @property int $plan_extra_packs Packs hôtesses (+5 hôtesses / +5 points de vente)
+ * @property int $plan_supervisor_packs Packs superviseur (+1 superviseur)
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -45,10 +49,13 @@ use Illuminate\Support\Str;
     'sector', 'city', 'address',
     'id_card_front_path', 'id_card_back_path', 'registration_doc_path',
     'rejection_reason', 'onboarding_completed_at',
-    'plan', 'plan_ends_on', 'plan_trial', 'plan_extra_packs',
+    'plan', 'plan_ends_on', 'plan_trial', 'plan_extra_packs', 'plan_supervisor_packs',
 ])]
 class Company extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     /** @use HasFactory<CompanyFactory> */
     use HasFactory, SoftDeletes;
 
@@ -80,6 +87,7 @@ class Company extends Model
             'plan_ends_on'            => 'date',
             'plan_trial'              => 'boolean',
             'plan_extra_packs'        => 'integer',
+            'plan_supervisor_packs'   => 'integer',
             'onboarding_completed_at' => 'datetime',
             // Rappels automatiques (cf. App\Support\Reminders\ReminderSettings)
             'reminder_settings'       => 'array',
@@ -167,11 +175,14 @@ class Company extends Model
         return in_array($module->value, $this->activeModules(), true);
     }
 
+    /** Durée de l'essai gratuit de Motriks Business offert à une nouvelle entreprise (jours). */
+    public const TRIAL_DAYS = 7;
+
     /**
      * Essai de Motriks Business à la validation (ou à la création) d'une entreprise.
      * Une entreprise qui a déjà un forfait payant ou un essai en cours le garde.
      */
-    public function startTrial(int $days = 14): void
+    public function startTrial(int $days = self::TRIAL_DAYS): void
     {
         if ($this->currentPlan() !== Plan::Starter) {
             return;
@@ -195,10 +206,24 @@ class Company extends Model
         return $this->plan_ends_on !== null && $this->plan_ends_on->lt(today());
     }
 
-    /** Packs +5 / +5 en vigueur (aucun en Starter ou après expiration). */
+    /** Packs hôtesses (+5 hôtesses / +5 points de vente) en vigueur : aucun en Starter ou après expiration. */
     public function activeExtraPacks(): int
     {
         return $this->currentPlan()->acceptsPacks() ? (int) $this->plan_extra_packs : 0;
+    }
+
+    /** Packs superviseur (+1 superviseur) en vigueur : seulement là où les superviseurs sont limités. */
+    public function activeSupervisorPacks(): int
+    {
+        return $this->currentPlan()->acceptsSupervisorPacks() ? (int) $this->plan_supervisor_packs : 0;
+    }
+
+    /** Prix mensuel du forfait en vigueur, packs compris (FCFA). */
+    public function monthlyPrice(): int
+    {
+        return $this->currentPlan()->price()
+            + $this->activeExtraPacks() * Plan::PACK_PRICE
+            + $this->activeSupervisorPacks() * Plan::SUPERVISOR_PACK_PRICE;
     }
 
     /**
@@ -209,11 +234,16 @@ class Company extends Model
     public function planLimits(): array
     {
         $limits = $this->currentPlan()->limits();
-        $packs = $this->activeExtraPacks();
 
-        foreach (['hostesses' => Plan::PACK_HOSTESSES, 'sites' => Plan::PACK_SITES] as $key => $step) {
+        $steps = [
+            'hostesses' => $this->activeExtraPacks() * Plan::PACK_HOSTESSES,
+            'sites' => $this->activeExtraPacks() * Plan::PACK_SITES,
+            'supervisors' => $this->activeSupervisorPacks() * Plan::SUPERVISOR_PACK_SUPERVISORS,
+        ];
+
+        foreach ($steps as $key => $extra) {
             if ($limits[$key] !== null) {
-                $limits[$key] += $packs * $step;
+                $limits[$key] += $extra;
             }
         }
 
@@ -221,15 +251,17 @@ class Company extends Model
     }
 
     /**
-     * Change le forfait. Sans date de fin, il est sans limite de durée.
+     * Change le forfait. Sans date de fin, il est sans limite de durée. Les packs non précisés sont conservés,
+     * et retirés quand le nouveau forfait ne les accepte pas.
      */
-    public function setPlan(Plan $plan, ?\DateTimeInterface $endsOn = null, bool $trial = false, ?int $extraPacks = null): void
+    public function setPlan(Plan $plan, ?\DateTimeInterface $endsOn = null, bool $trial = false, ?int $extraPacks = null, ?int $supervisorPacks = null): void
     {
         $this->forceFill([
             'plan' => $plan,
             'plan_ends_on' => $plan === Plan::Starter ? null : $endsOn,
             'plan_trial' => $plan !== Plan::Starter && $trial,
             'plan_extra_packs' => $plan->acceptsPacks() ? ($extraPacks ?? (int) $this->plan_extra_packs) : 0,
+            'plan_supervisor_packs' => $plan->acceptsSupervisorPacks() ? ($supervisorPacks ?? (int) $this->plan_supervisor_packs) : 0,
         ])->save();
 
         $this->activeModulesCache = null;

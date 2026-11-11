@@ -11,6 +11,7 @@ import type { AffectationSelectOption } from '@/types';
 
 type AffectationData = {
     id: number;
+    uuid: string;
     site_id: number;
     user_id: number;
     starts_on: string;
@@ -44,7 +45,7 @@ export default function AffectationEdit({ affectation, sites, staff, statuses }:
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(affectationUpdate({ affectation: affectation.id }).url, {
+        put(affectationUpdate({ affectation: affectation.uuid }).url, {
             preserveScroll: true,
             onSuccess: () => toast.success('Affectation mise à jour', { description: 'Les modifications sont enregistrées.' }),
             onError: toastFormError,

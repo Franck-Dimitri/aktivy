@@ -36,7 +36,8 @@ class CompanyInvitation extends Notification implements ShouldQueue
         $url = URL::temporarySignedRoute(
             'invitation.accept',
             now()->addDays(InvitationController::VALID_DAYS),
-            ['user' => $notifiable->getKey()],
+            // Identifiant public (UUID) : le lien ne révèle pas le numéro du compte
+            ['user' => $notifiable->getRouteKey()],
         );
 
         return (new MailMessage)

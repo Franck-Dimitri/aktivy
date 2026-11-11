@@ -52,7 +52,7 @@ export function CreateCompanyModal({ sectors, onClose }: { sectors: string[]; on
         <Modal
             onClose={() => !processing && onClose()}
             title="Créer une entreprise"
-            description="Active tout de suite, avec 14 jours d’essai de Motriks Business. Le gérant reçoit une invitation pour choisir son mot de passe."
+            description="Active tout de suite, avec 7 jours d’essai de Motriks Business. Le gérant reçoit une invitation pour choisir son mot de passe."
             size="lg"
             icon={<Building2 />}
         >

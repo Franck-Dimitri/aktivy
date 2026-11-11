@@ -66,12 +66,14 @@ class InvoiceController extends Controller
     {
         return [
             'id' => $p->id,
+            'uuid' => $p->uuid,
             'invoice_number' => $p->invoice_number,
             'amount' => $p->amount,
             'currency' => $p->currency,
             'method' => $p->methodLabel(),
             'plan' => $p->plan?->label(),
             'extra_packs' => $p->extra_packs,
+            'supervisor_packs' => $p->supervisor_packs,
             'paid_at' => $p->paid_at->format('d/m/Y'),
             'period_start' => $p->period_start?->format('d/m/Y'),
             'period_end' => $p->period_end?->format('d/m/Y'),

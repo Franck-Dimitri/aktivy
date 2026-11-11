@@ -9,6 +9,7 @@ import {
     TextInput,
 } from '@/components/page/form-fields';
 import { Modal } from '@/components/page/modal';
+import type { PackCatalog } from '@/components/plans/plan-usage';
 import { toastFormError } from '@/lib/form-toast';
 import { store as paymentStore } from '@/routes/admin/subscriptions/payments';
 import { number } from '@/pages/reports/format';
@@ -19,6 +20,7 @@ export type PlanOption = {
     label: string;
     price: number;
     accepts_packs: boolean;
+    accepts_supervisor_packs: boolean;
 };
 
 const fcfa = number;
@@ -39,27 +41,43 @@ export function RecordPaymentModal({
     company,
     plans,
     methods,
-    packPrice,
+    packs,
     currentPlan,
     currentPacks = 0,
+    currentSupervisorPacks = 0,
     onClose,
 }: {
-    company: { id: number; name: string };
+    company: { uuid: string; name: string };
     plans: PlanOption[];
     methods: Option[];
-    packPrice: number;
+    packs: PackCatalog;
     currentPlan?: string;
     currentPacks?: number;
+    currentSupervisorPacks?: number;
     onClose: () => void;
 }) {
     const paid = plans.filter((p) => p.key !== 'starter');
     const initialPlan = paid.find((p) => p.key === currentPlan) ?? paid[0];
     const [months, setMonths] = useState(1);
 
+    /** Prix mensuel d'un forfait avec ses packs (ceux que le forfait n'accepte pas ne comptent pas). */
+    const perMonth = (p: PlanOption, hostessPacks: number, supervisorPacks: number) =>
+        p.price +
+        (p.accepts_packs ? hostessPacks * packs.hostesses.price : 0) +
+        (p.accepts_supervisor_packs ? supervisorPacks * packs.supervisors.price : 0);
+
+    /** Montant proposé : forfait et packs, multipliés par le nombre de mois (10 mois payés pour 12 à l'année). */
+    const suggest = (planKey: string, hostessPacks: number, supervisorPacks: number, periodMonths: number) => {
+        const p = paid.find((x) => x.key === planKey) ?? paid[0];
+
+        return String(perMonth(p, hostessPacks, supervisorPacks) * (periodMonths === 12 ? 10 : periodMonths));
+    };
+
     const { data, setData, post, processing, errors } = useForm({
         plan: initialPlan.key,
         extra_packs: currentPacks,
-        amount: String(initialPlan.price + currentPacks * packPrice),
+        supervisor_packs: currentSupervisorPacks,
+        amount: suggest(initialPlan.key, currentPacks, currentSupervisorPacks, 1),
         method: methods[0]?.key ?? 'orange_money',
         reference: '',
         paid_at: iso(new Date()),
@@ -68,20 +86,13 @@ export function RecordPaymentModal({
     });
 
     const plan = paid.find((p) => p.key === data.plan) ?? paid[0];
-    const monthly =
-        plan.price + (plan.accepts_packs ? data.extra_packs * packPrice : 0);
+    const monthly = perMonth(plan, data.extra_packs, data.supervisor_packs);
 
-    /** Montant proposé : forfait et packs, multipliés par le nombre de mois (10 mois payés pour 12 à l'année). */
-    const suggest = (planKey: string, packs: number, periodMonths: number) => {
-        const p = paid.find((x) => x.key === planKey) ?? paid[0];
-        const perMonth = p.price + (p.accepts_packs ? packs * packPrice : 0);
-
-        return String(perMonth * (periodMonths === 12 ? 10 : periodMonths));
-    };
+    const packCount = (value: string) => Math.min(50, Math.max(0, Number(value) || 0));
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(paymentStore(company.id).url, {
+        post(paymentStore(company.uuid).url, {
             preserveScroll: true,
             onSuccess: onClose,
             onError: toastFormError,
@@ -98,41 +109,43 @@ export function RecordPaymentModal({
         >
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <Field
-                            label="Forfait"
-                            htmlFor="p-plan"
-                            required
+                    <Field
+                        label="Forfait"
+                        htmlFor="p-plan"
+                        required
+                        error={errors.plan}
+                    >
+                        <SelectInput
+                            id="p-plan"
+                            value={data.plan}
+                            onChange={(e) =>
+                                setData((d) => ({
+                                    ...d,
+                                    plan: e.target.value,
+                                    amount: suggest(
+                                        e.target.value,
+                                        d.extra_packs,
+                                        d.supervisor_packs,
+                                        months,
+                                    ),
+                                }))
+                            }
                             error={errors.plan}
                         >
-                            <SelectInput
-                                id="p-plan"
-                                value={data.plan}
-                                onChange={(e) =>
-                                    setData((d) => ({
-                                        ...d,
-                                        plan: e.target.value,
-                                        amount: suggest(
-                                            e.target.value,
-                                            d.extra_packs,
-                                            months,
-                                        ),
-                                    }))
-                                }
-                                error={errors.plan}
-                            >
-                                {paid.map((p) => (
-                                    <option key={p.key} value={p.key}>
-                                        {p.label} · {fcfa.format(p.price)} FCFA
-                                        / mois
-                                    </option>
-                                ))}
-                            </SelectInput>
-                        </Field>
+                            {paid.map((p) => (
+                                <option key={p.key} value={p.key}>
+                                    {p.label} · {fcfa.format(p.price)} FCFA /
+                                    mois
+                                </option>
+                            ))}
+                        </SelectInput>
+                    </Field>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
                         <Field
-                            label="Packs +5 / +5"
+                            label={`Packs hôtesses (+${packs.hostesses.hostesses} / +${packs.hostesses.sites})`}
                             htmlFor="p-packs"
-                            hint={`${fcfa.format(packPrice)} FCFA / mois chacun`}
+                            hint={`${fcfa.format(packs.hostesses.price)} FCFA / mois chacun`}
                             error={errors.extra_packs}
                         >
                             <TextInput
@@ -142,17 +155,42 @@ export function RecordPaymentModal({
                                 max={50}
                                 value={data.extra_packs}
                                 onChange={(e) => {
-                                    const packs = Math.max(
-                                        0,
-                                        Number(e.target.value) || 0,
-                                    );
+                                    const count = packCount(e.target.value);
                                     setData((d) => ({
                                         ...d,
-                                        extra_packs: packs,
-                                        amount: suggest(d.plan, packs, months),
+                                        extra_packs: count,
+                                        amount: suggest(d.plan, count, d.supervisor_packs, months),
                                     }));
                                 }}
                                 error={errors.extra_packs}
+                            />
+                        </Field>
+                        <Field
+                            label={`Packs superviseur (+${packs.supervisors.supervisors})`}
+                            htmlFor="p-sup-packs"
+                            hint={
+                                plan.accepts_supervisor_packs
+                                    ? `${fcfa.format(packs.supervisors.price)} FCFA / mois chacun`
+                                    : 'Superviseurs illimités dans ce forfait'
+                            }
+                            error={errors.supervisor_packs}
+                        >
+                            <TextInput
+                                id="p-sup-packs"
+                                type="number"
+                                min={0}
+                                max={50}
+                                disabled={!plan.accepts_supervisor_packs}
+                                value={plan.accepts_supervisor_packs ? data.supervisor_packs : 0}
+                                onChange={(e) => {
+                                    const count = packCount(e.target.value);
+                                    setData((d) => ({
+                                        ...d,
+                                        supervisor_packs: count,
+                                        amount: suggest(d.plan, d.extra_packs, count, months),
+                                    }));
+                                }}
+                                error={errors.supervisor_packs}
                             />
                         </Field>
                     </div>
@@ -193,6 +231,7 @@ export function RecordPaymentModal({
                                             amount: suggest(
                                                 d.plan,
                                                 d.extra_packs,
+                                                d.supervisor_packs,
                                                 m,
                                             ),
                                         }));

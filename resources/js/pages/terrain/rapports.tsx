@@ -1,14 +1,15 @@
 import { Head, Link } from '@inertiajs/react';
-import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCheck, ClipboardList, ExternalLink, Pencil, Search, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCheck, ClipboardList, Download, ExternalLink, Lock, Pencil, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { ActionLink } from '@/components/page/buttons';
+import { ExternalSalesList, externalTotal, type ExternalShopSales } from '@/components/external-sales';
+import { ActionLink, buttonClass } from '@/components/page/buttons';
 import { EmptyState } from '@/components/page/empty-state';
 import { Modal } from '@/components/page/modal';
 import { Page } from '@/components/page/page';
 import { ProductImage } from '@/components/page/product-image';
 import { StatStrip } from '@/components/page/stat-strip';
 import { cn } from '@/lib/utils';
-import { index as terrainReports } from '@/routes/terrain/reports';
+import { index as terrainReports, pdf as reportPdf } from '@/routes/terrain/reports';
 import { show as reportShow } from '@/routes/terrain/report';
 
 /* ─────────────────────── Types ─────────────────────── */
@@ -27,7 +28,9 @@ type ReportLine = {
 
 type Report = {
     id: number;
+    uuid: string;
     visit_id: number;
+    visit_uuid: string;
     site_name: string;
     report_date: string;
     report_date_iso: string;
@@ -39,7 +42,11 @@ type Report = {
     notes: string | null;
     incident_notes: string | null;
     lines: ReportLine[];
+    external_sales: ExternalShopSales[];
 };
+
+/** PDF du rapport : disponible selon le forfait, comme pour le gérant. */
+type PdfAccess = { available: boolean; plan: string };
 
 type StatusFilter = 'all' | 'submitted' | 'draft';
 
@@ -98,7 +105,8 @@ function soldLines(report: Report): ReportLine[] {
 /** « buillie kalis's et 2 autres » : résumé lisible des produits vendus. */
 function productSummary(report: Report): string {
     const [first, ...rest] = soldLines(report);
-    if (!first) return 'Aucune vente';
+    const shops = report.external_sales.length;
+    if (!first) return shops > 0 ? `${shops} boutique${shops > 1 ? 's' : ''} extérieure${shops > 1 ? 's' : ''}` : 'Aucune vente';
     return rest.length > 0 ? `${first.product_name} et ${rest.length} autre${rest.length > 1 ? 's' : ''}` : first.product_name;
 }
 
@@ -118,9 +126,35 @@ function searchableText(r: Report): string {
     );
 }
 
+/* ─────────────────────── PDF ─────────────────────── */
+
+/** Télécharger le PDF du rapport ; sinon, le forfait qui le permet. */
+function PdfButton({ report, pdf, className }: { report: Report; pdf: PdfAccess; className?: string }) {
+    if (report.status !== 'submitted') return null;
+
+    if (!pdf.available) {
+        return (
+            <span
+                title={`Le PDF du rapport est disponible à partir de ${pdf.plan}`}
+                className={cn('inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-slate-400 ring-1 ring-slate-200', className)}
+            >
+                <Lock className="size-3.5" />
+                PDF dès {pdf.plan.replace('Motriks ', '')}
+            </span>
+        );
+    }
+
+    return (
+        <a href={reportPdf({ dailyReport: report.uuid }).url} download className={cn(buttonClass('secondary'), 'h-10 rounded-xl', className)}>
+            <Download />
+            PDF
+        </a>
+    );
+}
+
 /* ─────────────────────── Modal d'aperçu ─────────────────────── */
 
-function ReportModal({ report, onClose }: { report: Report; onClose: () => void }) {
+function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess; onClose: () => void }) {
     const sold = report.lines.filter((l) => l.units_sold > 0);
 
     return (
@@ -148,12 +182,12 @@ function ReportModal({ report, onClose }: { report: Report; onClose: () => void 
                     {/* Produits vendus */}
                     <div>
                         <p className="mb-2.5 text-sm font-semibold text-ink">
-                            Produits vendus
+                            {report.external_sales.length > 0 ? 'Sur le point de vente' : 'Produits vendus'}
                             <span className="ml-2 font-normal text-slate-400">{sold.length}</span>
                         </p>
                         {sold.length === 0 ? (
                             <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400">
-                                Aucune vente enregistrée ce jour.
+                                {report.external_sales.length > 0 ? 'Aucune vente sur le point de vente ce jour.' : 'Aucune vente enregistrée ce jour.'}
                             </p>
                         ) : (
                             <ul className="grid gap-2.5">
@@ -175,6 +209,16 @@ function ReportModal({ report, onClose }: { report: Report; onClose: () => void 
                             </ul>
                         )}
                     </div>
+
+                    {report.external_sales.length > 0 && (
+                        <div>
+                            <p className="mb-2.5 text-sm font-semibold text-ink">
+                                Boutiques extérieures
+                                <span className="ml-2 font-normal text-slate-400">{formatMoney(externalTotal(report.external_sales))} FCFA</span>
+                            </p>
+                            <ExternalSalesList sales={report.external_sales} />
+                        </div>
+                    )}
 
                     {report.notes && (
                         <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
@@ -203,7 +247,8 @@ function ReportModal({ report, onClose }: { report: Report; onClose: () => void 
                 >
                     Fermer
                 </button>
-                <ActionLink href={reportShow({ visit: report.visit_id }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
+                <PdfButton report={report} pdf={pdf} />
+                <ActionLink href={reportShow({ visit: report.visit_uuid }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
                     Ouvrir le rapport
                 </ActionLink>
             </footer>
@@ -213,7 +258,7 @@ function ReportModal({ report, onClose }: { report: Report; onClose: () => void 
 
 /* ─────────────────────── Dernier rapport en grand ─────────────────────── */
 
-function FeaturedReport({ report }: { report: Report }) {
+function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
     const sold = soldLines(report);
 
     return (
@@ -243,20 +288,23 @@ function FeaturedReport({ report }: { report: Report }) {
                             {report.total_units_sold} unité{report.total_units_sold > 1 ? 's' : ''} vendue{report.total_units_sold > 1 ? 's' : ''}
                         </p>
                     </div>
-                    <ActionLink href={reportShow({ visit: report.visit_id }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
-                        Ouvrir
-                    </ActionLink>
+                    <div className="flex items-center gap-2">
+                        <PdfButton report={report} pdf={pdf} />
+                        <ActionLink href={reportShow({ visit: report.visit_uuid }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
+                            Ouvrir
+                        </ActionLink>
+                    </div>
                 </div>
             </header>
 
             <div className="px-6 py-5">
                 <p className="mb-3 text-sm font-semibold text-ink">
-                    Produits vendus
+                    {report.external_sales.length > 0 ? 'Sur le point de vente' : 'Produits vendus'}
                     <span className="ml-2 font-normal text-slate-400">{sold.length}</span>
                 </p>
                 {sold.length === 0 ? (
                     <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400">
-                        Aucune vente enregistrée ce jour.
+                        {report.external_sales.length > 0 ? 'Aucune vente sur le point de vente ce jour.' : 'Aucune vente enregistrée ce jour.'}
                     </p>
                 ) : (
                     <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -276,6 +324,16 @@ function FeaturedReport({ report }: { report: Report }) {
                             </li>
                         ))}
                     </ul>
+                )}
+
+                {report.external_sales.length > 0 && (
+                    <div className="mt-5">
+                        <p className="mb-3 text-sm font-semibold text-ink">
+                            Boutiques extérieures
+                            <span className="ml-2 font-normal text-slate-400">{formatMoney(externalTotal(report.external_sales))} FCFA</span>
+                        </p>
+                        <ExternalSalesList sales={report.external_sales} className="sm:grid sm:grid-cols-2 sm:items-start xl:grid-cols-3" />
+                    </div>
                 )}
 
                 {(report.notes || report.incident_notes) && (
@@ -397,7 +455,7 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
                     {content}
                 </button>
             ) : (
-                <Link href={reportShow({ visit: report.visit_id }).url} className={rowClass}>
+                <Link href={reportShow({ visit: report.visit_uuid }).url} className={rowClass}>
                     {content}
                 </Link>
             )}
@@ -407,7 +465,7 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
 
 /* ─────────────────────── Page ─────────────────────── */
 
-export default function TerrainRapports({ reports }: { reports: Report[] }) {
+export default function TerrainRapports({ reports, pdf }: { reports: Report[]; pdf: PdfAccess }) {
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState<StatusFilter>('all');
     const [selected, setSelected] = useState<Report | null>(null);
@@ -572,7 +630,7 @@ export default function TerrainRapports({ reports }: { reports: Report[] }) {
                             </div>
                         )}
 
-                        {featured && <FeaturedReport report={featured} />}
+                        {featured && <FeaturedReport report={featured} pdf={pdf} />}
 
                         {featured && listReports.length > 0 && <h2 className="mt-2 px-1 text-sm font-semibold text-ink">Historique</h2>}
 
@@ -620,7 +678,7 @@ export default function TerrainRapports({ reports }: { reports: Report[] }) {
                 )}
             </Page>
 
-            {selected && <ReportModal report={selected} onClose={() => setSelected(null)} />}
+            {selected && <ReportModal report={selected} pdf={pdf} onClose={() => setSelected(null)} />}
         </>
     );
 }

@@ -94,7 +94,7 @@ class StockAndReviewTest extends TestCase
 
     private function submit(DailyReport $report, int $soaps, int $creams, array $packs = []): void
     {
-        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [
                 ['id' => $this->lineOf($report, $this->soap), 'units_sold' => $soaps],
                 ['id' => $this->lineOf($report, $this->cream), 'units_sold' => $creams],
@@ -151,7 +151,7 @@ class StockAndReviewTest extends TestCase
         $report = $this->checkIn();
         $this->assertSame($event->id, $report->event_id);
 
-        $this->actingAs($this->agent)->get(route('terrain.report.show', $report->visit_id))
+        $this->actingAs($this->agent)->get(route('terrain.report.show', $report->visit))
             ->assertInertia(fn ($page) => $page->where('report.packs.0.value', 1500));
 
         // 3 savons à l'unité, 1 crème à l'unité, 2 packs
@@ -239,5 +239,61 @@ class StockAndReviewTest extends TestCase
 
         $this->assertLessThan(50, $report->visit->checkin_distance_m);
         $this->assertFalse($report->visit->isOffSite());
+    }
+
+    /** Titre et texte de la dernière notification de prise de service reçue par le gérant. */
+    private function lastShiftNotice(): array
+    {
+        $data = $this->manager->notifications()->latest()->firstOrFail()->data;
+
+        return [$data['title'], $data['body']];
+    }
+
+    public function test_the_managers_see_exactly_where_the_hostess_took_her_shift()
+    {
+        $report = $this->checkIn(['latitude' => 4.0512, 'longitude' => 9.7680, 'accuracy' => 12.4]);
+        $this->assertSame(12, $report->visit->checkin_accuracy_m);
+
+        $this->actingAs($this->manager)->get(route('activity.index'))->assertInertia(fn ($page) => $page
+            ->where('sites.0.hostesses.0.place.state', 'on_site')
+            ->where('sites.0.hostesses.0.place.accuracy_m', 12)
+            ->where('sites.0.hostesses.0.place.map_url', 'https://www.google.com/maps/search/?api=1&query=4.0512,9.768')
+            ->where('sites.0.hostesses.0.place.label', fn (string $label) => str_starts_with($label, 'Sur place, à ')));
+
+        [$title, $body] = $this->lastShiftNotice();
+        $this->assertSame("{$this->agent->name} a pris son service", $title);
+        $this->assertStringEndsWith('· sur place.', $body);
+    }
+
+    public function test_a_check_in_at_another_point_of_sale_names_it()
+    {
+        // Autre point de vente de l'entreprise, à quelques kilomètres
+        $this->manager->company->sites()->create([
+            'name' => 'Akwa', 'type' => 'autre', 'city' => 'Douala',
+            'latitude' => 4.0600, 'longitude' => 9.7000, 'created_by' => $this->manager->id,
+        ]);
+
+        $this->checkIn(['latitude' => 4.0601, 'longitude' => 9.7001]);
+
+        $this->actingAs($this->manager)->get(route('activity.index'))->assertInertia(fn ($page) => $page
+            ->where('sites.0.hostesses.0.place.state', 'other_site')
+            ->where('sites.0.hostesses.0.place.other_site', 'Akwa'));
+
+        [$title, $body] = $this->lastShiftNotice();
+        $this->assertSame("{$this->agent->name} a pris son service hors de son point de vente", $title);
+        $this->assertStringEndsWith('· au point de vente « Akwa ».', $body);
+    }
+
+    public function test_a_check_in_without_position_is_told_to_the_managers()
+    {
+        $report = $this->checkIn();
+
+        $this->assertNull($report->visit->checkin_accuracy_m);
+        $this->actingAs($this->manager)->get(route('daily-reports.show', $report))->assertInertia(fn ($page) => $page
+            ->where('report.checkin_place.state', 'unknown')
+            ->where('report.checkin_place.map_url', null));
+
+        [$title] = $this->lastShiftNotice();
+        $this->assertSame("{$this->agent->name} a pris son service sans partager sa position", $title);
     }
 }

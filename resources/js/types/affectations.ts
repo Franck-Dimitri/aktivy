@@ -2,11 +2,14 @@ export type AffectationStatus = 'active' | 'completed' | 'cancelled';
 
 export type AffectationListItem = {
     id: number;
+    uuid: string;
     agent_id: number;
+    agent_uuid: string;
     agent_name: string;
     agent_role: string;
     agent_phone: string | null;
     site_id: number;
+    site_uuid: string;
     site_name: string;
     site_city: string;
     site_type: string;
@@ -40,6 +43,8 @@ export type AffectationFormData = {
 export type AffectationSelectOption = {
     value: number;
     label: string;
+    /** Rôle du membre (« supervisor », « field_agent ») : un superviseur peut avoir plusieurs sites. */
+    role?: string;
     role_label?: string;
     phone?: string | null;
 };

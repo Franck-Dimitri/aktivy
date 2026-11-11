@@ -34,7 +34,8 @@ class SupportRequestMail extends Mailable implements ShouldQueue
         public string $subjectLine,
         public ?string $replyToEmail = null,
         public ?string $replyToName = null,
-        public ?int $supportRequestId = null,
+        /** Identifiant public (UUID) de la demande, pour le lien vers l'administration */
+        public ?string $supportRequestUuid = null,
     ) {}
 
     public function envelope(): Envelope
@@ -55,7 +56,7 @@ class SupportRequestMail extends Mailable implements ShouldQueue
                 'body' => $this->body,
                 'details' => $this->details,
                 // Lien direct vers la demande dans la boîte de support de l'administration
-                'url' => $this->supportRequestId ? route('admin.support.show', $this->supportRequestId) : null,
+                'url' => $this->supportRequestUuid ? route('admin.support.show', $this->supportRequestUuid) : null,
             ],
         );
     }

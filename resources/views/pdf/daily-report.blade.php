@@ -14,13 +14,15 @@
         $status .= ' · corrigé par le responsable';
     }
 
-    if ($report->visit?->checkin_distance_m === null) {
-        $pointage = 'Non vérifié (position non transmise)';
-    } elseif ($report->visit->isOffSite()) {
-        $pointage = 'Hors du point de vente, à '.number_format($report->visit->checkin_distance_m / 1000, 1, ',', ' ').' km';
-    } else {
-        $pointage = 'Sur le point de vente';
-    }
+    // Lieu de la prise de service, dit comme dans l'application (sur place, autre point de vente, distance)
+    $pointage = $report->visit
+        ? \App\Support\CheckinPlace::describe($report->visit, $report->site, $report->visit->isOffSite() ? \App\Support\CheckinPlace::companySites($report->company_id) : null)['label']
+        : 'Non vérifié (pas de prise de service)';
+
+    // Ventes en boutique extérieure : hors stock du point de vente, comptées dans le total
+    $external = \App\Support\Reports\ExternalSales::present($report);
+    $externalRevenue = array_sum(array_column($external, 'revenue'));
+    $externalUnits = array_sum(array_column($external, 'units'));
 @endphp
 @extends('pdf.layout')
 
@@ -48,20 +50,21 @@
     <div class="bloc">
     <h2>{{ ++$section }}. Résumé de la journée</h2>
     <table class="grid">
-        <thead><tr><th>Chiffre d’affaires</th><th>Unités vendues</th><th>Produits suivis</th><th>Packs vendus</th></tr></thead>
+        <thead><tr><th>Chiffre d’affaires</th><th>Unités vendues</th><th>Produits suivis</th><th>Packs vendus</th>@if ($external !== [])<th>Dont boutiques extérieures</th>@endif</tr></thead>
         <tbody>
             <tr>
                 <td><strong>{{ $money($report->totalRevenue()) }}</strong></td>
                 <td>{{ $report->totalUnitsSold() }}</td>
                 <td>{{ $report->lines->count() }}</td>
                 <td>{{ $report->packs->sum('quantity') ?: '—' }}</td>
+                @if ($external !== [])<td>{{ $money($externalRevenue) }} ({{ $externalUnits }} unités)</td>@endif
             </tr>
         </tbody>
     </table>
     </div>
 
     <div class="{{ $report->lines->count() <= 15 ? 'bloc' : '' }}">
-    <h2>{{ ++$section }}. Ventes par produit</h2>
+    <h2>{{ ++$section }}. Ventes par produit{{ $external !== [] ? ' sur le point de vente' : '' }}</h2>
     <table class="grid compact">
         <thead>
             <tr>
@@ -94,13 +97,51 @@
         <tfoot>
             <tr>
                 <td colspan="3">Total</td>
-                <td class="num">{{ $report->totalUnitsSold() }}</td>
+                <td class="num">{{ $report->lines->sum('units_sold') }}</td>
                 <td colspan="2"></td>
-                <td class="num">{{ $money($report->totalRevenue()) }}</td>
+                <td class="num">{{ $money($report->lines->sum('revenue')) }}</td>
             </tr>
         </tfoot>
     </table>
     </div>
+
+    @if ($external !== [])
+        <div class="bloc">
+        <h2>{{ ++$section }}. Ventes en boutique extérieure</h2>
+        <p class="detail">Mêmes produits et mêmes prix, vendus hors du point de vente : sans effet sur son stock.</p>
+        <table class="grid compact">
+            <thead>
+                <tr>
+                    <th style="width: 30%">Boutique</th>
+                    <th style="width: 32%">Produit</th>
+                    <th class="num" style="width: 12%">Prix</th>
+                    <th class="num" style="width: 9%">Vendus</th>
+                    <th class="num" style="width: 17%">Chiffre d’affaires</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($external as $shop)
+                    @foreach ($shop['lines'] as $i => $line)
+                        <tr>
+                            <td>{{ $i === 0 ? $shop['shop'] : '' }}</td>
+                            <td>{{ $line['product_name'] }}</td>
+                            <td class="num">{{ $money($line['unit_price']) }}</td>
+                            <td class="num"><strong>{{ $line['units'] }}</strong></td>
+                            <td class="num">{{ $money($line['revenue']) }}</td>
+                        </tr>
+                    @endforeach
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3">Total boutiques extérieures</td>
+                    <td class="num">{{ $externalUnits }}</td>
+                    <td class="num">{{ $money($externalRevenue) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        </div>
+    @endif
 
     @if ($report->packs->isNotEmpty())
         <div class="bloc">

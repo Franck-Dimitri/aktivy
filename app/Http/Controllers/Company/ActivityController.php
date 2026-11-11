@@ -8,6 +8,7 @@ use App\Models\Affectation;
 use App\Models\DailyReport;
 use App\Models\SiteProduct;
 use App\Models\Visit;
+use App\Support\CheckinPlace;
 use App\Support\Incident;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -45,8 +46,9 @@ class ActivityController extends Controller
 
         $reports = DailyReport::whereIn('user_id', $affectations->pluck('user_id'))
             ->whereDate('report_date', $today)
-            ->withSum('lines', 'revenue')
-            ->withSum('lines', 'units_sold')
+            // Ventes en boutique extérieure comprises
+            ->withSum('allLines as lines_sum_revenue', 'revenue')
+            ->withSum('allLines as lines_sum_units_sold', 'units_sold')
             ->get()
             ->keyBy('user_id');
 
@@ -56,7 +58,10 @@ class ActivityController extends Controller
             ->groupBy('site_id')
             ->pluck('total', 'site_id');
 
-        $sites = $affectations->groupBy('site_id')->map(function (Collection $group) use ($visits, $reports, $stockAlerts, $now) {
+        // Pour reconnaître un pointage fait sur un autre point de vente de l'entreprise
+        $companySites = $visits->contains(fn (Visit $v) => $v->isOffSite()) ? CheckinPlace::companySites($company->id) : collect();
+
+        $sites = $affectations->groupBy('site_id')->map(function (Collection $group) use ($visits, $reports, $stockAlerts, $now, $companySites) {
             $site = $group->first()->site;
 
             return [
@@ -64,7 +69,7 @@ class ActivityController extends Controller
                 'name' => $site?->name,
                 'city' => $site?->city,
                 'stock_alerts' => (int) ($stockAlerts[$site?->id] ?? 0),
-                'hostesses' => $group->unique('user_id')->map(function (Affectation $a) use ($visits, $reports, $now) {
+                'hostesses' => $group->unique('user_id')->map(function (Affectation $a) use ($visits, $reports, $now, $companySites) {
                     $visit = $visits->get($a->user_id);
                     $report = $reports->get($a->user_id);
 
@@ -78,7 +83,10 @@ class ActivityController extends Controller
                         'checked_in_at' => $visit?->checked_in_at?->format('H:i'),
                         'checked_out_at' => $visit?->checked_out_at?->format('H:i'),
                         'off_site' => $visit?->isOffSite() ?? false,
+                        // Lieu exact de la prise de service (sur place, autre point de vente, distance, carte)
+                        'place' => $visit ? CheckinPlace::describe($visit, $a->site, $companySites) : null,
                         'report_id' => $report?->id,
+                        'report_uuid' => $report?->uuid,
                         'report_status' => $report?->status,
                         'revenue' => (float) ($report?->lines_sum_revenue ?? 0),
                         'units_sold' => (int) ($report?->lines_sum_units_sold ?? 0),

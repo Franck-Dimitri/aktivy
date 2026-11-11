@@ -61,7 +61,7 @@ class FieldComfortTest extends TestCase
 
     private function addPhoto(): void
     {
-        $this->actingAs($this->agent)->post(route('terrain.report.photos.store', $this->report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.photos.store', $this->report->visit), [
             'photo' => UploadedFile::fake()->image('rayon.jpg', 800, 600),
             'caption' => 'Rayon',
         ])->assertSessionHasNoErrors();
@@ -69,7 +69,7 @@ class FieldComfortTest extends TestCase
 
     private function submit(): void
     {
-        $this->actingAs($this->agent)->post(route('terrain.report.submit', $this->report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.submit', $this->report->visit), [
             'lines' => [['id' => $this->report->lines->first()->id, 'units_sold' => 2]],
         ])->assertSessionHasNoErrors();
     }
@@ -94,19 +94,19 @@ class FieldComfortTest extends TestCase
         for ($i = 0; $i < 6; $i++) {
             $this->addPhoto();
         }
-        $this->actingAs($this->agent)->post(route('terrain.report.photos.store', $this->report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.photos.store', $this->report->visit), [
             'photo' => UploadedFile::fake()->image('trop.jpg'),
         ])->assertSessionHasErrors('photo');
 
         $photo = $this->report->photos()->firstOrFail();
         $path = $photo->path;
-        $this->actingAs($this->agent)->delete(route('terrain.report.photos.destroy', [$this->report->visit_id, $photo]))
+        $this->actingAs($this->agent)->delete(route('terrain.report.photos.destroy', [$this->report->visit, $photo]))
             ->assertSessionHasNoErrors();
         Storage::disk('local')->assertMissing($path);
 
         $this->submit();
         $this->actingAs($this->agent)
-            ->delete(route('terrain.report.photos.destroy', [$this->report->visit_id, $this->report->photos()->firstOrFail()]))
+            ->delete(route('terrain.report.photos.destroy', [$this->report->visit, $this->report->photos()->firstOrFail()]))
             ->assertStatus(422);
     }
 
@@ -114,7 +114,7 @@ class FieldComfortTest extends TestCase
     {
         $colleague = User::factory()->fieldAgent()->create(['company_id' => $this->manager->company_id]);
 
-        $this->actingAs($colleague)->post(route('terrain.report.photos.store', $this->report->visit_id), [
+        $this->actingAs($colleague)->post(route('terrain.report.photos.store', $this->report->visit), [
             'photo' => UploadedFile::fake()->image('x.jpg'),
         ])->assertForbidden();
     }

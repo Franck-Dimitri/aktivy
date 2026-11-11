@@ -33,7 +33,7 @@ function AddHostessModal({ event, available, onClose }: { event: EventData; avai
             const site = d.event_site_id ? Number(d.event_site_id) : null;
             return mode === 'existing' ? { mode, user_id: d.user_id, event_site_id: site } : { mode, name: d.name, phone: d.phone, password: d.password, event_site_id: site };
         });
-        post(hostessStore({ event: event.id }).url, { preserveScroll: true, onSuccess: onClose, onError: toastFormError });
+        post(hostessStore({ event: event.uuid }).url, { preserveScroll: true, onSuccess: onClose, onError: toastFormError });
     };
 
     const canSubmit = mode === 'existing' ? data.user_id !== null : data.name.trim() !== '' && data.phone.trim() !== '' && data.password !== '';
@@ -103,7 +103,7 @@ function HostessCard({ h, event, canEdit, onRemove }: { h: EventHostess; event: 
     const [saving, setSaving] = useState(false);
 
     const assign = (value: string) =>
-        router.put(hostessUpdate({ event: event.id, hostess: h.id }).url, { event_site_id: value ? Number(value) : null }, { preserveScroll: true, onStart: () => setSaving(true), onFinish: () => setSaving(false) });
+        router.put(hostessUpdate({ event: event.uuid, hostess: h.uuid }).url, { event_site_id: value ? Number(value) : null }, { preserveScroll: true, onStart: () => setSaving(true), onFinish: () => setSaving(false) });
 
     return (
         <article className={cn('flex flex-col rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-900/[0.03] sm:p-5 dark:border-sidebar-border dark:bg-card', archived && 'opacity-70')}>
@@ -167,7 +167,7 @@ export function TabHostesses({ event, availableHostesses }: Props) {
 
     const remove = () => {
         if (!target) return;
-        router.delete(hostessDestroy({ event: event.id, hostess: target.id }).url, {
+        router.delete(hostessDestroy({ event: event.uuid, hostess: target.uuid }).url, {
             preserveScroll: true,
             onStart: () => setRemoving(true),
             onFinish: () => setRemoving(false),

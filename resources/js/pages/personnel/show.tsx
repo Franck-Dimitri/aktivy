@@ -75,7 +75,7 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
     };
 
     const { ask, dialog } = useDeleteDialog<typeof member>({
-        getUrl: (m) => personnelDestroy({ personnel: m.id }).url,
+        getUrl: (m) => personnelDestroy({ personnel: m.uuid }).url,
         getTitle: (m) => `Supprimer « ${m.name} » ?`,
         getDescription: () => 'Ce membre ne pourra plus se connecter. Ses visites et affectations passées restent consultables.',
         getSuccessMessage: (m) => `${m.name} a été supprimé.`,
@@ -199,7 +199,7 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
                                 <ul className="divide-y divide-slate-100">
                                     {affectations.map((a) => (
                                         <li key={a.id}>
-                                            <Link href={siteShow({ site: a.site_id }).url} className="group flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-slate-50/80">
+                                            <Link href={siteShow({ site: a.site_uuid }).url} className="group flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-slate-50/80">
                                                 <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-motriks-soft text-motriks-deep">
                                                     <Store className="size-4" />
                                                 </div>
@@ -230,7 +230,7 @@ export default function PersonnelShow({ member, stats, affectations = [], recent
 
                         <div className="lg:col-span-3">
                             <Card title="Documents" aside={<span className="text-xs font-medium text-slate-400">{documents.length}</span>}>
-                                <StaffDocuments memberId={member.id} documents={documents} types={document_types} />
+                                <StaffDocuments memberUuid={member.uuid} documents={documents} types={document_types} />
                             </Card>
                         </div>
                     </div>

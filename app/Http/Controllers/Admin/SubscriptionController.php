@@ -64,7 +64,7 @@ class SubscriptionController extends Controller
             ],
             'plans' => self::planOptions(),
             'methods' => self::methodOptions(),
-            'pack_price' => Plan::PACK_PRICE,
+            'packs' => Plan::packCatalog(),
             'soon_days' => self::SOON_DAYS,
         ]);
     }
@@ -82,6 +82,7 @@ class SubscriptionController extends Controller
             'paid_at' => ['required', 'date', 'before_or_equal:today'],
             'plan' => ['required', Rule::in(array_map(fn (Plan $p) => $p->value, array_filter(Plan::cases(), fn (Plan $p) => $p !== Plan::Starter)))],
             'extra_packs' => ['nullable', 'integer', 'min:0', 'max:50'],
+            'supervisor_packs' => ['nullable', 'integer', 'min:0', 'max:50'],
             'period_end' => ['required', 'date', 'after_or_equal:paid_at', 'after_or_equal:today'],
             'notes' => ['nullable', 'string', 'max:500'],
         ], [
@@ -97,9 +98,10 @@ class SubscriptionController extends Controller
         ]);
 
         $plan = Plan::from($data['plan']);
-        $packs = (int) ($data['extra_packs'] ?? 0);
+        $packs = $plan->acceptsPacks() ? (int) ($data['extra_packs'] ?? 0) : 0;
+        $supervisorPacks = $plan->acceptsSupervisorPacks() ? (int) ($data['supervisor_packs'] ?? 0) : 0;
 
-        $payment = DB::transaction(function () use ($company, $data, $plan, $packs, $request) {
+        $payment = DB::transaction(function () use ($company, $data, $plan, $packs, $supervisorPacks, $request) {
             $payment = SubscriptionPayment::create([
                 'company_id' => $company->id,
                 'invoice_number' => SubscriptionPayment::nextInvoiceNumber(),
@@ -108,6 +110,7 @@ class SubscriptionController extends Controller
                 'method' => $data['method'],
                 'plan' => $plan,
                 'extra_packs' => $packs,
+                'supervisor_packs' => $supervisorPacks,
                 'reference' => $data['reference'] ?? null,
                 'paid_at' => $data['paid_at'],
                 'period_start' => $data['paid_at'],
@@ -116,7 +119,7 @@ class SubscriptionController extends Controller
                 'recorded_by' => $request->user()->id,
             ]);
 
-            $company->setPlan($plan, Carbon::parse($data['period_end']), trial: false, extraPacks: $packs);
+            $company->setPlan($plan, Carbon::parse($data['period_end']), trial: false, extraPacks: $packs, supervisorPacks: $supervisorPacks);
 
             AuditLog::record('subscription.payment_recorded', $company, new: [
                 'invoice' => $payment->invoice_number,
@@ -124,6 +127,7 @@ class SubscriptionController extends Controller
                 'method' => $payment->method,
                 'plan' => $plan->value,
                 'extra_packs' => $packs,
+                'supervisor_packs' => $supervisorPacks,
                 'period_end' => $data['period_end'],
             ]);
 
@@ -176,14 +180,17 @@ class SubscriptionController extends Controller
     {
         return $payments->map(fn (SubscriptionPayment $p) => [
             'id' => $p->id,
+            'uuid' => $p->uuid,
             'invoice_number' => $p->invoice_number,
             'company_id' => $p->company_id,
+            'company_uuid' => $p->company?->uuid,
             'company' => $p->company?->name,
             'amount' => $p->amount,
             'currency' => $p->currency,
             'method' => $p->methodLabel(),
             'plan' => $p->plan?->label(),
             'extra_packs' => $p->extra_packs,
+            'supervisor_packs' => $p->supervisor_packs,
             'reference' => $p->reference,
             'paid_at' => $p->paid_at->format('d/m/Y'),
             'period_start' => $p->period_start?->format('d/m/Y'),
@@ -191,10 +198,16 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    /** @return list<array{key: string, label: string, price: int, accepts_packs: bool}> */
+    /** @return list<array{key: string, label: string, price: int, accepts_packs: bool, accepts_supervisor_packs: bool}> */
     public static function planOptions(): array
     {
-        return array_map(fn (Plan $p) => ['key' => $p->value, 'label' => $p->label(), 'price' => $p->price(), 'accepts_packs' => $p->acceptsPacks()], Plan::cases());
+        return array_map(fn (Plan $p) => [
+            'key' => $p->value,
+            'label' => $p->label(),
+            'price' => $p->price(),
+            'accepts_packs' => $p->acceptsPacks(),
+            'accepts_supervisor_packs' => $p->acceptsSupervisorPacks(),
+        ], Plan::cases());
     }
 
     /** @return Collection<int, array{key: string, label: string}> */
@@ -217,6 +230,7 @@ class SubscriptionController extends Controller
 
         return [
             'id' => $company->id,
+            'uuid' => $company->uuid,
             'name' => $company->name,
             'status' => $company->status->value,
             'state' => $kind,
@@ -228,6 +242,7 @@ class SubscriptionController extends Controller
             'days_left' => $state['days_left'],
             'soon' => $state['days_left'] !== null && $state['days_left'] <= self::SOON_DAYS,
             'extra_packs' => $state['extra_packs'],
+            'supervisor_packs' => $state['supervisor_packs'],
             'monthly_price' => $state['monthly_price'],
             'can_remind' => $company->plan !== Plan::Starter && $company->plan_ends_on !== null,
             'last_paid' => $lastPaid ? date('d/m/Y', strtotime($lastPaid)) : null,

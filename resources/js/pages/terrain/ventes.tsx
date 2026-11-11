@@ -19,11 +19,14 @@ type SaleLine = {
     revenue: number;
     image_url: string | null;
     notes: string | null;
+    /** Vendu en boutique extérieure (hors stock du point de vente). */
+    external_shop?: string | null;
 };
 
 type SaleDay = {
     report_id: number;
     visit_id: number;
+    visit_uuid: string;
     date: string;
     date_formatted: string;
     site_name: string;
@@ -182,11 +185,14 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
                         <p className="py-4 text-center text-sm text-slate-400">Aucune vente enregistrée ce jour.</p>
                     ) : (
                         <ul className="grid gap-2.5">
-                            {day.lines.map((l) => (
-                                <li key={l.product_name} className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200/70 sm:gap-4">
+                            {day.lines.map((l, i) => (
+                                <li key={`${l.external_shop ?? ''}-${l.product_name}-${i}`} className="flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200/70 sm:gap-4">
                                     <ProductImage src={l.image_url} alt={l.product_name} className="size-12 sm:size-16" />
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-sm font-semibold text-ink">{l.product_name}</p>
+                                        {l.external_shop && (
+                                            <p className="mt-0.5 truncate text-xs font-medium text-slate-500">Boutique extérieure · {l.external_shop}</p>
+                                        )}
                                         <p className="mt-0.5 text-xs text-slate-500 tabular-nums">
                                             {l.units_sold} × {formatMoney(l.unit_price)} FCFA
                                         </p>
@@ -229,7 +235,7 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
                     )}
 
                     <Link
-                        href={reportShow({ visit: day.visit_id }).url}
+                        href={reportShow({ visit: day.visit_uuid }).url}
                         className="mt-1.5 inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                     >
                         Voir le rapport complet

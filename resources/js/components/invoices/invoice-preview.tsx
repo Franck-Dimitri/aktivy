@@ -12,12 +12,15 @@ import { download as invoiceDownload, preview as invoicePreview } from '@/routes
 
 export type InvoiceItem = {
     id: number;
+    /** Identifiant public : sert dans les adresses du PDF. */
+    uuid: string;
     invoice_number: string;
     amount: number;
     currency: string;
     method: string;
     plan: string | null;
     extra_packs?: number;
+    supervisor_packs?: number;
     paid_at: string;
     period_start?: string | null;
     period_end: string | null;
@@ -52,9 +55,9 @@ type Props = {
 };
 
 /** Adresses de l'aperçu (PDF inline) et du téléchargement d'une facture : à déclarer hors du composant (objet stable). */
-export type InvoiceUrls = { preview: (id: number) => string; download: (id: number) => string };
+export type InvoiceUrls = { preview: (uuid: string) => string; download: (uuid: string) => string };
 
-const COMPANY_URLS: InvoiceUrls = { preview: (id) => invoicePreview(id).url, download: (id) => invoiceDownload(id).url };
+const COMPANY_URLS: InvoiceUrls = { preview: (uuid) => invoicePreview(uuid).url, download: (uuid) => invoiceDownload(uuid).url };
 
 type Load = { state: 'loading' } | { state: 'ready'; url: string; blob: Blob; pdf: PDFDocumentProxy } | { state: 'error'; message: string };
 
@@ -90,7 +93,7 @@ async function loadPdfJs() {
 export function InvoicePreviewModal({ invoice, open, onClose, client, status = 'paid', urls = COMPANY_URLS }: Props) {
     // Garde la dernière facture pendant l'animation de fermeture (le parent remet souvent `invoice` à null)
     const [shown, setShown] = useState(invoice);
-    if (invoice && invoice.id !== shown?.id) {
+    if (invoice && invoice.uuid !== shown?.uuid) {
         setShown(invoice);
     }
 
@@ -99,10 +102,10 @@ export function InvoicePreviewModal({ invoice, open, onClose, client, status = '
     const [attempt, setAttempt] = useState(0);
     // Sans <Dialog.Trigger>, Radix ne sait pas où rendre le focus : on le rend au bouton qui a ouvert l’aperçu
     const opener = useRef<HTMLElement | null>(null);
-    const id = open ? shown?.id : undefined;
+    const uuid = open ? shown?.uuid : undefined;
 
     useEffect(() => {
-        if (id === undefined) {
+        if (uuid === undefined) {
             return;
         }
 
@@ -114,7 +117,7 @@ export function InvoicePreviewModal({ invoice, open, onClose, client, status = '
 
         (async () => {
             const [response, pdfjs] = await Promise.all([
-                fetch(urls.preview(id), { credentials: 'same-origin', headers: { Accept: 'application/pdf' }, signal: controller.signal }),
+                fetch(urls.preview(uuid), { credentials: 'same-origin', headers: { Accept: 'application/pdf' }, signal: controller.signal }),
                 loadPdfJs(),
             ]);
 
@@ -162,7 +165,7 @@ export function InvoicePreviewModal({ invoice, open, onClose, client, status = '
                 URL.revokeObjectURL(objectUrl);
             }
         };
-    }, [id, attempt, urls]);
+    }, [uuid, attempt, urls]);
 
     // Impression du PDF lui-même (pas de la page), via un cadre invisible ; à défaut, ouverture dans un onglet
     const print = () => {
@@ -262,7 +265,7 @@ export function InvoicePreviewModal({ invoice, open, onClose, client, status = '
                         )}
                         {(load.state === 'loading' || (load.state === 'ready' && !drawn)) && <SheetSkeleton />}
                         {load.state === 'error' && shown && (
-                            <LoadError message={load.message} openHref={urls.preview(shown.id)} onRetry={() => setAttempt((n) => n + 1)} />
+                            <LoadError message={load.message} openHref={urls.preview(shown.uuid)} onRetry={() => setAttempt((n) => n + 1)} />
                         )}
                     </div>
 
@@ -276,7 +279,7 @@ export function InvoicePreviewModal({ invoice, open, onClose, client, status = '
                             Imprimer
                         </button>
                         {shown && (
-                            <a href={urls.download(shown.id)} download onClick={save} className={cn(buttonClass('primary'), 'flex-1 sm:flex-none')}>
+                            <a href={urls.download(shown.uuid)} download onClick={save} className={cn(buttonClass('primary'), 'flex-1 sm:flex-none')}>
                                 <Download />
                                 Télécharger le PDF
                             </a>

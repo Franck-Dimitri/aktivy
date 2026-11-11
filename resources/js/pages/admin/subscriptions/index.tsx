@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { RecordPaymentModal, type Option, type PlanOption } from '@/components/admin/record-payment-modal';
 import { ActionButton, buttonClass } from '@/components/page/buttons';
 import { TextInput } from '@/components/page/form-fields';
+import { packSummary, type PackCatalog } from '@/components/plans/plan-usage';
 import { CompanyAvatar, QuietEmpty, Segmented } from '@/components/page/list-kit';
 import { Page } from '@/components/page/page';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -17,6 +18,7 @@ import { index as subscriptionsIndex, remind } from '@/routes/admin/subscription
 
 type Row = {
     id: number;
+    uuid: string;
     name: string;
     status: string;
     state: 'trial' | 'paying' | 'expired' | 'starter';
@@ -28,6 +30,7 @@ type Row = {
     days_left: number | null;
     soon: boolean;
     extra_packs: number;
+    supervisor_packs: number;
     monthly_price: number;
     can_remind: boolean;
     last_paid: string | null;
@@ -47,7 +50,7 @@ type Props = {
     };
     plans: PlanOption[];
     methods: Option[];
-    pack_price: number;
+    packs: PackCatalog;
     soon_days: number;
 };
 
@@ -97,7 +100,7 @@ function deadline(r: Row): { text: string; className: string } {
 }
 
 /** Abonnements : les forfaits et ce qu'ils rapportent, puis chaque entreprise avec son échéance. */
-export default function AdminSubscriptions({ rows, stats, plans, methods, pack_price, soon_days }: Props) {
+export default function AdminSubscriptions({ rows, stats, plans, methods, packs, soon_days }: Props) {
     const [planFilter, setPlanFilter] = useState<string | null>(null);
     const [status, setStatus] = useState<Status>('all');
     const [query, setQuery] = useState('');
@@ -133,7 +136,7 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, pack_p
             .sort((a, b) => Number(needsAttention(b)) - Number(needsAttention(a)));
     }, [inPlan, status, query]);
 
-    const sendReminder = (r: Row) => router.post(remind(r.id).url, {}, { preserveScroll: true, onError: toastFormError });
+    const sendReminder = (r: Row) => router.post(remind(r.uuid).url, {}, { preserveScroll: true, onError: toastFormError });
 
     const selectedPlan = byPlan.find((p) => p.key === planFilter);
 
@@ -325,7 +328,7 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, pack_p
                                                 <CompanyAvatar name={r.name} muted={r.status === 'suspended'} className="size-11" />
                                                 <div className="min-w-0">
                                                     <Link
-                                                        href={companyShow(r.id).url}
+                                                        href={companyShow(r.uuid).url}
                                                         className="block truncate font-semibold text-ink hover:text-motriks-deep"
                                                     >
                                                         {r.name}
@@ -333,7 +336,7 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, pack_p
                                                     <p className="mt-0.5 truncate text-sm text-slate-500">
                                                         {short(r.plan)}
                                                         {r.monthly_price > 0 && ` · ${number.format(r.monthly_price)} FCFA / mois`}
-                                                        {r.extra_packs > 0 && ` · +${r.extra_packs} pack${r.extra_packs > 1 ? 's' : ''}`}
+                                                        {packSummary(r.extra_packs, r.supervisor_packs) && ` · +${packSummary(r.extra_packs, r.supervisor_packs)}`}
                                                         {r.status === 'suspended' && ' · suspendue'}
                                                     </p>
                                                 </div>
@@ -392,13 +395,13 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, pack_p
                                                             </DropdownMenuItem>
                                                         )}
                                                         <DropdownMenuItem asChild>
-                                                            <Link href={companyPlan(r.id).url}>
+                                                            <Link href={companyPlan(r.uuid).url}>
                                                                 <Blocks />
                                                                 Changer de forfait
                                                             </Link>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem asChild>
-                                                            <Link href={companyShow(r.id).url}>
+                                                            <Link href={companyShow(r.uuid).url}>
                                                                 <Building2 />
                                                                 Voir la fiche
                                                             </Link>
@@ -417,12 +420,13 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, pack_p
 
             {paying && (
                 <RecordPaymentModal
-                    company={{ id: paying.id, name: paying.name }}
+                    company={{ uuid: paying.uuid, name: paying.name }}
                     plans={plans}
                     methods={methods}
-                    packPrice={pack_price}
+                    packs={packs}
                     currentPlan={paying.subscribed_key}
                     currentPacks={paying.extra_packs}
+                    currentSupervisorPacks={paying.supervisor_packs}
                     onClose={() => setPaying(null)}
                 />
             )}

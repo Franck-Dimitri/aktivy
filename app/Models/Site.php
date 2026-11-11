@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use App\Enums\SiteStatus;
 use App\Enums\SiteType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -47,6 +49,9 @@ use Illuminate\Support\Carbon;
 ])]
 class Site extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     use HasFactory, SoftDeletes;
 
     protected $attributes = [

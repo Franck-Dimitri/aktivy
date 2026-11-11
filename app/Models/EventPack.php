@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use App\Enums\EventPackType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +22,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['event_id', 'name', 'description', 'type', 'price', 'active'])]
 class EventPack extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     protected $attributes = [
         'type'   => 'grouped_discount',
         'active' => true,

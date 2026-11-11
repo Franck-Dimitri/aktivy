@@ -6,6 +6,7 @@ import { buttonClass } from '@/components/page/buttons';
 import { Page } from '@/components/page/page';
 import { MetricStrip } from '@/components/page/surface';
 import { QuietEmpty, Segmented } from '@/components/page/list-kit';
+import { packSummary } from '@/components/plans/plan-usage';
 import { cn } from '@/lib/utils';
 import { subscription as companySubscription } from '@/routes/company';
 import { download as invoiceDownload, index as invoicesIndex } from '@/routes/company/invoices';
@@ -147,12 +148,8 @@ export default function Invoices({ invoices, summary, client }: Props) {
                                             </p>
                                             <p className="min-w-0 truncate text-sm text-slate-600">
                                                 {i.plan ?? '—'}
-                                                {i.extra_packs > 0 && (
-                                                    <span className="text-slate-400">
-                                                        {' '}
-                                                        · +{i.extra_packs} pack
-                                                        {i.extra_packs > 1 ? 's' : ''}
-                                                    </span>
+                                                {packSummary(i.extra_packs, i.supervisor_packs ?? 0) && (
+                                                    <span className="text-slate-400"> · +{packSummary(i.extra_packs, i.supervisor_packs ?? 0)}</span>
                                                 )}
                                             </p>
                                             <p className="text-base font-semibold text-ink tabular-nums lg:text-right lg:text-sm">
@@ -168,7 +165,7 @@ export default function Invoices({ invoices, summary, client }: Props) {
                                                     <Eye />
                                                     Voir
                                                 </button>
-                                                <a href={invoiceDownload(i.id).url} download className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
+                                                <a href={invoiceDownload(i.uuid).url} download className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
                                                     <Download />
                                                     PDF
                                                 </a>

@@ -4,6 +4,9 @@ use App\Enums\Module;
 use App\Enums\Role;
 use App\Http\Controllers\ReportPhotoController;
 use App\Http\Controllers\Terrain\DailyReportController;
+use App\Http\Controllers\Terrain\ExternalShopController;
+use App\Http\Controllers\Terrain\ReportPdfController;
+use App\Http\Controllers\Terrain\StockController;
 use App\Http\Controllers\Terrain\HomeController;
 use App\Http\Controllers\Terrain\PlanningController;
 use App\Http\Controllers\Terrain\ReportHistoryController;
@@ -39,8 +42,17 @@ Route::middleware(['auth', 'verified', EnsureUserHasRole::using(Role::FieldAgent
         // Planning / présence
         Route::get('planning', PlanningController::class)->name('planning');
 
-        // Historique des rapports
+        // Historique des rapports, et leur PDF (même document que celui du gérant, selon le forfait)
         Route::get('rapports', ReportHistoryController::class)->name('reports.index');
+        Route::get('rapports/{dailyReport}/pdf', ReportPdfController::class)
+            ->middleware(EnsureModuleIsActive::using(Module::Reporting))
+            ->name('reports.pdf');
+
+        // Stock de ses points de vente, en lecture seule
+        Route::get('stock', StockController::class)->name('stock');
+
+        // Ventes en boutique extérieure (saisies dans le rapport du jour)
+        Route::get('boutiques-exterieures', ExternalShopController::class)->name('external-shops');
 
         // Ventes (historique détaillé)
         Route::get('ventes', SalesController::class)->name('sales');

@@ -35,6 +35,7 @@ type DocKind = 'image' | 'pdf' | null;
 
 type CompanyData = {
     id: number;
+    uuid: string;
     name: string;
     sector: string | null;
     city: string | null;
@@ -75,7 +76,7 @@ const REASONS = [
 
 /* ───────────────────────── Documents ───────────────────────── */
 
-function DocumentCard({ companyId, doc, kind, onZoom }: { companyId: number; doc: (typeof DOCS)[number]; kind: DocKind; onZoom: (url: string, label: string) => void }) {
+function DocumentCard({ companyUuid, doc, kind, onZoom }: { companyUuid: string; doc: (typeof DOCS)[number]; kind: DocKind; onZoom: (url: string, label: string) => void }) {
     const Icon = doc.icon;
     const title = `${doc.label} · ${doc.hint}`;
 
@@ -94,7 +95,7 @@ function DocumentCard({ companyId, doc, kind, onZoom }: { companyId: number; doc
         );
     }
 
-    const url = docRoute({ company: companyId, type: doc.type }).url;
+    const url = docRoute({ company: companyUuid, type: doc.type }).url;
 
     return (
         <div className="group flex flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white transition-shadow hover:shadow-md hover:shadow-slate-900/[0.05] dark:border-sidebar-border dark:bg-card">
@@ -173,7 +174,7 @@ export default function AdminOnboardingShow({ company, admin }: Props) {
     const complete = provided === DOCS.length;
 
     const doApprove = () =>
-        approveForm.post(approve({ company: company.id }).url, {
+        approveForm.post(approve({ company: company.uuid }).url, {
             onSuccess: () => toast.success('Entreprise activée', { description: `« ${company.name} » a reçu un e-mail de confirmation.` }),
             onError: () => toast.error('L’activation a échoué, réessayez.'),
             onFinish: () => setApproving(false),
@@ -181,7 +182,7 @@ export default function AdminOnboardingShow({ company, admin }: Props) {
 
     const doReject = (e: FormEvent) => {
         e.preventDefault();
-        rejectForm.post(reject({ company: company.id }).url, {
+        rejectForm.post(reject({ company: company.uuid }).url, {
             onSuccess: () => toast.success('Demande rejetée', { description: 'Le gérant a reçu le motif par e-mail.' }),
             onError: toastFormError,
         });
@@ -248,7 +249,7 @@ export default function AdminOnboardingShow({ company, admin }: Props) {
                             </div>
                             <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
                                 {DOCS.map((d) => (
-                                    <DocumentCard key={d.type} companyId={company.id} doc={d} kind={company.documents[d.type]} onZoom={(url, label) => setZoom({ url, label })} />
+                                    <DocumentCard key={d.type} companyUuid={company.uuid} doc={d} kind={company.documents[d.type]} onZoom={(url, label) => setZoom({ url, label })} />
                                 ))}
                             </div>
                         </section>

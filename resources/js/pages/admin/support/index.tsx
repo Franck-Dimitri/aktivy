@@ -18,6 +18,7 @@ import { index as supportIndex } from '@/routes/admin/support';
 
 type Row = {
     id: number;
+    uuid: string;
     source: 'help' | 'contact';
     topic: string;
     name: string;
@@ -135,7 +136,7 @@ export default function AdminSupport({ requests, status, search, counts, selecte
 
         setOpenId(r.id);
         setPreview({ id: r.id, topic: r.topic, name: r.name, status: r.status, source: r.source });
-        router.get(supportIndex().url, filters({ demande: r.id }), { only: ['selected'], preserveState: true, preserveScroll: true, replace: true });
+        router.get(supportIndex().url, filters({ demande: r.uuid }), { only: ['selected'], preserveState: true, preserveScroll: true, replace: true });
     };
 
     const close = () => {

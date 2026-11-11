@@ -20,12 +20,12 @@ class NotifyReportRemindersCommand extends Command
     {
         $drafts = DailyReport::where('status', 'draft')
             ->whereDate('report_date', today())
-            ->with(['agent', 'site:id,name'])
+            ->with(['agent', 'site:id,name', 'visit:id,uuid'])
             ->get();
 
         foreach ($drafts as $report) {
-            if ($report->agent) {
-                Notify::send($report->agent, new ReportReminder($report->visit_id, $report->site?->name ?? 'votre point de vente'));
+            if ($report->agent && $report->visit) {
+                Notify::send($report->agent, new ReportReminder($report->visit->uuid, $report->site?->name ?? 'votre point de vente'));
             }
         }
 

@@ -5,7 +5,7 @@ import { ArrowRight, Check, Download, Eye, FileText, PackagePlus } from 'lucide-
 import { buttonClass } from '@/components/page/buttons';
 import { Page } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
-import type { PlanState } from '@/components/plans/plan-usage';
+import { packSummary, USAGE_ROWS, type PackCatalog, type PlanState } from '@/components/plans/plan-usage';
 import { cn } from '@/lib/utils';
 import { contact } from '@/routes';
 import { subscription as companySubscription } from '@/routes/company';
@@ -36,7 +36,7 @@ type Payment = {
 type Props = {
     plan: PlanState;
     plans: CatalogPlan[];
-    pack: { price: number; hostesses: number; sites: number };
+    packs: PackCatalog;
     payments?: (Payment & InvoiceItem)[];
     /** Entreprise facturée (en-tête de l’aperçu). */
     client?: string;
@@ -47,15 +47,12 @@ const fcfa = number;
 
 const card = 'rounded-2xl border border-slate-200/80 bg-white shadow-xs';
 
-const USAGE: { key: keyof PlanState['usage']; label: string }[] = [
-    { key: 'hostesses', label: 'Hôtesses' },
-    { key: 'sites', label: 'Points de vente' },
-    { key: 'backoffice', label: 'Utilisateurs du back-office' },
-    { key: 'events_per_month', label: 'Événements ce mois-ci' },
-];
+/** Limite affichée sous un nombre : illimité, non compris, ou le nombre lui-même. */
+const limitText = (limit: number | null | undefined) => (limit === null || limit === undefined ? '∞' : String(limit));
 
 /** Abonnement de l'entreprise : forfait en cours, ce qui est utilisé, et les forfaits Motriks. */
-export default function CompanySubscription({ plan, plans, pack, payments = [], paymentsCount = 0, client }: Props) {
+export default function CompanySubscription({ plan, plans, packs, payments = [], paymentsCount = 0, client }: Props) {
+    const activePacks = packSummary(plan.extra_packs, plan.supervisor_packs);
     const [preview, setPreview] = useState<InvoiceItem | null>(null);
     const summary = plan.expired
         ? `Votre forfait ${plan.subscribed_label} a pris fin le ${plan.ends_on}. Votre entreprise est passée en Motriks Starter : vos données sont conservées.`
@@ -97,8 +94,8 @@ export default function CompanySubscription({ plan, plans, pack, payments = [], 
                                     <span className="text-sm font-normal text-slate-500">FCFA / mois</span>
                                 </p>
                                 <p className="mt-0.5 text-xs text-slate-500">
-                                    {plan.extra_packs
-                                        ? `Dont ${plan.extra_packs} pack${plan.extra_packs > 1 ? 's' : ''} d’extension`
+                                    {activePacks
+                                        ? `Dont ${activePacks}`
                                         : paid
                                           ? 'Prix mensuel'
                                           : 'Aucun paiement'}
@@ -135,11 +132,12 @@ export default function CompanySubscription({ plan, plans, pack, payments = [], 
                     <section>
                         <h2 className="mb-3 text-[15px] font-semibold text-ink">Ce que vous utilisez</h2>
                         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                            {USAGE.map(({ key, label }) => {
+                            {USAGE_ROWS.map(({ key, label }) => {
                                 const used = plan.usage[key];
                                 const limit = plan.limits[key];
                                 const ratio = limit ? Math.min(1, used / limit) : 0;
-                                const full = limit !== null && limit > 0 && used >= limit;
+                                // Limite atteinte, ou dépassée (ex. un superviseur gardé après le passage en Starter)
+                                const full = limit !== null && used >= limit && used > 0;
 
                                 return (
                                     <div key={key} className={cn(card, 'flex flex-col gap-3 p-4 sm:p-5')}>
@@ -202,15 +200,17 @@ export default function CompanySubscription({ plan, plans, pack, payments = [], 
                                         </p>
                                         <p className="mt-2 min-h-[3.75rem] text-[13px] leading-relaxed text-slate-500">{p.audience}</p>
 
-                                        <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-center">
-                                            <div>
-                                                <p className="text-base font-semibold text-ink tabular-nums">{p.limits.hostesses ?? '∞'}</p>
-                                                <p className="text-[11px] text-slate-500">hôtesses</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-base font-semibold text-ink tabular-nums">{p.limits.sites ?? '∞'}</p>
-                                                <p className="text-[11px] text-slate-500">points de vente</p>
-                                            </div>
+                                        <div className="mt-4 grid grid-cols-3 divide-x divide-slate-200/70 rounded-xl bg-slate-50 py-3 text-center">
+                                            {[
+                                                ['hostesses', 'hôtesses'],
+                                                ['sites', 'points de vente'],
+                                                ['supervisors', 'superviseurs'],
+                                            ].map(([key, label]) => (
+                                                <div key={key} className="px-1">
+                                                    <p className="text-base font-semibold text-ink tabular-nums">{limitText(p.limits[key])}</p>
+                                                    <p className="text-[11px] leading-tight text-slate-500">{label}</p>
+                                                </div>
+                                            ))}
                                         </div>
 
                                         <ul className="mt-5 flex flex-1 flex-col gap-2 text-[13px] text-slate-600">
@@ -245,14 +245,28 @@ export default function CompanySubscription({ plan, plans, pack, payments = [], 
                             })}
                         </div>
 
-                        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/60 px-5 py-4 text-sm text-slate-600">
-                            <PackagePlus className="mt-0.5 size-5 shrink-0 text-motriks-deep" />
-                            <p>
-                                <span className="font-semibold text-ink">Pack d’extension</span> : +{pack.hostesses} hôtesses et +{pack.sites} points
-                                de vente pour <span className="font-semibold text-ink tabular-nums">{fcfa.format(pack.price)} FCFA</span> par mois, à
-                                partir de Motriks Pro.
-                            </p>
+                        {/* Packs d'extension : à ajouter à un forfait payant, sans en changer */}
+                        <div className="mt-4 grid gap-px overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-200/80 sm:grid-cols-2">
+                            <div className="flex items-start gap-3 bg-slate-50/60 px-5 py-4 text-sm text-slate-600">
+                                <PackagePlus className="mt-0.5 size-5 shrink-0 text-motriks-deep" />
+                                <p>
+                                    <span className="font-semibold text-ink">Pack hôtesses</span> : +{packs.hostesses.hostesses} hôtesses et +
+                                    {packs.hostesses.sites} points de vente pour{' '}
+                                    <span className="font-semibold text-ink tabular-nums">{fcfa.format(packs.hostesses.price)} FCFA</span> par mois.
+                                </p>
+                            </div>
+                            <div className="flex items-start gap-3 bg-slate-50/60 px-5 py-4 text-sm text-slate-600">
+                                <PackagePlus className="mt-0.5 size-5 shrink-0 text-motriks-deep" />
+                                <p>
+                                    <span className="font-semibold text-ink">Pack superviseur</span> : +{packs.supervisors.supervisors} superviseur pour{' '}
+                                    <span className="font-semibold text-ink tabular-nums">{fcfa.format(packs.supervisors.price)} FCFA</span> par mois,
+                                    en Pro et Business.
+                                </p>
+                            </div>
                         </div>
+                        <p className="mt-2 text-xs text-slate-500">
+                            Packs disponibles à partir de Motriks Pro. Le gérant est toujours inclus ; les comptables ne sont pas limités.
+                        </p>
                     </section>
 
                     {/* ── Dernière facture (toutes : page Factures) ── */}
@@ -289,7 +303,7 @@ export default function CompanySubscription({ plan, plans, pack, payments = [], 
                                             <Eye />
                                             Voir
                                         </button>
-                                        <a href={invoiceDownload(p.id).url} download className={buttonClass('secondary', 'sm')}>
+                                        <a href={invoiceDownload(p.uuid).url} download className={buttonClass('secondary', 'sm')}>
                                             <Download />
                                             Facture PDF
                                         </a>

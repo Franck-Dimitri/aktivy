@@ -10,6 +10,7 @@ import { destroy as documentDestroy, show as documentShow, store as documentStor
 
 export type StaffDocumentItem = {
     id: number;
+    uuid: string;
     type_label: string;
     title: string;
     size: number;
@@ -21,7 +22,7 @@ export type StaffDocumentItem = {
 const size = (bytes: number) => (bytes >= 1_000_000 ? `${(bytes / 1_000_000).toFixed(1).replace('.', ',')} Mo` : `${Math.max(1, Math.round(bytes / 1000))} Ko`);
 
 /** Documents de la fiche : pièce d'identité, contrat, attestation… visibles par ceux qui gèrent ce membre. */
-export function StaffDocuments({ memberId, documents, types }: { memberId: number; documents: StaffDocumentItem[]; types: { value: string; label: string }[] }) {
+export function StaffDocuments({ memberUuid, documents, types }: { memberUuid: string; documents: StaffDocumentItem[]; types: { value: string; label: string }[] }) {
     const input = useRef<HTMLInputElement>(null);
     const [type, setType] = useState(types[0]?.value ?? 'other');
     const [title, setTitle] = useState('');
@@ -34,7 +35,7 @@ export function StaffDocuments({ memberId, documents, types }: { memberId: numbe
         // Photo d'un papier prise au téléphone : réduite avant l'envoi ; un PDF part tel quel
         const file = await compressImage(picked, { maxSide: 2000, quality: 0.85 });
 
-        router.post(documentStore({ personnel: memberId }).url, { type, title: title || null, file }, {
+        router.post(documentStore({ personnel: memberUuid }).url, { type, title: title || null, file }, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
@@ -52,7 +53,7 @@ export function StaffDocuments({ memberId, documents, types }: { memberId: numbe
     const remove = (doc: StaffDocumentItem) => {
         if (!confirm(`Retirer « ${doc.title} » ? Le fichier sera supprimé.`)) return;
 
-        router.delete(documentDestroy({ personnel: memberId, document: doc.id }).url, {
+        router.delete(documentDestroy({ personnel: memberUuid, document: doc.uuid }).url, {
             preserveScroll: true,
             onSuccess: () => toast.success('Document retiré'),
         });
@@ -72,7 +73,7 @@ export function StaffDocuments({ memberId, documents, types }: { memberId: numbe
                             <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
                                 {d.is_pdf ? <FileText className="size-4" /> : <ImageIcon className="size-4" />}
                             </span>
-                            <a href={documentShow({ personnel: memberId, document: d.id }).url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:underline">
+                            <a href={documentShow({ personnel: memberUuid, document: d.uuid }).url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:underline">
                                 <p className="truncate text-sm font-semibold text-ink">{d.title}</p>
                                 <p className="text-xs text-slate-500">
                                     {d.type_label} · {size(d.size)} · ajouté le {d.uploaded_at}

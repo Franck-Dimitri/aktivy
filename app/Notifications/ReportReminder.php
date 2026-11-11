@@ -10,7 +10,8 @@ class ReportReminder extends AppNotification
 {
     protected bool $mail = false;
 
-    public function __construct(private int $visitId, private string $site) {}
+    /** @param  string  $visitUuid  identifiant public de la visite (UUID), pour le lien */
+    public function __construct(private string $visitUuid, private string $site) {}
 
     public function kind(): string
     {
@@ -29,6 +30,6 @@ class ReportReminder extends AppNotification
 
     protected function route(): array
     {
-        return ['terrain.report.show', ['visit' => $this->visitId]];
+        return ['terrain.report.show', ['visit' => $this->visitUuid]];
     }
 }

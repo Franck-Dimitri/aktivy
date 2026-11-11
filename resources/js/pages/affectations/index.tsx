@@ -2,6 +2,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { CalendarRange, Clock, FileText, MapPin, MoreHorizontal, Pencil, Plus, Search, StickyNote, Store, Trash2, User, X } from 'lucide-react';
 import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
+import { SitePicker, siteError } from '@/components/affectations/site-picker';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
@@ -78,8 +79,8 @@ function toIso(date: string | null) {
 /* ───────────────────────── Carte affectation ───────────────────────── */
 
 function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void; onDelete: () => void }) {
-    const memberUrl = personnelShow({ personnel: a.agent_id }).url;
-    const siteUrl = siteShow({ site: a.site_id }).url;
+    const memberUrl = personnelShow({ personnel: a.agent_uuid }).url;
+    const siteUrl = siteShow({ site: a.site_uuid }).url;
     const ended = a.status !== 'active';
     const slot = a.slot_start && a.slot_end ? `${a.slot_start} – ${a.slot_end}` : null;
 
@@ -202,7 +203,7 @@ type CreateDialogProps = {
 
 function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
     const { data, setData, post, processing, errors } = useForm({
-        site_id: '' as number | '',
+        site_ids: [] as number[],
         user_id: '' as number | '',
         starts_on: '',
         ends_on: '',
@@ -210,6 +211,15 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
         slot_end: '',
         notes: '',
     });
+
+    // Un superviseur peut superviser plusieurs points de vente : cases à cocher
+    const isSupervisor = staff.find((s) => s.value === data.user_id)?.role === 'supervisor';
+
+    const chooseMember = (userId: number | '') => {
+        const supervisor = staff.find((s) => s.value === userId)?.role === 'supervisor';
+        // Une hôtesse n'a qu'un point de vente : on garde le premier coché
+        setData((d) => ({ ...d, user_id: userId, site_ids: supervisor ? d.site_ids : d.site_ids.slice(0, 1) }));
+    };
 
     const close = useCallback(() => {
         if (!processing) onClose();
@@ -220,7 +230,9 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
         post(affectationStore().url, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Affectation créée', { description: 'Le membre a bien été affecté au site.' });
+                toast.success(data.site_ids.length > 1 ? 'Affectations créées' : 'Affectation créée', {
+                    description: data.site_ids.length > 1 ? `Le superviseur suit ${data.site_ids.length} points de vente.` : 'Le membre a bien été affecté au site.',
+                });
                 onClose();
             },
             onError: toastFormError,
@@ -232,13 +244,13 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex-1 space-y-8 overflow-y-auto px-6 pt-4 pb-6">
                     <Section title="Qui et où">
-                        <div className="grid gap-5 sm:grid-cols-2">
+                        <div className={cn('grid gap-5', !isSupervisor && 'sm:grid-cols-2')}>
                             <Field label="Membre" htmlFor="new-user_id" required error={errors.user_id}>
                                 <SelectInput
                                     id="new-user_id"
                                     icon={User}
                                     value={data.user_id}
-                                    onChange={(e) => setData('user_id', Number(e.target.value) || '')}
+                                    onChange={(e) => chooseMember(Number(e.target.value) || '')}
                                     error={errors.user_id}
                                     required
                                 >
@@ -249,20 +261,21 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
                                 </SelectInput>
                             </Field>
 
-                            <Field label="Site" htmlFor="new-site_id" required error={errors.site_id}>
-                                <SelectInput
+                            <Field
+                                label={isSupervisor ? 'Points de vente supervisés' : 'Site'}
+                                htmlFor="new-site_id"
+                                hint={isSupervisor ? '(cochez-en un ou plusieurs)' : undefined}
+                                required
+                                error={siteError(errors)}
+                            >
+                                <SitePicker
                                     id="new-site_id"
-                                    icon={MapPin}
-                                    value={data.site_id}
-                                    onChange={(e) => setData('site_id', Number(e.target.value) || '')}
-                                    error={errors.site_id}
-                                    required
-                                >
-                                    <option value="">Choisir un site…</option>
-                                    {sites.map((s) => (
-                                        <option key={s.value} value={s.value}>{s.label}</option>
-                                    ))}
-                                </SelectInput>
+                                    sites={sites}
+                                    multiple={isSupervisor}
+                                    value={data.site_ids}
+                                    onChange={(ids) => setData('site_ids', ids)}
+                                    error={siteError(errors)}
+                                />
                             </Field>
                         </div>
                     </Section>
@@ -338,7 +351,7 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
                         Annuler
                     </ActionButton>
                     <ActionButton type="submit" loading={processing}>
-                        {processing ? 'Enregistrement…' : "Créer l'affectation"}
+                        {processing ? 'Enregistrement…' : data.site_ids.length > 1 ? `Créer les ${data.site_ids.length} affectations` : "Créer l'affectation"}
                     </ActionButton>
                 </div>
             </form>
@@ -373,7 +386,7 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        put(affectationUpdate({ affectation: affectation.id }).url, {
+        put(affectationUpdate({ affectation: affectation.uuid }).url, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Affectation mise à jour', { description: 'Les modifications sont enregistrées.' });
@@ -541,7 +554,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
 
     const openEdit = (a: Item) => {
         if (!canEditInModal) {
-            router.visit(affectationEdit({ affectation: a.id }).url);
+            router.visit(affectationEdit({ affectation: a.uuid }).url);
             return;
         }
         setEditing(a);
@@ -563,7 +576,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
         );
 
     const { ask, dialog } = useDeleteDialog<AffectationListItem>({
-        getUrl: (a) => affectationDestroy({ affectation: a.id }).url,
+        getUrl: (a) => affectationDestroy({ affectation: a.uuid }).url,
         getTitle: () => 'Supprimer cette affectation ?',
         getDescription: (a) => `${a.agent_name} ne sera plus affecté(e) au site « ${a.site_name} ». Cette action est définitive.`,
         getSuccessMessage: (a) => `L'affectation de ${a.agent_name} a été supprimée.`,

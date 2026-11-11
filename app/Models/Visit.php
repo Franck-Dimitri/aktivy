@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use App\Enums\VisitStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property Carbon|null $checked_out_at
  * @property float|null $checkin_latitude
  * @property int|null $checkin_distance_m
+ * @property int|null $checkin_accuracy_m Précision du GPS à la prise de service (mètres)
  * @property float|null $checkin_longitude
  * @property float|null $checkout_latitude
  * @property float|null $checkout_longitude
@@ -36,12 +39,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable([
     'site_id', 'user_id', 'affectation_id',
     'checked_in_at', 'checked_out_at',
-    'checkin_latitude', 'checkin_longitude', 'checkin_distance_m',
+    'checkin_latitude', 'checkin_longitude', 'checkin_distance_m', 'checkin_accuracy_m',
     'checkout_latitude', 'checkout_longitude',
     'duration_minutes', 'status', 'notes',
 ])]
 class Visit extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     use HasFactory;
 
     /** Au-delà de cette distance du site (en mètres), le pointage est signalé « hors site ». */
@@ -69,6 +75,8 @@ class Visit extends Model
             'checkin_longitude' => 'float',
             'checkout_latitude' => 'float',
             'checkout_longitude' => 'float',
+            'checkin_distance_m' => 'integer',
+            'checkin_accuracy_m' => 'integer',
         ];
     }
 

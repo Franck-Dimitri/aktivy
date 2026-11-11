@@ -45,7 +45,7 @@ class AuditLogController extends Controller
         ]);
 
         $logs = AuditLog::query()
-            ->with(['user:id,name,email', 'company:id,name'])
+            ->with(['user:id,name,email', 'company:id,uuid,name'])
             ->when($filters['company'] ?? null, fn (Builder $q, $id) => $q->where('company_id', $id))
             ->when($filters['group'] ?? null, function (Builder $q, string $group) {
                 if (! array_key_exists($group, self::GROUPS)) {
@@ -71,6 +71,7 @@ class AuditLogController extends Controller
                 'user' => $log->user?->name,
                 'user_email' => $log->user?->email,
                 'company_id' => $log->company_id,
+                'company_uuid' => $log->company?->uuid,
                 'company' => $log->company?->name,
                 'ip' => $log->ip_address,
                 'at' => $log->created_at?->format('d/m/Y H:i'),
@@ -127,7 +128,7 @@ class AuditLogController extends Controller
         'period_end' => 'jusqu’au', 'ends_on' => 'fin', 'trial' => 'essai', 'module' => 'module',
         'emailed' => 'envoyée par e-mail', 'resolved' => 'close', 'admin' => 'administrateur',
         'manager' => 'gérant', 'status' => 'statut', 'format' => 'format', 'from' => 'du', 'to' => 'au',
-        'login' => 'identifiant', 'plan' => 'forfait', 'extra_packs' => 'packs', 'name' => 'nom', 'par_admin' => 'par l’administrateur',
+        'login' => 'identifiant', 'plan' => 'forfait', 'extra_packs' => 'packs hôtesses', 'supervisor_packs' => 'packs superviseur', 'name' => 'nom', 'par_admin' => 'par l’administrateur',
     ];
 
     /**

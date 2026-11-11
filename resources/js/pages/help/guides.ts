@@ -152,7 +152,7 @@ const managerTopics = (): Topic[] => [
         guides: [
             {
                 question: 'Comment fonctionne l’abonnement ?',
-                answer: 'Le socle (tableau de bord, sites, personnel, affectations, produits, import, export) est inclus. Les modules — suivi terrain, stocks, reporting, événements, photos, demandes — s’activent selon vos besoins. Une nouvelle entreprise les essaie tous pendant 14 jours ; vous êtes prévenu avant chaque échéance. Pour activer ou prolonger un module, écrivez-nous.',
+                answer: 'Le socle (tableau de bord, sites, personnel, affectations, produits, import, export) est inclus. Les modules — suivi terrain, stocks, reporting, événements, photos, demandes — s’activent selon vos besoins. Une nouvelle entreprise les essaie tous pendant 7 jours ; vous êtes prévenu avant chaque échéance. Pour activer ou prolonger un module, écrivez-nous.',
                 link: { label: 'Voir mon abonnement', href: companySubscription().url },
                 roles: ['company_admin'],
             },

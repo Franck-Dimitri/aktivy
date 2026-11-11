@@ -61,6 +61,8 @@ class SalesExport
             'Quantité vendue' => [Workbook::INT, 12],
             'Stock clôture' => [Workbook::INT, 12],
             "Chiffre d'affaires ($currency)" => [Workbook::MONEY, 17],
+            // Vente en boutique extérieure : hors stock du point de vente (stocks à vide)
+            'Boutique extérieure' => [Workbook::TEXT, 22],
             'N° rapport' => [Workbook::INT, 10],
             'Envoyé le' => [Workbook::DATETIME, 16],
             'Remarque' => [Workbook::TEXT, 30],
@@ -68,8 +70,8 @@ class SalesExport
             $l->report_date, $l->site_name, $l->site_code, $l->site_city,
             $l->hostess_name, $l->hostess_phone, $l->event_name,
             $l->product_name, $l->unit, $l->unit_price,
-            $l->opening_stock, $l->units_sold, $l->closing_stock, $l->revenue,
-            $l->report_id, $l->submitted_at, $l->notes,
+            $l->external_shop ? null : $l->opening_stock, $l->units_sold, $l->external_shop ? null : $l->closing_stock, $l->revenue,
+            $l->external_shop, $l->report_id, $l->submitted_at, $l->notes,
         ]));
 
         $summary = fn (string $label, ?string $detail = null) => [

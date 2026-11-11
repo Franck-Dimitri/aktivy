@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock, FileCheck2, FilePen, FileX2, MapPin, MapPinOff, PackageX, Phone, RefreshCw, Search, Store, UserX } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { CheckinPlaceLine, isElsewhere, type CheckinPlace } from '@/components/checkin-place';
 import { buttonClass } from '@/components/page/buttons';
 import { TextInput } from '@/components/page/form-fields';
 import { QuietEmpty, Segmented } from '@/components/page/list-kit';
@@ -24,7 +25,9 @@ type Hostess = {
     checked_in_at: string | null;
     checked_out_at: string | null;
     off_site: boolean;
+    place: CheckinPlace | null;
     report_id: number | null;
+    report_uuid: string | null;
     report_status: 'draft' | 'submitted' | null;
     revenue: number;
     units_sold: number;
@@ -128,7 +131,7 @@ function HostessRow({ h, now, currency }: { h: Hostess; now: string; currency: s
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <p className="truncate text-sm font-semibold text-ink">{h.name ?? 'Compte supprimé'}</p>
                     <span className={cn('text-xs font-semibold', s.text)}>{s.label}</span>
-                    {h.off_site && (
+                    {isElsewhere(h.place) && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800 ring-1 ring-amber-200 ring-inset dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20">
                             <MapPin className="size-3" />
                             Hors site
@@ -148,11 +151,13 @@ function HostessRow({ h, now, currency }: { h: Hostess; now: string; currency: s
                     </span>
                     {h.state !== 'expected' && h.state !== 'missing' && <ReportChip status={h.report_status} />}
                 </p>
+                {/* Où elle a pris son service, avec la position exacte sur la carte */}
+                {h.place && <CheckinPlaceLine place={h.place} className="mt-1 text-xs" />}
             </div>
 
             <div className="flex items-center gap-2">
-                {h.report_id && (h.revenue > 0 || h.report_status) ? (
-                    <Link href={dailyReportShow({ dailyReport: h.report_id }).url} className="group hidden text-right sm:block" title="Ouvrir le rapport">
+                {h.report_uuid && (h.revenue > 0 || h.report_status) ? (
+                    <Link href={dailyReportShow({ dailyReport: h.report_uuid }).url} className="group hidden text-right sm:block" title="Ouvrir le rapport">
                         <span className="flex items-center justify-end gap-1 text-sm font-semibold whitespace-nowrap text-ink tabular-nums group-hover:text-motriks-deep">
                             {money(h.revenue, currency)}
                             <ArrowUpRight className="size-3.5 text-slate-300 group-hover:text-motriks" />
@@ -173,8 +178,8 @@ function HostessRow({ h, now, currency }: { h: Hostess; now: string; currency: s
             </div>
 
             {/* Ventes sous le nom sur mobile */}
-            {h.report_id && (h.revenue > 0 || h.report_status) ? (
-                <Link href={dailyReportShow({ dailyReport: h.report_id }).url} className="col-start-2 text-xs font-semibold text-ink tabular-nums sm:hidden">
+            {h.report_uuid && (h.revenue > 0 || h.report_status) ? (
+                <Link href={dailyReportShow({ dailyReport: h.report_uuid }).url} className="col-start-2 text-xs font-semibold text-ink tabular-nums sm:hidden">
                     {money(h.revenue, currency)} · {number.format(h.units_sold)} unités
                 </Link>
             ) : null}

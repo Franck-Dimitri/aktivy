@@ -9,6 +9,7 @@ import { download, prepare } from '@/routes/company/data-export';
 
 type ExportState = {
     id: number;
+    uuid: string;
     status: 'pending' | 'processing' | 'ready' | 'failed' | 'expired';
     size: string | null;
     missing_files: number;
@@ -142,7 +143,7 @@ function ExportAction({ current, lastExport }: { current: ExportState | null; la
                     <ActionButton variant="ghost" icon={<RefreshCw />} loading={sending} onClick={launch}>
                         Préparer à nouveau
                     </ActionButton>
-                    <a href={download({ export: current.id }).url} download className={buttonClass('primary', 'md')}>
+                    <a href={download({ export: current.uuid }).url} download className={buttonClass('primary', 'md')}>
                         <Download className="size-4" />
                         Télécharger
                     </a>

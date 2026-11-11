@@ -3,6 +3,7 @@ export type AccountStatus = 'active' | 'suspended';
 
 export type StaffListItem = {
     id: number;
+    uuid: string;
     name: string;
     role: StaffRole;
     role_label: string;
@@ -15,6 +16,7 @@ export type StaffListItem = {
 
 export type StaffMemberDetail = {
     id: number;
+    uuid: string;
     name: string;
     role: StaffRole;
     role_label: string;
@@ -33,7 +35,9 @@ export type StaffStats = {
 
 export type StaffAffectation = {
     id: number;
+    uuid: string;
     site_id: number;
+    site_uuid: string;
     site_name: string;
     site_city: string;
     site_type: string;

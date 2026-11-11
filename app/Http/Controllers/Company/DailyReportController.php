@@ -10,8 +10,10 @@ use App\Models\DailyReport;
 use App\Models\AuditLog;
 use App\Models\DailyReportLine;
 use App\Models\StockMovement;
+use App\Support\CheckinPlace;
 use App\Support\Incident;
-use App\Support\Pdf\PdfDocument;
+use App\Support\Reports\DailyReportPdf;
+use App\Support\Reports\ExternalSales;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
 use Carbon\CarbonImmutable;
@@ -19,7 +21,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -53,8 +54,10 @@ class DailyReportController extends Controller
             ->where('company_id', $company->id)
             ->whereDate('report_date', $date->toDateString())
             ->with(['agent:id,name,phone', 'site:id,name', 'visit:id,checked_in_at,checked_out_at,status,checkin_distance_m'])
-            ->withSum('lines', 'revenue')
-            ->withSum('lines', 'units_sold')
+            // Totaux de la journée, ventes en boutique extérieure comprises
+            ->withSum('allLines as lines_sum_revenue', 'revenue')
+            ->withSum('allLines as lines_sum_units_sold', 'units_sold')
+            ->withSum('externalLines as external_revenue', 'revenue')
             ->withExists(['lines as has_gap' => fn ($q) => $q->where('stock_gap', '!=', 0)])
             ->orderByRaw("CASE status WHEN 'submitted' THEN 1 ELSE 0 END")
             ->get();
@@ -93,6 +96,7 @@ class DailyReportController extends Controller
             'currency' => $company->currency ?: 'XAF',
             'reports' => $reports->map(fn (DailyReport $r) => [
                 'id' => $r->id,
+                'uuid' => $r->uuid,
                 'status' => $r->status,
                 'agent_name' => $r->agent?->name,
                 'agent_phone' => $r->agent?->phone,
@@ -102,6 +106,7 @@ class DailyReportController extends Controller
                 'submitted_at' => $r->submitted_at?->format('H:i'),
                 'revenue' => (float) $r->lines_sum_revenue,
                 'units_sold' => (int) $r->lines_sum_units_sold,
+                'external_revenue' => (float) $r->external_revenue,
                 'has_incident' => Incident::meaningful($r->incident_notes) !== null,
                 'validated' => $r->isValidated(),
                 'has_gap' => (bool) $r->has_gap,
@@ -131,6 +136,7 @@ class DailyReportController extends Controller
             'can_correct' => $canReview && $dailyReport->isSubmitted() && ! $dailyReport->isValidated(),
             'report' => [
                 'id' => $dailyReport->id,
+                'uuid' => $dailyReport->uuid,
                 'status' => $dailyReport->status,
                 'report_date' => $dailyReport->report_date->toDateString(),
                 'date_label' => $dailyReport->report_date->translatedFormat('l j F Y'),
@@ -143,6 +149,9 @@ class DailyReportController extends Controller
                 'duration_minutes' => $visit?->duration_minutes,
                 'checkin_distance_m' => $visit?->checkin_distance_m,
                 'off_site' => $visit?->isOffSite(),
+                'checkin_place' => $visit
+                    ? CheckinPlace::describe($visit, $dailyReport->site, $visit->isOffSite() ? CheckinPlace::companySites($dailyReport->company_id) : null)
+                    : null,
                 'submitted_at' => $dailyReport->submitted_at?->format('H:i'),
                 'corrected_at' => $dailyReport->corrected_at?->format('d/m/Y H:i'),
                 'corrected_by' => $dailyReport->corrector?->name,
@@ -150,9 +159,11 @@ class DailyReportController extends Controller
                 'validated_by' => $dailyReport->validator?->name,
                 'notes' => $dailyReport->notes,
                 'incident_notes' => Incident::meaningful($dailyReport->incident_notes),
-                'photos' => $dailyReport->photos()->oldest()->get()->map->toView(),
+                'photos' => $dailyReport->photos()->oldest()->get()->map(fn ($p) => $p->toView() + ['uuid' => $p->uuid]),
                 'total_revenue' => $dailyReport->totalRevenue(),
                 'total_units_sold' => $dailyReport->totalUnitsSold(),
+                // Ventes en boutique extérieure, à part : hors stock du point de vente, non corrigeables ici
+                'external_sales' => ExternalSales::present($dailyReport),
                 'lines' => $dailyReport->lines->map(fn (DailyReportLine $l) => [
                     'id' => $l->id,
                     'product_name' => $l->product_name,
@@ -191,29 +202,7 @@ class DailyReportController extends Controller
     {
         $this->authorizeReport($request, $dailyReport);
 
-        $dailyReport->load(['agent:id,name', 'site:id,name,city', 'visit', 'lines', 'packs', 'event:id,name', 'validator:id,name', 'photos']);
-        $company = $request->user()->company;
-
-        $filename = sprintf(
-            'rapport-%s-%s-%s.pdf',
-            Str::slug($dailyReport->agent?->name ?? 'hotesse'),
-            Str::slug($dailyReport->site?->name ?? 'site'),
-            $dailyReport->report_date->format('Y-m-d'),
-        );
-
-        return PdfDocument::download('pdf.daily-report', [
-            'title' => 'Rapport journalier',
-            'subtitle' => $dailyReport->site?->name,
-            'company' => $company,
-            'logo' => PdfDocument::logo($company),
-            'currency' => $company->currency ?: 'XAF',
-            'report' => $dailyReport,
-            'photos' => $dailyReport->photos
-                ->map(fn ($photo) => ['src' => PdfDocument::image('local', $photo->path), 'caption' => $photo->caption])
-                ->filter(fn ($photo) => $photo['src'] !== null)
-                ->values()
-                ->all(),
-        ], $filename);
+        return DailyReportPdf::download($dailyReport);
     }
 
     /**

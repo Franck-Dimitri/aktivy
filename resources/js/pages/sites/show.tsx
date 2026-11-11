@@ -4,6 +4,7 @@ import {
     Building2,
     CalendarRange,
     Clock,
+    Eye,
     Fuel,
     ImagePlus,
     MapPin,
@@ -29,6 +30,8 @@ import { useRef, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 import { ActionButton, Spinner } from '@/components/page/buttons';
+import { SiteInventory, type InventoryItem } from '@/components/sites/site-inventory';
+import { SitePerformance, type SitePerformanceData } from '@/components/sites/site-performance';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { Field, SelectInput, TextInput } from '@/components/page/form-fields';
@@ -43,6 +46,7 @@ import { store as affectationStore, destroy as affectationDestroy, permuter as a
 import { show as personnelShow } from '@/routes/personnel';
 import { index as sitesIndex, destroy as siteDestroy } from '@/routes/sites';
 import { store as inventoryStore, update as inventoryUpdate, destroy as inventoryDestroy, restock as inventoryRestock } from '@/routes/sites/inventory';
+import { store as photoStore, destroy as photoDestroy } from '@/routes/sites/photos';
 import { show as dailyReportShow } from '@/routes/daily-reports';
 import type { SiteAffectation, SiteDetail, SiteStatusOption, SiteTypeOption, SiteVisit } from '@/types';
 import { EditSiteModal } from './edit-site-modal';
@@ -68,6 +72,7 @@ type SiteStats = {
 
 type HostessRecord = {
     agent_id: number;
+    agent_uuid: string;
     agent_name: string;
     agent_phone: string | null;
     role_label: string;
@@ -79,20 +84,6 @@ type HostessRecord = {
 
 type StaffOption = { value: number; label: string; role_label: string };
 
-type InventoryItem = {
-    id: number;
-    product_id: number;
-    product_name: string;
-    product_sku: string | null;
-    product_unit: string;
-    product_price: string | null;
-    product_image_url: string | null;
-    current_stock: number;
-    alert_threshold: number;
-    critical_threshold: number;
-    stock_status: 'normal' | 'warning' | 'critical';
-    updated_at: string;
-};
 
 type ProductOption = { value: number; label: string; unit: string };
 
@@ -107,6 +98,7 @@ type StockMovementItem = {
     author: string | null;
     notes: string | null;
     daily_report_id: number | null;
+    daily_report_uuid: string | null;
 };
 
 type Props = {
@@ -116,6 +108,7 @@ type Props = {
     };
     stats: SiteStats;
     chart: ChartData;
+    performance: SitePerformanceData;
     affectations: SiteAffectation[];
     recent_visits: SiteVisit[];
     hostess_history: HostessRecord[];
@@ -130,7 +123,7 @@ type Props = {
 type AssignState =
     | { open: false }
     | { open: true; mode: 'assign' }
-    | { open: true; mode: 'permuter'; replacingId: number; replacingName: string };
+    | { open: true; mode: 'permuter'; replacingUuid: string; replacingName: string };
 
 type TabKey = 'apercu' | 'equipe' | 'inventaire' | 'visites' | 'photos';
 type Period = 'week' | 'month' | 'year';
@@ -313,7 +306,7 @@ function ModalFooter({ onCancel, saving, submitLabel, savingLabel, disabled }: {
     );
 }
 
-function InventoryAddModal({ siteId, products, onClose }: { siteId: number; products: ProductOption[]; onClose: () => void }) {
+function InventoryAddModal({ siteUuid, products, onClose }: { siteUuid: string; products: ProductOption[]; onClose: () => void }) {
     const [productId, setProductId] = useState('');
     const [currentStock, setCurrentStock] = useState('0');
     const [alertThreshold, setAlertThreshold] = useState('10');
@@ -323,7 +316,7 @@ function InventoryAddModal({ siteId, products, onClose }: { siteId: number; prod
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         router.post(
-            inventoryStore({ site: siteId }).url,
+            inventoryStore({ site: siteUuid }).url,
             {
                 product_id: Number(productId),
                 current_stock: Number(currentStock),
@@ -375,7 +368,7 @@ function InventoryAddModal({ siteId, products, onClose }: { siteId: number; prod
     );
 }
 
-function StockModal({ siteId, item, onClose }: { siteId: number; item: InventoryItem; onClose: () => void }) {
+function StockModal({ siteUuid, item, onClose }: { siteUuid: string; item: InventoryItem; onClose: () => void }) {
     const [current, setCurrent] = useState(String(item.current_stock));
     const [alert, setAlert] = useState(String(item.alert_threshold));
     const [critical, setCritical] = useState(String(item.critical_threshold));
@@ -385,7 +378,7 @@ function StockModal({ siteId, item, onClose }: { siteId: number; item: Inventory
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         router.put(
-            inventoryUpdate({ site: siteId, inventory: item.id }).url,
+            inventoryUpdate({ site: siteUuid, inventory: item.uuid }).url,
             {
                 current_stock: Number(current),
                 alert_threshold: Number(alert),
@@ -432,7 +425,7 @@ function StockModal({ siteId, item, onClose }: { siteId: number; item: Inventory
     );
 }
 
-function RestockModal({ siteId, item, onClose }: { siteId: number; item: InventoryItem; onClose: () => void }) {
+function RestockModal({ siteUuid, item, onClose }: { siteUuid: string; item: InventoryItem; onClose: () => void }) {
     const [quantity, setQuantity] = useState('');
     const [notes, setNotes] = useState('');
     const [saving, setSaving] = useState(false);
@@ -440,7 +433,7 @@ function RestockModal({ siteId, item, onClose }: { siteId: number; item: Invento
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         router.post(
-            inventoryRestock({ site: siteId, inventory: item.id }).url,
+            inventoryRestock({ site: siteUuid, inventory: item.uuid }).url,
             { quantity: Number(quantity), notes: notes || null },
             {
                 preserveScroll: true,
@@ -493,10 +486,10 @@ function StockMovements({ movements }: { movements: StockMovementItem[] }) {
                                 {m.date}
                                 {m.author && <> · {m.author}</>}
                                 {m.notes && <> · {m.notes}</>}
-                                {m.daily_report_id && (
+                                {m.daily_report_uuid && (
                                     <>
                                         {' · '}
-                                        <Link href={dailyReportShow({ dailyReport: m.daily_report_id }).url} className="font-semibold text-motriks-deep hover:underline">
+                                        <Link href={dailyReportShow({ dailyReport: m.daily_report_uuid }).url} className="font-semibold text-motriks-deep hover:underline">
                                             voir le rapport
                                         </Link>
                                     </>
@@ -559,7 +552,7 @@ function AssignModal({
         };
 
         if (modal.mode === 'permuter') {
-            router.post(affectationPermuter({ affectation: modal.replacingId }).url, data, options);
+            router.post(affectationPermuter({ affectation: modal.replacingUuid }).url, data, options);
         } else {
             router.post(affectationStore().url, { ...data, site_id: siteId }, options);
         }
@@ -616,13 +609,13 @@ function AssignModal({
 /*  Photos                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function PhotoGallery({ photos, siteId, canAdd }: { photos: string[]; siteId: number; canAdd: boolean }) {
+function PhotoGallery({ photos, siteUuid, canAdd, canDelete = true }: { photos: string[]; siteUuid: string; canAdd: boolean; canDelete?: boolean }) {
     const [lightbox, setLightbox] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
 
     const { ask, dialog } = useDeleteDialog<number>({
-        getUrl: (index) => `/sites/${siteId}/photos/${index}`,
+        getUrl: (index) => photoDestroy({ site: siteUuid, index }).url,
         getTitle: () => 'Supprimer cette photo ?',
         getDescription: () => 'La photo sera retirée de la fiche du site.',
         getSuccessMessage: () => 'Photo supprimée.',
@@ -638,7 +631,7 @@ function PhotoGallery({ photos, siteId, canAdd }: { photos: string[]; siteId: nu
         }
         const form = new FormData();
         form.append('photo', file);
-        router.post(`/sites/${siteId}/photos`, form, {
+        router.post(photoStore(siteUuid).url, form, {
             forceFormData: true,
             preserveScroll: true,
             onStart: () => setUploading(true),
@@ -660,6 +653,7 @@ function PhotoGallery({ photos, siteId, canAdd }: { photos: string[]; siteId: nu
                             className="size-full cursor-zoom-in object-cover transition-transform duration-300 group-hover:scale-105"
                             onClick={() => setLightbox(url)}
                         />
+                        {canDelete && (
                         <button
                             type="button"
                             onClick={() => ask(i)}
@@ -668,6 +662,7 @@ function PhotoGallery({ photos, siteId, canAdd }: { photos: string[]; siteId: nu
                         >
                             <X className="size-3.5" />
                         </button>
+                        )}
                     </div>
                 ))}
 
@@ -777,6 +772,7 @@ export default function SiteShow({
     site,
     stats,
     chart,
+    performance,
     affectations,
     recent_visits,
     hostess_history,
@@ -787,8 +783,10 @@ export default function SiteShow({
     types = [],
     statuses = [],
 }: Props) {
-    // Supprimer un site : réservé au gérant
-    const { manageCompany } = usePage().props.auth.can;
+    // Supprimer un site : réservé au gérant. Modifier, affecter, gérer le stock : gérant et superviseur.
+    // Le comptable consulte la fiche sans rien pouvoir modifier.
+    const { manageCompany, manageTeam } = usePage().props.auth.can;
+    const readOnly = !manageTeam;
     const hasStocks = usePage().props.auth.modules.includes('stocks');
     const [tab, setTabState] = useState<TabKey>(tabFromHash);
     const [assign, setAssign] = useState<AssignState>({ open: false });
@@ -797,7 +795,7 @@ export default function SiteShow({
     const [restockItem, setRestockItem] = useState<InventoryItem | null>(null);
     // Ouvre directement le modal quand on arrive depuis l'icône « Modifier » de la liste (?modifier=1)
     const [editingSite, setEditingSite] = useState(
-        () => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('modifier'),
+        () => !readOnly && typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('modifier'),
     );
 
     const setTab = (key: TabKey) => {
@@ -815,7 +813,7 @@ export default function SiteShow({
     };
 
     const deleteSite = useDeleteDialog<typeof site>({
-        getUrl: (s) => siteDestroy(s.id).url,
+        getUrl: (s) => siteDestroy(s.uuid).url,
         getTitle: (s) => `Supprimer « ${s.name} » ?`,
         getDescription: () => 'Les affectations et visites passées restent consultables.',
         getSuccessMessage: (s) => `« ${s.name} » a été supprimé.`,
@@ -824,7 +822,7 @@ export default function SiteShow({
     });
 
     const removeInventory = useDeleteDialog<InventoryItem>({
-        getUrl: (i) => inventoryDestroy({ site: site.id, inventory: i.id }).url,
+        getUrl: (i) => inventoryDestroy({ site: site.uuid, inventory: i.uuid }).url,
         getTitle: (i) => `Retirer « ${i.product_name} » ?`,
         getDescription: () => "Le produit ne sera plus suivi dans l'inventaire de ce site.",
         getSuccessMessage: (i) => `« ${i.product_name} » retiré de l'inventaire.`,
@@ -832,7 +830,7 @@ export default function SiteShow({
     });
 
     const removeAffectation = useDeleteDialog<SiteAffectation>({
-        getUrl: (a) => affectationDestroy({ affectation: a.id }).url,
+        getUrl: (a) => affectationDestroy({ affectation: a.uuid }).url,
         getTitle: (a) => `Retirer ${a.agent_name} ?`,
         getDescription: () => 'Cette personne ne sera plus affectée à ce site.',
         getSuccessMessage: (a) => `${a.agent_name} a été retiré(e) du site.`,
@@ -847,14 +845,14 @@ export default function SiteShow({
 
     const openAssign = () => setAssign({ open: true, mode: 'assign' });
 
-    const assignButton = (
+    const assignButton = readOnly ? undefined : (
         <ActionButton size="sm" icon={<Plus />} onClick={openAssign}>
             Affecter
         </ActionButton>
     );
 
     const addProductButton =
-        available_products.length > 0 ? (
+        !readOnly && available_products.length > 0 ? (
             <ActionButton size="sm" icon={<Plus />} onClick={() => setShowInventoryModal(true)}>
                 Ajouter
             </ActionButton>
@@ -868,6 +866,12 @@ export default function SiteShow({
                 title={site.name}
                 description={[site.type_label, site.city, site.region].filter(Boolean).join(' · ')}
                 actions={
+                    readOnly ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200 ring-inset">
+                            <Eye className="size-3.5" />
+                            Consultation
+                        </span>
+                    ) : (
                     <>
                         <ActionButton variant="secondary" icon={<Pencil />} onClick={() => setEditingSite(true)}>
                             Modifier
@@ -883,6 +887,7 @@ export default function SiteShow({
                             </ActionButton>
                         )}
                     </>
+                    )
                 }
             >
                 <div className="flex flex-col gap-6">
@@ -1005,6 +1010,8 @@ export default function SiteShow({
                     {/* ───────────── Aperçu ───────────── */}
                     {tab === 'apercu' && (
                         <div className="flex flex-col gap-6">
+                            <SitePerformance data={performance} linkHostesses={!readOnly} />
+
                             <VisitsChart chart={chart} />
 
                             <MetricStrip
@@ -1096,7 +1103,7 @@ export default function SiteShow({
                                                 <Avatar name={a.agent_name} />
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <Link href={personnelShow({ personnel: a.agent_id }).url} className="text-sm font-semibold text-ink hover:text-motriks-deep">
+                                                        <Link href={personnelShow({ personnel: a.agent_uuid }).url} className="text-sm font-semibold text-ink hover:text-motriks-deep">
                                                             {a.agent_name}
                                                         </Link>
                                                         {a.is_current && <StatusBadge tone="success">En poste</StatusBadge>}
@@ -1113,6 +1120,7 @@ export default function SiteShow({
                                                         </p>
                                                     )}
                                                 </div>
+                                                {!readOnly && (
                                                 <div className="flex shrink-0 gap-1">
                                                     <ActionButton
                                                         variant="secondary"
@@ -1121,10 +1129,11 @@ export default function SiteShow({
                                                         title="Permuter"
                                                         aria-label="Permuter"
                                                         className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
-                                                        onClick={() => setAssign({ open: true, mode: 'permuter', replacingId: a.id, replacingName: a.agent_name })}
+                                                        onClick={() => setAssign({ open: true, mode: 'permuter', replacingUuid: a.uuid, replacingName: a.agent_name })}
                                                     />
                                                     <ActionButton variant="icon-danger" size="icon" icon={<X />} title="Retirer" aria-label="Retirer" onClick={() => removeAffectation.ask(a)} />
                                                 </div>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
@@ -1142,7 +1151,7 @@ export default function SiteShow({
                                     <ul className="divide-y divide-slate-100">
                                         {hostess_history.map((h) => (
                                             <li key={h.agent_id}>
-                                                <Link href={personnelShow({ personnel: h.agent_id }).url} className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-green-50/40">
+                                                <Link href={personnelShow({ personnel: h.agent_uuid }).url} className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-green-50/40">
                                                     <Avatar name={h.agent_name} />
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex flex-wrap items-center gap-2">
@@ -1169,75 +1178,27 @@ export default function SiteShow({
                     )}
 
                     {/* ───────────── Inventaire ───────────── */}
-                    {tab === 'inventaire' && (
-                        <Section title="Inventaire" description="Le stock suivi sur ce site." actions={addProductButton}>
-                            {inventory.length === 0 ? (
-                                <EmptyState icon={Package} title="Aucun produit" description="Ajoutez des produits à suivre sur ce site." action={addProductButton} />
-                            ) : (
-                                <ul className="divide-y divide-slate-100">
-                                    {inventory.map((item) => {
-                                        const style = stockStyle[item.stock_status];
-                                        const percent = Math.min(100, item.alert_threshold > 0 ? (item.current_stock / item.alert_threshold) * 100 : 100);
-
-                                        return (
-                                            <li key={item.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4 sm:flex-nowrap">
-                                                <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
-                                                    {item.product_image_url ? (
-                                                        <img src={item.product_image_url} alt={item.product_name} className="size-full object-cover" />
-                                                    ) : (
-                                                        <Package className="size-5 text-slate-300" />
-                                                    )}
-                                                </div>
-
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <p className="max-w-full min-w-0 truncate text-sm font-semibold text-ink">{item.product_name}</p>
-                                                        <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset', style.chip)}>{style.label}</span>
-                                                    </div>
-                                                    <p className="mt-0.5 text-xs text-slate-500">
-                                                        {item.product_sku && <span className="font-mono">{item.product_sku} · </span>}
-                                                        Alerte {item.alert_threshold} · Critique {item.critical_threshold} · mis à jour {item.updated_at}
-                                                    </p>
-                                                    <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100">
-                                                        <div className={cn('h-1.5 rounded-full transition-all', style.bar)} style={{ width: `${percent}%` }} />
-                                                    </div>
-                                                </div>
-
-                                                <div className="shrink-0 text-right">
-                                                    <p className="text-lg font-semibold text-ink tabular-nums">{item.current_stock}</p>
-                                                    <p className="text-xs text-slate-400">{item.product_unit}</p>
-                                                </div>
-
-                                                <div className="flex w-full shrink-0 justify-end gap-1 sm:w-auto">
-                                                    {hasStocks && (
-                                                    <ActionButton
-                                                        variant="secondary"
-                                                        size="icon"
-                                                        icon={<PackagePlus />}
-                                                        title="Réassort"
-                                                        aria-label="Réassort"
-                                                        className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
-                                                        onClick={() => setRestockItem(item)}
-                                                    />
-                                                    )}
-                                                    <ActionButton
-                                                        variant="secondary"
-                                                        size="icon"
-                                                        icon={<Pencil />}
-                                                        title="Modifier le stock"
-                                                        aria-label="Modifier le stock"
-                                                        className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
-                                                        onClick={() => setStockItem(item)}
-                                                    />
-                                                    <ActionButton variant="icon-danger" size="icon" icon={<Trash2 />} title="Retirer" aria-label="Retirer" onClick={() => removeInventory.ask(item)} />
-                                                </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            )}
-                        </Section>
-                    )}
+                    {tab === 'inventaire' &&
+                        (inventory.length === 0 ? (
+                            <Section title="Inventaire" description="Le stock suivi sur ce site." actions={addProductButton}>
+                                <EmptyState
+                                    icon={Package}
+                                    title="Aucun produit"
+                                    description={readOnly ? 'Aucun produit n’est encore suivi sur ce site.' : 'Ajoutez des produits à suivre sur ce site.'}
+                                    action={addProductButton}
+                                />
+                            </Section>
+                        ) : (
+                            <SiteInventory
+                                items={inventory}
+                                addButton={addProductButton}
+                                readOnly={readOnly}
+                                canRestock={hasStocks}
+                                onRestock={setRestockItem}
+                                onEdit={setStockItem}
+                                onRemove={(item) => removeInventory.ask(item)}
+                            />
+                        ))}
                     {tab === 'inventaire' && hasStocks && <StockMovements movements={stock_movements} />}
 
                     {/* ───────────── Visites ───────────── */}
@@ -1280,16 +1241,16 @@ export default function SiteShow({
                             description="Jusqu'à 3 photos pour reconnaître le point de vente."
                             actions={<span className="text-xs font-semibold text-slate-400 tabular-nums">{site.photos_count}/3</span>}
                         >
-                            <PhotoGallery photos={site.photos ?? []} siteId={site.id} canAdd={canAddPhoto} />
+                            <PhotoGallery photos={site.photos ?? []} siteUuid={site.uuid} canAdd={!readOnly && canAddPhoto} canDelete={!readOnly} />
                         </Section>
                     )}
                 </div>
             </Page>
 
             {editingSite && <EditSiteModal site={site} types={types} statuses={statuses} onClose={closeEditSite} />}
-            {showInventoryModal && <InventoryAddModal siteId={site.id} products={available_products} onClose={() => setShowInventoryModal(false)} />}
-            {stockItem && <StockModal siteId={site.id} item={stockItem} onClose={() => setStockItem(null)} />}
-            {restockItem && <RestockModal siteId={site.id} item={restockItem} onClose={() => setRestockItem(null)} />}
+            {showInventoryModal && <InventoryAddModal siteUuid={site.uuid} products={available_products} onClose={() => setShowInventoryModal(false)} />}
+            {stockItem && <StockModal siteUuid={site.uuid} item={stockItem} onClose={() => setStockItem(null)} />}
+            {restockItem && <RestockModal siteUuid={site.uuid} item={restockItem} onClose={() => setRestockItem(null)} />}
             {assign.open && <AssignModal modal={assign} siteId={site.id} staff={available_staff} onClose={() => setAssign({ open: false })} />}
 
             {deleteSite.dialog}

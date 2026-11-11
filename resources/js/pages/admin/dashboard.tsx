@@ -30,7 +30,7 @@ import { index as subscriptionsIndex } from '@/routes/admin/subscriptions';
 import { index as supportIndex } from '@/routes/admin/support';
 import { number } from '@/pages/reports/format';
 
-type CompanyLink = { id: number; name: string };
+type CompanyLink = { id: number; uuid: string; name: string };
 
 type DayPoint = { date: string; reports: number; revenue: number };
 
@@ -63,6 +63,7 @@ type Props = {
         name: string;
         email: string | null;
         company_id: number;
+        company_uuid: string;
         company: string | null;
         invited: boolean;
         created_at: string | null;
@@ -324,11 +325,11 @@ function KpiGrid({ items }: { items: Kpi[] }) {
 
 // ── Listes détaillées ───────────────────────────────────────────────────────
 
-function DetailRow({ id, title, detail, aside }: { id: number; title: string; detail: ReactNode; aside?: ReactNode }) {
+function DetailRow({ companyUuid, title, detail, aside }: { companyUuid: string; title: string; detail: ReactNode; aside?: ReactNode }) {
     return (
         <li>
             <Link
-                href={companyShow(id).url}
+                href={companyShow(companyUuid).url}
                 className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.02]"
             >
                 <div className="min-w-0">
@@ -445,7 +446,7 @@ export default function AdminDashboard({
                 {unverified_managers.slice(0, DETAIL_LIMIT).map((m) => (
                     <DetailRow
                         key={m.id}
-                        id={m.company_id}
+                        companyUuid={m.company_uuid}
                         title={m.company ?? m.name}
                         detail={`${m.name}${m.email ? ` · ${m.email}` : ''}`}
                         aside={
@@ -468,7 +469,7 @@ export default function AdminDashboard({
                 {trials_ending.slice(0, DETAIL_LIMIT).map((t) => (
                     <DetailRow
                         key={t.id}
-                        id={t.id}
+                        companyUuid={t.uuid}
                         title={t.name}
                         detail={`Essai ${t.plan} · fin le ${t.ends_on}`}
                         aside={
@@ -492,7 +493,7 @@ export default function AdminDashboard({
                 {inactive.slice(0, DETAIL_LIMIT).map((c) => (
                     <DetailRow
                         key={c.id}
-                        id={c.id}
+                        companyUuid={c.uuid}
                         title={c.name}
                         detail={c.last_report ? `Dernier rapport le ${c.last_report}` : `Aucun rapport · ${plural(c.hostesses_count, 'hôtesse')}`}
                         aside={<Moon className="size-4 shrink-0 text-slate-300" aria-hidden />}
@@ -577,7 +578,7 @@ export default function AdminDashboard({
                                     {recent_companies.map((c) => (
                                         <li key={c.id}>
                                             <Link
-                                                href={companyShow(c.id).url}
+                                                href={companyShow(c.uuid).url}
                                                 className="flex items-center gap-3.5 px-5 py-3 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.02]"
                                             >
                                                 <CompanyAvatar name={c.name} className="size-9" />

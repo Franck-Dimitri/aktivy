@@ -39,6 +39,7 @@ class CompanyController extends Controller
             ->get()
             ->map(fn (Company $c) => [
                 'id' => $c->id,
+                'uuid' => $c->uuid,
                 'name' => $c->name,
                 'city' => $c->city,
                 'email' => $c->email,
@@ -76,6 +77,7 @@ class CompanyController extends Controller
         return Inertia::render('admin/companies/show', [
             'company' => [
                 'id' => $company->id,
+                'uuid' => $company->uuid,
                 'name' => $company->name,
                 'status' => $company->status->value,
                 'sector' => $company->sector,
@@ -92,6 +94,7 @@ class CompanyController extends Controller
             ],
             'managers' => $members->filter(fn (User $u) => $u->role === Role::CompanyAdmin)->values()->map(fn (User $u) => [
                 'id' => $u->id,
+                'uuid' => $u->uuid,
                 'name' => $u->name,
                 'email' => $u->email,
                 'phone' => $u->phone,
@@ -153,11 +156,11 @@ class CompanyController extends Controller
                     'at' => $log->created_at?->format('d/m/Y à H:i'),
                 ]),
             'sectors' => OnboardingController::SECTORS,
-            'payments' => SubscriptionController::payments($company->subscriptionPayments()->latest('paid_at')->latest('id')->limit(10)->get()),
+            'payments' => SubscriptionController::payments($company->subscriptionPayments()->with('company:id,uuid,name')->latest('paid_at')->latest('id')->limit(10)->get()),
             'billing' => [
                 'plans' => SubscriptionController::planOptions(),
                 'methods' => SubscriptionController::methodOptions(),
-                'pack_price' => Plan::PACK_PRICE,
+                'packs' => Plan::packCatalog(),
                 'can_remind' => $company->plan !== Plan::Starter && $company->plan_ends_on !== null,
             ],
         ]);

@@ -31,7 +31,7 @@ export function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () =
 
     const save = (status: TicketStatus, message: string) => {
         router.put(
-            ticketUpdate({ ticket: ticket.id }).url,
+            ticketUpdate({ ticket: ticket.uuid }).url,
             { response, status },
             {
                 preserveScroll: true,

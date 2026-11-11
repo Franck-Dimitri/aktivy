@@ -58,8 +58,8 @@ const typeIcon: Record<string, LucideIcon> = {
 };
 
 /** Carte compacte : toute la carte ouvre la fiche ; Modifier / Supprimer sont dans le menu « ⋯ ». */
-function SiteCard({ site, canDelete, onDelete }: { site: SiteListItem; canDelete: boolean; onDelete: () => void }) {
-    const showUrl = siteShow({ site: site.id }).url;
+function SiteCard({ site, canEdit, canDelete, onDelete }: { site: SiteListItem; canEdit: boolean; canDelete: boolean; onDelete: () => void }) {
+    const showUrl = siteShow({ site: site.uuid }).url;
     const TypeIcon = typeIcon[site.type] ?? Building2;
     const inactive = site.status !== 'active';
     const hostesses = site.active_affectations_count;
@@ -123,12 +123,14 @@ function SiteCard({ site, canDelete, onDelete }: { site: SiteListItem; canDelete
                                 Voir la fiche
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
-                            <Link href={`${showUrl}?modifier=1`}>
-                                <Pencil className="size-4" />
-                                Modifier
-                            </Link>
-                        </DropdownMenuItem>
+                        {canEdit && (
+                            <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                                <Link href={`${showUrl}?modifier=1`}>
+                                    <Pencil className="size-4" />
+                                    Modifier
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
                         {canDelete && (
                             <>
                                 <DropdownMenuSeparator />
@@ -171,7 +173,7 @@ export default function SitesIndex({ sites, types }: Props) {
     const [query, setQuery] = useState('');
 
     const { ask, dialog } = useDeleteDialog<SiteListItem>({
-        getUrl: (s) => siteDestroy(s.id).url,
+        getUrl: (s) => siteDestroy(s.uuid).url,
         getTitle: (s) => `Supprimer « ${s.name} » ?`,
         getDescription: () => 'Ses affectations et visites passées restent consultables.',
         getSuccessMessage: (s) => `« ${s.name} » a été supprimé.`,
@@ -203,7 +205,11 @@ export default function SitesIndex({ sites, types }: Props) {
                         <EmptyState
                             icon={Store}
                             title="Aucun site pour l'instant"
-                            description="Ajoutez vos premiers points de vente : supermarchés, kiosques, pharmacies…"
+                            description={
+                                manageTeam
+                                    ? 'Ajoutez vos premiers points de vente : supermarchés, kiosques, pharmacies…'
+                                    : 'Les points de vente de l’entreprise apparaîtront ici dès que le gérant les aura créés.'
+                            }
                             action={newButton('Créer le premier site')}
                         />
                     </Panel>
@@ -241,7 +247,7 @@ export default function SitesIndex({ sites, types }: Props) {
                         ) : (
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                                 {visible.map((site) => (
-                                    <SiteCard key={site.id} site={site} canDelete={!!manageCompany} onDelete={() => ask(site)} />
+                                    <SiteCard key={site.id} site={site} canEdit={!!manageTeam} canDelete={!!manageCompany} onDelete={() => ask(site)} />
                                 ))}
                             </div>
                         )}

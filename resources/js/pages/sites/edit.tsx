@@ -10,7 +10,7 @@ import { index as sitesIndex, show as siteShow, update as siteUpdate } from '@/r
 import type { SiteFormData, SiteStatusOption, SiteType, SiteTypeOption } from '@/types';
 
 type Props = {
-    site: SiteFormData & { id: number };
+    site: SiteFormData & { id: number; uuid: string };
     types: SiteTypeOption[];
     statuses: SiteStatusOption[];
 };
@@ -35,7 +35,7 @@ export default function SiteEdit({ site, types, statuses }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(siteUpdate(site.id).url, {
+        put(siteUpdate(site.uuid).url, {
             preserveScroll: true,
             onSuccess: () => toast.success('Site mis à jour', { description: `Les modifications de « ${data.name} » sont enregistrées.` }),
             onError: toastFormError,
@@ -133,7 +133,7 @@ export default function SiteEdit({ site, types, statuses }: Props) {
                     </Panel>
 
                     <FormActions>
-                        <ActionLink href={siteShow(site.id).url} variant="secondary">Annuler</ActionLink>
+                        <ActionLink href={siteShow(site.uuid).url} variant="secondary">Annuler</ActionLink>
                         <ActionButton type="submit" loading={processing}>
                             {processing ? 'Enregistrement…' : 'Enregistrer'}
                         </ActionButton>

@@ -38,6 +38,7 @@ type RecentVisit = {
 
 type RecentSite = {
     id: number;
+    uuid: string;
     name: string;
     type_label: string;
     city: string;
@@ -440,7 +441,7 @@ export default function Dashboard({ stats, recent_visits, recent_sites, trend, a
                                         {recent_sites.map((s) => (
                                             <li key={s.id}>
                                                 <Link
-                                                    href={siteShow(s.id).url}
+                                                    href={siteShow(s.uuid).url}
                                                     className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
                                                 >
                                                     <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-motriks-deep ring-1 ring-inset ring-green-600/10 transition-colors group-hover:bg-motriks group-hover:text-white group-hover:ring-0">

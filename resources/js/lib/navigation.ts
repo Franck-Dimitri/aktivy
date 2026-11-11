@@ -17,6 +17,7 @@ import {
     ScrollText,
     Palette,
     ShoppingCart,
+    Store,
     TrendingUp,
     Users,
     Zap,
@@ -34,7 +35,14 @@ import { edit as companySettings } from '@/routes/company/settings';
 import { subscription as companySubscription } from '@/routes/company';
 import { index as companyInvoices } from '@/routes/company/invoices';
 import { index as companyImport } from '@/routes/company/import';
-import { home as terrainHome, stats as terrainStats, planning as terrainPlanning, sales as terrainSales } from '@/routes/terrain';
+import {
+    externalShops as terrainExternalShops,
+    home as terrainHome,
+    planning as terrainPlanning,
+    sales as terrainSales,
+    stats as terrainStats,
+    stock as terrainStock,
+} from '@/routes/terrain';
 import { index as terrainReports } from '@/routes/terrain/reports';
 import { index as terrainTickets } from '@/routes/terrain/tickets';
 import { index as sitesIndex } from '@/routes/sites';
@@ -97,6 +105,8 @@ function baseMenu(role: Role): MenuGroup[] {
                     { title: 'Mes rapports', icon: ClipboardList, href: terrainReports().url },
                     { title: 'Mon planning', icon: CalendarRange, href: terrainPlanning().url },
                     { title: 'Mes ventes', icon: ShoppingCart, href: terrainSales().url },
+                    { title: 'Boutiques extérieures', icon: Store, href: terrainExternalShops().url },
+                    { title: 'Mon stock', icon: Package, href: terrainStock().url },
                 ],
             },
             {
@@ -162,6 +172,17 @@ function baseMenu(role: Role): MenuGroup[] {
                 ...(role === 'company_admin' ? [{ title: 'Événements', icon: Zap, href: eventsIndex().url, module: 'events' }] : []),
                 { title: 'Alertes de stock', icon: PackageX, href: stockAlertsIndex().url, module: 'stocks' },
                 { title: 'Tickets', icon: MessageSquarePlus, href: ticketsIndex().url, module: 'demandes' },
+            ],
+        });
+    }
+
+    // Le comptable suit toute l'entreprise, en lecture : points de vente et catalogue
+    if (role === 'accountant') {
+        groups.push({
+            label: 'Entreprise',
+            items: [
+                { title: 'Sites', icon: MapPin, href: sitesIndex().url },
+                { title: 'Produits & prix', icon: Package, href: productsIndex().url },
             ],
         });
     }

@@ -15,7 +15,8 @@ import SettingsLayout from '@/layouts/settings/layout';
 const appName = 'Motriks';
 
 // Pages publiques affichées sans le layout de l'application
-const PUBLIC_PAGES = ['welcome', 'landing', 'contact'];
+// « error » : page d'erreur de Motriks, affichée seule (la session peut manquer)
+const PUBLIC_PAGES = ['welcome', 'landing', 'contact', 'error'];
 
 // Dossiers de pages publiques (ex. legal/conditions, legal/confidentialite)
 const PUBLIC_PREFIXES = ['legal/'];

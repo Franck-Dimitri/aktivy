@@ -26,6 +26,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property float|null $checkin_longitude
  * @property float|null $checkout_latitude
  * @property float|null $checkout_longitude
+ * @property Carbon|null $checkin_synced_at Pointage fait hors ligne : heure de réception par le serveur
+ * @property Carbon|null $checkout_synced_at Fin de service faite hors ligne : heure de réception
  * @property int|null $duration_minutes
  * @property VisitStatus $status
  * @property string|null $notes
@@ -41,6 +43,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'checked_in_at', 'checked_out_at',
     'checkin_latitude', 'checkin_longitude', 'checkin_distance_m', 'checkin_accuracy_m',
     'checkout_latitude', 'checkout_longitude',
+    'checkin_synced_at', 'checkout_synced_at',
     'duration_minutes', 'status', 'notes',
 ])]
 class Visit extends Model
@@ -77,6 +80,8 @@ class Visit extends Model
             'checkout_longitude' => 'float',
             'checkin_distance_m' => 'integer',
             'checkin_accuracy_m' => 'integer',
+            'checkin_synced_at' => 'datetime',
+            'checkout_synced_at' => 'datetime',
         ];
     }
 

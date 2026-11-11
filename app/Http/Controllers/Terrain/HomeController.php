@@ -7,6 +7,7 @@ use App\Models\Affectation;
 use App\Models\DailyReport;
 use App\Models\SalesTarget;
 use App\Models\WeeklyTarget;
+use App\Support\Terrain\OfflineKit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -150,6 +151,8 @@ class HomeController extends Controller
                 'uuid'             => $visit->uuid,
                 'status'           => $visit->status->value,
                 'checked_in_at'    => $visit->checked_in_at->format('H:i'),
+                // Jour du pointage : hors ligne, l'accueil gardé de la veille ne doit pas bloquer celui du jour
+                'date'             => $visit->checked_in_at->toDateString(),
                 'checked_out_at'   => $visit->checked_out_at?->format('H:i'),
                 'duration_minutes' => $visit->duration_minutes,
                 'has_report'       => $visit->dailyReport !== null,
@@ -159,6 +162,8 @@ class HomeController extends Controller
             'my_target'      => $myTarget,
             'my_week_target' => $myWeekTarget,
             'recent_reports' => $recentReports,
+            // Pour prendre son service et remplir son rapport sans réseau (cf. OfflineKit)
+            'offline_kit'    => $affectation ? OfflineKit::for($affectation, $user) : null,
         ]);
     }
 }

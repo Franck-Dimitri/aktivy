@@ -9,6 +9,7 @@ import {
     Pencil,
     Phone,
     Save,
+    WifiOff,
     X,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -68,6 +69,8 @@ type Report = {
     checkin_distance_m: number | null;
     off_site: boolean | null;
     checkin_place: CheckinPlace | null;
+    /** Actions faites sans réseau par l'hôtesse : heure du téléphone, heure de réception */
+    offline_trace: { label: string; at: string; received: string }[];
     external_sales: ExternalShopSales[];
     submitted_at: string | null;
     corrected_at: string | null;
@@ -349,6 +352,26 @@ export default function DailyReportShow({
                                 Prise de service : <CheckinPlaceLine place={report.checkin_place} />
                             </p>
                         )
+                    )}
+
+                    {report.offline_trace.length > 0 && (
+                        <div className="flex gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4">
+                            <WifiOff className="mt-0.5 size-5 shrink-0 text-sky-700" />
+                            <div className="min-w-0 text-sm text-sky-900">
+                                <p className="font-semibold">Journée saisie sans réseau</p>
+                                <p className="mt-0.5 text-xs text-sky-800/80">
+                                    Heures relevées sur le téléphone de l’hôtesse, envoyées au retour du réseau.
+                                </p>
+                                <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs">
+                                    {report.offline_trace.map((entry) => (
+                                        <li key={entry.label}>
+                                            {entry.label} <strong className="tabular-nums">{entry.at}</strong>
+                                            <span className="text-sky-800/70"> · reçue {entry.received}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
                     )}
 
                     {report.incident_notes && (

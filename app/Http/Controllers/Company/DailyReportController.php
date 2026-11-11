@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\DailyReportLine;
 use App\Models\StockMovement;
 use App\Support\CheckinPlace;
+use App\Support\Terrain\OfflineTrace;
 use App\Support\Incident;
 use App\Support\Reports\DailyReportPdf;
 use App\Support\Reports\ExternalSales;
@@ -153,6 +154,8 @@ class DailyReportController extends Controller
                     ? CheckinPlace::describe($visit, $dailyReport->site, $visit->isOffSite() ? CheckinPlace::companySites($dailyReport->company_id) : null)
                     : null,
                 'submitted_at' => $dailyReport->submitted_at?->format('H:i'),
+                // Actions faites sans réseau : heure du téléphone, et heure de réception
+                'offline_trace' => OfflineTrace::of($visit, $dailyReport),
                 'corrected_at' => $dailyReport->corrected_at?->format('d/m/Y H:i'),
                 'corrected_by' => $dailyReport->corrector?->name,
                 'validated_at' => $dailyReport->validated_at?->format('d/m/Y H:i'),

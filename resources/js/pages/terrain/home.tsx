@@ -3,6 +3,7 @@ import {
     CalendarOff,
     CheckCircle2,
     ChevronRight,
+    CloudUpload,
     ClipboardCheck,
     ClipboardList,
     Clock,
@@ -13,13 +14,16 @@ import {
     Navigation,
     TriangleAlert,
 } from 'lucide-react';
-import { useId, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useId, useState, type MouseEvent } from 'react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { Page } from '@/components/page/page';
 import { SurfaceCard, MetricStrip } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
+import { localDay, localVisits, outboxAvailable, type LocalVisit } from '@/lib/outbox';
+import { pruneLocalVisits, useSyncState } from '@/lib/sync';
+import { checkinOffline, checkoutOffline, kitUsableToday, openLocalReport, type Coords, type OfflineKit } from '@/lib/terrain-offline';
 import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
 import { index as terrainReports } from '@/routes/terrain/reports';
@@ -49,6 +53,10 @@ type VisitInfo = {
     duration_minutes: number | null;
     has_report: boolean;
     report_status: 'draft' | 'submitted' | null;
+    /** Jour du pointage (AAAA-MM-JJ) */
+    date?: string;
+    /** Actions de la journée encore sur le téléphone, en attente du réseau */
+    pending?: boolean;
 };
 
 type MyStats = {
@@ -87,6 +95,8 @@ type Props = {
     my_week_target: WeekTarget | null;
     recent_reports: RecentReport[];
     weekly_trend: TrendPoint[];
+    /** Pour pointer et remplir son rapport sans réseau */
+    offline_kit: OfflineKit | null;
 };
 
 /* ─────────────────────── Helpers ─────────────────────── */
@@ -382,12 +392,33 @@ function TargetProgress({ target }: { target: MonthTarget }) {
     );
 }
 
+/** Pastille : la journée est enregistrée sur le téléphone et part au retour du réseau. */
+function PendingChip() {
+    return (
+        <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-sky-700">
+            <CloudUpload className="size-3" />
+            En attente du réseau
+        </p>
+    );
+}
+
+/** Lien du rapport : remplacé par l'ouverture locale quand le serveur ne connaît pas encore la visite. */
+function openWith(open?: () => void) {
+    return open
+        ? (event: MouseEvent) => {
+              event.preventDefault();
+              open();
+          }
+        : undefined;
+}
+
 function DayBar({
     affectation,
     nextAffectation,
     visit,
     onCheckin,
     onCheckout,
+    onOpenReport,
     loading,
     gpsStatus,
 }: {
@@ -396,6 +427,8 @@ function DayBar({
     visit: VisitInfo | null;
     onCheckin: () => void;
     onCheckout: () => void;
+    /** Rapport pas encore connu du serveur : il s'ouvre avec les données du téléphone */
+    onOpenReport?: () => void;
     loading: boolean;
     gpsStatus: 'idle' | 'capturing' | 'denied';
 }) {
@@ -425,9 +458,10 @@ function DayBar({
                     <p className="max-w-56 truncate text-xs text-slate-500">
                         {affectation?.site_name ?? 'Site du jour'}
                     </p>
+                    {visit.pending && <PendingChip />}
                 </div>
                 <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
-                    <Link href={reportShow({ visit: visit.uuid }).url} className={cn(primaryBtn, 'flex-1 sm:flex-none')}>
+                    <Link href={reportShow({ visit: visit.uuid }).url} onClick={openWith(onOpenReport)} className={cn(primaryBtn, 'flex-1 sm:flex-none')}>
                         <ClipboardList className="size-4" />
                         {visit.report_status === 'submitted' ? 'Voir mon rapport' : 'Saisir mes ventes'}
                     </Link>
@@ -467,10 +501,12 @@ function DayBar({
                     <p className={cn('text-xs', submitted ? 'text-slate-500' : 'text-amber-600')}>
                         {submitted ? 'Rapport soumis, bonne journée !' : 'Rapport non soumis'}
                     </p>
+                    {visit.pending && <PendingChip />}
                 </div>
                 {visit.has_report && (
                     <Link
                         href={reportShow({ visit: visit.uuid }).url}
+                        onClick={openWith(onOpenReport)}
                         className={cn(
                             'inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-semibold whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none sm:w-auto',
                             submitted
@@ -529,6 +565,74 @@ function DayBar({
 
 /* ─────────────────────── Page principale ─────────────────────── */
 
+/**
+ * Journée affichée : celle du serveur, complétée par ce que le téléphone garde (actions faites sans
+ * réseau, pas encore reçues). L'accueil gardé en mémoire d'un jour précédent ne bloque pas celui du jour.
+ */
+function useDayVisit(userId: number, server: VisitInfo | null) {
+    const sync = useSyncState();
+    const [locals, setLocals] = useState<LocalVisit[]>([]);
+
+    const load = useCallback(() => {
+        if (!outboxAvailable()) return;
+        void localVisits(userId)
+            .then(setLocals)
+            .catch(() => undefined);
+    }, [userId]);
+
+    useEffect(() => {
+        load();
+        window.addEventListener('motriks:outbox', load);
+
+        return () => window.removeEventListener('motriks:outbox', load);
+    }, [load]);
+
+    // Le serveur connaît la visite et plus rien n'attend : la copie du téléphone n'a plus lieu d'être
+    useEffect(() => {
+        if (!outboxAvailable()) return;
+        void pruneLocalVisits(userId, (uuid) => uuid === server?.uuid)
+            .then(load)
+            .catch(() => undefined);
+    }, [userId, server?.uuid, sync.pending.length, load]);
+
+    const today = localDay();
+    const current = server && (server.status === 'in_progress' || !server.date || server.date === today) ? server : null;
+    const local = locals.find((v) => v.uuid === current?.uuid) ?? locals.find((v) => v.date === today) ?? null;
+    const pending = sync.pending.filter((op) => op.visit === local?.uuid || op.visit === current?.uuid);
+
+    // Une visite en cours côté serveur, différente : c'est elle qui compte
+    if (!local || (current && current.uuid !== local.uuid && current.status === 'in_progress')) {
+        return { visit: current ? { ...current, pending: pending.length > 0 } : null, local: null, pending };
+    }
+
+    const merged: VisitInfo = {
+        id: current?.uuid === local.uuid ? current.id : 0,
+        duration_minutes: current?.uuid === local.uuid ? current.duration_minutes : null,
+        uuid: local.uuid,
+        status: local.checkedOut ? 'completed' : 'in_progress',
+        checked_in_at: local.checkedIn,
+        checked_out_at: local.checkedOut,
+        has_report: true,
+        report_status: local.reportStatus,
+        date: local.date,
+        pending: pending.length > 0,
+    };
+
+    return { visit: merged, local, pending };
+}
+
+/** Position du téléphone (le GPS fonctionne sans réseau) ; sans réponse, l'action se fait sans. */
+function capturePosition(options: PositionOptions): Promise<Coords | null> {
+    return new Promise((resolve) => {
+        if (!('geolocation' in navigator)) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+            () => resolve(null),
+            options,
+        );
+    });
+}
+
 export default function TerrainHome({
     affectation,
     next_affectation,
@@ -538,8 +642,11 @@ export default function TerrainHome({
     my_week_target,
     recent_reports,
     weekly_trend,
+    offline_kit,
 }: Props) {
-    const { auth } = usePage().props as { auth: { user: { name: string }; company?: { name: string } } };
+    const { auth } = usePage().props as { auth: { user: { id: number; name: string }; company?: { name: string } } };
+    const userId = auth.user.id;
+    const { visit: dayVisit, local, pending } = useDayVisit(userId, visit);
     const firstName = auth?.user?.name?.split(' ')[0] ?? '';
     const companyName = auth?.company?.name;
     const todayLabel = new Date().toLocaleDateString('fr-FR', {
@@ -570,85 +677,121 @@ export default function TerrainHome({
               ? 100
               : 0;
 
-    function checkin() {
+    const canWorkOffline = outboxAvailable() && kitUsableToday(offline_kit, affectation?.id);
+
+    /** Prise de service gardée sur le téléphone : le rapport s'ouvre tout de suite. */
+    async function checkinWithoutNetwork(coords: Coords | null) {
+        if (!offline_kit) return;
+        const created = await checkinOffline(userId, offline_kit, coords ?? { latitude: null, longitude: null });
+        toast.success('Service pris hors ligne', {
+            description: `${created.checkedIn} · ${created.siteName}. Il sera envoyé dès le retour du réseau.`,
+        });
+        setLoading(false);
+        setGpsStatus('idle');
+        openLocalReport(created);
+    }
+
+    async function checkin() {
         if (!affectation) return;
-        // La prise de service crée le rapport sur le serveur : elle demande du réseau
-        if (!navigator.onLine) {
-            toast.error('Pas de réseau', { description: 'La prise de service a besoin de réseau. Réessayez dès qu’il revient.' });
+        // Sans réseau, il faut la trousse hors ligne reçue avec l'accueil (produits, stock du point de vente)
+        if (!navigator.onLine && !canWorkOffline) {
+            toast.error('Pas de réseau', {
+                description: 'Ouvrez l’application une fois avec du réseau aujourd’hui : vous pourrez ensuite pointer sans réseau.',
+            });
 
             return;
         }
         setLoading(true);
         setGpsStatus('capturing');
 
-        const doCheckin = (lat?: number, lng?: number, accuracy?: number) => {
-            router.post(
-                visitStore().url,
-                { affectation_id: affectation.id, latitude: lat ?? null, longitude: lng ?? null, accuracy: accuracy ?? null },
-                {
-                    onSuccess: () =>
-                        toast.success('Service pris', {
-                            description: `Bonne journée sur ${affectation.site_name} !`,
-                        }),
-                    onError: toastFormError,
-                    onFinish: () => {
-                        setLoading(false);
-                        setGpsStatus('idle');
-                    },
-                },
-            );
-        };
-
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    setGpsStatus('idle');
-                    doCheckin(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
-                },
-                () => {
-                    setGpsStatus('denied');
-                    toast.warning('GPS indisponible');
-                    doCheckin();
-                },
-                // Position fraîche et précise (GPS du téléphone, pas seulement le réseau) : le responsable
-                // voit exactement où le service a été pris
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 },
-            );
-        } else {
+        // Position fraîche et précise (GPS du téléphone, pas seulement le réseau) : le responsable
+        // voit exactement où le service a été pris
+        const coords = await capturePosition({ enableHighAccuracy: true, maximumAge: 0, timeout: 12000 });
+        if (!coords) {
             setGpsStatus('denied');
-            doCheckin();
+            toast.warning('GPS indisponible');
+        } else {
+            setGpsStatus('idle');
         }
+
+        if (!navigator.onLine) {
+            await checkinWithoutNetwork(coords);
+
+            return;
+        }
+
+        router.post(
+            visitStore().url,
+            { affectation_id: affectation.id, latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null, accuracy: coords?.accuracy ?? null },
+            {
+                onSuccess: () =>
+                    toast.success('Service pris', {
+                        description: `Bonne journée sur ${affectation.site_name} !`,
+                    }),
+                onError: toastFormError,
+                // Réseau perdu en route : la prise de service est gardée sur le téléphone
+                onNetworkError: () => {
+                    if (!canWorkOffline) return;
+                    void checkinWithoutNetwork(coords);
+
+                    return false;
+                },
+                onFinish: () => {
+                    setLoading(false);
+                    setGpsStatus('idle');
+                },
+            },
+        );
     }
 
-    function checkout() {
-        if (!visit) return;
+    async function checkout() {
+        if (!dayVisit) return;
         setCheckingOut(true);
 
-        const doCheckout = (lat?: number, lng?: number) => {
-            router.patch(
-                visitCheckout({ visit: visit.uuid }).url,
-                { latitude: lat ?? null, longitude: lng ?? null },
-                {
-                    onSuccess: () => {
-                        toast.success('Service terminé', { description: 'Merci pour votre journée !' });
-                        setConfirmCheckout(false);
-                    },
-                    onError: toastFormError,
-                    onFinish: () => setCheckingOut(false),
-                },
-            );
+        const coords = await capturePosition({ timeout: 8000 });
+        const ref = { userId, visitUuid: dayVisit.uuid, siteName: affectation?.site_name ?? local?.siteName ?? 'Site du jour', checkedIn: dayVisit.checked_in_at };
+
+        const withoutNetwork = async () => {
+            await checkoutOffline(ref, coords ?? { latitude: null, longitude: null });
+            toast.success('Service terminé', { description: 'Enregistré sur ce téléphone, envoyé dès le retour du réseau.' });
+            setConfirmCheckout(false);
+            setCheckingOut(false);
         };
 
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (pos) => doCheckout(pos.coords.latitude, pos.coords.longitude),
-                () => doCheckout(),
-                { timeout: 8000 },
-            );
-        } else {
-            doCheckout();
+        // Sans réseau, ou si la journée attend encore le réseau : la fin de service passe après, dans l'ordre
+        if (!navigator.onLine || pending.length > 0) {
+            await withoutNetwork();
+
+            return;
         }
+
+        router.patch(
+            visitCheckout({ visit: dayVisit.uuid }).url,
+            { latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null },
+            {
+                onSuccess: () => {
+                    toast.success('Service terminé', { description: 'Merci pour votre journée !' });
+                    setConfirmCheckout(false);
+                },
+                onError: toastFormError,
+                onNetworkError: () => {
+                    void withoutNetwork();
+
+                    return false;
+                },
+                onFinish: () => setCheckingOut(false),
+            },
+        );
     }
+
+    // Rapport pas encore reçu par le serveur (ou pas de réseau) : il s'ouvre avec les données du téléphone
+    const openReport = local?.report
+        ? () => {
+              const checkinWaiting = pending.some((op) => op.kind === 'checkin');
+              if (checkinWaiting || !navigator.onLine) openLocalReport(local);
+              else router.visit(reportShow({ visit: local.uuid }).url);
+          }
+        : undefined;
 
     const revenueDelta =
         my_stats.revenue_last_month > 0
@@ -666,9 +809,10 @@ export default function TerrainHome({
                     <DayBar
                         affectation={affectation}
                         nextAffectation={next_affectation}
-                        visit={visit}
+                        visit={dayVisit}
                         onCheckin={checkin}
                         onCheckout={() => setConfirmCheckout(true)}
+                        onOpenReport={openReport}
                         loading={loading}
                         gpsStatus={gpsStatus}
                     />
@@ -695,7 +839,7 @@ export default function TerrainHome({
                                 label: 'Visites ce mois',
                                 value: my_stats.visits_this_month,
                                 sub: `${my_stats.total_visits} au total`,
-                                live: visit?.status === 'in_progress',
+                                live: dayVisit?.status === 'in_progress',
                             },
                             {
                                 label: 'Unités vendues',

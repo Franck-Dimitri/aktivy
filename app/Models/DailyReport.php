@@ -29,7 +29,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'company_id', 'site_id', 'user_id', 'visit_id', 'event_id', 'report_date', 'status', 'notes', 'incident_notes',
-    'submitted_at', 'corrected_at', 'corrected_by', 'validated_at', 'validated_by',
+    'submitted_at', 'submit_synced_at', 'corrected_at', 'corrected_by', 'validated_at', 'validated_by',
 ])]
 class DailyReport extends Model
 {
@@ -41,6 +41,7 @@ class DailyReport extends Model
         return [
             'report_date' => 'date',
             'submitted_at' => 'datetime',
+            'submit_synced_at' => 'datetime',
             'corrected_at' => 'datetime',
             'validated_at' => 'datetime',
         ];

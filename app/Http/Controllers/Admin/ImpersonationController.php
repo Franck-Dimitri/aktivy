@@ -57,8 +57,9 @@ class ImpersonationController extends Controller
         app()->instance(self::SWITCHING, true);
         Auth::guard('web')->login($admin);
 
-        return $manager?->company_id
-            ? redirect()->route('admin.companies.show', $manager->company_id)->with('success', 'Vous êtes revenu à l’administration.')
+        // Retour sur la fiche de l'entreprise (adresse par UUID, d'où le modèle plutôt que company_id)
+        return $manager?->company
+            ? redirect()->route('admin.companies.show', $manager->company)->with('success', 'Vous êtes revenu à l’administration.')
             : redirect()->route('admin.dashboard');
     }
 }

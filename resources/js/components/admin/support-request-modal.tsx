@@ -34,6 +34,7 @@ export const SUPPORT_SOURCE: Record<string, { label: string; icon: typeof LifeBu
 /** Demande complète, telle que l'envoie SupportController::detail(). */
 export type SupportDetail = {
     id: number;
+    uuid: string;
     source: string;
     source_label: string;
     topic: string;
@@ -42,6 +43,7 @@ export type SupportDetail = {
     phone: string | null;
     role: string | null;
     company_id: number | null;
+    company_uuid: string | null;
     company: string | null;
     message: string;
     page: string | null;
@@ -139,7 +141,7 @@ export function SupportConversation({ detail, preview, inDialog = false, onClose
 
         setClosing(resolve);
         transform((d) => ({ ...d, resolve }));
-        post(supportReply(detail.id).url, {
+        post(supportReply(detail.uuid).url, {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => reset('body'),
@@ -153,7 +155,7 @@ export function SupportConversation({ detail, preview, inDialog = false, onClose
         }
 
         router.put(
-            supportStatus(detail.id).url,
+            supportStatus(detail.uuid).url,
             { status },
             { preserveScroll: true, preserveState: true, onStart: () => setStatusBusy(true), onFinish: () => setStatusBusy(false) },
         );
@@ -252,9 +254,9 @@ export function SupportConversation({ detail, preview, inDialog = false, onClose
                         </ContactChip>
                     )}
                     {detail.company &&
-                        (detail.company_id ? (
+                        (detail.company_uuid ? (
                             <Link
-                                href={companyShow(detail.company_id).url}
+                                href={companyShow(detail.company_uuid).url}
                                 className="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200/80 transition-colors hover:text-motriks-deep hover:ring-green-300"
                             >
                                 <Building2 className="size-3.5 shrink-0 text-slate-400" />

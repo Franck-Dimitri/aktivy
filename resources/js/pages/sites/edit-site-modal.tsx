@@ -10,6 +10,7 @@ import type { SiteStatusOption, SiteTypeOption } from '@/types';
 
 type EditableSite = {
     id: number;
+    uuid: string;
     name: string;
     code: string | null;
     type: string;
@@ -64,7 +65,7 @@ export function EditSiteModal({ site, types, statuses, onClose }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(siteUpdate(site.id).url, {
+        put(siteUpdate(site.uuid).url, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Site mis à jour', { description: `Les modifications de « ${data.name} » sont enregistrées.` });

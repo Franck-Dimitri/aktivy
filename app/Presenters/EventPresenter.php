@@ -13,6 +13,7 @@ class EventPresenter
     {
         return [
             'id'           => $event->id,
+            'uuid'         => $event->uuid,
             'name'         => $event->name,
             'description'  => $event->description,
             'status'       => $event->status->value,
@@ -25,6 +26,7 @@ class EventPresenter
             'activated_at' => $event->activated_at?->format('d/m/Y H:i'),
             'sites'        => $event->sites->map(fn ($s) => [
                 'id'              => $s->id,
+                'uuid'            => $s->uuid,
                 'name'            => $s->displayName(),
                 'address'         => $s->address ?? $s->site?->address,
                 'city'            => $s->city ?? $s->site?->city,
@@ -33,6 +35,7 @@ class EventPresenter
             ])->all(),
             'packs'        => $event->packs->map(fn ($p) => [
                 'id'          => $p->id,
+                'uuid'        => $p->uuid,
                 'name'        => $p->name,
                 'description' => $p->description,
                 'type'        => $p->type->value,
@@ -54,6 +57,7 @@ class EventPresenter
             ])->all(),
             'hostesses'    => $event->hostesses->map(fn ($h) => [
                 'id'                  => $h->id,
+                'uuid'                => $h->uuid,
                 'user_id'             => $h->user_id,
                 'name'                => $h->user->name,
                 'phone'               => $h->user->phone,
@@ -72,6 +76,7 @@ class EventPresenter
     {
         return [
             'id'              => $event->id,
+            'uuid'            => $event->uuid,
             'name'            => $event->name,
             'status'          => $event->status->value,
             'status_label'    => $event->status->label(),

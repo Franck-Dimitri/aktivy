@@ -45,7 +45,7 @@ class AuditLogController extends Controller
         ]);
 
         $logs = AuditLog::query()
-            ->with(['user:id,name,email', 'company:id,name'])
+            ->with(['user:id,name,email', 'company:id,uuid,name'])
             ->when($filters['company'] ?? null, fn (Builder $q, $id) => $q->where('company_id', $id))
             ->when($filters['group'] ?? null, function (Builder $q, string $group) {
                 if (! array_key_exists($group, self::GROUPS)) {
@@ -71,6 +71,7 @@ class AuditLogController extends Controller
                 'user' => $log->user?->name,
                 'user_email' => $log->user?->email,
                 'company_id' => $log->company_id,
+                'company_uuid' => $log->company?->uuid,
                 'company' => $log->company?->name,
                 'ip' => $log->ip_address,
                 'at' => $log->created_at?->format('d/m/Y H:i'),

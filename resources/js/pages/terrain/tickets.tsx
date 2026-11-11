@@ -16,6 +16,7 @@ import { cancel as ticketCancel, index as terrainTickets, store as ticketStore }
 
 type Ticket = {
     id: number;
+    uuid: string;
     subject: string;
     body: string;
     priority: 'normal' | 'urgent';
@@ -197,7 +198,7 @@ function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
     const [busy, setBusy] = useState(false);
 
     function cancelTicket() {
-        router.delete(ticketCancel({ ticket: ticket.id }).url, {
+        router.delete(ticketCancel({ ticket: ticket.uuid }).url, {
             preserveScroll: true,
             onStart: () => setBusy(true),
             onSuccess: () => {

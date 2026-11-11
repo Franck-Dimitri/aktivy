@@ -27,6 +27,7 @@ class CompanyRequestController extends Controller
             ->get()
             ->map(fn (Company $c) => [
                 'id'                       => $c->id,
+                'uuid'                     => $c->uuid,
                 'name'                     => $c->name,
                 'sector'                   => $c->sector,
                 'city'                     => $c->city,
@@ -56,6 +57,7 @@ class CompanyRequestController extends Controller
         return Inertia::render('admin/onboarding/show', [
             'company' => [
                 'id'                       => $company->id,
+                'uuid'                     => $company->uuid,
                 'name'                     => $company->name,
                 'sector'                   => $company->sector,
                 'city'                     => $company->city,

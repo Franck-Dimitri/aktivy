@@ -64,12 +64,12 @@ class LiveNotificationsTest extends TestCase
         $report = $this->checkIn();
         $this->assertTrue($this->live($this->manager, 'shift_started'), 'prise de service');
 
-        $this->actingAs($this->hostess)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($this->hostess)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $report->lines->first()->id, 'units_sold' => 5]],
         ])->assertSessionHasNoErrors();
         $this->assertTrue($this->live($this->manager, 'report_submitted'), 'rapport envoyé');
 
-        $this->actingAs($this->hostess)->patch(route('terrain.visit.checkout', $report->visit_id))->assertSessionHasNoErrors();
+        $this->actingAs($this->hostess)->patch(route('terrain.visit.checkout', $report->visit))->assertSessionHasNoErrors();
         $this->assertTrue($this->live($this->manager, 'shift_ended'), 'fin de journée');
         $this->assertFalse($this->live($this->hostess, 'shift_started'), 'L’hôtesse n’est pas notifiée de ses propres actions');
     }
@@ -79,7 +79,7 @@ class LiveNotificationsTest extends TestCase
         WeeklyTarget::create(['company_id' => $this->manager->company_id, 'user_id' => $this->hostess->id, 'week_start' => WeeklyTarget::weekOf(now())->toDateString(), 'amount' => 4000]);
         $report = $this->checkIn();
 
-        $this->actingAs($this->hostess)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($this->hostess)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $report->lines->first()->id, 'units_sold' => 5]],
         ]);
 

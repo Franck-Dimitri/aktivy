@@ -84,7 +84,7 @@ class LiveNotification extends TextNotification
         return new self('report_submitted', 'report',
             "Rapport envoyé · {$report->agent?->name}",
             "{$report->site?->name} : ".self::fcfa($report->totalRevenue()).", {$report->totalUnitsSold()} unités vendues.",
-            'daily-reports.show', ['dailyReport' => $report->id]);
+            'daily-reports.show', ['dailyReport' => $report->uuid]);
     }
 
     public static function photoAdded(DailyReport $report, ?string $caption): self
@@ -92,7 +92,7 @@ class LiveNotification extends TextNotification
         return new self('photo_added', 'photo',
             "Nouvelle photo · {$report->agent?->name}",
             $report->site?->name.($caption ? " : « {$caption} »" : ' : une preuve photo a été jointe au rapport.'),
-            'daily-reports.show', ['dailyReport' => $report->id]);
+            'daily-reports.show', ['dailyReport' => $report->uuid]);
     }
 
     // ── Affectations ─────────────────────────────────────────────────────
@@ -105,6 +105,25 @@ class LiveNotification extends TextNotification
             'Nouvelle affectation',
             "{$affectation->site?->name} à partir du {$affectation->starts_on->format('d/m/Y')}{$slot}.",
             $forHostess ? 'terrain.planning' : 'dashboard');
+    }
+
+    /**
+     * Superviseur affecté à plusieurs points de vente d'un coup : une seule notification.
+     *
+     * @param  \Illuminate\Support\Collection<int, Affectation>  $affectations  sites chargés
+     */
+    public static function assignedToSites(\Illuminate\Support\Collection $affectations): self
+    {
+        $names = $affectations->map(fn (Affectation $a) => $a->site?->name)->filter()->values();
+        $shown = $names->count() > 3
+            ? $names->take(2)->implode(', ').' et '.($names->count() - 2).' autres'
+            : $names->slice(0, -1)->implode(', ').($names->count() > 1 ? ' et ' : '').$names->last();
+        $first = $affectations->first();
+
+        return new self('assigned_to_site', 'assignment',
+            "Vous supervisez {$names->count()} points de vente",
+            "{$shown}, à partir du {$first->starts_on->format('d/m/Y')}.",
+            'dashboard');
     }
 
     public static function assignedToEvent(EventHostess $hostess, Event $event): self

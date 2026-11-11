@@ -47,7 +47,7 @@ export function RecordPaymentModal({
     currentSupervisorPacks = 0,
     onClose,
 }: {
-    company: { id: number; name: string };
+    company: { uuid: string; name: string };
     plans: PlanOption[];
     methods: Option[];
     packs: PackCatalog;
@@ -92,7 +92,7 @@ export function RecordPaymentModal({
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(paymentStore(company.id).url, {
+        post(paymentStore(company.uuid).url, {
             preserveScroll: true,
             onSuccess: onClose,
             onError: toastFormError,

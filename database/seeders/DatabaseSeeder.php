@@ -53,6 +53,9 @@ class DatabaseSeeder extends Seeder
                 $this->account($account['role'], $account['demoCompany'] ? $demo : null, $account['name'], DemoAccounts::PASSWORD, $account['email'], $account['phone']);
             }
         });
+
+        // Points de vente, produits, stock, affectations et historique de rapports pour tout essayer
+        $this->call(DemoDataSeeder::class);
     }
 
     /**

@@ -7,8 +7,10 @@ import { currencyLabel, number } from '@/pages/reports/format';
 
 export type PaymentRow = {
     id: number;
+    uuid: string;
     invoice_number: string;
     company_id: number;
+    company_uuid: string | null;
     company: string | null;
     amount: number;
     currency: string;
@@ -48,7 +50,7 @@ export function PaymentsPanel({ payments, showCompany = false, actions }: { paym
                                 </p>
                             </div>
                             <a
-                                href={invoiceDownload(p.id).url}
+                                href={invoiceDownload(p.uuid).url}
                                 download
                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-motriks-deep hover:underline"
                             >

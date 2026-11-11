@@ -31,17 +31,20 @@ class AffectationController extends Controller
 
         $affectations = $company->affectations()
             ->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds))
-            ->with(['agent:id,name,role,phone', 'site:id,name,city,type'])
+            ->with(['agent:id,uuid,name,role,phone', 'site:id,uuid,name,city,type'])
             ->orderByRaw("CASE status WHEN 'active' THEN 0 ELSE 1 END")
             ->orderByDesc('starts_on')
             ->get()
             ->map(fn (Affectation $a) => [
                 'id'          => $a->id,
+                'uuid'        => $a->uuid,
                 'agent_id'    => $a->user_id,
+                'agent_uuid'  => $a->agent->uuid,
                 'agent_name'  => $a->agent->name,
                 'agent_role'  => $a->agent->role->value,
                 'agent_phone' => $a->agent->phone,
                 'site_id'     => $a->site_id,
+                'site_uuid'   => $a->site->uuid,
                 'site_name'   => $a->site->name,
                 'site_city'   => $a->site->city,
                 'site_type'   => $a->site->type->label(),
@@ -78,6 +81,7 @@ class AffectationController extends Controller
                 ->map(fn ($u) => [
                     'value'      => $u->id,
                     'label'      => $u->name,
+                    'role'       => $u->role->value,
                     'role_label' => $u->role->label(),
                     'phone'      => $u->phone,
                 ]),
@@ -106,6 +110,8 @@ class AffectationController extends Controller
                 ->map(fn ($u) => [
                     'value'      => $u->id,
                     'label'      => $u->name,
+                    // Un superviseur peut être affecté à plusieurs points de vente d'un coup
+                    'role'       => $u->role->value,
                     'role_label' => $u->role->label(),
                     'phone'      => $u->phone,
                 ]),
@@ -114,36 +120,77 @@ class AffectationController extends Controller
         ]);
     }
 
+    /**
+     * Crée l'affectation. Un superviseur peut être affecté à plusieurs points de vente d'un coup
+     * (site_ids) : une affectation par site, mêmes dates et même créneau. Une hôtesse est affectée
+     * à un seul point de vente à la fois, celui où elle prend son service.
+     */
     public function store(Request $request): RedirectResponse
     {
         $company = $request->user()->company;
 
         $validated = $request->validate([
-            'site_id'    => ['required', 'integer', "exists:sites,id,company_id,{$company->id}"],
+            // site_ids : plusieurs sites (superviseur) ; site_id reste accepté pour un seul site
+            'site_ids'   => ['required_without:site_id', 'array', 'min:1', 'max:200'],
+            'site_ids.*' => ['integer', 'distinct', "exists:sites,id,company_id,{$company->id}"],
+            'site_id'    => ['required_without:site_ids', 'integer', "exists:sites,id,company_id,{$company->id}"],
             'user_id'    => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
             'starts_on'  => ['required', 'date'],
             'ends_on'    => ['nullable', 'date', 'after_or_equal:starts_on'],
             'slot_start' => ['nullable', 'date_format:H:i'],
             'slot_end'   => ['nullable', 'date_format:H:i', 'after:slot_start'],
             'notes'      => ['nullable', 'string', 'max:500'],
+        ], [
+            'site_ids.required_without' => 'Choisissez au moins un point de vente.',
+            'site_id.required_without' => 'Choisissez au moins un point de vente.',
         ]);
 
-        $this->authorizeChoice($request, $validated['site_id'], $validated['user_id']);
+        $siteIds = array_values(array_unique(array_map('intval', $validated['site_ids'] ?? [$validated['site_id']])));
+        $member = $company->users()->findOrFail($validated['user_id']);
 
-        $affectation = $company->affectations()->create([
-            ...$validated,
-            'assigned_by' => $request->user()->id,
-            'status'      => AffectationStatus::Active,
-        ]);
-
-        // La personne affectée (hôtesse ou superviseur) l'apprend sur son téléphone
-        $affectation->load(['site:id,name', 'agent']);
-        if ($affectation->agent && $affectation->agent->id !== $request->user()->id) {
-            Notify::send($affectation->agent, LiveNotification::assignedToSite($affectation, $affectation->agent->hasRole(Role::FieldAgent)));
+        if (count($siteIds) > 1 && ! $member->hasRole(Role::Supervisor)) {
+            return back()->withErrors(['site_ids' => 'Une hôtesse est affectée à un seul point de vente à la fois. Choisissez-en un.'])->withInput();
         }
 
-        return redirect()->route('affectations.index')
-            ->with('success', 'Affectation créée.');
+        foreach ($siteIds as $siteId) {
+            $this->authorizeChoice($request, $siteId, $member->id);
+        }
+
+        // Points de vente où il est déjà affecté (affectation en cours) : on ne crée pas de doublon
+        $already = Affectation::where('user_id', $member->id)->ongoing()->whereIn('site_id', $siteIds)->pluck('site_id')->all();
+        $toCreate = array_values(array_diff($siteIds, $already));
+
+        if ($toCreate === []) {
+            return back()->withErrors(['site_ids' => count($siteIds) > 1
+                ? "{$member->name} est déjà affecté(e) à tous ces points de vente."
+                : "{$member->name} est déjà affecté(e) à ce point de vente."])->withInput();
+        }
+
+        $fields = collect($validated)->only(['user_id', 'starts_on', 'ends_on', 'slot_start', 'slot_end', 'notes'])->all();
+
+        $created = DB::transaction(fn () => collect($toCreate)->map(fn (int $siteId) => $company->affectations()->create([
+            ...$fields,
+            'site_id'     => $siteId,
+            'assigned_by' => $request->user()->id,
+            'status'      => AffectationStatus::Active,
+        ])));
+
+        // La personne affectée l'apprend sur son téléphone : une seule notification, même pour plusieurs sites
+        $created->each->load('site:id,name');
+        if ($member->id !== $request->user()->id) {
+            Notify::send($member, $created->count() > 1
+                ? LiveNotification::assignedToSites($created)
+                : LiveNotification::assignedToSite($created->first(), $member->hasRole(Role::FieldAgent)));
+        }
+
+        $message = $created->count() > 1
+            ? "{$member->name} est affecté(e) à {$created->count()} points de vente."
+            : 'Affectation créée.';
+        if ($already !== []) {
+            $message .= ' Déjà affecté(e) à '.count($already).' autre'.(count($already) > 1 ? 's' : '').' : ignoré'.(count($already) > 1 ? 's' : '').'.';
+        }
+
+        return redirect()->route('affectations.index')->with('success', $message);
     }
 
     public function edit(Request $request, Affectation $affectation): Response
@@ -155,6 +202,7 @@ class AffectationController extends Controller
         return Inertia::render('affectations/edit', [
             'affectation' => [
                 'id'         => $affectation->id,
+                'uuid'       => $affectation->uuid,
                 'site_id'    => $affectation->site_id,
                 'user_id'    => $affectation->user_id,
                 'starts_on'  => $affectation->starts_on->format('Y-m-d'),

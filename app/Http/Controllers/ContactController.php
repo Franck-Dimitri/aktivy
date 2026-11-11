@@ -83,7 +83,7 @@ class ContactController
 
         // En file d'attente : le visiteur n'attend pas le serveur d'e-mail
         try {
-            Mail::to($recipient)->queue(new ContactMessageMail($data, $supportRequest->id));
+            Mail::to($recipient)->queue(new ContactMessageMail($data, $supportRequest->uuid));
         } catch (Throwable $e) {
             // Le message est enregistré : le support le verra dans l'administration
             Log::error('Échec envoi message de contact : '.$e->getMessage());

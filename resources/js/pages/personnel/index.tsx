@@ -108,7 +108,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
     const [sort, setSort] = useState<SortKey>('name');
 
     const { ask, dialog } = useDeleteDialog<StaffListItem>({
-        getUrl: (m) => personnelDestroy({ personnel: m.id }).url,
+        getUrl: (m) => personnelDestroy({ personnel: m.uuid }).url,
         getTitle: (m) => `Supprimer « ${m.name} » ?`,
         getDescription: () => 'Ce membre ne pourra plus se connecter. Ses visites et affectations passées restent consultables.',
         getSuccessMessage: (m) => `${m.name} a été supprimé.`,
@@ -299,7 +299,7 @@ function prettyPhone(phone: string) {
 
 /** Carte compacte : toute la carte ouvre la fiche ; Modifier / Supprimer sont dans le menu « ⋯ ». */
 function MemberCard({ member, onDelete }: { member: StaffListItem; onDelete?: () => void }) {
-    const showUrl = personnelShow({ personnel: member.id }).url;
+    const showUrl = personnelShow({ personnel: member.uuid }).url;
     const suspended = member.status === 'suspended';
     const onSite = !!member.on_site_now;
 

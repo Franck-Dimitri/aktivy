@@ -96,6 +96,7 @@ class DailyReportController extends Controller
             'currency' => $company->currency ?: 'XAF',
             'reports' => $reports->map(fn (DailyReport $r) => [
                 'id' => $r->id,
+                'uuid' => $r->uuid,
                 'status' => $r->status,
                 'agent_name' => $r->agent?->name,
                 'agent_phone' => $r->agent?->phone,
@@ -135,6 +136,7 @@ class DailyReportController extends Controller
             'can_correct' => $canReview && $dailyReport->isSubmitted() && ! $dailyReport->isValidated(),
             'report' => [
                 'id' => $dailyReport->id,
+                'uuid' => $dailyReport->uuid,
                 'status' => $dailyReport->status,
                 'report_date' => $dailyReport->report_date->toDateString(),
                 'date_label' => $dailyReport->report_date->translatedFormat('l j F Y'),
@@ -157,7 +159,7 @@ class DailyReportController extends Controller
                 'validated_by' => $dailyReport->validator?->name,
                 'notes' => $dailyReport->notes,
                 'incident_notes' => Incident::meaningful($dailyReport->incident_notes),
-                'photos' => $dailyReport->photos()->oldest()->get()->map->toView(),
+                'photos' => $dailyReport->photos()->oldest()->get()->map(fn ($p) => $p->toView() + ['uuid' => $p->uuid]),
                 'total_revenue' => $dailyReport->totalRevenue(),
                 'total_units_sold' => $dailyReport->totalUnitsSold(),
                 // Ventes en boutique extérieure, à part : hors stock du point de vente, non corrigeables ici

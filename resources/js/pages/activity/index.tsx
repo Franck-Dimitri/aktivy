@@ -27,6 +27,7 @@ type Hostess = {
     off_site: boolean;
     place: CheckinPlace | null;
     report_id: number | null;
+    report_uuid: string | null;
     report_status: 'draft' | 'submitted' | null;
     revenue: number;
     units_sold: number;
@@ -155,8 +156,8 @@ function HostessRow({ h, now, currency }: { h: Hostess; now: string; currency: s
             </div>
 
             <div className="flex items-center gap-2">
-                {h.report_id && (h.revenue > 0 || h.report_status) ? (
-                    <Link href={dailyReportShow({ dailyReport: h.report_id }).url} className="group hidden text-right sm:block" title="Ouvrir le rapport">
+                {h.report_uuid && (h.revenue > 0 || h.report_status) ? (
+                    <Link href={dailyReportShow({ dailyReport: h.report_uuid }).url} className="group hidden text-right sm:block" title="Ouvrir le rapport">
                         <span className="flex items-center justify-end gap-1 text-sm font-semibold whitespace-nowrap text-ink tabular-nums group-hover:text-motriks-deep">
                             {money(h.revenue, currency)}
                             <ArrowUpRight className="size-3.5 text-slate-300 group-hover:text-motriks" />
@@ -177,8 +178,8 @@ function HostessRow({ h, now, currency }: { h: Hostess; now: string; currency: s
             </div>
 
             {/* Ventes sous le nom sur mobile */}
-            {h.report_id && (h.revenue > 0 || h.report_status) ? (
-                <Link href={dailyReportShow({ dailyReport: h.report_id }).url} className="col-start-2 text-xs font-semibold text-ink tabular-nums sm:hidden">
+            {h.report_uuid && (h.revenue > 0 || h.report_status) ? (
+                <Link href={dailyReportShow({ dailyReport: h.report_uuid }).url} className="col-start-2 text-xs font-semibold text-ink tabular-nums sm:hidden">
                     {money(h.revenue, currency)} · {number.format(h.units_sold)} unités
                 </Link>
             ) : null}

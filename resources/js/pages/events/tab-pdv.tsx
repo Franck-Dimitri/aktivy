@@ -23,7 +23,7 @@ function AddPdvModal({ event, available, onClose }: { event: EventData; availabl
     const submit = (e: FormEvent) => {
         e.preventDefault();
         transform((d) => (mode === 'existing' ? { site_id: d.site_id } : { name: d.name, address: d.address, city: d.city }));
-        post(siteStore({ event: event.id }).url, { preserveScroll: true, onSuccess: onClose, onError: toastFormError });
+        post(siteStore({ event: event.uuid }).url, { preserveScroll: true, onSuccess: onClose, onError: toastFormError });
     };
 
     const canSubmit = mode === 'existing' ? data.site_id !== null : data.name.trim() !== '';
@@ -123,7 +123,7 @@ export function TabPdv({ event, companySites }: Props) {
 
     const remove = () => {
         if (!target) return;
-        router.delete(siteDestroy({ event: event.id, eventSite: target.id }).url, {
+        router.delete(siteDestroy({ event: event.uuid, eventSite: target.uuid }).url, {
             preserveScroll: true,
             onStart: () => setRemoving(true),
             onFinish: () => setRemoving(false),

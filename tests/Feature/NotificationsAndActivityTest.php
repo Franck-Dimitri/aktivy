@@ -100,7 +100,7 @@ class NotificationsAndActivityTest extends TestCase
 
     private function submit(DailyReport $report, int $sold, ?string $incident = null): void
     {
-        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $report->lines->first()->id, 'units_sold' => $sold]],
             'incident_notes' => $incident,
         ])->assertSessionHasNoErrors();

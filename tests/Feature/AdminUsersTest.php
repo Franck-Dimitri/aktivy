@@ -124,7 +124,7 @@ class AdminUsersTest extends TestCase
         $this->assertSoftDeleted($hostess);
         $this->assertSame(AffectationStatus::Completed, $affectation->fresh()->status);
 
-        $this->actingAs($this->admin)->post(route('admin.users.restore', $hostess->id));
+        $this->actingAs($this->admin)->post(route('admin.users.restore', $hostess->uuid));
         $this->assertNotSoftDeleted($hostess);
 
         foreach (['suspended', 'reactivated', 'deleted', 'restored'] as $action) {

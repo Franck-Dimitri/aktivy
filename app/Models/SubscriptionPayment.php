@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use App\Enums\Plan;
 use App\Models\Concerns\BelongsToCompany;
 use Carbon\CarbonImmutable;
@@ -30,6 +32,9 @@ use Illuminate\Support\Facades\DB;
 ])]
 class SubscriptionPayment extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     use BelongsToCompany;
 
     /** Moyens de paiement acceptés, avec leur libellé. */

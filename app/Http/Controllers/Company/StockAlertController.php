@@ -23,11 +23,13 @@ class StockAlertController extends Controller
             ->whereColumn('current_stock', '<=', 'alert_threshold')
             ->whereHas('site')
             ->whereHas('product')
-            ->with(['site:id,name,city', 'product:id,name,unit'])
+            ->with(['site:id,uuid,name,city', 'product:id,name,unit'])
             ->get()
             ->map(fn (SiteProduct $sp) => [
                 'id' => $sp->id,
+                'uuid' => $sp->uuid,
                 'site_id' => $sp->site_id,
+                'site_uuid' => $sp->site->uuid,
                 'site_name' => $sp->site->name,
                 'site_city' => $sp->site->city,
                 'product_name' => $sp->product->name,

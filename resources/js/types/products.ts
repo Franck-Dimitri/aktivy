@@ -1,5 +1,6 @@
 export type ProductListItem = {
     id: number;
+    uuid: string;
     name: string;
     sku: string | null;
     description: string | null;
@@ -30,6 +31,7 @@ export type ProductFormData = {
 
 export type SiteInventoryItem = {
     id: number;
+    uuid: string;
     product_id: number;
     product_name: string;
     product_sku: string | null;

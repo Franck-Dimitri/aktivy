@@ -21,6 +21,7 @@ class SalesController extends Controller
             'allLines.siteProduct.product:id,image',
             'allLines.product:id,image',
             'site:id,name,city',
+            'visit:id,uuid',
         ])
             ->where('user_id', $user->id)
             ->where('status', 'submitted')
@@ -67,6 +68,7 @@ class SalesController extends Controller
                         return [
                             'report_id'      => $r->id,
                             'visit_id'       => $r->visit_id,
+                            'visit_uuid'     => $r->visit->uuid,
                             'date'           => $r->report_date->toDateString(),
                             'date_formatted' => $r->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
                             'site_name'      => $r->site->name,

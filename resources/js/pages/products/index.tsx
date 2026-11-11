@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { Archive, FileText, ImagePlus, MoreHorizontal, Package, Pencil, Plus, RefreshCw, Search, Store, Tag, Trash2, Undo2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type FormEvent } from 'react';
 import { toast } from 'sonner';
@@ -36,14 +36,21 @@ const FALLBACK_UNITS = ['pièce', 'carton', 'kg', 'g', 'litre', 'ml', 'sachet', 
 
 /* ───────────────────────── Carte produit ───────────────────────── */
 
-function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; onEdit: () => void; onDelete: () => void }) {
+function ProductCard({ product, canEdit, onEdit, onDelete }: { product: ProductListItem; canEdit: boolean; onEdit: () => void; onDelete: () => void }) {
     const [imageFailed, setImageFailed] = useState(false);
     const deployed = product.sites_count > 0;
+    // Toute la carte ouvre la fenêtre de modification ; en consultation (comptable), c'est une simple fiche
+    const Body = canEdit ? 'button' : 'div';
 
     return (
         <article className="group relative flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5">
-            {/* Toute la carte ouvre la fenêtre de modification */}
-            <button type="button" onClick={onEdit} aria-label={`Modifier ${product.name}`} className="flex flex-1 cursor-pointer items-center gap-3.5 rounded-t-2xl p-4 pr-12 text-left focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset">
+            <Body
+                {...(canEdit ? { type: 'button' as const, onClick: onEdit, 'aria-label': `Modifier ${product.name}` } : {})}
+                className={cn(
+                    'flex flex-1 items-center gap-3.5 rounded-t-2xl p-4 text-left focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset',
+                    canEdit ? 'cursor-pointer pr-12' : 'cursor-default',
+                )}
+            >
                 {/* Vignette : jamais rognée, les marges blanches des photos se fondent dans le fond */}
                 <span className={cn('flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-200/70', !product.is_active && 'opacity-60')}>
                     {product.image_url && !imageFailed ? (
@@ -76,7 +83,7 @@ function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; 
                         )}
                     </span>
                 </span>
-            </button>
+            </Body>
 
             {/* Déploiement et référence */}
             <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-2.5 text-xs">
@@ -87,7 +94,8 @@ function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; 
                 {product.sku && <span className="truncate font-mono text-[11px] text-slate-400">{product.sku}</span>}
             </div>
 
-            {/* Actions */}
+            {/* Actions (gérant et superviseur) */}
+            {canEdit && (
             <div className="absolute top-3 right-3">
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
@@ -112,6 +120,7 @@ function ProductCard({ product, onEdit, onDelete }: { product: ProductListItem; 
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
+            )}
         </article>
     );
 }
@@ -443,7 +452,7 @@ function EditProductDialog({ product, units, onClose }: EditDialogProps) {
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        post(productUpdate({ product: product.id }).url, {
+        post(productUpdate({ product: product.uuid }).url, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
@@ -563,6 +572,8 @@ function EditProductDialog({ product, units, onClose }: EditDialogProps) {
 /* ─────────────────────────── Page ─────────────────────────── */
 
 export default function ProductsIndex({ products, stats, units }: Props) {
+    // Gérant et superviseur gèrent le catalogue ; le comptable le consulte (prix, déploiement)
+    const canEdit = usePage().props.auth.can.manageTeam;
     const [filter, setFilter] = useState<Filter>('all');
     const [query, setQuery] = useState('');
 
@@ -575,8 +586,8 @@ export default function ProductsIndex({ products, stats, units }: Props) {
     const [creating, setCreating] = useState(false);
     const closeCreate = useCallback(() => setCreating(false), []);
 
-    // Bouton « nouveau produit » : ouvre la fenêtre de création.
-    const newButton = (label: string) => (
+    // Bouton « nouveau produit » : ouvre la fenêtre de création (pas en consultation).
+    const newButton = (label: string) => !canEdit ? undefined : (
         <ActionButton type="button" onClick={() => setCreating(true)}>
             <span className="inline-flex items-center gap-2">
                 <Plus className="size-4" />
@@ -586,7 +597,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
     );
 
     const { ask, dialog } = useDeleteDialog<ProductListItem>({
-        getUrl: (p) => productDestroy({ product: p.id }).url,
+        getUrl: (p) => productDestroy({ product: p.uuid }).url,
         getTitle: (p) => `Archiver « ${p.name} » ?`,
         getDescription: () => 'Le produit sera retiré du catalogue. Vous pourrez toujours retrouver son historique.',
         getSuccessMessage: (p) => `« ${p.name} » a été archivé.`,
@@ -632,7 +643,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                         <EmptyState
                             icon={Package}
                             title="Aucun produit"
-                            description="Ajoutez vos produits pour les gérer sur vos points de vente."
+                            description={canEdit ? 'Ajoutez vos produits pour les gérer sur vos points de vente.' : 'Le catalogue de l’entreprise apparaîtra ici dès que le gérant y aura ajouté des produits.'}
                             action={newButton('Créer le premier produit')}
                         />
                     </Panel>
@@ -716,7 +727,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                         ) : (
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                                 {filtered.map((p) => (
-                                    <ProductCard key={p.id} product={p} onEdit={() => openEdit(p)} onDelete={() => ask(p)} />
+                                    <ProductCard key={p.id} product={p} canEdit={canEdit} onEdit={() => openEdit(p)} onDelete={() => ask(p)} />
                                 ))}
                             </div>
                         )}

@@ -123,7 +123,7 @@ class AdminPlatformTest extends TestCase
         $manager = User::where('email', 'paul@kalis.cm')->firstOrFail();
         auth()->logout();
 
-        $url = URL::temporarySignedRoute('invitation.accept', now()->addDays(7), ['user' => $manager->id]);
+        $url = URL::temporarySignedRoute('invitation.accept', now()->addDays(7), ['user' => $manager->uuid]);
 
         $response = $this->get($url);
         $response->assertRedirect();
@@ -149,7 +149,7 @@ class AdminPlatformTest extends TestCase
         $manager = User::factory()->mustChangePassword()->create();
 
         $this->get(route('invitation.accept', $manager))->assertForbidden();
-        $this->get(URL::temporarySignedRoute('invitation.accept', now()->subMinute(), ['user' => $manager->id]))->assertForbidden();
+        $this->get(URL::temporarySignedRoute('invitation.accept', now()->subMinute(), ['user' => $manager->uuid]))->assertForbidden();
     }
 
     public function test_the_company_page_shows_its_manager_and_can_be_corrected()

@@ -54,6 +54,7 @@ type Pack = {
 
 type Report = {
     id: number;
+    uuid: string;
     status: 'draft' | 'submitted';
     report_date: string;
     date_label: string;
@@ -163,7 +164,7 @@ export default function DailyReportShow({
 
     const save = () => {
         router.put(
-            dailyReportUpdate({ dailyReport: report.id }).url,
+            dailyReportUpdate({ dailyReport: report.uuid }).url,
             {
                 lines: report.lines.map((l) => ({
                     id: l.id,
@@ -193,7 +194,7 @@ export default function DailyReportShow({
         if (!confirm('Valider ce rapport ? Il ne pourra plus être corrigé.'))
             return;
         router.post(
-            dailyReportValidate({ dailyReport: report.id }).url,
+            dailyReportValidate({ dailyReport: report.uuid }).url,
             {},
             {
                 preserveScroll: true,
@@ -228,7 +229,7 @@ export default function DailyReportShow({
                             Rapports du jour
                         </ActionLink>
                         {usePage().props.auth.modules.includes('reporting') && (
-                        <a href={dailyReportPdf({ dailyReport: report.id }).url} download className={buttonClass('secondary', 'md')}>
+                        <a href={dailyReportPdf({ dailyReport: report.uuid }).url} download className={buttonClass('secondary', 'md')}>
                             <FileDown className="size-4" />
                             PDF
                         </a>

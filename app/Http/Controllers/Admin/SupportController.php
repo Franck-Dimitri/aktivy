@@ -24,7 +24,7 @@ use Throwable;
 class SupportController extends Controller
 {
     /**
-     * Boîte de réception. `?demande=ID` ouvre la demande dans la fenêtre de réponse (prop `selected`,
+     * Boîte de réception. `?demande=UUID` ouvre la demande dans la fenêtre de réponse (prop `selected`,
      * calculée seulement quand elle est demandée : l'ouverture recharge uniquement cette prop).
      */
     public function index(Request $request): Response
@@ -33,7 +33,8 @@ class SupportController extends Controller
         $status = array_key_exists((string) $status, SupportRequest::STATUSES) ? $status : null;
         $search = trim((string) $request->query('q', ''));
         $search = mb_substr($search, 0, 100);
-        $selectedId = $request->integer('demande') ?: null;
+        // Identifiant public (UUID) : un numéro ou un texte quelconque n'ouvre rien
+        $selectedUuid = Str::isUuid($selected = $request->string('demande')->toString()) ? $selected : null;
 
         $counts = SupportRequest::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
 
@@ -55,6 +56,7 @@ class SupportController extends Controller
                 ->appends($request->except(['demande', 'page']))
                 ->through(fn (SupportRequest $r) => [
                     'id' => $r->id,
+                    'uuid' => $r->uuid,
                     'source' => $r->source,
                     'topic' => $r->topic,
                     'name' => $r->name,
@@ -72,7 +74,7 @@ class SupportController extends Controller
                 'all' => (int) $counts->sum(),
                 ...collect(SupportRequest::STATUSES)->map(fn ($label, $key) => (int) ($counts[$key] ?? 0))->all(),
             ],
-            'selected' => fn () => $selectedId ? self::detail(SupportRequest::find($selectedId)) : null,
+            'selected' => fn () => $selectedUuid ? self::detail(SupportRequest::firstWhere('uuid', $selectedUuid)) : null,
             'insights' => fn () => self::insights(),
         ]);
     }
@@ -107,7 +109,7 @@ class SupportController extends Controller
     /** Lien direct vers une demande (notification, e-mail) : la boîte de réception, demande ouverte. */
     public function show(SupportRequest $supportRequest): RedirectResponse
     {
-        return redirect()->route('admin.support.index', ['demande' => $supportRequest->id]);
+        return redirect()->route('admin.support.index', ['demande' => $supportRequest->uuid]);
     }
 
     /** Date lisible : « il y a 5 minutes », « hier à 14:20 », puis la date complète. */
@@ -132,10 +134,11 @@ class SupportController extends Controller
             return null;
         }
 
-        $supportRequest->load(['company:id,name', 'user:id,name,role', 'replies.user:id,name']);
+        $supportRequest->load(['company:id,uuid,name', 'user:id,name,role', 'replies.user:id,name']);
 
         return [
             'id' => $supportRequest->id,
+            'uuid' => $supportRequest->uuid,
             'source' => $supportRequest->source,
             'source_label' => SupportRequest::SOURCES[$supportRequest->source] ?? $supportRequest->source,
             'topic' => $supportRequest->topic,
@@ -144,6 +147,7 @@ class SupportController extends Controller
             'phone' => $supportRequest->phone,
             'role' => $supportRequest->user?->role?->label(),
             'company_id' => $supportRequest->company_id,
+            'company_uuid' => $supportRequest->company?->uuid,
             'company' => $supportRequest->company?->name ?? $supportRequest->company_name,
             'message' => $supportRequest->message,
             'page' => $supportRequest->page,

@@ -86,7 +86,7 @@ class HelpController extends Controller
                 subjectLine: '['.config('app.name').'] '.$topic.' · '.($user->company->name ?? $user->name),
                 replyToEmail: $user->email,
                 replyToName: $user->name,
-                supportRequestId: $supportRequest->id,
+                supportRequestUuid: $supportRequest->uuid,
             ));
         } catch (Throwable $e) {
             // La demande est enregistrée : le support la verra dans l'administration

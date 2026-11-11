@@ -70,7 +70,7 @@ class ExternalSalesTest extends TestCase
     {
         $report = $this->checkIn();
 
-        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $this->line($report), 'units_sold' => 4]],
             'external_sales' => [
                 ['shop' => '  Boutique  Chez Mama ', 'product_id' => $this->soap->product_id, 'units' => 6],
@@ -113,12 +113,12 @@ class ExternalSalesTest extends TestCase
         $report = $this->checkIn();
         $other = $this->manager->company->products()->create(['name' => 'Lait', 'unit' => 'boîte', 'price' => 800]);
 
-        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit_id), [
+        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit), [
             'lines' => [['id' => $this->line($report), 'units_sold' => 0]],
             'external_sales' => [['shop' => 'Chez Mama', 'product_id' => $other->id, 'units' => 2]],
         ])->assertSessionHasErrors('external_sales');
 
-        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit_id), [
+        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit), [
             'lines' => [['id' => $this->line($report), 'units_sold' => 0]],
             'external_sales' => [['shop' => '   ', 'product_id' => $this->soap->product_id, 'units' => 2]],
         ])->assertSessionHasErrors('external_sales.0.shop');
@@ -131,21 +131,21 @@ class ExternalSalesTest extends TestCase
         $report = $this->checkIn();
         $lines = [['id' => $this->line($report), 'units_sold' => 0]];
 
-        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit_id), [
+        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit), [
             'lines' => $lines,
             'external_sales' => [['shop' => 'Chez Mama', 'product_id' => $this->soap->product_id, 'units' => 3]],
         ])->assertSessionHasNoErrors();
         $this->assertSame(3, (int) $report->externalLines()->sum('units_sold'));
 
         // Sans le champ (application pas encore mise à jour) : rien n'est effacé
-        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit_id), ['lines' => $lines])->assertSessionHasNoErrors();
+        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit), ['lines' => $lines])->assertSessionHasNoErrors();
         $this->assertSame(3, (int) $report->externalLines()->sum('units_sold'));
 
         // Liste vide : tout est retiré
-        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit_id), ['lines' => $lines, 'external_sales' => []])->assertSessionHasNoErrors();
+        $this->actingAs($this->agent)->put(route('terrain.report.update', $report->visit), ['lines' => $lines, 'external_sales' => []])->assertSessionHasNoErrors();
         $this->assertSame(0, $report->externalLines()->count());
 
-        $this->actingAs($this->agent)->get(route('terrain.report.show', $report->visit_id))->assertInertia(fn ($page) => $page
+        $this->actingAs($this->agent)->get(route('terrain.report.show', $report->visit))->assertInertia(fn ($page) => $page
             ->where('report.external_products.0.id', $this->soap->product_id)
             ->where('report.external_products.0.unit_price', 500));
     }
@@ -153,7 +153,7 @@ class ExternalSalesTest extends TestCase
     public function test_the_hostess_sees_her_stock_and_her_external_shops()
     {
         $report = $this->checkIn();
-        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $this->line($report), 'units_sold' => 35]],
             'external_sales' => [['shop' => 'Chez Mama', 'product_id' => $this->soap->product_id, 'units' => 2]],
         ])->assertSessionHasNoErrors();
@@ -174,7 +174,7 @@ class ExternalSalesTest extends TestCase
     public function test_the_hostess_downloads_the_pdf_of_her_own_reports_only_from_pro()
     {
         $report = $this->checkIn();
-        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $this->line($report), 'units_sold' => 2]],
             'external_sales' => [['shop' => 'Chez Mama', 'product_id' => $this->soap->product_id, 'units' => 2]],
         ])->assertSessionHasNoErrors();

@@ -99,6 +99,7 @@ type Report = {
 
 type VisitInfo = {
     id: number;
+    uuid: string;
     checked_in_at: string;
     checked_out_at: string | null;
     status: string;
@@ -620,7 +621,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             return;
         }
 
-        router.put(reportUpdate({ visit: visit.id }).url, { notes, lines: payloadLines(), packs: payloadPacks(), external_sales: externalPayload(externalShops) }, {
+        router.put(reportUpdate({ visit: visit.uuid }).url, { notes, lines: payloadLines(), packs: payloadPacks(), external_sales: externalPayload(externalShops) }, {
             // La saisie reste à l'écran : rien n'est rechargé
             preserveState: true,
             preserveScroll: true,
@@ -662,7 +663,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             queueReport({
                 reportId: report.id,
                 userId: auth.user.id,
-                url: reportSubmit({ visit: visit.id }).url,
+                url: reportSubmit({ visit: visit.uuid }).url,
                 payload: { ...payload, queued: true },
                 siteName: report.site_name,
             });
@@ -676,7 +677,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             return;
         }
 
-        router.post(reportSubmit({ visit: visit.id }).url, payload, {
+        router.post(reportSubmit({ visit: visit.uuid }).url, payload, {
             onNetworkError: () => {
                 queueForLater();
 
@@ -693,7 +694,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     }
 
     function submitFlag() {
-        router.post(reportFlag({ visit: visit.id }).url, { incident_notes: incidentNotes }, {
+        router.post(reportFlag({ visit: visit.uuid }).url, { incident_notes: incidentNotes }, {
             preserveScroll: true,
             onStart: () => setBusy('flag'),
             onSuccess: () => { toast.success('Signalement envoyé'); setStep('edit'); },
@@ -706,7 +707,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         if (visit.status !== 'in_progress') return;
         setBusy('checkout');
         const doCheckout = (lat?: number, lng?: number) => {
-            router.patch(visitCheckout({ visit: visit.id }).url, { latitude: lat ?? null, longitude: lng ?? null }, {
+            router.patch(visitCheckout({ visit: visit.uuid }).url, { latitude: lat ?? null, longitude: lng ?? null }, {
                 onSuccess: () => { toast.success('Service terminé !'); setConfirmCheckout(false); },
                 onError: toastFormError,
                 onFinish: () => setBusy(null),
@@ -918,8 +919,8 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     <ReportPhotos
                                         photos={report.photos}
                                         max={report.max_photos}
-                                        uploadUrl={photoStore({ visit: visit.id }).url}
-                                        deleteUrl={(photo) => photoDestroy({ visit: visit.id, photo }).url}
+                                        uploadUrl={photoStore({ visit: visit.uuid }).url}
+                                        deleteUrl={(photo) => photoDestroy({ visit: visit.uuid, photo }).url}
                                     />
                                 </SurfaceCard>
                                 )}
@@ -1244,7 +1245,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         <ReportPhotos
                                             photos={report.photos}
                                             max={report.max_photos}
-                                            uploadUrl={report.validated || !hasPhotos ? undefined : photoStore({ visit: visit.id }).url}
+                                            uploadUrl={report.validated || !hasPhotos ? undefined : photoStore({ visit: visit.uuid }).url}
                                         />
                                     </SurfaceCard>
                                 )}

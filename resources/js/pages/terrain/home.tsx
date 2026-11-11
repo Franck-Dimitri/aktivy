@@ -42,6 +42,7 @@ type Affectation = {
 
 type VisitInfo = {
     id: number;
+    uuid: string;
     status: 'in_progress' | 'completed' | 'incomplete';
     checked_in_at: string;
     checked_out_at: string | null;
@@ -66,7 +67,9 @@ type TrendPoint = { label: string; visits: number; revenue: number };
 
 type RecentReport = {
     id: number;
+    uuid: string;
     visit_id: number;
+    visit_uuid: string;
     site_name: string;
     report_date: string;
     report_date_iso: string;
@@ -424,7 +427,7 @@ function DayBar({
                     </p>
                 </div>
                 <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
-                    <Link href={reportShow({ visit: visit.id }).url} className={cn(primaryBtn, 'flex-1 sm:flex-none')}>
+                    <Link href={reportShow({ visit: visit.uuid }).url} className={cn(primaryBtn, 'flex-1 sm:flex-none')}>
                         <ClipboardList className="size-4" />
                         {visit.report_status === 'submitted' ? 'Voir mon rapport' : 'Saisir mes ventes'}
                     </Link>
@@ -467,7 +470,7 @@ function DayBar({
                 </div>
                 {visit.has_report && (
                     <Link
-                        href={reportShow({ visit: visit.id }).url}
+                        href={reportShow({ visit: visit.uuid }).url}
                         className={cn(
                             'inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-semibold whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none sm:w-auto',
                             submitted
@@ -623,7 +626,7 @@ export default function TerrainHome({
 
         const doCheckout = (lat?: number, lng?: number) => {
             router.patch(
-                visitCheckout({ visit: visit.id }).url,
+                visitCheckout({ visit: visit.uuid }).url,
                 { latitude: lat ?? null, longitude: lng ?? null },
                 {
                     onSuccess: () => {
@@ -786,7 +789,7 @@ export default function TerrainHome({
                                             return (
                                                 <li key={r.id}>
                                                     <Link
-                                                        href={reportShow({ visit: r.visit_id }).url}
+                                                        href={reportShow({ visit: r.visit_uuid }).url}
                                                         className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
                                                     >
                                                         <div className="flex size-10 shrink-0 flex-col items-center justify-center rounded-xl bg-green-50 text-center ring-1 ring-green-600/10 transition-colors ring-inset group-hover:bg-motriks group-hover:ring-0">

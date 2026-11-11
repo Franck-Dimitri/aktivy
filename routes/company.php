@@ -103,8 +103,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('objectifs-semaine', [WeeklyTargetController::class, 'show'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('weekly-targets.show');
             Route::post('objectifs-semaine', [WeeklyTargetController::class, 'store'])->middleware(EnsureModuleIsActive::using(Module::Reporting))->name('weekly-targets.store');
 
-            Route::resource('sites', SiteController::class)->except(['destroy']);
-            Route::resource('products', ProductController::class)->except(['show']);
+            // Liste et fiche des sites, catalogue : voir plus bas (aussi ouverts au comptable, en lecture)
+            Route::resource('sites', SiteController::class)->except(['destroy', 'index', 'show']);
+            Route::resource('products', ProductController::class)->except(['show', 'index']);
             Route::post('sites/{site}/photos', [SitePhotoController::class, 'store'])->name('sites.photos.store');
             Route::delete('sites/{site}/photos/{index}', [SitePhotoController::class, 'destroy'])->name('sites.photos.destroy');
             Route::resource('sites.inventory', SiteInventoryController::class)->only(['store', 'update', 'destroy']);
@@ -129,5 +130,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Demandes des hôtesses (tickets)
             Route::get('tickets', [TicketController::class, 'index'])->middleware(EnsureModuleIsActive::using(Module::Requests))->name('tickets.index');
             Route::put('tickets/{ticket}', [TicketController::class, 'update'])->middleware(EnsureModuleIsActive::using(Module::Requests))->name('tickets.update');
+        });
+
+    // Consultation : tous les sites et le catalogue, aussi pour le comptable (toute l'entreprise, en lecture).
+    // Déclarées après les routes de gestion : « sites/create » doit passer avant « sites/{site} ».
+    Route::middleware(EnsureUserHasRole::using(Role::CompanyAdmin, Role::Supervisor, Role::Accountant))
+        ->group(function () {
+            Route::resource('sites', SiteController::class)->only(['index', 'show']);
+            Route::get('products', [ProductController::class, 'index'])->name('products.index');
         });
 });

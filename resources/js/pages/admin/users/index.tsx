@@ -47,6 +47,7 @@ import {
 
 type User = {
     id: number;
+    uuid: string;
     name: string;
     email: string | null;
     phone: string | null;
@@ -58,7 +59,7 @@ type User = {
     last_login: string | null;
     created_at: string | null;
     deleted_at: string | null;
-    company: { id: number; name: string } | null;
+    company: { id: number; uuid: string; name: string } | null;
 };
 
 type Filters = { q: string; company: string; role: string; status: string };
@@ -162,10 +163,10 @@ export default function AdminUsers({
         if (!pending) return;
         const { user, kind } = pending;
         const url = {
-            suspend: userSuspend(user.id).url,
-            reactivate: userReactivate(user.id).url,
-            delete: userDestroy(user.id).url,
-            restore: userRestore(user.id).url,
+            suspend: userSuspend(user.uuid).url,
+            reactivate: userReactivate(user.uuid).url,
+            delete: userDestroy(user.uuid).url,
+            restore: userRestore(user.uuid).url,
         }[kind];
         setProcessing(true);
         post(url, kind === 'delete' ? 'delete' : 'post', () => {
@@ -447,7 +448,7 @@ function UserRow({
             <div role="cell" className="hidden min-w-0 text-sm lg:block">
                 {u.company ? (
                     <Link
-                        href={companyShow(u.company.id).url}
+                        href={companyShow(u.company.uuid).url}
                         className="inline-flex max-w-full items-center gap-1.5 text-slate-700 hover:text-motriks-deep hover:underline dark:text-slate-200"
                     >
                         <Building2 className="size-3.5 shrink-0 text-slate-400" />
@@ -526,7 +527,7 @@ function UserRow({
                                 {u.email && !u.verified && (
                                     <DropdownMenuItem
                                         onSelect={() =>
-                                            post(userVerification(u.id).url)
+                                            post(userVerification(u.uuid).url)
                                         }
                                     >
                                         <MailCheck />
@@ -536,7 +537,7 @@ function UserRow({
                                 {u.email && (
                                     <DropdownMenuItem
                                         onSelect={() =>
-                                            post(userPassword(u.id).url)
+                                            post(userPassword(u.uuid).url)
                                         }
                                     >
                                         <KeyRound />
@@ -604,7 +605,7 @@ function EditUserModal({
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(userUpdate(user.id).url, {
+        put(userUpdate(user.uuid).url, {
             preserveScroll: true,
             preserveState: true,
             onSuccess: onClose,

@@ -63,7 +63,7 @@ class RemindersTest extends TestCase
     {
         $now = now();
 
-        return DB::table('visits')->insertGetId(['company_id' => $this->hostess->company_id, 'site_id' => $this->site->id, 'user_id' => $this->hostess->id, 'checked_in_at' => "2026-11-05 {$at}:00", 'status' => 'in_progress', 'created_at' => $now, 'updated_at' => $now]);
+        return DB::table('visits')->insertGetId(['uuid' => (string) \Illuminate\Support\Str::uuid7(), 'company_id' => $this->hostess->company_id, 'site_id' => $this->site->id, 'user_id' => $this->hostess->id, 'checked_in_at' => "2026-11-05 {$at}:00", 'status' => 'in_progress', 'created_at' => $now, 'updated_at' => $now]);
     }
 
     public function test_the_hostess_is_reminded_before_her_shift_only_once()
@@ -110,7 +110,7 @@ class RemindersTest extends TestCase
     public function test_evening_reminders_for_the_hostess_and_the_managers()
     {
         $visit = $this->checkIn('07:55');
-        DB::table('daily_reports')->insert(['company_id' => $this->hostess->company_id, 'site_id' => $this->site->id, 'user_id' => $this->hostess->id, 'visit_id' => $visit, 'report_date' => '2026-11-05', 'status' => 'draft', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('daily_reports')->insert(['uuid' => (string) \Illuminate\Support\Str::uuid7(), 'company_id' => $this->hostess->company_id, 'site_id' => $this->site->id, 'user_id' => $this->hostess->id, 'visit_id' => $visit, 'report_date' => '2026-11-05', 'status' => 'draft', 'created_at' => now(), 'updated_at' => now()]);
 
         $this->runAt('18:40');
         Notification::assertSentTo($this->manager, ReminderNotification::class, fn ($n) => $n->type === 'missing_reports' && str_contains($n->body(), 'Awa'));
@@ -144,8 +144,8 @@ class RemindersTest extends TestCase
 
     public function test_managers_hear_about_low_stock_and_unanswered_requests()
     {
-        $product = DB::table('products')->insertGetId(['company_id' => $this->manager->company_id, 'name' => 'Jus', 'created_at' => now(), 'updated_at' => now()]);
-        DB::table('site_products')->insert(['company_id' => $this->manager->company_id, 'site_id' => $this->site->id, 'product_id' => $product, 'current_stock' => 2, 'alert_threshold' => 10, 'critical_threshold' => 3, 'created_at' => now(), 'updated_at' => now()]);
+        $product = DB::table('products')->insertGetId(['uuid' => (string) \Illuminate\Support\Str::uuid7(), 'company_id' => $this->manager->company_id, 'name' => 'Jus', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('site_products')->insert(['uuid' => (string) \Illuminate\Support\Str::uuid7(), 'company_id' => $this->manager->company_id, 'site_id' => $this->site->id, 'product_id' => $product, 'current_stock' => 2, 'alert_threshold' => 10, 'critical_threshold' => 3, 'created_at' => now(), 'updated_at' => now()]);
         $this->travelTo(CarbonImmutable::parse('2026-11-05 05:00', 'Africa/Douala'));
         $ticket = Ticket::create(['company_id' => $this->manager->company_id, 'user_id' => $this->hostess->id, 'subject' => 'Rupture', 'body' => 'Plus de jus.', 'priority' => 'normal', 'status' => 'open']);
 

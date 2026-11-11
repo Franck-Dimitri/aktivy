@@ -7,14 +7,14 @@ import { TextInput } from '@/components/page/form-fields';
 import { compressImage } from '@/lib/compress-image';
 import { toastFormError } from '@/lib/form-toast';
 
-export type ReportPhoto = { id: number; url: string; caption: string | null };
+export type ReportPhoto = { id: number; uuid: string; url: string; caption: string | null };
 
 type Props = {
     photos: ReportPhoto[];
     /** Adresse d'envoi : absente, la galerie est en lecture seule. */
     uploadUrl?: string;
-    /** Adresse de retrait d'une photo : absente, les photos ne peuvent pas être retirées. */
-    deleteUrl?: (photoId: number) => string;
+    /** Adresse de retrait d'une photo (par son uuid) : absente, les photos ne peuvent pas être retirées. */
+    deleteUrl?: (photoUuid: string) => string;
     max?: number;
 };
 
@@ -63,7 +63,7 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6 }: Props) {
     const remove = (photo: ReportPhoto) => {
         if (!deleteUrl || !confirm('Retirer cette photo ?')) return;
 
-        router.delete(deleteUrl(photo.id), {
+        router.delete(deleteUrl(photo.uuid), {
             preserveState: true,
             preserveScroll: true,
             onError: toastFormError,

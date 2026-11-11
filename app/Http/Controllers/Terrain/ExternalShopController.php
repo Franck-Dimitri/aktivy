@@ -28,6 +28,7 @@ class ExternalShopController extends Controller
         $lines = DailyReportLine::query()
             ->join('daily_reports as r', 'r.id', '=', 'daily_report_lines.daily_report_id')
             ->leftJoin('sites as s', 's.id', '=', 'r.site_id')
+            ->join('visits as v', 'v.id', '=', 'r.visit_id')
             ->where('r.user_id', $user->id)
             ->where('r.company_id', $user->company_id)
             ->whereNotNull('daily_report_lines.external_shop')
@@ -36,7 +37,7 @@ class ExternalShopController extends Controller
             ->orderBy('daily_report_lines.external_shop')
             ->get([
                 'daily_report_lines.*',
-                'r.report_date', 'r.status as report_status', 'r.visit_id', 's.name as site_name',
+                'r.report_date', 'r.status as report_status', 'r.visit_id', 'v.uuid as visit_uuid', 's.name as site_name',
             ]);
 
         $thisMonth = $lines->filter(fn ($l) => CarbonImmutable::parse($l->report_date)->gte($monthStart));
@@ -66,6 +67,7 @@ class ExternalShopController extends Controller
                     'date_label' => CarbonImmutable::parse($date)->locale('fr')->isoFormat('dddd D MMMM'),
                     'site_name' => $day->first()->site_name,
                     'visit_id' => $day->first()->visit_id,
+                    'visit_uuid' => $day->first()->visit_uuid,
                     'submitted' => $day->first()->report_status === 'submitted',
                     'revenue' => (float) $day->sum('revenue'),
                     'shops' => $day->groupBy('external_shop')->map(fn (Collection $g, string $shop) => [

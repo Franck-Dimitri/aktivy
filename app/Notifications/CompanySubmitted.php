@@ -10,7 +10,8 @@ use App\Models\Company;
  */
 class CompanySubmitted extends AppNotification
 {
-    private int $companyId;
+    /** Identifiant public de l'entreprise (UUID), pour le lien. */
+    private string $companyUuid;
 
     private string $name;
 
@@ -18,7 +19,7 @@ class CompanySubmitted extends AppNotification
 
     public function __construct(Company $company, private bool $resubmitted = false)
     {
-        $this->companyId = $company->id;
+        $this->companyUuid = $company->uuid;
         $this->name = $company->name;
         $this->city = $company->city;
     }
@@ -49,6 +50,6 @@ class CompanySubmitted extends AppNotification
 
     protected function route(): array
     {
-        return ['admin.onboarding.show', ['company' => $this->companyId]];
+        return ['admin.onboarding.show', ['company' => $this->companyUuid]];
     }
 }

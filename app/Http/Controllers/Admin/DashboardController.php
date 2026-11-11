@@ -60,6 +60,7 @@ class DashboardController extends Controller
             })
             ->map(fn (Company $c) => [
                 'id' => $c->id,
+                'uuid' => $c->uuid,
                 'name' => $c->name,
                 'last_report' => isset($lastReports[$c->id]) ? date('d/m/Y', strtotime($lastReports[$c->id])) : null,
                 'hostesses_count' => $c->hostesses_count,
@@ -75,6 +76,7 @@ class DashboardController extends Controller
             ->get()
             ->map(fn (Company $c) => [
                 'id' => $c->id,
+                'uuid' => $c->uuid,
                 'name' => $c->name,
                 'plan' => $c->plan->label(),
                 'ends_on' => $c->plan_ends_on->format('d/m/Y'),
@@ -86,14 +88,16 @@ class DashboardController extends Controller
             ->where('role', Role::CompanyAdmin)
             ->whereNull('email_verified_at')
             ->whereHas('company', fn ($q) => $q->whereIn('status', [AccountStatus::Active, AccountStatus::Pending]))
-            ->with('company:id,name')
+            ->with('company:id,uuid,name')
             ->latest()
             ->get()
             ->map(fn (User $u) => [
                 'id' => $u->id,
+                'uuid' => $u->uuid,
                 'name' => $u->name,
                 'email' => $u->email,
                 'company_id' => $u->company_id,
+                'company_uuid' => $u->company?->uuid,
                 'company' => $u->company?->name,
                 'invited' => (bool) $u->must_change_password,
                 'created_at' => $u->created_at?->format('d/m/Y'),
@@ -153,6 +157,7 @@ class DashboardController extends Controller
             'unverified_managers' => $unverified,
             'recent_companies' => Company::latest()->limit(5)->get()->map(fn (Company $c) => [
                 'id' => $c->id,
+                'uuid' => $c->uuid,
                 'name' => $c->name,
                 'status' => $c->status->value,
                 'created_at' => $c->created_at?->format('d/m/Y'),

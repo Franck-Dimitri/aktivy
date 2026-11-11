@@ -176,6 +176,17 @@ function baseMenu(role: Role): MenuGroup[] {
         });
     }
 
+    // Le comptable suit toute l'entreprise, en lecture : points de vente et catalogue
+    if (role === 'accountant') {
+        groups.push({
+            label: 'Entreprise',
+            items: [
+                { title: 'Sites', icon: MapPin, href: sitesIndex().url },
+                { title: 'Produits & prix', icon: Package, href: productsIndex().url },
+            ],
+        });
+    }
+
     if (role === 'company_admin') {
         groups.push({
             label: 'Entreprise',

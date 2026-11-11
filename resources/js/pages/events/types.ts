@@ -2,6 +2,7 @@ export type TabId = 'apercu' | 'pdv' | 'packs' | 'hotesses' | 'ventes';
 
 export type EventSite = {
     id: number;
+    uuid: string;
     name: string;
     address: string | null;
     city: string | null;
@@ -20,6 +21,7 @@ export type PackLine = {
 
 export type EventPack = {
     id: number;
+    uuid: string;
     name: string;
     description: string | null;
     type: 'grouped_discount' | 'buy_get_free';
@@ -31,6 +33,7 @@ export type EventPack = {
 
 export type EventHostess = {
     id: number;
+    uuid: string;
     user_id: number;
     name: string;
     phone: string | null;
@@ -62,6 +65,7 @@ export type EventSales = {
 
 export type EventData = {
     id: number;
+    uuid: string;
     name: string;
     description: string | null;
     status: 'draft' | 'active' | 'completed' | 'archived';

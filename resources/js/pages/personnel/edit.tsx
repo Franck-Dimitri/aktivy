@@ -13,6 +13,7 @@ import type { RoleOption, StatusOption } from '@/types';
 type Props = {
     member: {
         id: number;
+        uuid: string;
         name: string;
         phone: string | null;
         email: string | null;
@@ -39,7 +40,7 @@ export default function PersonnelEdit({ member, roles, statuses }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(personnelUpdate({ personnel: member.id }).url, {
+        put(personnelUpdate({ personnel: member.uuid }).url, {
             preserveScroll: true,
             onSuccess: () => toast.success('Membre mis à jour', { description: `Les informations de ${data.name} sont enregistrées.` }),
             onError: toastFormError,
@@ -111,7 +112,7 @@ export default function PersonnelEdit({ member, roles, statuses }: Props) {
                     </Panel>
 
                     <FormActions>
-                        <ActionLink href={personnelShow({ personnel: member.id }).url} variant="secondary">Annuler</ActionLink>
+                        <ActionLink href={personnelShow({ personnel: member.uuid }).url} variant="secondary">Annuler</ActionLink>
                         <ActionButton type="submit" loading={processing}>
                             {processing ? 'Enregistrement…' : 'Enregistrer'}
                         </ActionButton>

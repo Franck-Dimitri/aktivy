@@ -94,7 +94,7 @@ class NotificationCoverageTest extends TestCase
         $notification = $admin->notifications()->sole();
         $this->assertSame('signup', $notification->data['kind']);
         $this->assertStringStartsWith('Nouvelle inscription', $notification->data['title']);
-        $this->assertSame(route('admin.onboarding.show', $manager->company_id, absolute: false), $notification->data['url']);
+        $this->assertSame(route('admin.onboarding.show', $manager->company, absolute: false), $notification->data['url']);
     }
 
     public function test_a_resubmitted_file_is_flagged_as_such()

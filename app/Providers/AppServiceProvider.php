@@ -40,6 +40,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
+        // Motriks est en français : dates et durées (« il y a 2 minutes », « mardi 10 novembre »)
+        // quelle que soit la langue configurée dans .env
+        \Carbon\Carbon::setLocale('fr');
+        CarbonImmutable::setLocale('fr');
+
         DB::prohibitDestructiveCommands(
             app()->isProduction(),
         );

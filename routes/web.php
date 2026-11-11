@@ -148,7 +148,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('utilisateurs/{user}/suspendre', [AdminUserController::class, 'suspend'])->name('users.suspend');
             Route::post('utilisateurs/{user}/reactiver', [AdminUserController::class, 'reactivate'])->name('users.reactivate');
             Route::delete('utilisateurs/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
-            Route::post('utilisateurs/{user}/restaurer', [AdminUserController::class, 'restore'])->whereNumber('user')->name('users.restore');
+            // Compte supprimé : pas de liaison implicite (elle ignore les comptes supprimés), l'UUID est cherché à la main
+            Route::post('utilisateurs/{user}/restaurer', [AdminUserController::class, 'restore'])->whereUuid('user')->name('users.restore');
             Route::post('utilisateurs/{user}/confirmation', [AdminUserController::class, 'resendVerification'])->name('users.verification');
             Route::post('utilisateurs/{user}/mot-de-passe', [AdminUserController::class, 'sendPasswordReset'])->name('users.password');
 

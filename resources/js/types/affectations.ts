@@ -2,11 +2,14 @@ export type AffectationStatus = 'active' | 'completed' | 'cancelled';
 
 export type AffectationListItem = {
     id: number;
+    uuid: string;
     agent_id: number;
+    agent_uuid: string;
     agent_name: string;
     agent_role: string;
     agent_phone: string | null;
     site_id: number;
+    site_uuid: string;
     site_name: string;
     site_city: string;
     site_type: string;

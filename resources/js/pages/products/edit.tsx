@@ -11,6 +11,7 @@ import { index as productsIndex, update as productUpdate } from '@/routes/produc
 
 type ProductData = {
     id: number;
+    uuid: string;
     name: string;
     sku: string | null;
     description: string | null;
@@ -37,7 +38,7 @@ export default function ProductEdit({ product, units }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(productUpdate({ product: product.id }).url, {
+        post(productUpdate({ product: product.uuid }).url, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => toast.success('Produit mis à jour', { description: `Les modifications de « ${data.name} » sont enregistrées.` }),

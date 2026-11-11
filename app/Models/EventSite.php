@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +20,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['event_id', 'site_id', 'name', 'address', 'city'])]
 class EventSite extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);

@@ -66,6 +66,7 @@ class InvoiceController extends Controller
     {
         return [
             'id' => $p->id,
+            'uuid' => $p->uuid,
             'invoice_number' => $p->invoice_number,
             'amount' => $p->amount,
             'currency' => $p->currency,

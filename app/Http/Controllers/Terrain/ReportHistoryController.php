@@ -20,7 +20,7 @@ class ReportHistoryController extends Controller
 
         $reports = DailyReport::where('user_id', $user->id)
             ->where('company_id', $user->company_id)
-            ->with(['site:id,name', 'lines', 'lines.siteProduct.product:id,image', 'externalLines'])
+            ->with(['site:id,name', 'visit:id,uuid', 'lines','lines.siteProduct.product:id,image', 'externalLines'])
             ->latest('report_date')
             ->limit(30)
             ->get()
@@ -29,7 +29,9 @@ class ReportHistoryController extends Controller
 
                 return [
                     'id'               => $r->id,
+                    'uuid'             => $r->uuid,
                     'visit_id'         => $r->visit_id,
+                    'visit_uuid'       => $r->visit->uuid,
                     'site_name'        => $r->site->name,
                     'report_date'      => $r->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
                     'report_date_iso'  => $r->report_date->toDateString(),

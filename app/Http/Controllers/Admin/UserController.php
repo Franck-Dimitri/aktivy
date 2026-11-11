@@ -44,7 +44,7 @@ class UserController extends Controller
         ]);
 
         $users = $this->clients()
-            ->with('company:id,name,status')
+            ->with('company:id,uuid,name,status')
             ->when($filters['q'] ?? null, function (Builder $q, string $term) {
                 $like = '%'.Str::lower($term).'%';
                 $digits = preg_replace('/\D+/', '', $term);
@@ -207,9 +207,10 @@ class UserController extends Controller
         return back()->with('success', "{$user->name} est supprimé(e). Le compte peut être restauré.");
     }
 
-    public function restore(int $user): RedirectResponse
+    /** `$user` : UUID du compte supprimé (la liaison implicite ignore les comptes supprimés). */
+    public function restore(string $user): RedirectResponse
     {
-        $account = User::onlyTrashed()->findOrFail($user);
+        $account = User::onlyTrashed()->where('uuid', $user)->firstOrFail();
         $this->authorizeClient($account);
 
         $account->restore();
@@ -264,6 +265,7 @@ class UserController extends Controller
     {
         return [
             'id' => $u->id,
+            'uuid' => $u->uuid,
             'name' => $u->name,
             'email' => $u->email,
             'phone' => $u->phone,
@@ -275,7 +277,7 @@ class UserController extends Controller
             'last_login' => $u->last_login_at?->format('d/m/Y à H:i'),
             'created_at' => $u->created_at?->format('d/m/Y'),
             'deleted_at' => $u->deleted_at?->format('d/m/Y'),
-            'company' => $u->company ? ['id' => $u->company->id, 'name' => $u->company->name] : null,
+            'company' => $u->company ? ['id' => $u->company->id, 'uuid' => $u->company->uuid, 'name' => $u->company->name] : null,
         ];
     }
 }

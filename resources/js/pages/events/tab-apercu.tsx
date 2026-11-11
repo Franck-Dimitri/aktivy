@@ -132,7 +132,7 @@ export function TabApercu({ event, sales, onGoTo }: { event: EventData; sales: E
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        put(eventUpdate({ event: event.id }).url, { preserveScroll: true, onSuccess: () => setDefaults(), onError: toastFormError });
+        put(eventUpdate({ event: event.uuid }).url, { preserveScroll: true, onSuccess: () => setDefaults(), onError: toastFormError });
     };
 
     const days = data.start_date && data.end_date && data.end_date >= data.start_date ? totalDays(data.start_date, data.end_date) : null;

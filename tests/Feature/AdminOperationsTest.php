@@ -238,8 +238,8 @@ class AdminOperationsTest extends TestCase
 
         // Un lien direct ouvre la boîte de réception, demande ouverte dans la fenêtre de réponse
         $this->actingAs($this->admin)->get(route('admin.support.show', $tarifs))
-            ->assertRedirect(route('admin.support.index', ['demande' => $tarifs->id]));
-        $this->actingAs($this->admin)->get(route('admin.support.index', ['demande' => $tarifs->id]))
+            ->assertRedirect(route('admin.support.index', ['demande' => $tarifs->uuid]));
+        $this->actingAs($this->admin)->get(route('admin.support.index', ['demande' => $tarifs->uuid]))
             ->assertInertia(fn ($page) => $page->where('selected.id', $tarifs->id)->where('selected.email', 'awa@example.com')->has('selected.replies', 0));
 
         $this->actingAs($this->manager)->get(route('admin.support.index'))->assertForbidden();
@@ -266,7 +266,7 @@ class AdminOperationsTest extends TestCase
         AuditLog::record('reports.exported', $this->manager->company, new: ['format' => 'pdf']);
         $this->assertSame($this->admin->name, AuditLog::where('action', 'reports.exported')->first()->new_values['par_admin']);
 
-        $this->post(route('impersonation.stop'))->assertRedirect(route('admin.companies.show', $this->manager->company_id));
+        $this->post(route('impersonation.stop'))->assertRedirect(route('admin.companies.show', $this->manager->company));
         $this->assertAuthenticatedAs($this->admin);
         $this->assertNull(session(ImpersonationController::SESSION_KEY));
         $this->assertDatabaseHas('audit_logs', ['action' => 'admin.impersonation_started']);

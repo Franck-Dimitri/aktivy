@@ -23,6 +23,7 @@ import { money, number } from '../reports/format';
 
 type ReportRow = {
     id: number;
+    uuid: string;
     status: 'draft' | 'submitted';
     agent_name: string | null;
     agent_phone: string | null;
@@ -231,7 +232,7 @@ export default function DailyReportsIndex({
                                             <Link
                                                 href={
                                                     dailyReportShow({
-                                                        dailyReport: r.id,
+                                                        dailyReport: r.uuid,
                                                     }).url
                                                 }
                                                 className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition-colors hover:bg-green-50/40"

@@ -180,8 +180,10 @@ class SubscriptionController extends Controller
     {
         return $payments->map(fn (SubscriptionPayment $p) => [
             'id' => $p->id,
+            'uuid' => $p->uuid,
             'invoice_number' => $p->invoice_number,
             'company_id' => $p->company_id,
+            'company_uuid' => $p->company?->uuid,
             'company' => $p->company?->name,
             'amount' => $p->amount,
             'currency' => $p->currency,
@@ -228,6 +230,7 @@ class SubscriptionController extends Controller
 
         return [
             'id' => $company->id,
+            'uuid' => $company->uuid,
             'name' => $company->name,
             'status' => $company->status->value,
             'state' => $kind,

@@ -33,6 +33,7 @@ type Log = {
     user: string | null;
     user_email: string | null;
     company_id: number | null;
+    company_uuid: string | null;
     company: string | null;
     ip: string | null;
     at: string | null;
@@ -330,9 +331,9 @@ function LogRow({ log }: { log: Log }) {
 
             {/* Entreprise et adresse IP */}
             <div className="hidden min-w-0 text-xs lg:block">
-                {log.company_id ? (
+                {log.company_uuid ? (
                     <Link
-                        href={companyShow(log.company_id).url}
+                        href={companyShow(log.company_uuid).url}
                         className="flex min-w-0 items-center gap-1.5 font-medium text-slate-700 hover:text-motriks-deep dark:text-slate-200"
                     >
                         <Building2 className="size-3.5 shrink-0 text-slate-400" />

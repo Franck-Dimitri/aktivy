@@ -62,6 +62,7 @@ class DailyReportController extends Controller
         return Inertia::render('terrain/report', [
             'visit' => [
                 'id'             => $visit->id,
+                'uuid'           => $visit->uuid,
                 'checked_in_at'  => $visit->checked_in_at->format('H:i'),
                 'checked_out_at' => $visit->checked_out_at?->format('H:i'),
                 'status'         => $visit->status->value,
@@ -83,7 +84,8 @@ class DailyReportController extends Controller
                 'external_sales'    => ExternalSales::present($report),
                 'external_products' => ExternalSales::products($report),
                 'external_shops'    => ExternalSales::shopsUsedBy($request->user()),
-                'photos'           => $report->photos()->oldest()->get()->map->toView(),
+                // Identifiant public de la photo : adresse de retrait
+                'photos'           => $report->photos()->oldest()->get()->map(fn ($p) => $p->toView() + ['uuid' => $p->uuid]),
                 'max_photos'       => DailyReportPhoto::maxFor($report->company),
                 'lines' => $report->lines->map(fn ($l) => [
                     'restocked'     => $restocked[$l->id] ?? 0,

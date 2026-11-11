@@ -18,6 +18,7 @@ import { index as subscriptionsIndex, remind } from '@/routes/admin/subscription
 
 type Row = {
     id: number;
+    uuid: string;
     name: string;
     status: string;
     state: 'trial' | 'paying' | 'expired' | 'starter';
@@ -135,7 +136,7 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, packs,
             .sort((a, b) => Number(needsAttention(b)) - Number(needsAttention(a)));
     }, [inPlan, status, query]);
 
-    const sendReminder = (r: Row) => router.post(remind(r.id).url, {}, { preserveScroll: true, onError: toastFormError });
+    const sendReminder = (r: Row) => router.post(remind(r.uuid).url, {}, { preserveScroll: true, onError: toastFormError });
 
     const selectedPlan = byPlan.find((p) => p.key === planFilter);
 
@@ -327,7 +328,7 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, packs,
                                                 <CompanyAvatar name={r.name} muted={r.status === 'suspended'} className="size-11" />
                                                 <div className="min-w-0">
                                                     <Link
-                                                        href={companyShow(r.id).url}
+                                                        href={companyShow(r.uuid).url}
                                                         className="block truncate font-semibold text-ink hover:text-motriks-deep"
                                                     >
                                                         {r.name}
@@ -394,13 +395,13 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, packs,
                                                             </DropdownMenuItem>
                                                         )}
                                                         <DropdownMenuItem asChild>
-                                                            <Link href={companyPlan(r.id).url}>
+                                                            <Link href={companyPlan(r.uuid).url}>
                                                                 <Blocks />
                                                                 Changer de forfait
                                                             </Link>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem asChild>
-                                                            <Link href={companyShow(r.id).url}>
+                                                            <Link href={companyShow(r.uuid).url}>
                                                                 <Building2 />
                                                                 Voir la fiche
                                                             </Link>
@@ -419,7 +420,7 @@ export default function AdminSubscriptions({ rows, stats, plans, methods, packs,
 
             {paying && (
                 <RecordPaymentModal
-                    company={{ id: paying.id, name: paying.name }}
+                    company={{ uuid: paying.uuid, name: paying.name }}
                     plans={plans}
                     methods={methods}
                     packs={packs}

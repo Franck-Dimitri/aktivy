@@ -79,8 +79,8 @@ function toIso(date: string | null) {
 /* ───────────────────────── Carte affectation ───────────────────────── */
 
 function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void; onDelete: () => void }) {
-    const memberUrl = personnelShow({ personnel: a.agent_id }).url;
-    const siteUrl = siteShow({ site: a.site_id }).url;
+    const memberUrl = personnelShow({ personnel: a.agent_uuid }).url;
+    const siteUrl = siteShow({ site: a.site_uuid }).url;
     const ended = a.status !== 'active';
     const slot = a.slot_start && a.slot_end ? `${a.slot_start} – ${a.slot_end}` : null;
 
@@ -386,7 +386,7 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        put(affectationUpdate({ affectation: affectation.id }).url, {
+        put(affectationUpdate({ affectation: affectation.uuid }).url, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Affectation mise à jour', { description: 'Les modifications sont enregistrées.' });
@@ -554,7 +554,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
 
     const openEdit = (a: Item) => {
         if (!canEditInModal) {
-            router.visit(affectationEdit({ affectation: a.id }).url);
+            router.visit(affectationEdit({ affectation: a.uuid }).url);
             return;
         }
         setEditing(a);
@@ -576,7 +576,7 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
         );
 
     const { ask, dialog } = useDeleteDialog<AffectationListItem>({
-        getUrl: (a) => affectationDestroy({ affectation: a.id }).url,
+        getUrl: (a) => affectationDestroy({ affectation: a.uuid }).url,
         getTitle: () => 'Supprimer cette affectation ?',
         getDescription: (a) => `${a.agent_name} ne sera plus affecté(e) au site « ${a.site_name} ». Cette action est définitive.`,
         getSuccessMessage: (a) => `L'affectation de ${a.agent_name} a été supprimée.`,

@@ -94,7 +94,7 @@ class StockAndReviewTest extends TestCase
 
     private function submit(DailyReport $report, int $soaps, int $creams, array $packs = []): void
     {
-        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($this->agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [
                 ['id' => $this->lineOf($report, $this->soap), 'units_sold' => $soaps],
                 ['id' => $this->lineOf($report, $this->cream), 'units_sold' => $creams],
@@ -151,7 +151,7 @@ class StockAndReviewTest extends TestCase
         $report = $this->checkIn();
         $this->assertSame($event->id, $report->event_id);
 
-        $this->actingAs($this->agent)->get(route('terrain.report.show', $report->visit_id))
+        $this->actingAs($this->agent)->get(route('terrain.report.show', $report->visit))
             ->assertInertia(fn ($page) => $page->where('report.packs.0.value', 1500));
 
         // 3 savons à l'unité, 1 crème à l'unité, 2 packs

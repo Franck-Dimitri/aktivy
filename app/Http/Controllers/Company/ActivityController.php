@@ -86,6 +86,7 @@ class ActivityController extends Controller
                         // Lieu exact de la prise de service (sur place, autre point de vente, distance, carte)
                         'place' => $visit ? CheckinPlace::describe($visit, $a->site, $companySites) : null,
                         'report_id' => $report?->id,
+                        'report_uuid' => $report?->uuid,
                         'report_status' => $report?->status,
                         'revenue' => (float) ($report?->lines_sum_revenue ?? 0),
                         'units_sold' => (int) ($report?->lines_sum_units_sold ?? 0),

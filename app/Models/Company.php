@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPublicUuid;
+
 use App\Enums\AccountStatus;
 use App\Enums\Module;
 use App\Enums\Plan;
@@ -51,6 +53,9 @@ use Illuminate\Support\Str;
 ])]
 class Company extends Model
 {
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
+
     /** @use HasFactory<CompanyFactory> */
     use HasFactory, SoftDeletes;
 

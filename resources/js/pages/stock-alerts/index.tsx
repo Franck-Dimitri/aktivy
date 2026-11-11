@@ -15,7 +15,9 @@ import { index as stockAlertsIndex } from '@/routes/stock-alerts';
 
 type Alert = {
     id: number;
+    uuid: string;
     site_id: number;
+    site_uuid: string;
     site_name: string;
     site_city: string | null;
     product_name: string;
@@ -76,7 +78,7 @@ function RestockForm({ alert }: { alert: Alert }) {
     const submit = (e: FormEvent) => {
         e.preventDefault();
         router.post(
-            inventoryRestock({ site: alert.site_id, inventory: alert.id }).url,
+            inventoryRestock({ site: alert.site_uuid, inventory: alert.uuid }).url,
             { quantity: Number(quantity) },
             {
                 preserveScroll: true,
@@ -205,7 +207,7 @@ export default function StockAlertsIndex({ alerts }: { alerts: Alert[] }) {
                                                             <StatusBadge tone={a.level === 'critical' ? 'danger' : 'warning'}>{a.level === 'critical' ? 'Critique' : 'Alerte'}</StatusBadge>
                                                         </div>
                                                         <p className="mt-0.5 truncate text-xs text-slate-500">
-                                                            <Link href={siteShow(a.site_id).url} className="font-medium text-slate-600 hover:text-motriks-deep hover:underline dark:text-slate-300">
+                                                            <Link href={siteShow(a.site_uuid).url} className="font-medium text-slate-600 hover:text-motriks-deep hover:underline dark:text-slate-300">
                                                                 {a.site_name}
                                                             </Link>
                                                             {a.site_city && ` · ${a.site_city}`}

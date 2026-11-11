@@ -165,7 +165,7 @@ export default function Invoices({ invoices, summary, client }: Props) {
                                                     <Eye />
                                                     Voir
                                                 </button>
-                                                <a href={invoiceDownload(i.id).url} download className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
+                                                <a href={invoiceDownload(i.uuid).url} download className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
                                                     <Download />
                                                     PDF
                                                 </a>

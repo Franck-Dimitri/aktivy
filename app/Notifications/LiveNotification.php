@@ -84,7 +84,7 @@ class LiveNotification extends TextNotification
         return new self('report_submitted', 'report',
             "Rapport envoyé · {$report->agent?->name}",
             "{$report->site?->name} : ".self::fcfa($report->totalRevenue()).", {$report->totalUnitsSold()} unités vendues.",
-            'daily-reports.show', ['dailyReport' => $report->id]);
+            'daily-reports.show', ['dailyReport' => $report->uuid]);
     }
 
     public static function photoAdded(DailyReport $report, ?string $caption): self
@@ -92,7 +92,7 @@ class LiveNotification extends TextNotification
         return new self('photo_added', 'photo',
             "Nouvelle photo · {$report->agent?->name}",
             $report->site?->name.($caption ? " : « {$caption} »" : ' : une preuve photo a été jointe au rapport.'),
-            'daily-reports.show', ['dailyReport' => $report->id]);
+            'daily-reports.show', ['dailyReport' => $report->uuid]);
     }
 
     // ── Affectations ─────────────────────────────────────────────────────

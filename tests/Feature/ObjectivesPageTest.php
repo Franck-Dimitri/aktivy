@@ -49,10 +49,10 @@ class ObjectivesPageTest extends TestCase
     {
         $now = now();
         $company = $h->company_id;
-        $product = DB::table('products')->insertGetId(['company_id' => $company, 'name' => "Jus {$h->id}", 'created_at' => $now, 'updated_at' => $now]);
-        $stock = DB::table('site_products')->insertGetId(['company_id' => $company, 'site_id' => $this->site->id, 'product_id' => $product, 'created_at' => $now, 'updated_at' => $now]);
-        $visit = DB::table('visits')->insertGetId(['company_id' => $company, 'site_id' => $this->site->id, 'user_id' => $h->id, 'checked_in_at' => "$date 08:00:00", 'status' => 'completed', 'created_at' => $now, 'updated_at' => $now]);
-        $report = DB::table('daily_reports')->insertGetId(['company_id' => $company, 'site_id' => $this->site->id, 'user_id' => $h->id, 'visit_id' => $visit, 'report_date' => $date, 'status' => 'submitted', 'created_at' => $now, 'updated_at' => $now]);
+        $product = DB::table('products')->insertGetId(['uuid' => (string) \Illuminate\Support\Str::uuid7(), 'company_id' => $company, 'name' => "Jus {$h->id}", 'created_at' => $now, 'updated_at' => $now]);
+        $stock = DB::table('site_products')->insertGetId(['uuid' => (string) \Illuminate\Support\Str::uuid7(), 'company_id' => $company, 'site_id' => $this->site->id, 'product_id' => $product, 'created_at' => $now, 'updated_at' => $now]);
+        $visit = DB::table('visits')->insertGetId(['uuid' => (string) \Illuminate\Support\Str::uuid7(), 'company_id' => $company, 'site_id' => $this->site->id, 'user_id' => $h->id, 'checked_in_at' => "$date 08:00:00", 'status' => 'completed', 'created_at' => $now, 'updated_at' => $now]);
+        $report = DB::table('daily_reports')->insertGetId(['uuid' => (string) \Illuminate\Support\Str::uuid7(), 'company_id' => $company, 'site_id' => $this->site->id, 'user_id' => $h->id, 'visit_id' => $visit, 'report_date' => $date, 'status' => 'submitted', 'created_at' => $now, 'updated_at' => $now]);
         DB::table('daily_report_lines')->insert(['daily_report_id' => $report, 'site_product_id' => $stock, 'product_name' => 'Jus', 'unit' => 'bouteille', 'units_sold' => 1, 'revenue' => $revenue, 'created_at' => $now, 'updated_at' => $now]);
     }
 

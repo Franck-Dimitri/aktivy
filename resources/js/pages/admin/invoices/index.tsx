@@ -18,6 +18,7 @@ import { index as subscriptionsIndex, invoice as invoiceDownload } from '@/route
 
 type Invoice = InvoiceItem & {
     company_id: number;
+    company_uuid: string | null;
     company: string | null;
     extra_packs: number;
     period_start: string | null;
@@ -34,7 +35,7 @@ type Props = {
 };
 
 /** Adresses admin du PDF (objet stable, hors du composant). */
-const ADMIN_URLS: InvoiceUrls = { preview: (id) => invoicePreview(id).url, download: (id) => invoiceDownload(id).url };
+const ADMIN_URLS: InvoiceUrls = { preview: (uuid) => invoicePreview(uuid).url, download: (uuid) => invoiceDownload(uuid).url };
 
 const fcfa = (n: number) => (
     <>
@@ -193,13 +194,17 @@ export default function AdminInvoices({ invoices, filters, years, methods, summa
                                             <div className="flex min-w-0 items-center gap-3">
                                                 <CompanyAvatar name={i.company ?? '?'} className="size-9 text-xs" />
                                                 <div className="min-w-0">
-                                                    <Link
-                                                        href={companyShow(i.company_id).url}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        className="block truncate text-sm font-semibold text-ink hover:text-motriks-deep hover:underline"
-                                                    >
-                                                        {i.company ?? 'Entreprise supprimée'}
-                                                    </Link>
+                                                    {i.company_uuid ? (
+                                                        <Link
+                                                            href={companyShow(i.company_uuid).url}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="block truncate text-sm font-semibold text-ink hover:text-motriks-deep hover:underline"
+                                                        >
+                                                            {i.company ?? 'Entreprise supprimée'}
+                                                        </Link>
+                                                    ) : (
+                                                        <p className="truncate text-sm font-semibold text-ink">{i.company ?? 'Entreprise supprimée'}</p>
+                                                    )}
                                                     <p className="truncate text-xs text-slate-500">
                                                         {i.method}
                                                         {i.reference ? ` · réf. ${i.reference}` : ''}
@@ -236,7 +241,7 @@ export default function AdminInvoices({ invoices, filters, years, methods, summa
                                                     <Eye />
                                                     Voir
                                                 </button>
-                                                <a href={invoiceDownload(i.id).url} download className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
+                                                <a href={invoiceDownload(i.uuid).url} download className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
                                                     <Download />
                                                     PDF
                                                 </a>

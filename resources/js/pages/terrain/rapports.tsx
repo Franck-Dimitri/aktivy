@@ -28,7 +28,9 @@ type ReportLine = {
 
 type Report = {
     id: number;
+    uuid: string;
     visit_id: number;
+    visit_uuid: string;
     site_name: string;
     report_date: string;
     report_date_iso: string;
@@ -143,7 +145,7 @@ function PdfButton({ report, pdf, className }: { report: Report; pdf: PdfAccess;
     }
 
     return (
-        <a href={reportPdf({ dailyReport: report.id }).url} download className={cn(buttonClass('secondary'), 'h-10 rounded-xl', className)}>
+        <a href={reportPdf({ dailyReport: report.uuid }).url} download className={cn(buttonClass('secondary'), 'h-10 rounded-xl', className)}>
             <Download />
             PDF
         </a>
@@ -246,7 +248,7 @@ function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess;
                     Fermer
                 </button>
                 <PdfButton report={report} pdf={pdf} />
-                <ActionLink href={reportShow({ visit: report.visit_id }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
+                <ActionLink href={reportShow({ visit: report.visit_uuid }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
                     Ouvrir le rapport
                 </ActionLink>
             </footer>
@@ -288,7 +290,7 @@ function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
                     </div>
                     <div className="flex items-center gap-2">
                         <PdfButton report={report} pdf={pdf} />
-                        <ActionLink href={reportShow({ visit: report.visit_id }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
+                        <ActionLink href={reportShow({ visit: report.visit_uuid }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
                             Ouvrir
                         </ActionLink>
                     </div>
@@ -453,7 +455,7 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
                     {content}
                 </button>
             ) : (
-                <Link href={reportShow({ visit: report.visit_id }).url} className={rowClass}>
+                <Link href={reportShow({ visit: report.visit_uuid }).url} className={rowClass}>
                     {content}
                 </Link>
             )}

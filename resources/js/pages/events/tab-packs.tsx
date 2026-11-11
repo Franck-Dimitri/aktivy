@@ -141,9 +141,9 @@ function PackModal({ event, products, pack, onClose }: { event: EventData; produ
         });
         const options = { preserveScroll: true, onSuccess: onClose, onError: toastFormError };
         if (pack) {
-            put(packUpdate({ event: event.id, pack: pack.id }).url, options);
+            put(packUpdate({ event: event.uuid, pack: pack.uuid }).url, options);
         } else {
-            post(packStore({ event: event.id }).url, options);
+            post(packStore({ event: event.uuid }).url, options);
         }
     };
 
@@ -363,7 +363,7 @@ export function TabPacks({ event, companyProducts }: Props) {
 
     const remove = () => {
         if (!target) return;
-        router.delete(packDestroy({ event: event.id, pack: target.id }).url, {
+        router.delete(packDestroy({ event: event.uuid, pack: target.uuid }).url, {
             preserveScroll: true,
             onStart: () => setRemoving(true),
             onFinish: () => setRemoving(false),

@@ -4,6 +4,7 @@ export type TicketStatus = 'open' | 'in_review' | 'closed';
 
 export type Ticket = {
     id: number;
+    uuid: string;
     subject: string;
     body: string;
     priority: 'normal' | 'urgent';

@@ -25,7 +25,7 @@ export type CatalogPlan = {
 };
 
 type Props = {
-    company: { id: number; name: string };
+    company: { id: number; uuid: string; name: string };
     plan: PlanState;
     plans: CatalogPlan[];
     packs: PackCatalog;
@@ -169,7 +169,7 @@ export default function AdminCompanyPlan({ company, plan, plans, packs }: Props)
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(planUpdate(company.id).url, { preserveScroll: true, onError: toastFormError });
+        put(planUpdate(company.uuid).url, { preserveScroll: true, onError: toastFormError });
     };
 
     const currentText = plan.expired
@@ -190,7 +190,7 @@ export default function AdminCompanyPlan({ company, plan, plans, packs }: Props)
                     </>
                 }
                 actions={
-                    <Link href={companyShow(company.id).url} className={buttonClass('secondary')}>
+                    <Link href={companyShow(company.uuid).url} className={buttonClass('secondary')}>
                         <ArrowLeft />
                         Retour à la fiche
                     </Link>

@@ -20,6 +20,7 @@ class ProductController extends Controller
             ->get()
             ->map(fn (Product $p) => [
                 'id'               => $p->id,
+                'uuid'             => $p->uuid,
                 'name'             => $p->name,
                 'sku'              => $p->sku,
                 'description'      => $p->description,
@@ -91,6 +92,7 @@ class ProductController extends Controller
         return Inertia::render('products/edit', [
             'product' => [
                 'id'          => $product->id,
+                'uuid'        => $product->uuid,
                 'name'        => $product->name,
                 'sku'         => $product->sku,
                 'description' => $product->description,

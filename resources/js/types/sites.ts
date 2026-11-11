@@ -12,6 +12,7 @@ export type SiteStatus = 'active' | 'inactive' | 'suspended';
 
 export type SiteListItem = {
     id: number;
+    uuid: string;
     name: string;
     code: string | null;
     type: SiteType;
@@ -27,6 +28,7 @@ export type SiteListItem = {
 
 export type SiteDetail = {
     id: number;
+    uuid: string;
     name: string;
     code: string | null;
     type: SiteType;
@@ -50,6 +52,7 @@ export type SiteDetail = {
 
 export type SiteFormData = {
     id?: number;
+    uuid?: string;
     name: string;
     code: string | null;
     type: SiteType;
@@ -71,7 +74,9 @@ export type SiteStatusOption = { value: SiteStatus; label: string };
 
 export type SiteAffectation = {
     id: number;
+    uuid: string;
     agent_id: number;
+    agent_uuid: string;
     agent_name: string;
     agent_phone: string | null;
     starts_on: string;
@@ -83,7 +88,9 @@ export type SiteAffectation = {
 
 export type SiteVisit = {
     id: number;
+    uuid: string;
     agent_id: number;
+    agent_uuid: string;
     agent_name: string;
     checked_in_at: string;
     checked_out_at: string | null;

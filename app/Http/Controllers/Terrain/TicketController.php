@@ -24,6 +24,7 @@ class TicketController extends Controller
             ->get()
             ->map(fn (Ticket $t) => [
                 'id'           => $t->id,
+                'uuid'         => $t->uuid,
                 'subject'      => $t->subject,
                 'body'         => $t->body,
                 'priority'     => $t->priority,

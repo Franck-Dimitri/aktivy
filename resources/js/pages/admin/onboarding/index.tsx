@@ -13,6 +13,7 @@ import { CompanyAvatar, MetricRow, QuietEmpty, Segmented } from '@/components/pa
 
 type Company = {
     id: number;
+    uuid: string;
     name: string;
     sector: string | null;
     city: string | null;
@@ -122,7 +123,7 @@ export default function AdminOnboardingIndex({ companies, incomplete, flash }: P
                             {shown.map((c) => (
                                 <li key={c.id}>
                                     <Link
-                                        href={onboardingShow({ company: c.id }).url}
+                                        href={onboardingShow({ company: c.uuid }).url}
                                         className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-slate-50/80 focus-visible:bg-slate-50 focus-visible:outline-none sm:px-5 dark:hover:bg-white/[0.03]"
                                     >
                                         <CompanyAvatar name={c.name} muted={c.status === 'rejected'} />

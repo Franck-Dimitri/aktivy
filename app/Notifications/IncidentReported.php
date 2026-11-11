@@ -10,7 +10,8 @@ use Illuminate\Support\Str;
  */
 class IncidentReported extends AppNotification
 {
-    private int $reportId;
+    /** Identifiant public du rapport (UUID), pour le lien. */
+    private string $reportUuid;
 
     private string $site;
 
@@ -20,7 +21,7 @@ class IncidentReported extends AppNotification
 
     public function __construct(DailyReport $report)
     {
-        $this->reportId = $report->id;
+        $this->reportUuid = $report->uuid;
         $this->site = $report->site?->name ?? 'un point de vente';
         $this->agent = $report->agent?->name ?? 'Une hôtesse';
         $this->incident = Str::limit((string) $report->incident_notes, 200);
@@ -58,6 +59,6 @@ class IncidentReported extends AppNotification
 
     protected function route(): array
     {
-        return ['daily-reports.show', ['dailyReport' => $this->reportId]];
+        return ['daily-reports.show', ['dailyReport' => $this->reportUuid]];
     }
 }

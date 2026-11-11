@@ -38,6 +38,7 @@ class PersonnelController extends Controller
             ->get()
             ->map(fn (User $u) => [
                 'id'           => $u->id,
+                'uuid'         => $u->uuid,
                 'name'         => $u->name,
                 'role'         => $u->role->value,
                 'role_label'   => $u->role->label(),
@@ -120,13 +121,15 @@ class PersonnelController extends Controller
 
         // Current affectations with site info
         $affectations = $personnel->affectations()
-            ->with('site:id,name,city,type')
+            ->with('site:id,uuid,name,city,type')
             ->where('status', 'active')
             ->orderBy('starts_on')
             ->get()
             ->map(fn ($a) => [
                 'id'         => $a->id,
+                'uuid'       => $a->uuid,
                 'site_id'    => $a->site_id,
+                'site_uuid'  => $a->site->uuid,
                 'site_name'  => $a->site->name,
                 'site_city'  => $a->site->city,
                 'site_type'  => $a->site->type->label(),
@@ -156,6 +159,7 @@ class PersonnelController extends Controller
         return Inertia::render('personnel/show', [
             'member' => [
                 'id'           => $personnel->id,
+                'uuid'         => $personnel->uuid,
                 'name'         => $personnel->name,
                 'role'         => $personnel->role->value,
                 'role_label'   => $personnel->role->label(),
@@ -167,6 +171,7 @@ class PersonnelController extends Controller
             'stats'        => $stats,
             'documents'    => $personnel->documents()->with('uploader:id,name')->latest()->get()->map(fn (StaffDocument $d) => [
                 'id'          => $d->id,
+                'uuid'        => $d->uuid,
                 'type_label'  => StaffDocument::TYPES[$d->type] ?? $d->type,
                 'title'       => $d->title,
                 'size'        => $d->size,
@@ -193,6 +198,7 @@ class PersonnelController extends Controller
         return Inertia::render('personnel/edit', [
             'member' => [
                 'id'     => $personnel->id,
+                'uuid'   => $personnel->uuid,
                 'name'   => $personnel->name,
                 'phone'  => $personnel->phone,
                 'email'  => $personnel->email,

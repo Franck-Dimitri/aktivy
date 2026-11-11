@@ -84,6 +84,7 @@ class DashboardController extends Controller
             ->get()
             ->map(fn (Site $s) => [
                 'id'            => $s->id,
+                'uuid'          => $s->uuid,
                 'name'          => $s->name,
                 'type_label'    => $s->type->label(),
                 'city'          => $s->city,

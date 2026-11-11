@@ -15,6 +15,7 @@ import { CompanyAvatar, MetricRow, QuietEmpty, Segmented } from '@/components/pa
 
 type Company = {
     id: number;
+    uuid: string;
     name: string;
     city: string | null;
     email: string | null;
@@ -106,7 +107,7 @@ export default function AdminCompanies({ companies, sectors }: { companies: Comp
     const confirmToggle = () => {
         if (!target) return;
         router.post(
-            (suspending ? suspend(target.id) : reactivate(target.id)).url,
+            (suspending ? suspend(target.uuid) : reactivate(target.uuid)).url,
             {},
             {
                 preserveScroll: true,
@@ -225,7 +226,7 @@ export default function AdminCompanies({ companies, sectors }: { companies: Comp
                                             <CompanyAvatar name={c.name} muted={c.status !== 'active'} />
                                             <div className="min-w-0">
                                                 <Link
-                                                    href={companyShow(c.id).url}
+                                                    href={companyShow(c.uuid).url}
                                                     className="block truncate text-sm font-semibold text-ink hover:text-motriks-deep hover:underline"
                                                 >
                                                     {c.name}
@@ -272,11 +273,11 @@ export default function AdminCompanies({ companies, sectors }: { companies: Comp
                                                 <LastReport date={c.last_report} />
                                             </span>
                                             <div className="flex items-center gap-2">
-                                                <Link href={onboardingShow(c.id).url} className={buttonClass('ghost', 'sm')}>
+                                                <Link href={onboardingShow(c.uuid).url} className={buttonClass('ghost', 'sm')}>
                                                     <FileText />
                                                     Dossier
                                                 </Link>
-                                                <Link href={companyPlan(c.id).url} className={buttonClass('ghost', 'sm')}>
+                                                <Link href={companyPlan(c.uuid).url} className={buttonClass('ghost', 'sm')}>
                                                     <Blocks />
                                                     Forfait
                                                 </Link>

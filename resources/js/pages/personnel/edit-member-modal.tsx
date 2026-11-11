@@ -11,6 +11,7 @@ import type { RoleOption, StatusOption } from '@/types';
 
 type Member = {
     id: number;
+    uuid: string;
     name: string;
     phone: string | null;
     email: string | null;
@@ -42,7 +43,7 @@ export function EditMemberModal({ member, roles, statuses, onClose }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(personnelUpdate({ personnel: member.id }).url, {
+        put(personnelUpdate({ personnel: member.uuid }).url, {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Membre mis à jour', { description: `Les informations de ${data.name} sont enregistrées.` });

@@ -15,6 +15,7 @@ type Day = {
     date_label: string;
     site_name: string | null;
     visit_id: number;
+    visit_uuid: string;
     submitted: boolean;
     revenue: number;
     shops: { shop: string; revenue: number; lines: Line[] }[];
@@ -135,7 +136,7 @@ export default function TerrainBoutiques({ summary, shops, days }: Props) {
                                                 <Money amount={day.revenue} />
                                             </p>
                                             <ActionLink
-                                                href={reportShow({ visit: day.visit_id }).url}
+                                                href={reportShow({ visit: day.visit_uuid }).url}
                                                 variant="secondary"
                                                 size="sm"
                                                 icon={<ArrowRight className="order-last" />}

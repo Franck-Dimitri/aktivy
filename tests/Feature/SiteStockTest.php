@@ -68,7 +68,7 @@ class SiteStockTest extends TestCase
             'critical_threshold' => 5,
         ])->assertSessionHasNoErrors();
 
-        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit_id), [
+        $this->actingAs($agent)->post(route('terrain.report.submit', $report->visit), [
             'lines' => [['id' => $report->lines->first()->id, 'units_sold' => 3]],
         ])->assertSessionHasNoErrors();
 

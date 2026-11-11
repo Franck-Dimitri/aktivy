@@ -42,6 +42,7 @@ class DataExportController extends Controller
                 ->value('created_at'),
             'export' => $export ? [
                 'id' => $export->id,
+                'uuid' => $export->uuid,
                 // Un export prêt dont le fichier a expiré n'est plus proposé
                 'status' => $export->status === DataExport::READY && ! $export->downloadable() ? 'expired' : $export->status,
                 'size' => $export->size ? DataExportNotification::humanSize($export->size) : null,

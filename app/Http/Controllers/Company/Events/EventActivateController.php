@@ -9,6 +9,7 @@ use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class EventActivateController extends Controller
 {
@@ -72,7 +73,9 @@ class EventActivateController extends Controller
                 continue;
             }
 
+            // Insertion directe (sans le modèle) : l'identifiant public est fourni ici
             DB::table('affectations')->insert([
+                'uuid'        => (string) Str::uuid7(),
                 'company_id'  => $event->company_id,
                 'event_id'    => $event->id,
                 'site_id'     => $siteId,

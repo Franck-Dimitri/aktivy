@@ -28,7 +28,7 @@ class CompanyPlanController extends Controller
     public function edit(Company $company): Response
     {
         return Inertia::render('admin/companies/plan', [
-            'company' => ['id' => $company->id, 'name' => $company->name],
+            'company' => ['id' => $company->id, 'uuid' => $company->uuid, 'name' => $company->name],
             'plan' => PlanPresenter::state($company),
             'plans' => PlanPresenter::catalog(),
             'packs' => Plan::packCatalog(),

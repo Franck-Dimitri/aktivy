@@ -54,6 +54,7 @@ import { invoice as invoiceDownload, remind as subscriptionRemind } from '@/rout
 
 type Company = {
     id: number;
+    uuid: string;
     name: string;
     status: 'active' | 'pending' | 'rejected' | 'suspended';
     sector: string | null;
@@ -70,6 +71,7 @@ type Company = {
 
 type Manager = {
     id: number;
+    uuid: string;
     name: string;
     email: string | null;
     phone: string | null;
@@ -119,7 +121,7 @@ const STATUS: Record<Company['status'], { label: string; tone: StatusTone }> = {
 };
 
 /** Adresses admin du PDF des factures (objet stable, hors du composant). */
-const ADMIN_URLS: InvoiceUrls = { preview: (id) => invoicePreview(id).url, download: (id) => invoiceDownload(id).url };
+const ADMIN_URLS: InvoiceUrls = { preview: (uuid) => invoicePreview(uuid).url, download: (uuid) => invoiceDownload(uuid).url };
 
 type Tab = 'overview' | 'billing' | 'team' | 'products' | 'history';
 
@@ -150,7 +152,7 @@ function EditCompanyModal({ company, sectors, onClose }: { company: Company; sec
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(companyUpdate(company.id).url, {
+        put(companyUpdate(company.uuid).url, {
             preserveScroll: true,
             onSuccess: onClose,
             onError: toastFormError,
@@ -217,12 +219,12 @@ function EditCompanyModal({ company, sectors, onClose }: { company: Company; sec
 }
 
 function ManagerCard({
-    companyId,
+    companyUuid,
     companyActive,
     manager,
     onEdit,
 }: {
-    companyId: number;
+    companyUuid: string;
     companyActive: boolean;
     manager: Manager;
     onEdit: () => void;
@@ -276,8 +278,8 @@ function ManagerCard({
                             onClick={() =>
                                 post(
                                     managerInvitation({
-                                        company: companyId,
-                                        user: manager.id,
+                                        company: companyUuid,
+                                        user: manager.uuid,
                                     }).url,
                                 )
                             }
@@ -294,8 +296,8 @@ function ManagerCard({
                                     onClick={() =>
                                         post(
                                             managerVerification({
-                                                company: companyId,
-                                                user: manager.id,
+                                                company: companyUuid,
+                                                user: manager.uuid,
                                             }).url,
                                         )
                                     }
@@ -310,8 +312,8 @@ function ManagerCard({
                                 onClick={() =>
                                     post(
                                         managerPassword({
-                                            company: companyId,
-                                            user: manager.id,
+                                            company: companyUuid,
+                                            user: manager.uuid,
                                         }).url,
                                     )
                                 }
@@ -333,8 +335,8 @@ function ManagerCard({
                                             return;
                                         router.post(
                                             managerImpersonate({
-                                                company: companyId,
-                                                user: manager.id,
+                                                company: companyUuid,
+                                                user: manager.uuid,
                                             }).url,
                                             {},
                                             { onError: toastFormError },
@@ -353,7 +355,7 @@ function ManagerCard({
 }
 
 /** Corriger le nom, l'e-mail ou le téléphone du gérant ; une nouvelle adresse doit être confirmée. */
-function EditManagerModal({ companyId, manager, onClose }: { companyId: number; manager: Manager; onClose: () => void }) {
+function EditManagerModal({ companyUuid, manager, onClose }: { companyUuid: string; manager: Manager; onClose: () => void }) {
     const { data, setData, put, processing, errors } = useForm({
         name: manager.name,
         email: manager.email ?? '',
@@ -364,7 +366,7 @@ function EditManagerModal({ companyId, manager, onClose }: { companyId: number; 
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(managerUpdate({ company: companyId, user: manager.id }).url, {
+        put(managerUpdate({ company: companyUuid, user: manager.uuid }).url, {
             preserveScroll: true,
             onSuccess: onClose,
             onError: toastFormError,
@@ -407,7 +409,7 @@ function EditManagerModal({ companyId, manager, onClose }: { companyId: number; 
 }
 
 /** Forfait : nom, état, échéance, jauges d'utilisation. */
-function PlanCard({ plan, companyId }: { plan: PlanState; companyId: number }) {
+function PlanCard({ plan, companyUuid }: { plan: PlanState; companyUuid: string }) {
     const state = plan.expired
         ? { label: 'Expiré', className: 'bg-red-50 text-red-700 ring-red-600/15' }
         : plan.key === 'starter'
@@ -439,7 +441,7 @@ function PlanCard({ plan, companyId }: { plan: PlanState; companyId: number }) {
                         {plan.monthly_price > 0 ? number.format(plan.monthly_price) : '0'}{' '}
                         <span className="text-xs font-normal text-slate-500">FCFA / mois</span>
                     </p>
-                    <Link href={companyPlan(companyId).url} className="text-xs font-semibold text-motriks-deep hover:underline">
+                    <Link href={companyPlan(companyUuid).url} className="text-xs font-semibold text-motriks-deep hover:underline">
                         Changer de forfait
                     </Link>
                 </div>
@@ -481,7 +483,7 @@ function PaymentsList({ payments, onPreview }: { payments: Payment[]; onPreview:
                             <Eye />
                             Voir
                         </button>
-                        <a href={invoiceDownload(p.id).url} download className={buttonClass('secondary', 'sm')}>
+                        <a href={invoiceDownload(p.uuid).url} download className={buttonClass('secondary', 'sm')}>
                             <Download />
                             PDF
                         </a>
@@ -508,7 +510,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
 
     const toggle = () =>
         router.post(
-            (suspending ? suspend(company.id) : reactivate(company.id)).url,
+            (suspending ? suspend(company.uuid) : reactivate(company.uuid)).url,
             {},
             {
                 preserveScroll: true,
@@ -520,7 +522,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
             },
         );
 
-    const remind = () => router.post(subscriptionRemind(company.id).url, {}, { preserveScroll: true, onError: toastFormError });
+    const remind = () => router.post(subscriptionRemind(company.uuid).url, {}, { preserveScroll: true, onError: toastFormError });
 
     const openPreview = (p: Payment) => {
         setPreview(p);
@@ -560,7 +562,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                 {managers.map((m) => (
                     <ManagerCard
                         key={m.id}
-                        companyId={company.id}
+                        companyUuid={company.uuid}
                         companyActive={company.status === 'active'}
                         manager={m}
                         onEdit={() => setEditingManager(m)}
@@ -612,7 +614,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-60 rounded-xl p-1.5">
                                 <DropdownMenuItem asChild>
-                                    <Link href={companyPlan(company.id).url}>
+                                    <Link href={companyPlan(company.uuid).url}>
                                         <Blocks />
                                         Changer de forfait
                                     </Link>
@@ -625,7 +627,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                                 )}
                                 {company.has_file && (
                                     <DropdownMenuItem asChild>
-                                        <Link href={onboardingShow(company.id).url}>
+                                        <Link href={onboardingShow(company.uuid).url}>
                                             <FileText />
                                             Dossier d’inscription
                                         </Link>
@@ -712,7 +714,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
 
                         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
                             <div className="flex min-w-0 flex-col gap-6">
-                                <PlanCard plan={plan} companyId={company.id} />
+                                <PlanCard plan={plan} companyUuid={company.uuid} />
                                 <Card title={managers.length > 1 ? 'Gérants' : 'Gérant'}>{managersList}</Card>
                             </div>
 
@@ -732,7 +734,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
                                     <LegalDocumentsList
                                         documents={documents}
                                         compact
-                                        uploadUrl={(type) => documentStore({ company: company.id, type }).url}
+                                        uploadUrl={(type) => documentStore({ company: company.uuid, type }).url}
                                     />
                                 </Card>
 
@@ -777,7 +779,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
 
                 {tab === 'billing' && (
                     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                        <PlanCard plan={plan} companyId={company.id} />
+                        <PlanCard plan={plan} companyUuid={company.uuid} />
                         <Card
                             title="Paiements et factures"
                             aside={
@@ -876,7 +878,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
 
             {paying && (
                 <RecordPaymentModal
-                    company={{ id: company.id, name: company.name }}
+                    company={{ uuid: company.uuid, name: company.name }}
                     plans={billing.plans}
                     methods={billing.methods}
                     packs={billing.packs}
@@ -889,7 +891,7 @@ export default function AdminCompanyShow({ company, managers, team, sites, usage
 
             {editing && <EditCompanyModal company={company} sectors={sectors} onClose={() => setEditing(false)} />}
 
-            {editingManager && <EditManagerModal companyId={company.id} manager={editingManager} onClose={() => setEditingManager(null)} />}
+            {editingManager && <EditManagerModal companyUuid={company.uuid} manager={editingManager} onClose={() => setEditingManager(null)} />}
 
             <InvoicePreviewModal invoice={preview} open={previewOpen} onClose={() => setPreviewOpen(false)} client={company.name} urls={ADMIN_URLS} />
 

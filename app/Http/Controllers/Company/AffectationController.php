@@ -31,17 +31,20 @@ class AffectationController extends Controller
 
         $affectations = $company->affectations()
             ->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds))
-            ->with(['agent:id,name,role,phone', 'site:id,name,city,type'])
+            ->with(['agent:id,uuid,name,role,phone', 'site:id,uuid,name,city,type'])
             ->orderByRaw("CASE status WHEN 'active' THEN 0 ELSE 1 END")
             ->orderByDesc('starts_on')
             ->get()
             ->map(fn (Affectation $a) => [
                 'id'          => $a->id,
+                'uuid'        => $a->uuid,
                 'agent_id'    => $a->user_id,
+                'agent_uuid'  => $a->agent->uuid,
                 'agent_name'  => $a->agent->name,
                 'agent_role'  => $a->agent->role->value,
                 'agent_phone' => $a->agent->phone,
                 'site_id'     => $a->site_id,
+                'site_uuid'   => $a->site->uuid,
                 'site_name'   => $a->site->name,
                 'site_city'   => $a->site->city,
                 'site_type'   => $a->site->type->label(),
@@ -199,6 +202,7 @@ class AffectationController extends Controller
         return Inertia::render('affectations/edit', [
             'affectation' => [
                 'id'         => $affectation->id,
+                'uuid'       => $affectation->uuid,
                 'site_id'    => $affectation->site_id,
                 'user_id'    => $affectation->user_id,
                 'starts_on'  => $affectation->starts_on->format('Y-m-d'),

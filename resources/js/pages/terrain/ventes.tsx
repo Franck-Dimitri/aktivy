@@ -26,6 +26,7 @@ type SaleLine = {
 type SaleDay = {
     report_id: number;
     visit_id: number;
+    visit_uuid: string;
     date: string;
     date_formatted: string;
     site_name: string;
@@ -234,7 +235,7 @@ function DayRow({ day, defaultOpen = false }: { day: SaleDay; defaultOpen?: bool
                     )}
 
                     <Link
-                        href={reportShow({ visit: day.visit_id }).url}
+                        href={reportShow({ visit: day.visit_uuid }).url}
                         className="mt-1.5 inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                     >
                         Voir le rapport complet

@@ -34,7 +34,8 @@
             {{-- L'application installée n'affiche jamais la page d'accueil : direction l'espace de l'utilisateur
                  ou la connexion (route /app), avant tout affichage. Couvre aussi les installations dont
                  l'adresse de démarrage est encore « / ». --}}
-            <script>
+            {{-- nonce : seul script en ligne autorisé par la politique de contenu (SecurityHeaders) --}}
+            <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
                 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
                     window.location.replace('/app');
                 }

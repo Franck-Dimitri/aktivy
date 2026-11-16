@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\PersonalDataExportController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 /* @chisel-password-confirmation */
@@ -12,6 +13,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // « Mes données » : ce que Motriks garde sur la personne connectée, en classeur Excel (droit d'accès)
+    Route::get('settings/mes-donnees', PersonalDataExportController::class)
+        ->middleware('throttle:5,60')
+        ->name('personal-data.export');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

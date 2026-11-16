@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Enums\Role;
 use App\Jobs\RecordPageView;
+use App\Support\Traffic\GeoIp;
 use App\Support\Traffic\UserAgent;
 use Closure;
 use Illuminate\Http\Request;
@@ -114,9 +115,14 @@ class TrackPageView
     /** Pays fourni par Cloudflare (CF-IPCountry) quand le site passe par lui ; rien n'est déduit de l'IP ici. */
     private function country(Request $request): ?string
     {
+        // Derrière Cloudflare, le pays est fourni ; sinon il est lu dans la base locale DB-IP (geoip:update)
         $country = strtoupper((string) $request->header('CF-IPCountry'));
 
-        return preg_match('/^[A-Z]{2}$/', $country) && ! in_array($country, ['XX', 'T1'], true) ? $country : null;
+        if (preg_match('/^[A-Z]{2}$/', $country) && ! in_array($country, ['XX', 'T1'], true)) {
+            return $country;
+        }
+
+        return app(GeoIp::class)->country($request->ip());
     }
 
     /**

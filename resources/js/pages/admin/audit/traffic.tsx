@@ -426,11 +426,26 @@ export default function AdminTraffic(props: Props) {
                                         empty="Aucune langue transmise."
                                     />
                                 </Panel>
-                                <Panel title="Pays">
+                                <Panel
+                                    title="Pays"
+                                    description="Déduit de l’adresse IP sur le serveur, qui n’est jamais conservée."
+                                >
                                     <RankedList
                                         rows={props.countries}
-                                        empty="Le pays s’affiche lorsque le site est servi par Cloudflare (en-tête CF-IPCountry) : aucune géolocalisation n’est faite à partir de l’adresse IP."
+                                        empty="Aucun pays sur cette période : le pays des visiteurs est enregistré à partir du 16 novembre 2026."
                                     />
+                                    <p className="px-5 pb-4 text-[11px] text-slate-400">
+                                        Géolocalisation :{' '}
+                                        <a
+                                            href="https://db-ip.com"
+                                            target="_blank"
+                                            rel="noopener"
+                                            className="underline hover:text-slate-600"
+                                        >
+                                            IP Geolocation by DB-IP
+                                        </a>{' '}
+                                        (CC BY 4.0).
+                                    </p>
                                 </Panel>
                             </div>
                         </>

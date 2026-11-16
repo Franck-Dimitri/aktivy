@@ -52,5 +52,8 @@ Schedule::command('model:prune')->hourly()->withoutOverlapping();
 // 12 mois, données personnelles des comptes supprimés depuis 90 jours (cf. PurgeOldDataCommand)
 Schedule::command('data:purge')->dailyAt('03:45')->withoutOverlapping();
 
+// Base des pays des visiteurs (DB-IP Lite, publiée chaque mois) : statistiques de trafic par pays
+Schedule::command('geoip:update')->monthlyOn(5, '04:15')->withoutOverlapping();
+
 // File d'attente : tâches échouées gardées 30 jours pour analyse (php artisan queue:failed), puis effacées
 Schedule::command('queue:prune-failed', ['--hours' => 720])->dailyAt('03:30');

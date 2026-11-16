@@ -62,7 +62,7 @@ class StockLedger
             return null;
         }
 
-        $stock->update(['current_stock' => $after, 'updated_by' => $by->id ?? $stock->updated_by]);
+        $stock->update(['current_stock' => $after, 'updated_by' => $by?->id ?? $stock->updated_by]);
 
         // Passage sous un seuil : les responsables du site sont prévenus (une fois, au franchissement).
         // Le seuil critique prime : un stock qui tombe d'un coup sous les deux n'envoie que l'alerte critique.

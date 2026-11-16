@@ -50,6 +50,6 @@ class EventSite extends Model
 
     public function displayName(): string
     {
-        return $this->site->name ?? $this->name ?? 'PDV sans nom';
+        return $this->site?->name ?? $this->name ?? 'PDV sans nom';
     }
 }

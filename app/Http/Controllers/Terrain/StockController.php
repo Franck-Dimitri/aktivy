@@ -35,8 +35,8 @@ class StockController extends Controller
 
             return [
                 'id' => $a->site_id,
-                'name' => $a->site->name,
-                'city' => $a->site->city,
+                'name' => $a->site?->name,
+                'city' => $a->site?->city,
                 'updated_at' => $stocks->max('updated_at')?->locale('fr')->isoFormat('D MMM à HH:mm'),
                 'totals' => [
                     'products' => $stocks->count(),

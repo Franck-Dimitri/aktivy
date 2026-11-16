@@ -71,7 +71,7 @@ class LiveNotification extends TextNotification
                 : "{$hostess->name} a pris son service",
         };
 
-        $body = "{$visit->site->name} · arrivée à {$visit->checked_in_at->format('H:i')} · {$place['short']}.";
+        $body = "{$visit->site?->name} · arrivée à {$visit->checked_in_at->format('H:i')} · {$place['short']}.";
         if ($deferred) {
             $body .= " Pointage reçu à {$visit->checkin_synced_at->format('H:i')} : heure donnée par le téléphone, à vérifier.";
         }
@@ -86,23 +86,23 @@ class LiveNotification extends TextNotification
 
         return new self('shift_ended', 'presence',
             "{$hostess->name} a terminé sa journée",
-            "{$visit->site->name} · départ à {$visit->checked_out_at->format('H:i')} ({$duration} de présence).",
+            "{$visit->site?->name} · départ à {$visit->checked_out_at->format('H:i')} ({$duration} de présence).",
             'activity.index');
     }
 
     public static function reportSubmitted(DailyReport $report): self
     {
         return new self('report_submitted', 'report',
-            "Rapport envoyé · {$report->agent->name}",
-            "{$report->site->name} : ".self::fcfa($report->totalRevenue()).", {$report->totalUnitsSold()} unités vendues.",
+            "Rapport envoyé · {$report->agent?->name}",
+            "{$report->site?->name} : ".self::fcfa($report->totalRevenue()).", {$report->totalUnitsSold()} unités vendues.",
             'daily-reports.show', ['dailyReport' => $report->uuid]);
     }
 
     public static function photoAdded(DailyReport $report, ?string $caption): self
     {
         return new self('photo_added', 'photo',
-            "Nouvelle photo · {$report->agent->name}",
-            $report->site->name.($caption ? " : « {$caption} »" : ' : une preuve photo a été jointe au rapport.'),
+            "Nouvelle photo · {$report->agent?->name}",
+            $report->site?->name.($caption ? " : « {$caption} »" : ' : une preuve photo a été jointe au rapport.'),
             'daily-reports.show', ['dailyReport' => $report->uuid]);
     }
 
@@ -114,7 +114,7 @@ class LiveNotification extends TextNotification
 
         return new self('assigned_to_site', 'assignment',
             'Nouvelle affectation',
-            "{$affectation->site->name} à partir du {$affectation->starts_on->format('d/m/Y')}{$slot}.",
+            "{$affectation->site?->name} à partir du {$affectation->starts_on->format('d/m/Y')}{$slot}.",
             $forHostess ? 'terrain.planning' : 'dashboard');
     }
 
@@ -125,7 +125,7 @@ class LiveNotification extends TextNotification
      */
     public static function assignedToSites(Collection $affectations): self
     {
-        $names = $affectations->map(fn (Affectation $a) => $a->site->name)->filter()->values();
+        $names = $affectations->map(fn (Affectation $a) => $a->site?->name)->filter()->values();
         $shown = $names->count() > 3
             ? $names->take(2)->implode(', ').' et '.($names->count() - 2).' autres'
             : $names->slice(0, -1)->implode(', ').($names->count() > 1 ? ' et ' : '').$names->last();

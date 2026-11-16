@@ -54,7 +54,7 @@ class CompanyPlanController extends Controller
         }
 
         $old = [
-            'plan' => $company->plan->value,
+            'plan' => $company->plan?->value,
             'ends_on' => $company->plan_ends_on?->toDateString(),
             'trial' => (bool) $company->plan_trial,
             'extra_packs' => (int) $company->plan_extra_packs,

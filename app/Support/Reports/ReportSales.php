@@ -61,7 +61,7 @@ class ReportSales
 
         return (int) round($pack->lines
             ->where('role', 'paid')
-            ->sum(fn ($l) => $l->quantity * ($l->unit_price ?? $linesByProduct->get($l->product_id)->unit_price ?? 0)));
+            ->sum(fn ($l) => $l->quantity * ($l->unit_price ?? $linesByProduct->get($l->product_id)?->unit_price ?? 0)));
     }
 
     /**
@@ -153,7 +153,7 @@ class ReportSales
     public static function restocked(DailyReport $report, ?Collection $lines = null): array
     {
         $lines ??= $report->lines()->get();
-        $since = $report->visit->checked_in_at;
+        $since = $report->visit?->checked_in_at;
 
         $bySiteProduct = StockMovement::where('type', StockMovement::RESTOCK)
             ->whereIn('site_product_id', $lines->pluck('site_product_id'))

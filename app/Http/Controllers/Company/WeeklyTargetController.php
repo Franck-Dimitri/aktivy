@@ -107,8 +107,8 @@ class WeeklyTargetController extends Controller
             foreach ($data['targets'] as $row) {
                 $userId = $row['user_id'];
                 $desired = (int) ($row['amount'] ?? 0);
-                $before = (int) ($inherited->get($userId)->amount ?? 0);
-                $current = (int) ($atWeek->get($userId)->amount ?? $before);
+                $before = (int) ($inherited->get($userId)?->amount ?? 0);
+                $current = (int) ($atWeek->get($userId)?->amount ?? $before);
 
                 if ($desired === $current) {
                     continue;

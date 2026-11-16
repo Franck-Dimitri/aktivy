@@ -13,3 +13,12 @@ parameters:
         - routes/
 
     level: 7
+
+    # Les types des commentaires (@property, relations) ne valent pas preuve : une relation vers un élément
+    # supprimé, une recherche dans une liste peuvent donner null. Sans cela, PHPStan poussait à retirer des
+    # « ?-> » nécessaires (erreurs 500 sur « Mes ventes » en novembre 2026).
+    treatPhpDocTypesAsCertain: false
+
+    # « ?-> » jugé inutile : garder une protection inutile ne coûte rien, la retirer à tort casse une page
+    ignoreErrors:
+        - identifier: nullsafe.neverNull

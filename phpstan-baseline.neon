@@ -43,20 +43,8 @@ parameters:
 			path: app/Http/Controllers/Company/SiteController.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: app/Http/Controllers/Company/SiteController.php
-
-		-
 			message: '#^PHPDoc tag @return with type Illuminate\\Support\\Collection\<string, int\> is incompatible with native type void\.$#'
 			identifier: return.phpDocType
-			count: 1
-			path: app/Http/Controllers/Company/SiteController.php
-
-		-
-			message: '#^Using nullsafe method call on non\-nullable type App\\Enums\\Role\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/Company/SiteController.php
 

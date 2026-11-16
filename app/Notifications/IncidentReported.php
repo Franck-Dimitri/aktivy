@@ -22,8 +22,8 @@ class IncidentReported extends AppNotification
     public function __construct(DailyReport $report)
     {
         $this->reportUuid = $report->uuid;
-        $this->site = $report->site->name;
-        $this->agent = $report->agent->name;
+        $this->site = $report->site?->name ?? 'un point de vente';
+        $this->agent = $report->agent?->name ?? 'Une hôtesse';
         $this->incident = Str::limit((string) $report->incident_notes, 200);
     }
 

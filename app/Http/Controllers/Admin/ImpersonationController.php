@@ -38,6 +38,8 @@ class ImpersonationController extends Controller
         AuditLog::record('admin.impersonation_started', $user, new: ['admin' => $admin->name, 'manager' => $user->name]);
 
         $request->session()->put(self::SESSION_KEY, $admin->id);
+        // La confirmation du mot de passe de l'administrateur ne vaut pas pour le compte du gérant
+        $request->session()->forget('auth.password_confirmed_at');
         app()->instance(self::SWITCHING, true);
         Auth::guard('web')->login($user);
 

@@ -20,7 +20,9 @@ type ModalProps = {
  */
 export function Modal({ onClose, title, description, size = 'md', icon, children }: ModalProps) {
     useEffect(() => {
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+        // Échap (ou bouton Retour d'Android, cf. lib/back-button.ts) : une liste ouverte dans la fenêtre
+        // se ferme d'abord (Radix marque alors l'appui comme traité), la fenêtre au suivant
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !e.defaultPrevented && onClose();
         document.addEventListener('keydown', onKey);
         const previous = document.body.style.overflow;
         document.body.style.overflow = 'hidden';

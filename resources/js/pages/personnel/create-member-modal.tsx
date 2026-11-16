@@ -129,7 +129,7 @@ export function CreateMemberModal({ roles, onClose }: Props) {
                         </div>
                     </Section>
 
-                    <Section title="Accès" hint="Mot de passe provisoire, au choix (même 12345) : le membre le remplacera par le sien à sa première connexion.">
+                    <Section title="Accès" hint="Mot de passe provisoire de 8 caractères au moins (ex. Akwa2026) : le membre le remplacera par le sien à sa première connexion.">
                         <div className="grid gap-5 sm:grid-cols-2">
                             <Field label="Mot de passe" htmlFor="new-password" required error={errors.password}>
                                 <TextInput

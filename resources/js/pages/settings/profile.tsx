@@ -1,5 +1,5 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { BadgeCheck, CalendarDays, Mail, MailWarning, Phone, UserRound } from 'lucide-react';
+import { BadgeCheck, CalendarDays, KeyRound, Mail, MailWarning, Phone, UserRound } from 'lucide-react';
 import type { FormEvent } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
-import { CardBody, SaveFooter, SettingsCard, SettingsRow } from './settings-kit';
+import { CardBody, PasswordField, SaveFooter, SettingsCard, SettingsRow } from './settings-kit';
 import { initials } from '@/lib/initials';
 
 const chip = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium ring-1';
@@ -19,7 +19,7 @@ const chip = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-med
 export default function Profile({ mustVerifyEmail, status, deletionBlocker }: { mustVerifyEmail: boolean; status?: string; deletionBlocker?: string | null }) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const user = auth.user;
-    const form = useForm({ name: user.name, email: user.email ?? '' });
+    const form = useForm({ name: user.name, email: user.email ?? '', current_password: '' });
     const { data, setData, processing, errors, isDirty } = form;
 
     const phoneLogin = user.phone !== null;
@@ -27,12 +27,17 @@ export default function Profile({ mustVerifyEmail, status, deletionBlocker }: { 
     const since = new Date(user.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
     const role = roleLabels[user.role] ?? user.role;
     const managed = user.role === 'field_agent' || user.role === 'supervisor';
+    // Changer d'adresse e-mail permet de réinitialiser le mot de passe : le mot de passe actuel est redemandé
+    const emailChanged = data.email.trim().toLowerCase() !== (user.email ?? '').toLowerCase();
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
         form.patch(ProfileController.update().url, {
             preserveScroll: true,
-            onSuccess: () => form.setDefaults(),
+            onSuccess: () => {
+                form.setData('current_password', '');
+                form.setDefaults();
+            },
             onError: toastFormError,
         });
     };
@@ -99,6 +104,12 @@ export default function Profile({ mustVerifyEmail, status, deletionBlocker }: { 
                                 </div>
                             )}
                         </SettingsRow>
+
+                        {emailChanged && (
+                            <SettingsRow label="Mot de passe actuel" htmlFor="current_password" required hint="Pour confirmer que c’est bien vous qui changez l’adresse." error={errors.current_password}>
+                                <PasswordField id="current_password" icon={KeyRound} value={data.current_password} onChange={(e) => setData('current_password', e.target.value)} error={errors.current_password} autoComplete="current-password" required />
+                            </SettingsRow>
+                        )}
 
                         {phoneLogin && (
                             <SettingsRow label="Téléphone" htmlFor="phone" hint={managed ? 'Votre identifiant de connexion. Pour le changer, adressez-vous à votre responsable.' : 'Votre identifiant de connexion.'}>

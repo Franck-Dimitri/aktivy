@@ -39,12 +39,15 @@ class ActivityController extends Controller
             ->with(['agent:id,name,phone', 'site:id,name,city'])
             ->get();
 
+        // Superviseur : la journée de l'hôtesse sur ses sites seulement (pas une mission ailleurs)
         $visits = Visit::whereIn('user_id', $affectations->pluck('user_id'))
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds))
             ->whereDate('checked_in_at', $today)
             ->get()
             ->keyBy('user_id');
 
         $reports = DailyReport::whereIn('user_id', $affectations->pluck('user_id'))
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds))
             ->whereDate('report_date', $today)
             // Ventes en boutique extérieure comprises
             ->withSum('allLines as lines_sum_revenue', 'revenue')

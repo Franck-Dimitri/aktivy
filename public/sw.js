@@ -20,7 +20,8 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches
             .open(ASSETS)
-            .then((cache) => cache.add(OFFLINE_PAGE))
+            // Toujours la dernière version de la page « hors ligne » (pas celle du cache HTTP du navigateur)
+            .then((cache) => cache.add(new Request(OFFLINE_PAGE, { cache: 'reload' })))
             .then(() => self.skipWaiting()),
     );
 });
@@ -78,6 +79,25 @@ self.addEventListener('push', (event) => {
 });
 
 /*
+ * Abonnement renouvelé par le navigateur (il expire de lui-même) : sans cela, le serveur garde l'ancienne
+ * adresse, la supprime au premier envoi refusé, et les notifications s'arrêtent sans prévenir.
+ * Réabonnement avec la même clé ; les fenêtres ouvertes envoient le nouvel abonnement au serveur
+ * (lib/pwa.ts, setupPushSync). Application fermée : il part à la prochaine ouverture (adresse changée).
+ */
+self.addEventListener('pushsubscriptionchange', (event) => {
+    event.waitUntil(
+        (async () => {
+            const key = event.oldSubscription?.options?.applicationServerKey;
+            if (key && !(await self.registration.pushManager.getSubscription())) {
+                await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }).catch(() => {});
+            }
+            const windows = await self.clients.matchAll({ type: 'window' });
+            windows.forEach((w) => w.postMessage({ type: 'push-resubscribed' }));
+        })(),
+    );
+});
+
+/*
  * Pastille sur l'icône de l'application installée (nombre de non lues), même application fermée.
  * La notification est peut-être encore en cours d'enregistrement : le nombre est relevé un instant après.
  * Sans réponse du serveur, un simple point signale qu'il y a du nouveau.
@@ -103,7 +123,9 @@ async function updateBadge() {
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const target = new URL(event.notification.data?.url || '/app', self.location.origin).href;
+    // Jamais vers un autre site : une adresse d'un autre domaine ouvre l'application
+    const asked = new URL(event.notification.data?.url || '/app', self.location.origin);
+    const target = asked.origin === self.location.origin ? asked.href : new URL('/app', self.location.origin).href;
 
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
@@ -158,7 +180,7 @@ self.addEventListener('fetch', (event) => {
  */
 async function launch(request) {
     const kept = await (await caches.open(PAGES)).match('/terrain');
-    const network = fetch(request);
+    const network = fetch(request).then(forgetIfSignedOut);
 
     if (!kept) {
         return network.catch(() => caches.match(OFFLINE_PAGE));
@@ -173,6 +195,18 @@ async function launch(request) {
     } catch {
         return kept;
     }
+}
+
+/**
+ * Le serveur renvoie vers la connexion (session expirée, compte suspendu) : les pages gardées hors ligne
+ * ne doivent plus s'ouvrir sans lui, surtout sur un téléphone partagé où quelqu'un d'autre va se connecter.
+ */
+function forgetIfSignedOut(response) {
+    if (response.redirected && new URL(response.url).pathname === '/login') {
+        caches.delete(PAGES);
+    }
+
+    return response;
 }
 
 /**
@@ -210,7 +244,7 @@ async function networkFirst(request, url, isInertia) {
     // Une même adresse existe en page complète et en réponse Inertia : deux entrées distinctes
     const key = isInertia ? `${url.pathname}${url.search}#inertia`.replace('#', url.search ? '&_i=' : '?_i=') : `${url.pathname}${url.search}`;
 
-    const network = fetch(request).then((response) => {
+    const network = fetch(request).then(forgetIfSignedOut).then((response) => {
         // Une redirection (session expirée vers la connexion) n'est pas la page demandée
         if (response.ok && !response.redirected && response.type === 'basic') {
             cache.put(key, response.clone());

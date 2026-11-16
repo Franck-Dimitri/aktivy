@@ -103,7 +103,7 @@ export function EditMemberModal({ member, roles, statuses, onClose }: Props) {
 
                     <div className="border-t border-slate-100 pt-5">
                         <p className="text-sm font-medium text-ink">Mot de passe</p>
-                        <p className="mt-0.5 mb-4 text-xs text-slate-500">Laissez vide pour conserver le mot de passe actuel.</p>
+                        <p className="mt-0.5 mb-4 text-xs text-slate-500">Laissez vide pour conserver le mot de passe actuel. Sinon, 8 caractères au moins.</p>
                         <div className="grid gap-5 sm:grid-cols-2">
                             <Field label="Nouveau" htmlFor="edit-password" error={errors.password}>
                                 <TextInput id="edit-password" type={showPassword ? 'text' : 'password'} value={data.password} onChange={(e) => setData('password', e.target.value)} error={errors.password} trailing={toggle} />

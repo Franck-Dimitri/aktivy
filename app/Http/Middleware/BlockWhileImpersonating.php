@@ -28,8 +28,12 @@ class BlockWhileImpersonating
 
     public function handle(Request $request, Closure $next): Response
     {
+        // Lire la clé secrète, le QR code ou les codes de secours de la double authentification du gérant
+        // (pages GET) reviendrait à pouvoir se connecter à sa place : bloqué aussi
+        $reveals2fa = $request->routeIs('two-factor.secret-key', 'two-factor.recovery-codes', 'two-factor.qr-code');
+
         if ($request->session()->has(ImpersonationController::SESSION_KEY)
-            && ! $request->isMethodSafe()
+            && (! $request->isMethodSafe() || $reveals2fa)
             && $request->routeIs(...self::BLOCKED)) {
             if ($request->header('X-Inertia')) {
                 return back()->with('error', 'Action impossible pendant une connexion « en tant que » : seul le gérant peut modifier ses réglages personnels.');

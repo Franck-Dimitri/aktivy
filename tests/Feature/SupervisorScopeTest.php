@@ -108,6 +108,38 @@ class SupervisorScopeTest extends TestCase
         $this->actingAs($this->supervisor)->get(route('personnel.show', $this->otherHostess))->assertForbidden();
     }
 
+    public function test_a_hostess_between_two_missions_elsewhere_can_be_assigned_but_not_taken_over()
+    {
+        // Mission terminée sur le site d'un autre superviseur : plus d'affectation en cours
+        $between = User::factory()->fieldAgent()->create(['company_id' => $this->manager->company_id]);
+        $this->manager->company->affectations()->create([
+            'site_id' => $this->otherSite->id, 'user_id' => $between->id, 'assigned_by' => $this->manager->id,
+            'starts_on' => now()->subMonth()->toDateString(), 'ends_on' => now()->subWeek()->toDateString(),
+            'status' => AffectationStatus::Completed,
+        ]);
+
+        // Elle figure dans la liste (pour être affectée)…
+        $this->actingAs($this->supervisor)->get(route('personnel.index'))
+            ->assertInertia(fn ($page) => $page->where('staff', fn ($staff) => collect($staff)->contains('id', $between->id)));
+
+        // … mais sa fiche, son téléphone et son mot de passe restent hors de portée
+        $this->actingAs($this->supervisor)->get(route('personnel.show', $between))->assertForbidden();
+        $this->actingAs($this->supervisor)->put(route('personnel.update', $between), [
+            'name' => $between->name, 'phone' => '690009999', 'role' => Role::FieldAgent->value,
+            'password' => 'pirate-1234', 'password_confirmation' => 'pirate-1234',
+        ])->assertForbidden();
+    }
+
+    public function test_a_supervisor_can_not_remove_a_fellow_supervisor_from_a_shared_site()
+    {
+        $colleague = User::factory()->supervisor()->create(['company_id' => $this->manager->company_id]);
+        $this->assign($colleague, $this->mySite);
+        $affectation = $colleague->affectations()->firstOrFail();
+
+        $this->actingAs($this->supervisor)->delete(route('affectations.destroy', $affectation))->assertForbidden();
+        $this->assertNotNull($affectation->fresh());
+    }
+
     public function test_a_supervisor_can_not_create_another_supervisor()
     {
         $this->actingAs($this->supervisor)->post(route('personnel.store'), [

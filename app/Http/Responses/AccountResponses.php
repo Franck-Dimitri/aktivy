@@ -5,6 +5,7 @@ namespace App\Http\Responses;
 use App\Support\Toast;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
@@ -35,6 +36,8 @@ class AccountResponses implements LogoutResponseContract, RegisterResponseContra
             return new JsonResponse('', 204);
         }
 
+        // Clé de l'historique chiffré jetée : le bouton Retour ne réaffiche plus les écrans de ce compte
+        Inertia::clearHistory();
         Toast::success('Vous êtes déconnecté. À bientôt !');
 
         return redirect(Fortify::redirects('logout', '/'));

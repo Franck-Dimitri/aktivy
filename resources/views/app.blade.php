@@ -29,6 +29,7 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-title" content="Motriks">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        @include('partials.ios-splash')
         @if ($page['component'] === 'landing')
             {{-- L'application installée n'affiche jamais la page d'accueil : direction l'espace de l'utilisateur
                  ou la connexion (route /app), avant tout affichage. Couvre aussi les installations dont

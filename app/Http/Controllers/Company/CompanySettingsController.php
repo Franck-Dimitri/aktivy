@@ -76,7 +76,7 @@ class CompanySettingsController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
             'primary_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             // JPG ou PNG : les seuls formats que le moteur PDF sait intégrer
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:3072', 'dimensions:max_width=8000,max_height=8000'],
             'remove_logo' => ['boolean'],
         ], [
             'primary_color.regex' => 'Choisissez une couleur valide.',

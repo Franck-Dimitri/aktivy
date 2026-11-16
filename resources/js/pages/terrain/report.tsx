@@ -27,6 +27,7 @@ import { Page } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
 import { SurfaceCard } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
+import { haptic } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
 import { update as reportUpdate, submit as reportSubmit, flag as reportFlag } from '@/routes/terrain/report';
@@ -694,9 +695,10 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
 
         const queueForLater = () => {
             setQueuedNow(true);
-            void submitReportOffline(visitRef, payload).then(() =>
-                toast.success('Rapport prêt', { description: 'Il partira tout seul dès que le réseau revient.' }),
-            );
+            void submitReportOffline(visitRef, payload).then(() => {
+                haptic('success');
+                toast.success('Rapport prêt', { description: 'Il partira tout seul dès que le réseau revient.' });
+            });
         };
 
         if (mustQueue()) {
@@ -714,6 +716,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             onStart: () => setBusy('submit'),
             onSuccess: () => {
                 forgetDraft();
+                haptic('success');
                 toast.success('Rapport soumis !', { description: `${formatMoney(totalRevenue)} FCFA enregistrés.` });
             },
             onError: toastFormError,
@@ -738,6 +741,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             // Sans réseau : fin de service gardée sur le téléphone, avec l'heure et la position du moment
             const withoutNetwork = () => {
                 void checkoutOffline(visitRef, { latitude: lat ?? null, longitude: lng ?? null }).then(() => {
+                    haptic('success');
                     toast.success('Service terminé !', { description: 'Enregistré sur ce téléphone, envoyé dès le retour du réseau.' });
                     setConfirmCheckout(false);
                     setBusy(null);
@@ -752,7 +756,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             }
 
             router.patch(visitCheckout({ visit: visit.uuid }).url, { latitude: lat ?? null, longitude: lng ?? null }, {
-                onSuccess: () => { toast.success('Service terminé !'); setConfirmCheckout(false); },
+                onSuccess: () => { haptic('success'); toast.success('Service terminé !'); setConfirmCheckout(false); },
                 onError: toastFormError,
                 onNetworkError: () => {
                     withoutNetwork();

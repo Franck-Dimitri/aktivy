@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronLeft, LogOut, Settings, User } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
+import { ConnectionPill } from '@/components/connection-status';
 import { NotificationBell } from '@/components/notification-bell';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import {
@@ -13,8 +14,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { useLogoutDialog } from '@/components/logout-dialog';
+import { showsMobileTabs } from '@/lib/mobile-tabs';
 import { roleLabels } from '@/lib/navigation';
-import { toUrl } from '@/lib/utils';
+import { cn, toUrl } from '@/lib/utils';
 import { edit as profileEdit } from '@/routes/profile';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import { initials } from '@/lib/initials';
@@ -37,6 +39,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
     const { ask, dialog } = useLogoutDialog();
     // Page parente : le dernier élément du fil d'Ariane dont la page actuelle est une sous-page
     // (/sites pour /sites/1). Les pages de premier niveau gardent le logo.
+    const tabs = showsMobileTabs(auth.user?.role, currentUrl);
     const currentPath = currentUrl.split('?')[0].replace(/\/$/, '');
     const parent =
         [...breadcrumbs].reverse().find((b) => {
@@ -47,9 +50,10 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
 
     return (
         <>
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-border/70 bg-card/85 px-4 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 [view-transition-name:app-header] items-center gap-2 border-b border-border/70 bg-card/85 px-4 backdrop-blur-xl sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-                <SidebarToggle className="-ml-2 md:-ml-1.5" />
+                {/* Téléphone avec onglets en bas : le menu s'ouvre par l'onglet « Plus », pas de bouton en double */}
+                <SidebarToggle className={cn('-ml-2 md:-ml-1.5', tabs && 'max-md:hidden')} />
                 {/* Téléphone (et application installée, sans bouton Retour du navigateur) : retour à la page parente */}
                 {parent ? (
                     <Link
@@ -74,6 +78,9 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                 <p className="hidden rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500 lg:block">
                     {todayLabel()}
                 </p>
+
+                {/* Hors ligne ou réseau trop faible : visible même en bas d'une longue page */}
+                <ConnectionPill />
 
                 <NotificationBell />
 

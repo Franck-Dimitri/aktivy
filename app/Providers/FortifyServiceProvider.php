@@ -25,7 +25,11 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Password as PasswordBroker;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse as FailedPasswordResetLinkRequestResponseContract;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Http\Responses\FailedPasswordResetLinkRequestResponse;
+use Laravel\Fortify\Http\Responses\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract;
@@ -48,6 +52,12 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->singleton(LogoutResponseContract::class, fn () => new AccountResponses('logout'));
         $this->app->singleton(RegisterResponseContract::class, fn () => new AccountResponses('register'));
         $this->app->singleton(VerifyEmailResponseContract::class, fn () => new AccountResponses('verified'));
+
+        // « Mot de passe oublié » : même réponse que le compte existe ou non (et même s'il vient de
+        // demander un lien), sinon le formulaire sert à savoir quelles adresses ont un compte
+        $this->app->bind(FailedPasswordResetLinkRequestResponseContract::class, fn ($app, array $parameters) => in_array($parameters['status'] ?? null, [PasswordBroker::INVALID_USER, PasswordBroker::RESET_THROTTLED], true)
+            ? new SuccessfulPasswordResetLinkRequestResponse(PasswordBroker::RESET_LINK_SENT)
+            : new FailedPasswordResetLinkRequestResponse((string) ($parameters['status'] ?? '')));
     }
 
     /**
@@ -107,6 +117,20 @@ class FortifyServiceProvider extends ServiceProvider
 
             return $user;
         });
+    }
+
+    /**
+     * Identifiant de connexion ramené à une seule écriture (numéro au format international, e-mail en minuscules).
+     */
+    public static function loginKey(string $login): string
+    {
+        $login = trim($login);
+
+        if (PhoneNumber::looksLikePhone($login)) {
+            return PhoneNumber::normalize($login) ?? preg_replace('/\D/', '', $login);
+        }
+
+        return Str::transliterate(Str::lower($login));
     }
 
     /**
@@ -178,11 +202,21 @@ class FortifyServiceProvider extends ServiceProvider
         });
         /* @end-chisel-2fa */
 
+        // Clé sur l'identifiant normalisé : « 690 000 001 », « +237690000001 » et « (690)000001 » sont le même
+        // compte et partagent leurs essais (sinon chaque écriture du numéro donnait 5 essais de plus).
+        // Deux limites : par compte et adresse IP (5 par minute), et par compte toutes adresses confondues
+        // (20 par heure), contre les essais répartis sur plusieurs adresses.
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $account = self::loginKey((string) $request->input(Fortify::username()));
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return [
+                Limit::perMinute(5)->by($account.'|'.$request->ip()),
+                Limit::perHour(20)->by('compte|'.$account),
+            ];
         });
+
+        // Formulaires publics qui envoient un e-mail ou créent un compte : pas d'envois en masse
+        RateLimiter::for('public-forms', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
 
         /* @chisel-passkeys */
         RateLimiter::for('passkeys', function (Request $request) {

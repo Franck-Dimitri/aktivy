@@ -148,6 +148,33 @@ class LiveNotificationsTest extends TestCase
         $this->assertSame(0, $this->hostess->pushSubscriptions()->count());
     }
 
+    public function test_logging_out_stops_the_notifications_of_this_phone_only()
+    {
+        $this->hostess->updatePushSubscription('https://push.example.com/telephone', 'cGtleQ', 'YXV0aA', 'aes128gcm');
+        $this->hostess->updatePushSubscription('https://push.example.com/ordinateur', 'cGtleQ', 'YXV0aA', 'aes128gcm');
+
+        // Le téléphone se signale par son cookie (posé par l'application, non chiffré)
+        $this->actingAs($this->hostess)
+            ->withUnencryptedCookie('motriks_appareil', 'https://push.example.com/telephone')
+            ->post(route('logout'))
+            ->assertRedirect();
+
+        $this->assertGuest();
+        $this->assertSame(['https://push.example.com/ordinateur'], $this->hostess->pushSubscriptions()->pluck('endpoint')->all());
+    }
+
+    public function test_a_shared_phone_moves_to_the_account_that_logs_in()
+    {
+        $colleague = User::factory()->fieldAgent()->create(['company_id' => $this->hostess->company_id]);
+        $this->hostess->updatePushSubscription('https://push.example.com/partage', 'cGtleQ', 'YXV0aA', 'aes128gcm');
+
+        // La collègue se connecte sur le même téléphone : l'application renvoie l'abonnement pour elle
+        $this->actingAs($colleague)->postJson(route('push.subscribe'), ['endpoint' => 'https://push.example.com/partage', 'keys' => ['p256dh' => 'cGtleQ', 'auth' => 'YXV0aA']])->assertOk();
+
+        $this->assertSame(0, $this->hostess->pushSubscriptions()->count());
+        $this->assertSame(1, $colleague->pushSubscriptions()->count());
+    }
+
     public function test_the_manager_saves_the_reminder_settings()
     {
         $settings = [

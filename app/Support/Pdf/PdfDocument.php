@@ -57,7 +57,9 @@ class PdfDocument
         $options->set('isRemoteEnabled', false);
         $options->set('fontDir', $fontCache);
         $options->set('fontCache', $fontCache);
-        $options->setChroot([storage_path(), resource_path('fonts')]);
+        // Le moteur ne lit que les polices : les images sont intégrées au document (data:), et tout
+        // storage/ (documents privés, sessions, journaux) reste hors de portée d'un gabarit piégé
+        $options->setChroot([$fontCache, resource_path('fonts')]);
 
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml(view($view, $data)->render(), 'UTF-8');

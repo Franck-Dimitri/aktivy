@@ -28,7 +28,7 @@ class ReportPhotoController extends Controller
         abort_if($report->isValidated(), 422, 'Ce rapport est validé : il ne peut plus être modifié.');
 
         $validated = $request->validate([
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192', 'dimensions:max_width=6000,max_height=6000'],
             'caption' => ['nullable', 'string', 'max:200'],
             // Photo prise hors ligne : identifiant choisi par le téléphone, pour ne pas la recevoir deux fois
             'uuid' => ['nullable', 'uuid'],

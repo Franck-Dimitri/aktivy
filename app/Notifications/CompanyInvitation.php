@@ -37,7 +37,8 @@ class CompanyInvitation extends Notification implements ShouldQueue
             'invitation.accept',
             now()->addDays(InvitationController::VALID_DAYS),
             // Identifiant public (UUID) : le lien ne révèle pas le numéro du compte
-            ['user' => $notifiable->getRouteKey()],
+            // « cle » : empreinte de l'adresse, le lien ne vaut que pour l'adresse à laquelle il part
+            ['user' => $notifiable->getRouteKey(), 'cle' => InvitationController::emailKey($notifiable)],
         );
 
         return (new MailMessage)

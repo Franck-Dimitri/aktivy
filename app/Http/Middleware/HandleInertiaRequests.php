@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Toast;
 use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
@@ -46,7 +47,18 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
+        // Téléphone partagé : les pages vues par un compte sont chiffrées dans l'historique du navigateur,
+        // et la clé est jetée à la déconnexion (AccountResponses) : le bouton Retour ne réaffiche plus
+        // les écrans du compte précédent. Le navigateur ne chiffre que sur une page sécurisée (https, localhost).
+        Inertia::encryptHistory($request->user() !== null && $this->secureContext($request));
+
         return parent::handle($request, $next);
+    }
+
+    private function secureContext(Request $request): bool
+    {
+        return str_starts_with((string) config('app.url'), 'https://')
+            || in_array($request->getHost(), ['localhost', '127.0.0.1', '::1'], true);
     }
 
     /**
@@ -82,7 +94,10 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'appUrl' => rtrim(config('app.url'), '/'),
             'auth' => [
-                'user' => $request->user(),
+                // Sans ses relations : la ligne « company » ci-dessous charge l'entreprise sur l'utilisateur, qui
+                // partait alors entière avec lui sur chaque page (forfait, motif de rejet, chemins des pièces
+                // d'identité…), même chez les hôtesses. Seuls les champs choisis de « company » sont envoyés.
+                'user' => $request->user()?->withoutRelations(),
                 // Tableau de bord du rôle (Role::homeRoute) : bouton « Mon espace » du site public
                 'home' => $request->user()?->homeUrl(),
                 'company' => $request->user()?->company

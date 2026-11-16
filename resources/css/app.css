@@ -185,6 +185,84 @@
         padding-left: env(safe-area-inset-left);
         padding-right: env(safe-area-inset-right);
     }
+
+    /*
+     * Toucher d'application, pas de site web :
+     * - pas de reflet gris ou bleu sur ce qu'on touche (chaque bouton a son propre retour visuel) ;
+     * - la taille du texte ne change pas quand le téléphone pivote (iPhone) ;
+     * - pas de double toucher qui zoome sur les éléments qu'on touche, donc pas d'attente après un toucher ;
+     * - l'appui long sur un bouton ne sélectionne pas son texte.
+     */
+    html {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    label,
+    summary,
+    [role='button'],
+    [role='tab'],
+    [role='menuitem'] {
+        touch-action: manipulation;
+    }
+    button,
+    summary,
+    [role='button'],
+    [role='tab'],
+    [role='menuitem'] {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+}
+
+/*
+ * Application installée (écran d'accueil) :
+ * - la page ne rebondit plus comme un site web quand on tire en haut ou en bas
+ *   (le « tirer pour actualiser » de l'application prend le relais, cf. pull-to-refresh.tsx) ;
+ * - l'appui long sur un lien ou une image n'ouvre plus le menu de Safari (Android : cf. lib/app-feel.ts).
+ */
+@media (display-mode: standalone) {
+    html,
+    body {
+        overscroll-behavior-y: none;
+    }
+    a,
+    img {
+        -webkit-touch-callout: none;
+    }
+    img {
+        -webkit-user-drag: none;
+    }
+}
+
+/*
+ * Passage d'un onglet à l'autre (barre du bas, mobile-tab-bar.tsx) : fondu court du contenu, l'en-tête
+ * et la barre d'onglets restent en place. Rien pour les personnes qui ont demandé moins d'animations.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 180ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-group(app-header),
+::view-transition-old(app-header),
+::view-transition-new(app-header),
+::view-transition-group(tab-bar),
+::view-transition-old(tab-bar),
+::view-transition-new(tab-bar) {
+    animation-duration: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
 }
 
 /* ───────── Pages de connexion : reflet qui glisse sur la bordure de la carte ───────── */

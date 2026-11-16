@@ -68,7 +68,7 @@ class OnboardingController extends Controller
             'city'             => ['required', 'string', 'max:100'],
             'address'          => ['nullable', 'string', 'max:255'],
             'phone'            => ['nullable', 'string', 'max:20'],
-            'logo'             => ['nullable', 'image', 'max:3072'],           // 3 Mo
+            'logo'             => ['nullable', 'image', 'max:3072', 'dimensions:max_width=8000,max_height=8000'],           // 3 Mo
             'id_card_front'    => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'id_card_back'     => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'registration_doc' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],

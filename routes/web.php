@@ -17,6 +17,9 @@ use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Admin\TrafficController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\InvitationController;
+use App\Http\Controllers\AppLaunchController;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
+use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\NotificationController;
@@ -49,9 +52,17 @@ $paymentLogos = function (): array {
         : [];
 };
 
-// Ouverture de l'application installée (start_url du manifeste) : comme une application mobile,
-// l'espace de l'utilisateur s'il est connecté, sinon directement le formulaire de connexion.
-Route::get('/app', fn (Request $request) => redirect($request->user()?->homeUrl() ?? route('login')))->name('app');
+// Formulaires publics de Fortify qui envoient un e-mail ou créent un compte : mêmes adresses et mêmes noms
+// que Fortify (ces déclarations le remplacent), avec une limite d'envois par adresse IP en plus
+Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+    ->middleware(['guest:'.config('fortify.guard'), 'throttle:public-forms'])
+    ->name('password.email');
+Route::post('register', [RegisteredUserController::class, 'store'])
+    ->middleware(['guest:'.config('fortify.guard'), 'throttle:public-forms'])
+    ->name('register.store');
+
+// Ouverture de l'application installée (start_url du manifeste) et raccourcis de son icône (?ouvrir=)
+Route::get('/app', AppLaunchController::class)->name('app');
 
 // Landing page (pages publiques : balises de référencement dans PublicPages)
 Route::get('/', function (Request $request) use ($paymentLogos) {

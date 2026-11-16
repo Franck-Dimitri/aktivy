@@ -35,8 +35,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Jamais en production : ces comptes ont tous le mot de passe « password », connu de tous
-        if (app()->isProduction()) {
-            $this->command?->error('Seeder de démonstration refusé en production (mots de passe connus de tous).');
+        // Liste blanche : un serveur de recette (« staging ») accessible depuis Internet aurait sinon des
+        // comptes au mot de passe connu de tous, dont un super administrateur
+        if (! app()->environment('local', 'testing')) {
+            $this->command?->error('Seeder de démonstration réservé aux environnements local et testing (mots de passe connus de tous).');
 
             return;
         }

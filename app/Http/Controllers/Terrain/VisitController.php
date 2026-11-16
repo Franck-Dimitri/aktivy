@@ -47,7 +47,8 @@ class VisitController extends Controller
         }
         abort_if($uuid !== null && Visit::where('uuid', $uuid)->exists(), 409);
 
-        [$at, $offline] = OfflineTime::resolve($validated['checked_in_at'] ?? null, 'checked_in_at');
+        // Prise de service hors ligne : le jour même seulement (heure du téléphone, cf. OfflineTime)
+        [$at, $offline] = OfflineTime::resolve($validated['checked_in_at'] ?? null, 'checked_in_at', sameDay: true);
         $day = $at->toDateString();
 
         // Visite en cours (potentiellement d'un jour précédent sans checkout)
@@ -144,8 +145,8 @@ class VisitController extends Controller
         abort_if($visit->user_id !== $request->user()->id, 403);
 
         $validated = $request->validate([
-            'latitude'       => ['nullable', 'numeric'],
-            'longitude'      => ['nullable', 'numeric'],
+            'latitude'       => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude'      => ['nullable', 'numeric', 'between:-180,180'],
             'checked_out_at' => ['nullable', 'date'],
         ]);
 

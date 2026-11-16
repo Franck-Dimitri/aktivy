@@ -8,6 +8,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\LazyCollection;
 
 /**
  * Ventes d'une entreprise sur une période, à partir des rapports journaliers envoyés.
@@ -118,6 +119,22 @@ class SalesReport
      */
     public function lines(?int $limit = null): Collection
     {
+        return $this->linesQuery($limit)->get();
+    }
+
+    /**
+     * Les mêmes lignes, lues au fil de l'eau : l'export Excel d'une année (~90 000 lignes) ne charge
+     * plus tout en mémoire pendant la requête.
+     *
+     * @return LazyCollection<int, object>
+     */
+    public function linesCursor(): LazyCollection
+    {
+        return $this->linesQuery()->cursor();
+    }
+
+    private function linesQuery(?int $limit = null): Builder
+    {
         return $this->query()
             ->select([
                 'r.id as report_id', 'r.report_date', 'r.submitted_at',
@@ -131,8 +148,7 @@ class SalesReport
             ->orderBy('s.name')
             ->orderBy('r.id')
             ->orderBy('l.id')
-            ->when($limit, fn ($q) => $q->limit($limit))
-            ->get();
+            ->when($limit, fn ($q) => $q->limit($limit));
     }
 
     /**

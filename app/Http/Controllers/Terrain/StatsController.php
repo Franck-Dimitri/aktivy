@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Terrain;
 
 use App\Http\Controllers\Controller;
-use App\Models\DailyReportLine;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -34,13 +33,26 @@ class StatsController extends Controller
         $visitsLast     = $user->visits()->whereBetween('checked_in_at', [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()])->count();
         $reportsLast    = DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->whereBetween('report_date', [$lastMonthStart, $lastMonthEnd])->count();
 
-        // Tendance 7 derniers jours
-        $trend = collect(range(6, 0))->map(function (int $daysAgo) use ($user, $base) {
+        // Tendance 7 derniers jours : deux requêtes groupées par jour (au lieu de deux par jour)
+        $from = now()->subDays(6)->startOfDay();
+        $revenueByDay = $base()
+            ->where('daily_reports.report_date', '>=', $from->toDateString())
+            ->groupBy('daily_reports.report_date')
+            ->select('daily_reports.report_date as day', DB::raw('SUM(daily_report_lines.revenue) as revenue'))
+            ->pluck('revenue', 'day')
+            ->mapWithKeys(fn ($revenue, $day) => [substr((string) $day, 0, 10) => (float) $revenue]);
+        $visitsByDay = $user->visits()
+            ->where('checked_in_at', '>=', $from)
+            ->get(['checked_in_at'])
+            ->countBy(fn ($visit) => $visit->checked_in_at->toDateString());
+
+        $trend = collect(range(6, 0))->map(function (int $daysAgo) use ($revenueByDay, $visitsByDay) {
             $date = now()->subDays($daysAgo)->toDateString();
+
             return [
                 'label'   => now()->subDays($daysAgo)->format('d/m'),
-                'revenue' => (float) $base()->where('daily_reports.report_date', $date)->sum('daily_report_lines.revenue'),
-                'visits'  => $user->visits()->whereDate('checked_in_at', $date)->count(),
+                'revenue' => $revenueByDay->get($date, 0.0),
+                'visits'  => $visitsByDay->get($date, 0),
             ];
         })->values();
 
@@ -60,12 +72,19 @@ class StatsController extends Controller
             ->limit(5)
             ->get();
 
-        // Image de chaque produit du classement (via la relation déjà utilisée ailleurs)
-        $images = DailyReportLine::with('siteProduct.product:id,image')
-            ->whereIn('product_name', $topProducts->pluck('product_name'))
-            ->get()
-            ->groupBy('product_name')
-            ->map(fn ($lines) => $lines->map(fn ($l) => $l->siteProduct?->product?->image)->filter()->first());
+        // Image de chaque produit du classement, cherchée dans les rapports de l'hôtesse seulement :
+        // avant, la recherche par nom parcourait les lignes de toutes les entreprises (lent, et l'image
+        // d'un produit homonyme d'une autre entreprise pouvait s'afficher)
+        $images = DB::table('daily_report_lines')
+            ->join('daily_reports', 'daily_reports.id', '=', 'daily_report_lines.daily_report_id')
+            ->join('site_products', 'site_products.id', '=', 'daily_report_lines.site_product_id')
+            ->join('products', 'products.id', '=', 'site_products.product_id')
+            ->where('daily_reports.user_id', $user->id)
+            ->whereIn('daily_report_lines.product_name', $topProducts->pluck('product_name'))
+            ->whereNotNull('products.image')
+            ->groupBy('daily_report_lines.product_name')
+            ->select('daily_report_lines.product_name', DB::raw('MAX(products.image) as image'))
+            ->pluck('image', 'product_name');
 
         $topProducts = $topProducts->map(fn ($p) => [
             'product_name' => $p->product_name,

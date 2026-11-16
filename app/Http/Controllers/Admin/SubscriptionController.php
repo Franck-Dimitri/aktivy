@@ -12,6 +12,7 @@ use App\Notifications\LiveNotification;
 use App\Notifications\PlanExpiring;
 use App\Support\Billing\InvoiceDocument;
 use App\Support\Plans\PlanPresenter;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -101,7 +102,23 @@ class SubscriptionController extends Controller
         $packs = $plan->acceptsPacks() ? (int) ($data['extra_packs'] ?? 0) : 0;
         $supervisorPacks = $plan->acceptsSupervisorPacks() ? (int) ($data['supervisor_packs'] ?? 0) : 0;
 
-        $payment = DB::transaction(function () use ($company, $data, $plan, $packs, $supervisorPacks, $request) {
+        // Double envoi du formulaire (double clic, réseau lent) : le même paiement n'est pas facturé deux fois.
+        // La ligne de l'entreprise est verrouillée le temps de vérifier et d'enregistrer.
+        $record = fn () => DB::transaction(function () use ($company, $data, $plan, $packs, $supervisorPacks, $request) {
+            DB::table('companies')->where('id', $company->id)->lockForUpdate()->value('id');
+
+            $duplicate = SubscriptionPayment::where('company_id', $company->id)
+                ->where('amount', $data['amount'])
+                ->where('method', $data['method'])
+                ->whereDate('paid_at', $data['paid_at'])
+                ->where('reference', $data['reference'] ?? null)
+                ->where('created_at', '>=', now()->subMinutes(10))
+                ->exists();
+
+            if ($duplicate) {
+                return null;
+            }
+
             $payment = SubscriptionPayment::create([
                 'company_id' => $company->id,
                 'invoice_number' => SubscriptionPayment::nextInvoiceNumber(),
@@ -133,6 +150,23 @@ class SubscriptionController extends Controller
 
             return $payment;
         });
+
+        // Deux factures numérotées au même instant (deux entreprises) : le numéro est unique en base,
+        // le second enregistrement reprend simplement avec le numéro suivant
+        for ($attempt = 1; ; $attempt++) {
+            try {
+                $payment = $record();
+                break;
+            } catch (UniqueConstraintViolationException $e) {
+                if ($attempt >= 3) {
+                    throw $e;
+                }
+            }
+        }
+
+        if ($payment === null) {
+            return back()->with('error', 'Ce paiement vient déjà d’être enregistré : pas de seconde facture.');
+        }
 
         CompanyPlanController::notifyManagers($company, LiveNotification::paymentReceived(
             $payment->invoice_number,

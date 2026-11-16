@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\TrafficController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\AppLaunchController;
+use App\Http\Controllers\HealthController;
 use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\ContactController;
@@ -60,6 +61,9 @@ Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
 Route::post('register', [RegisteredUserController::class, 'store'])
     ->middleware(['guest:'.config('fortify.guard'), 'throttle:public-forms'])
     ->name('register.store');
+
+// Santé réelle (base, file d'attente, planificateur, stockage) pour la surveillance externe
+Route::get('sante', HealthController::class)->middleware('throttle:60,1')->name('health');
 
 // Ouverture de l'application installée (start_url du manifeste) et raccourcis de son icône (?ouvrir=)
 Route::get('/app', AppLaunchController::class)->name('app');

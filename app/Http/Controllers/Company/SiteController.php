@@ -179,7 +179,14 @@ class SiteController extends Controller
         $reportsSubmitted   = DB::table('daily_reports')->where('site_id', $site->id)->where('status', 'submitted')->count();
 
         // ── Données graphique : 7 derniers jours ─────────────────────────────
-        $weekRows = $this->visitCountsBy($site, now()->subDays(6)->startOfDay(), 'Y-m-d');
+        // Une seule lecture des pointages des 12 derniers mois, comptés par jour puis par mois
+        // (au lieu de trois lectures, une par graphique)
+        $checkins = $site->visits()
+            ->where('checked_in_at', '>=', now()->subMonths(11)->startOfMonth())
+            ->pluck('checked_in_at')
+            ->map(fn ($at) => Carbon::parse($at));
+        $dayRows = $checkins->countBy(fn (Carbon $at) => $at->format('Y-m-d'));
+        $weekRows = $dayRows;
 
         $weekData = collect(range(6, 0))->map(function ($daysAgo) use ($weekRows) {
             $date = now()->subDays($daysAgo)->format('Y-m-d');
@@ -190,7 +197,7 @@ class SiteController extends Controller
         })->values()->all();
 
         // ── Données graphique : 30 derniers jours ────────────────────────────
-        $monthRows = $this->visitCountsBy($site, now()->subDays(29)->startOfDay(), 'Y-m-d');
+        $monthRows = $dayRows;
 
         $monthData = collect(range(29, 0))->map(function ($daysAgo) use ($monthRows) {
             $date = now()->subDays($daysAgo)->format('Y-m-d');
@@ -201,7 +208,7 @@ class SiteController extends Controller
         })->values()->all();
 
         // ── Données graphique : 12 derniers mois ─────────────────────────────
-        $yearRows = $this->visitCountsBy($site, now()->subMonths(11)->startOfMonth(), 'Y-m');
+        $yearRows = $checkins->countBy(fn (Carbon $at) => $at->format('Y-m'));
 
         $yearData = collect(range(11, 0))->map(function ($monthsAgo) use ($yearRows) {
             $month = now()->subMonths($monthsAgo)->format('Y-m');
@@ -217,11 +224,17 @@ class SiteController extends Controller
             ->orderByDesc('starts_on')
             ->get();
 
+        // Pointages par hôtesse sur ce site : un seul comptage groupé (au lieu d'une requête par hôtesse)
+        $visitCounts = $site->visits()
+            ->selectRaw('user_id, COUNT(*) as total')
+            ->groupBy('user_id')
+            ->pluck('total', 'user_id');
+
         $hostessHistory = $allAffectations
             ->groupBy('user_id')
-            ->map(function ($aff) use ($site) {
+            ->map(function ($aff) use ($visitCounts) {
                 $agent      = $aff->first()->agent;
-                $visitCount = $site->visits()->where('user_id', $agent->id)->count();
+                $visitCount = (int) ($visitCounts[$agent->id] ?? 0);
                 $firstDate  = $aff->min(fn ($a) => $a->starts_on->toDateString());
                 $lastDate   = $aff->max(fn ($a) => $a->ends_on?->toDateString() ?? now()->toDateString());
                 $isCurrent  = $aff->contains(fn ($a) => $a->isCurrentlyActive());
@@ -551,14 +564,6 @@ class SiteController extends Controller
      *
      * @return \Illuminate\Support\Collection<string, int>
      */
-    private function visitCountsBy(Site $site, \Carbon\CarbonInterface $from, string $format)
-    {
-        return $site->visits()
-            ->where('checked_in_at', '>=', $from)
-            ->get(['checked_in_at'])
-            ->countBy(fn ($visit) => $visit->checked_in_at->format($format));
-    }
-
     private function authorizeCompany(Request $request, Site $site): void
     {
         abort_if($site->company_id !== $request->user()->company_id, 403);

@@ -34,7 +34,8 @@ class EmailVerificationTest extends TestCase
     {
         $user = User::factory()->unverified()->create();
 
-        $response = $this->actingAs($user)->get(route('appearance.edit'));
+        // Une page réservée aux adresses confirmées (la page « Apparence » a été retirée)
+        $response = $this->actingAs($user)->get(route('security.edit'));
 
         $response->assertRedirect(route('verification.notice'));
     }

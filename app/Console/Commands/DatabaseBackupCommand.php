@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\TelegramService;
+use App\Support\Backup\Offsite;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
 
@@ -70,6 +71,14 @@ class DatabaseBackupCommand extends Command
         $sizeKo = round(filesize($filepath) / 1024, 1);
         $this->info("Backup created: {$filename} ({$sizeKo} Ko)");
         $this->pruneOldBackups($backupDir);
+
+        // Copie hors du serveur (BACKUP_DISK) : jamais en clair
+        if (Offsite::configured()) {
+            $error = $passphrase === '' ? 'BACKUP_PASSPHRASE manquante, pas de copie hors serveur' : Offsite::copy($filepath);
+            if ($error !== null) {
+                return $this->failBackup($telegram, $chatId, $error);
+            }
+        }
 
         if (! $chatId) {
             return self::SUCCESS;

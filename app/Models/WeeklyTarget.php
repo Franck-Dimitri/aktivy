@@ -59,11 +59,21 @@ class WeeklyTarget extends Model
      */
     public static function latestFor(iterable $userIds, CarbonInterface $week): Collection
     {
-        return static::whereIn('user_id', collect($userIds)->all())
+        // Seulement la dernière ligne de chaque hôtesse, choisie en base (une par hôtesse et par semaine,
+        // cf. l'index unique) : la page Objectifs appelle ceci une trentaine de fois, et chargeait à
+        // chaque fois tout l'historique des objectifs pour n'en garder qu'une ligne
+        $latest = static::query()
+            ->selectRaw('user_id, MAX(week_start) as latest_week')
+            ->whereIn('user_id', collect($userIds)->all())
             ->whereDate('week_start', '<=', $week->toDateString())
-            ->orderBy('week_start')
+            ->groupBy('user_id');
+
+        return static::query()
+            ->joinSub($latest, 'latest', fn ($join) => $join
+                ->on('weekly_targets.user_id', '=', 'latest.user_id')
+                ->on('weekly_targets.week_start', '=', 'latest.latest_week'))
+            ->select('weekly_targets.*')
             ->get()
-            // keyBy garde la dernière ligne de chaque hôtesse : la plus récente
             ->keyBy('user_id');
     }
 

@@ -93,7 +93,10 @@ class TelegramWebhookController extends Controller
 
     private function handleLogs(int|string $chatId): void
     {
-        $logPath = storage_path('logs/laravel.log');
+        // Journal quotidien (laravel-AAAA-MM-JJ.log, 14 jours gardés) ou fichier unique : le plus récent
+        $candidates = glob(storage_path('logs/laravel*.log')) ?: [];
+        usort($candidates, fn (string $a, string $b) => filemtime($b) <=> filemtime($a));
+        $logPath = $candidates[0] ?? storage_path('logs/laravel.log');
 
         if (!file_exists($logPath)) {
             $this->telegram->sendMessage($chatId, '📭 Aucun fichier de log trouvé.');

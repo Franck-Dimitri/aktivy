@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Support\ErrorAlert;
 use Carbon\CarbonImmutable;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureMails();
+
+        // Tâche de la file en échec définitif (e-mail, notification, export…) : l'équipe est prévenue
+        Queue::failing(fn (JobFailed $event) => ErrorAlert::failedJob($event->job->resolveName(), $event->exception));
     }
 
     /**

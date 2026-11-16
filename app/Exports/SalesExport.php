@@ -66,7 +66,7 @@ class SalesExport
             'N° rapport' => [Workbook::INT, 10],
             'Envoyé le' => [Workbook::DATETIME, 16],
             'Remarque' => [Workbook::TEXT, 30],
-        ], $report->lines()->map(fn ($l) => [
+        ], $report->linesCursor()->map(fn ($l) => [
             $l->report_date, $l->site_name, $l->site_code, $l->site_city,
             $l->hostess_name, $l->hostess_phone, $l->event_name,
             $l->product_name, $l->unit, $l->unit_price,

@@ -1,17 +1,48 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { CalendarRange, Clock, FileText, MapPin, MoreHorizontal, Pencil, Plus, Search, StickyNote, Store, Trash2, User, X } from 'lucide-react';
-import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import {
+    CalendarRange,
+    Clock,
+    FileText,
+    MapPin,
+    MoreHorizontal,
+    Pencil,
+    Plus,
+    Search,
+    StickyNote,
+    Store,
+    Trash2,
+    User,
+    X,
+} from 'lucide-react';
+import {
+    useCallback,
+    useMemo,
+    useState,
+    type FormEvent,
+    type ReactNode,
+} from 'react';
 import { toast } from 'sonner';
 import { SitePicker, siteError } from '@/components/affectations/site-picker';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
-import { Field, SelectInput, TextArea, TextInput } from '@/components/page/form-fields';
+import {
+    Field,
+    SelectInput,
+    TextArea,
+    TextInput,
+} from '@/components/page/form-fields';
 import { Modal } from '@/components/page/modal';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { MetricStrip } from '@/components/page/surface';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
@@ -25,7 +56,12 @@ import {
 } from '@/routes/affectations';
 import { show as personnelShow } from '@/routes/personnel';
 import { show as siteShow } from '@/routes/sites';
-import type { AffectationListItem, AffectationSelectOption, AffectationStats, AffectationStatus } from '@/types';
+import type {
+    AffectationListItem,
+    AffectationSelectOption,
+    AffectationStats,
+    AffectationStatus,
+} from '@/types';
 import { initials } from '@/lib/initials';
 
 type StatusOption = { value: string; label: string };
@@ -68,7 +104,6 @@ const roleText: Record<string, string> = {
     accountant: 'text-slate-600',
 };
 
-
 /** « 14/10/2026 » → « 2026-10-14 » (format attendu par <input type="date">). */
 function toIso(date: string | null) {
     if (!date) return '';
@@ -78,20 +113,38 @@ function toIso(date: string | null) {
 
 /* ───────────────────────── Carte affectation ───────────────────────── */
 
-function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void; onDelete: () => void }) {
+function AffectationCard({
+    a,
+    onEdit,
+    onDelete,
+}: {
+    a: Item;
+    onEdit: () => void;
+    onDelete: () => void;
+}) {
     const memberUrl = personnelShow({ personnel: a.agent_uuid }).url;
     const siteUrl = siteShow({ site: a.site_uuid }).url;
     const ended = a.status !== 'active';
-    const slot = a.slot_start && a.slot_end ? `${a.slot_start} – ${a.slot_end}` : null;
+    const slot =
+        a.slot_start && a.slot_end ? `${a.slot_start} – ${a.slot_end}` : null;
 
     return (
         <article className="group relative flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-[border-color,box-shadow] duration-200 hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5">
             {/* Membre */}
             <div className="flex items-center gap-3 p-4 pr-12">
-                <span className={cn('relative flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ring-1 ring-inset', avatarTone[a.agent_role] ?? avatarTone.accountant, ended && 'opacity-50 grayscale')}>
+                <span
+                    className={cn(
+                        'relative flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold ring-1 ring-inset',
+                        avatarTone[a.agent_role] ?? avatarTone.accountant,
+                        ended && 'opacity-50 grayscale',
+                    )}
+                >
                     {initials(a.agent_name)}
                     {a.is_current && (
-                        <span className="absolute -right-0.5 -bottom-0.5 flex size-3" aria-hidden>
+                        <span
+                            className="absolute -right-0.5 -bottom-0.5 flex size-3"
+                            aria-hidden
+                        >
                             <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-60 motion-reduce:animate-none" />
                             <span className="relative inline-flex size-3 rounded-full bg-green-500 ring-2 ring-white" />
                         </span>
@@ -99,36 +152,78 @@ function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void;
                 </span>
                 <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 items-center gap-2">
-                        <Link href={memberUrl} className="truncate text-[15px] font-semibold text-ink transition-colors hover:text-motriks-deep focus-visible:underline focus-visible:outline-none">
+                        <Link
+                            href={memberUrl}
+                            className="truncate text-[15px] font-semibold text-ink transition-colors hover:text-motriks-deep focus-visible:underline focus-visible:outline-none"
+                        >
                             {a.agent_name}
                         </Link>
-                        {ended && <StatusBadge tone={statusTone[a.status] ?? 'neutral'}>{a.status_label}</StatusBadge>}
+                        {ended && (
+                            <StatusBadge
+                                tone={statusTone[a.status] ?? 'neutral'}
+                            >
+                                {a.status_label}
+                            </StatusBadge>
+                        )}
                     </div>
                     <p className="mt-0.5 flex items-center gap-1.5 text-[13px]">
-                        <span className={cn('font-medium', roleText[a.agent_role] ?? 'text-slate-600')}>{roleShort[a.agent_role] ?? a.agent_role}</span>
-                        <span aria-hidden className="text-slate-300">·</span>
-                        <span className={a.is_current ? 'font-medium text-motriks-deep' : 'text-slate-400'}>{a.is_current ? 'En poste' : 'Hors poste'}</span>
+                        <span
+                            className={cn(
+                                'font-medium',
+                                roleText[a.agent_role] ?? 'text-slate-600',
+                            )}
+                        >
+                            {roleShort[a.agent_role] ?? a.agent_role}
+                        </span>
+                        <span aria-hidden className="text-slate-300">
+                            ·
+                        </span>
+                        <span
+                            className={
+                                a.is_current
+                                    ? 'font-medium text-motriks-deep'
+                                    : 'text-slate-500'
+                            }
+                        >
+                            {a.is_current ? 'En poste' : 'Hors poste'}
+                        </span>
                     </p>
                 </div>
             </div>
 
             {/* Point de vente, période, créneau */}
             <div className="flex flex-col gap-1.5 border-t border-slate-100 px-4 py-3 text-[13px]">
-                <Link href={siteUrl} className="flex min-w-0 items-center gap-2 text-slate-700 transition-colors hover:text-motriks-deep focus-visible:underline focus-visible:outline-none">
+                <Link
+                    href={siteUrl}
+                    className="flex min-w-0 items-center gap-2 text-slate-700 transition-colors hover:text-motriks-deep focus-visible:underline focus-visible:outline-none"
+                >
                     <Store className="size-3.5 shrink-0 text-slate-400" />
                     <span className="truncate font-medium">{a.site_name}</span>
-                    {a.site_city && <span className="shrink-0 text-slate-400">· {a.site_city}</span>}
+                    {a.site_city && (
+                        <span className="shrink-0 text-slate-500">
+                            · {a.site_city}
+                        </span>
+                    )}
                 </Link>
                 <p className="flex items-center gap-2 text-slate-500 tabular-nums">
                     <CalendarRange className="size-3.5 shrink-0 text-slate-400" />
-                    {a.starts_on} <span className="text-slate-300">→</span> {a.ends_on ?? 'Permanent'}
+                    {a.starts_on} <span className="text-slate-300">→</span>{' '}
+                    {a.ends_on ?? 'Permanent'}
                 </p>
-                <p className={cn('flex items-center gap-2 tabular-nums', slot ? 'text-slate-500' : 'text-slate-400')}>
+                <p
+                    className={cn(
+                        'flex items-center gap-2 tabular-nums',
+                        slot ? 'text-slate-500' : 'text-slate-500',
+                    )}
+                >
                     <Clock className="size-3.5 shrink-0 text-slate-400" />
                     {slot ?? 'Sans créneau'}
                 </p>
                 {a.notes && (
-                    <p className="flex min-w-0 items-center gap-2 text-xs text-slate-400" title={a.notes}>
+                    <p
+                        className="flex min-w-0 items-center gap-2 text-xs text-slate-500"
+                        title={a.notes}
+                    >
                         <StickyNote className="size-3.5 shrink-0" />
                         <span className="truncate">{a.notes}</span>
                     </p>
@@ -142,30 +237,45 @@ function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void;
                         <button
                             type="button"
                             aria-label={`Actions pour l’affectation de ${a.agent_name}`}
-                            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none data-[state=open]:bg-slate-100 data-[state=open]:text-ink"
+                            className="flex size-11 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none data-[state=open]:bg-slate-100 data-[state=open]:text-ink sm:size-8"
                         >
                             <MoreHorizontal className="size-[18px]" />
                         </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-52 rounded-xl p-1">
-                        <DropdownMenuItem onSelect={onEdit} className="cursor-pointer rounded-lg">
+                    <DropdownMenuContent
+                        align="end"
+                        className="w-52 rounded-xl p-1"
+                    >
+                        <DropdownMenuItem
+                            onSelect={onEdit}
+                            className="cursor-pointer rounded-lg"
+                        >
                             <Pencil className="size-4" />
                             Modifier
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                        <DropdownMenuItem
+                            asChild
+                            className="cursor-pointer rounded-lg"
+                        >
                             <Link href={memberUrl}>
                                 <User className="size-4" />
                                 Voir le membre
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer rounded-lg">
+                        <DropdownMenuItem
+                            asChild
+                            className="cursor-pointer rounded-lg"
+                        >
                             <Link href={siteUrl}>
                                 <Store className="size-4" />
                                 Voir le point de vente
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={onDelete} className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600 [&_svg]:text-red-500">
+                        <DropdownMenuItem
+                            onSelect={onDelete}
+                            className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600 [&_svg]:text-red-500"
+                        >
                             <Trash2 className="size-4" />
                             Supprimer
                         </DropdownMenuItem>
@@ -178,15 +288,28 @@ function AffectationCard({ a, onEdit, onDelete }: { a: Item; onEdit: () => void;
 
 /* ───────────────────── Fenêtre de modification ───────────────────── */
 
-function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+function Section({
+    title,
+    hint,
+    children,
+}: {
+    title: string;
+    hint?: string;
+    children: ReactNode;
+}) {
     return (
         <section className="grid gap-4">
             <div>
                 <h4 className="flex items-center gap-2 text-sm font-semibold text-ink">
-                    <span className="h-3.5 w-0.5 rounded-full bg-motriks" aria-hidden="true" />
+                    <span
+                        className="h-3.5 w-0.5 rounded-full bg-motriks"
+                        aria-hidden="true"
+                    />
                     {title}
                 </h4>
-                {hint && <p className="mt-0.5 text-xs text-slate-500">{hint}</p>}
+                {hint && (
+                    <p className="mt-0.5 text-xs text-slate-500">{hint}</p>
+                )}
             </div>
             {children}
         </section>
@@ -213,12 +336,18 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
     });
 
     // Un superviseur peut superviser plusieurs points de vente : cases à cocher
-    const isSupervisor = staff.find((s) => s.value === data.user_id)?.role === 'supervisor';
+    const isSupervisor =
+        staff.find((s) => s.value === data.user_id)?.role === 'supervisor';
 
     const chooseMember = (userId: number | '') => {
-        const supervisor = staff.find((s) => s.value === userId)?.role === 'supervisor';
+        const supervisor =
+            staff.find((s) => s.value === userId)?.role === 'supervisor';
         // Une hôtesse n'a qu'un point de vente : on garde le premier coché
-        setData((d) => ({ ...d, user_id: userId, site_ids: supervisor ? d.site_ids : d.site_ids.slice(0, 1) }));
+        setData((d) => ({
+            ...d,
+            user_id: userId,
+            site_ids: supervisor ? d.site_ids : d.site_ids.slice(0, 1),
+        }));
     };
 
     const close = useCallback(() => {
@@ -230,9 +359,17 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
         post(affectationStore().url, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success(data.site_ids.length > 1 ? 'Affectations créées' : 'Affectation créée', {
-                    description: data.site_ids.length > 1 ? `Le superviseur suit ${data.site_ids.length} points de vente.` : 'Le membre a bien été affecté au site.',
-                });
+                toast.success(
+                    data.site_ids.length > 1
+                        ? 'Affectations créées'
+                        : 'Affectation créée',
+                    {
+                        description:
+                            data.site_ids.length > 1
+                                ? `Le superviseur suit ${data.site_ids.length} points de vente.`
+                                : 'Le membre a bien été affecté au site.',
+                    },
+                );
                 onClose();
             },
             onError: toastFormError,
@@ -240,31 +377,61 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
     };
 
     return (
-        <Modal onClose={close} title="Nouvelle affectation" description="Assignez un membre à un point de vente." size="lg" icon={<Plus />}>
+        <Modal
+            onClose={close}
+            title="Nouvelle affectation"
+            description="Assignez un membre à un point de vente."
+            size="lg"
+            icon={<Plus />}
+        >
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex-1 space-y-8 overflow-y-auto px-6 pt-4 pb-6">
                     <Section title="Qui et où">
-                        <div className={cn('grid gap-5', !isSupervisor && 'sm:grid-cols-2')}>
-                            <Field label="Membre" htmlFor="new-user_id" required error={errors.user_id}>
+                        <div
+                            className={cn(
+                                'grid gap-5',
+                                !isSupervisor && 'sm:grid-cols-2',
+                            )}
+                        >
+                            <Field
+                                label="Membre"
+                                htmlFor="new-user_id"
+                                required
+                                error={errors.user_id}
+                            >
                                 <SelectInput
                                     id="new-user_id"
                                     icon={User}
                                     value={data.user_id}
-                                    onChange={(e) => chooseMember(Number(e.target.value) || '')}
+                                    onChange={(e) =>
+                                        chooseMember(
+                                            Number(e.target.value) || '',
+                                        )
+                                    }
                                     error={errors.user_id}
                                     required
                                 >
                                     <option value="">Choisir un membre…</option>
                                     {staff.map((s) => (
-                                        <option key={s.value} value={s.value}>{s.label} ({s.role_label})</option>
+                                        <option key={s.value} value={s.value}>
+                                            {s.label} ({s.role_label})
+                                        </option>
                                     ))}
                                 </SelectInput>
                             </Field>
 
                             <Field
-                                label={isSupervisor ? 'Points de vente supervisés' : 'Site'}
+                                label={
+                                    isSupervisor
+                                        ? 'Points de vente supervisés'
+                                        : 'Site'
+                                }
                                 htmlFor="new-site_id"
-                                hint={isSupervisor ? '(cochez-en un ou plusieurs)' : undefined}
+                                hint={
+                                    isSupervisor
+                                        ? '(cochez-en un ou plusieurs)'
+                                        : undefined
+                                }
                                 required
                                 error={siteError(errors)}
                             >
@@ -282,49 +449,78 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
 
                     <Section title="Période">
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="Date de début" htmlFor="new-starts_on" required error={errors.starts_on}>
+                            <Field
+                                label="Date de début"
+                                htmlFor="new-starts_on"
+                                required
+                                error={errors.starts_on}
+                            >
                                 <TextInput
                                     id="new-starts_on"
                                     type="date"
                                     icon={CalendarRange}
                                     value={data.starts_on}
-                                    onChange={(e) => setData('starts_on', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('starts_on', e.target.value)
+                                    }
                                     error={errors.starts_on}
                                     required
                                 />
                             </Field>
-                            <Field label="Date de fin" htmlFor="new-ends_on" hint="(vide = permanent)" error={errors.ends_on}>
+                            <Field
+                                label="Date de fin"
+                                htmlFor="new-ends_on"
+                                hint="(vide = permanent)"
+                                error={errors.ends_on}
+                            >
                                 <TextInput
                                     id="new-ends_on"
                                     type="date"
                                     icon={CalendarRange}
                                     value={data.ends_on}
-                                    onChange={(e) => setData('ends_on', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('ends_on', e.target.value)
+                                    }
                                     error={errors.ends_on}
                                 />
                             </Field>
                         </div>
                     </Section>
 
-                    <Section title="Créneau horaire" hint="Optionnel. Heures de prise de poste attendues.">
+                    <Section
+                        title="Créneau horaire"
+                        hint="Optionnel. Heures de prise de poste attendues."
+                    >
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="Heure de début" htmlFor="new-slot_start" error={errors.slot_start}>
+                            <Field
+                                label="Heure de début"
+                                htmlFor="new-slot_start"
+                                error={errors.slot_start}
+                            >
                                 <TextInput
                                     id="new-slot_start"
                                     type="time"
                                     icon={Clock}
                                     value={data.slot_start}
-                                    onChange={(e) => setData('slot_start', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('slot_start', e.target.value)
+                                    }
                                     error={errors.slot_start}
                                 />
                             </Field>
-                            <Field label="Heure de fin" htmlFor="new-slot_end" error={errors.slot_end}>
+                            <Field
+                                label="Heure de fin"
+                                htmlFor="new-slot_end"
+                                error={errors.slot_end}
+                            >
                                 <TextInput
                                     id="new-slot_end"
                                     type="time"
                                     icon={Clock}
                                     value={data.slot_end}
-                                    onChange={(e) => setData('slot_end', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('slot_end', e.target.value)
+                                    }
                                     error={errors.slot_end}
                                 />
                             </Field>
@@ -332,13 +528,20 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
                     </Section>
 
                     <Section title="Notes internes">
-                        <Field label="Notes" htmlFor="new-notes" hint="(optionnel)" error={errors.notes}>
+                        <Field
+                            label="Notes"
+                            htmlFor="new-notes"
+                            hint="(optionnel)"
+                            error={errors.notes}
+                        >
                             <TextArea
                                 id="new-notes"
                                 icon={FileText}
                                 rows={3}
                                 value={data.notes}
-                                onChange={(e) => setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    setData('notes', e.target.value)
+                                }
                                 placeholder="Instructions particulières, contexte…"
                                 error={errors.notes}
                             />
@@ -347,11 +550,20 @@ function CreateAffectationDialog({ sites, staff, onClose }: CreateDialogProps) {
                 </div>
 
                 <div className="flex items-center justify-end gap-3 border-t border-green-100 bg-white px-6 py-4">
-                    <ActionButton type="button" variant="secondary" onClick={close} disabled={processing}>
+                    <ActionButton
+                        type="button"
+                        variant="secondary"
+                        onClick={close}
+                        disabled={processing}
+                    >
                         Annuler
                     </ActionButton>
                     <ActionButton type="submit" loading={processing}>
-                        {processing ? 'Enregistrement…' : data.site_ids.length > 1 ? `Créer les ${data.site_ids.length} affectations` : "Créer l'affectation"}
+                        {processing
+                            ? 'Enregistrement…'
+                            : data.site_ids.length > 1
+                              ? `Créer les ${data.site_ids.length} affectations`
+                              : "Créer l'affectation"}
                     </ActionButton>
                 </div>
             </form>
@@ -367,7 +579,13 @@ type EditDialogProps = {
     onClose: () => void;
 };
 
-function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }: EditDialogProps) {
+function EditAffectationDialog({
+    affectation,
+    sites,
+    staff,
+    statuses,
+    onClose,
+}: EditDialogProps) {
     const { data, setData, put, processing, errors } = useForm({
         site_id: affectation.site_id as number | '',
         user_id: affectation.agent_id as number | '',
@@ -389,7 +607,9 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
         put(affectationUpdate({ affectation: affectation.uuid }).url, {
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Affectation mise à jour', { description: 'Les modifications sont enregistrées.' });
+                toast.success('Affectation mise à jour', {
+                    description: 'Les modifications sont enregistrées.',
+                });
                 onClose();
             },
             onError: toastFormError,
@@ -408,48 +628,85 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
                 <div className="flex-1 space-y-8 overflow-y-auto px-6 pt-4 pb-6">
                     <Section title="Qui et où">
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="Membre" htmlFor="edit-user_id" required error={errors.user_id}>
+                            <Field
+                                label="Membre"
+                                htmlFor="edit-user_id"
+                                required
+                                error={errors.user_id}
+                            >
                                 <SelectInput
                                     id="edit-user_id"
                                     icon={User}
                                     value={data.user_id}
-                                    onChange={(e) => setData('user_id', Number(e.target.value) || '')}
+                                    onChange={(e) =>
+                                        setData(
+                                            'user_id',
+                                            Number(e.target.value) || '',
+                                        )
+                                    }
                                     error={errors.user_id}
                                     required
                                 >
                                     <option value="">Choisir…</option>
                                     {staff.map((s) => (
-                                        <option key={s.value} value={s.value}>{s.label} ({s.role_label})</option>
+                                        <option key={s.value} value={s.value}>
+                                            {s.label} ({s.role_label})
+                                        </option>
                                     ))}
                                 </SelectInput>
                             </Field>
 
-                            <Field label="Site" htmlFor="edit-site_id" required error={errors.site_id}>
+                            <Field
+                                label="Site"
+                                htmlFor="edit-site_id"
+                                required
+                                error={errors.site_id}
+                            >
                                 <SelectInput
                                     id="edit-site_id"
                                     icon={MapPin}
                                     value={data.site_id}
-                                    onChange={(e) => setData('site_id', Number(e.target.value) || '')}
+                                    onChange={(e) =>
+                                        setData(
+                                            'site_id',
+                                            Number(e.target.value) || '',
+                                        )
+                                    }
                                     error={errors.site_id}
                                     required
                                 >
                                     <option value="">Choisir…</option>
                                     {sites.map((s) => (
-                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                        <option key={s.value} value={s.value}>
+                                            {s.label}
+                                        </option>
                                     ))}
                                 </SelectInput>
                             </Field>
 
-                            <Field label="Statut" htmlFor="edit-status" required error={errors.status} className="sm:col-span-2">
+                            <Field
+                                label="Statut"
+                                htmlFor="edit-status"
+                                required
+                                error={errors.status}
+                                className="sm:col-span-2"
+                            >
                                 <SelectInput
                                     id="edit-status"
                                     value={data.status}
-                                    onChange={(e) => setData('status', e.target.value as AffectationStatus)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'status',
+                                            e.target.value as AffectationStatus,
+                                        )
+                                    }
                                     error={errors.status}
                                     required
                                 >
                                     {statuses.map((s) => (
-                                        <option key={s.value} value={s.value}>{s.label}</option>
+                                        <option key={s.value} value={s.value}>
+                                            {s.label}
+                                        </option>
                                     ))}
                                 </SelectInput>
                             </Field>
@@ -458,49 +715,78 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
 
                     <Section title="Période">
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="Date de début" htmlFor="edit-starts_on" required error={errors.starts_on}>
+                            <Field
+                                label="Date de début"
+                                htmlFor="edit-starts_on"
+                                required
+                                error={errors.starts_on}
+                            >
                                 <TextInput
                                     id="edit-starts_on"
                                     type="date"
                                     icon={CalendarRange}
                                     value={data.starts_on}
-                                    onChange={(e) => setData('starts_on', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('starts_on', e.target.value)
+                                    }
                                     error={errors.starts_on}
                                     required
                                 />
                             </Field>
-                            <Field label="Date de fin" htmlFor="edit-ends_on" hint="(vide = permanent)" error={errors.ends_on}>
+                            <Field
+                                label="Date de fin"
+                                htmlFor="edit-ends_on"
+                                hint="(vide = permanent)"
+                                error={errors.ends_on}
+                            >
                                 <TextInput
                                     id="edit-ends_on"
                                     type="date"
                                     icon={CalendarRange}
                                     value={data.ends_on}
-                                    onChange={(e) => setData('ends_on', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('ends_on', e.target.value)
+                                    }
                                     error={errors.ends_on}
                                 />
                             </Field>
                         </div>
                     </Section>
 
-                    <Section title="Créneau horaire" hint="Optionnel. Heures de prise de poste attendues.">
+                    <Section
+                        title="Créneau horaire"
+                        hint="Optionnel. Heures de prise de poste attendues."
+                    >
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="Heure de début" htmlFor="edit-slot_start" error={errors.slot_start}>
+                            <Field
+                                label="Heure de début"
+                                htmlFor="edit-slot_start"
+                                error={errors.slot_start}
+                            >
                                 <TextInput
                                     id="edit-slot_start"
                                     type="time"
                                     icon={Clock}
                                     value={data.slot_start}
-                                    onChange={(e) => setData('slot_start', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('slot_start', e.target.value)
+                                    }
                                     error={errors.slot_start}
                                 />
                             </Field>
-                            <Field label="Heure de fin" htmlFor="edit-slot_end" error={errors.slot_end}>
+                            <Field
+                                label="Heure de fin"
+                                htmlFor="edit-slot_end"
+                                error={errors.slot_end}
+                            >
                                 <TextInput
                                     id="edit-slot_end"
                                     type="time"
                                     icon={Clock}
                                     value={data.slot_end}
-                                    onChange={(e) => setData('slot_end', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('slot_end', e.target.value)
+                                    }
                                     error={errors.slot_end}
                                 />
                             </Field>
@@ -508,13 +794,20 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
                     </Section>
 
                     <Section title="Notes internes">
-                        <Field label="Notes" htmlFor="edit-notes" hint="(optionnel)" error={errors.notes}>
+                        <Field
+                            label="Notes"
+                            htmlFor="edit-notes"
+                            hint="(optionnel)"
+                            error={errors.notes}
+                        >
                             <TextArea
                                 id="edit-notes"
                                 icon={FileText}
                                 rows={3}
                                 value={data.notes}
-                                onChange={(e) => setData('notes', e.target.value)}
+                                onChange={(e) =>
+                                    setData('notes', e.target.value)
+                                }
                                 error={errors.notes}
                             />
                         </Field>
@@ -522,7 +815,12 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
                 </div>
 
                 <div className="flex items-center justify-end gap-3 border-t border-green-100 bg-white px-6 py-4">
-                    <ActionButton type="button" variant="secondary" onClick={close} disabled={processing}>
+                    <ActionButton
+                        type="button"
+                        variant="secondary"
+                        onClick={close}
+                        disabled={processing}
+                    >
                         Annuler
                     </ActionButton>
                     <ActionButton type="submit" loading={processing}>
@@ -536,7 +834,13 @@ function EditAffectationDialog({ affectation, sites, staff, statuses, onClose }:
 
 /* ─────────────────────────── Page ─────────────────────────── */
 
-export default function AffectationsIndex({ affectations, stats, sites, staff, statuses }: Props) {
+export default function AffectationsIndex({
+    affectations,
+    stats,
+    sites,
+    staff,
+    statuses,
+}: Props) {
     const [filter, setFilter] = useState<FilterStatus>('all');
     const [currentOnly, setCurrentOnly] = useState(false);
     const [query, setQuery] = useState('');
@@ -578,11 +882,15 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
     const { ask, dialog } = useDeleteDialog<AffectationListItem>({
         getUrl: (a) => affectationDestroy({ affectation: a.uuid }).url,
         getTitle: () => 'Supprimer cette affectation ?',
-        getDescription: (a) => `${a.agent_name} ne sera plus affecté(e) au site « ${a.site_name} ». Cette action est définitive.`,
-        getSuccessMessage: (a) => `L'affectation de ${a.agent_name} a été supprimée.`,
+        getDescription: (a) =>
+            `${a.agent_name} ne sera plus affecté(e) au site « ${a.site_name} ». Cette action est définitive.`,
+        getSuccessMessage: (a) =>
+            `L'affectation de ${a.agent_name} a été supprimée.`,
     });
 
-    const cancelledCount = affectations.filter((a) => a.status === 'cancelled').length;
+    const cancelledCount = affectations.filter(
+        (a) => a.status === 'cancelled',
+    ).length;
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -590,7 +898,14 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
         return affectations.filter((a) => {
             if (filter !== 'all' && a.status !== filter) return false;
             if (currentOnly && !a.is_current) return false;
-            if (q && !(a.agent_name.toLowerCase().includes(q) || a.site_name.toLowerCase().includes(q) || a.site_city.toLowerCase().includes(q))) {
+            if (
+                q &&
+                !(
+                    a.agent_name.toLowerCase().includes(q) ||
+                    a.site_name.toLowerCase().includes(q) ||
+                    a.site_city.toLowerCase().includes(q)
+                )
+            ) {
                 return false;
             }
             return true;
@@ -609,7 +924,15 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
         { value: 'all', label: 'Toutes', count: stats.total },
         { value: 'active', label: 'Actives', count: stats.active },
         { value: 'completed', label: 'Terminées', count: stats.completed },
-        ...(cancelledCount > 0 ? [{ value: 'cancelled' as const, label: 'Annulées', count: cancelledCount }] : []),
+        ...(cancelledCount > 0
+            ? [
+                  {
+                      value: 'cancelled' as const,
+                      label: 'Annulées',
+                      count: cancelledCount,
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -636,7 +959,11 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                             items={[
                                 { label: 'Total', value: stats.total },
                                 { label: 'Actives', value: stats.active },
-                                { label: 'En cours', value: stats.current, live: stats.current > 0 },
+                                {
+                                    label: 'En cours',
+                                    value: stats.current,
+                                    live: stats.current > 0,
+                                },
                                 { label: 'Terminées', value: stats.completed },
                             ]}
                         />
@@ -677,12 +1004,32 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                             : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50',
                                     )}
                                 >
-                                    <span className={cn('size-2 rounded-full', currentOnly ? 'bg-motriks' : 'bg-slate-300')} />
+                                    <span
+                                        className={cn(
+                                            'size-2 rounded-full',
+                                            currentOnly
+                                                ? 'bg-motriks'
+                                                : 'bg-slate-300',
+                                        )}
+                                    />
                                     En poste
-                                    <span className={cn('tabular-nums', currentOnly ? 'text-motriks-deep/70' : 'text-slate-400')}>{stats.current}</span>
+                                    <span
+                                        className={cn(
+                                            'tabular-nums',
+                                            currentOnly
+                                                ? 'text-motriks-deep/70'
+                                                : 'text-slate-500',
+                                        )}
+                                    >
+                                        {stats.current}
+                                    </span>
                                 </button>
 
-                                <div role="group" aria-label="Filtrer par statut" className="inline-flex max-w-full overflow-x-auto rounded-xl bg-slate-100 p-1">
+                                <div
+                                    role="group"
+                                    aria-label="Filtrer par statut"
+                                    className="inline-flex max-w-full overflow-x-auto rounded-xl bg-slate-100 p-1"
+                                >
                                     {filters.map((f) => {
                                         const active = filter === f.value;
 
@@ -690,15 +1037,28 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                                             <button
                                                 key={f.value}
                                                 type="button"
-                                                onClick={() => setFilter(f.value)}
+                                                onClick={() =>
+                                                    setFilter(f.value)
+                                                }
                                                 aria-pressed={active}
                                                 className={cn(
                                                     'inline-flex h-8 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
-                                                    active ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
+                                                    active
+                                                        ? 'bg-white text-ink shadow-sm'
+                                                        : 'text-slate-500 hover:text-slate-800',
                                                 )}
                                             >
                                                 {f.label}
-                                                <span className={cn('tabular-nums', active ? 'text-motriks-deep' : 'text-slate-400')}>{f.count}</span>
+                                                <span
+                                                    className={cn(
+                                                        'tabular-nums',
+                                                        active
+                                                            ? 'text-motriks-deep'
+                                                            : 'text-slate-500',
+                                                    )}
+                                                >
+                                                    {f.count}
+                                                </span>
                                             </button>
                                         );
                                     })}
@@ -726,7 +1086,12 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                         ) : (
                             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                                 {filtered.map((a) => (
-                                    <AffectationCard key={a.id} a={a} onEdit={() => openEdit(a)} onDelete={() => ask(a)} />
+                                    <AffectationCard
+                                        key={a.id}
+                                        a={a}
+                                        onEdit={() => openEdit(a)}
+                                        onDelete={() => ask(a)}
+                                    />
                                 ))}
                             </div>
                         )}
@@ -745,7 +1110,13 @@ export default function AffectationsIndex({ affectations, stats, sites, staff, s
                 />
             )}
 
-            {creating && sites && staff && <CreateAffectationDialog sites={sites} staff={staff} onClose={closeCreate} />}
+            {creating && sites && staff && (
+                <CreateAffectationDialog
+                    sites={sites}
+                    staff={staff}
+                    onClose={closeCreate}
+                />
+            )}
 
             {dialog}
         </>

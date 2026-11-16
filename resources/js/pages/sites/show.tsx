@@ -9,7 +9,6 @@ import {
     ImagePlus,
     MapPin,
     Package,
-    PackagePlus,
     Pencil,
     Phone,
     Pill,
@@ -27,11 +26,25 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 import { toast } from 'sonner';
 import { ActionButton, Spinner } from '@/components/page/buttons';
-import { SiteInventory, type InventoryItem } from '@/components/sites/site-inventory';
-import { SitePerformance, type SitePerformanceData } from '@/components/sites/site-performance';
+import {
+    SiteInventory,
+    type InventoryItem,
+} from '@/components/sites/site-inventory';
+import {
+    SitePerformance,
+    type SitePerformanceData,
+} from '@/components/sites/site-performance';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { Field, SelectInput, TextInput } from '@/components/page/form-fields';
@@ -42,22 +55,45 @@ import { MetricStrip } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import { store as affectationStore, destroy as affectationDestroy, permuter as affectationPermuter } from '@/routes/affectations';
+import {
+    store as affectationStore,
+    destroy as affectationDestroy,
+    permuter as affectationPermuter,
+} from '@/routes/affectations';
 import { show as personnelShow } from '@/routes/personnel';
 import { index as sitesIndex, destroy as siteDestroy } from '@/routes/sites';
-import { store as inventoryStore, update as inventoryUpdate, destroy as inventoryDestroy, restock as inventoryRestock } from '@/routes/sites/inventory';
-import { store as photoStore, destroy as photoDestroy } from '@/routes/sites/photos';
+import {
+    store as inventoryStore,
+    update as inventoryUpdate,
+    destroy as inventoryDestroy,
+    restock as inventoryRestock,
+} from '@/routes/sites/inventory';
+import {
+    store as photoStore,
+    destroy as photoDestroy,
+} from '@/routes/sites/photos';
 import { show as dailyReportShow } from '@/routes/daily-reports';
-import type { SiteAffectation, SiteDetail, SiteStatusOption, SiteTypeOption, SiteVisit } from '@/types';
+import type {
+    SiteAffectation,
+    SiteDetail,
+    SiteStatusOption,
+    SiteTypeOption,
+    SiteVisit,
+} from '@/types';
 import { EditSiteModal } from './edit-site-modal';
 import { initials } from '@/lib/initials';
+import { compactAmount, formatDuration, localISODate } from '@/lib/format';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
 /* -------------------------------------------------------------------------- */
 
 type ChartPoint = { label: string; count: number };
-type ChartData = { week: ChartPoint[]; month: ChartPoint[]; year: ChartPoint[] };
+type ChartData = {
+    week: ChartPoint[];
+    month: ChartPoint[];
+    year: ChartPoint[];
+};
 
 type SiteStats = {
     total_visits: number;
@@ -84,14 +120,19 @@ type HostessRecord = {
 
 type StaffOption = { value: number; label: string; role_label: string };
 
-
 type ProductOption = { value: number; label: string; unit: string };
 
 type StockMovementItem = {
     id: number;
     date: string;
     product_name: string | null;
-    type: 'initial' | 'restock' | 'sale' | 'adjustment' | 'correction' | 'closing_gap';
+    type:
+        | 'initial'
+        | 'restock'
+        | 'sale'
+        | 'adjustment'
+        | 'correction'
+        | 'closing_gap';
     type_label: string;
     quantity: number;
     stock_after: number;
@@ -123,7 +164,12 @@ type Props = {
 type AssignState =
     | { open: false }
     | { open: true; mode: 'assign' }
-    | { open: true; mode: 'permuter'; replacingUuid: string; replacingName: string };
+    | {
+          open: true;
+          mode: 'permuter';
+          replacingUuid: string;
+          replacingName: string;
+      };
 
 type TabKey = 'apercu' | 'equipe' | 'inventaire' | 'visites' | 'photos';
 type Period = 'week' | 'month' | 'year';
@@ -132,7 +178,13 @@ type Period = 'week' | 'month' | 'year';
 /*  Constantes et utilitaires                                                 */
 /* -------------------------------------------------------------------------- */
 
-const TAB_KEYS: TabKey[] = ['apercu', 'equipe', 'inventaire', 'visites', 'photos'];
+const TAB_KEYS: TabKey[] = [
+    'apercu',
+    'equipe',
+    'inventaire',
+    'visites',
+    'photos',
+];
 
 const PERIOD_LABELS: Record<Period, string> = {
     week: '7 jours',
@@ -161,26 +213,26 @@ const typeIcon: Record<string, LucideIcon> = {
     autre: Building2,
 };
 
-const stockStyle: Record<InventoryItem['stock_status'], { chip: string; bar: string; label: string }> = {
-    normal: { chip: 'bg-green-50 text-green-700 ring-green-600/15', bar: 'bg-green-500', label: 'Normal' },
-    warning: { chip: 'bg-amber-50 text-amber-700 ring-amber-600/20', bar: 'bg-amber-400', label: 'Alerte' },
-    critical: { chip: 'bg-red-50 text-red-700 ring-red-600/15', bar: 'bg-red-500', label: 'Critique' },
+const stockStyle: Record<
+    InventoryItem['stock_status'],
+    { chip: string; bar: string; label: string }
+> = {
+    normal: {
+        chip: 'bg-green-50 text-green-700 ring-green-600/15',
+        bar: 'bg-green-500',
+        label: 'Normal',
+    },
+    warning: {
+        chip: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+        bar: 'bg-amber-400',
+        label: 'Alerte',
+    },
+    critical: {
+        chip: 'bg-red-50 text-red-700 ring-red-600/15',
+        bar: 'bg-red-500',
+        label: 'Critique',
+    },
 };
-
-function formatCurrency(amount: number): string {
-    if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} M`;
-    if (amount >= 1_000) return `${(amount / 1_000).toFixed(0)} K`;
-    return amount.toFixed(0);
-}
-
-function formatDuration(minutes: number | null): string {
-    if (!minutes) return '—';
-    if (minutes < 60) return `${minutes} min`;
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`;
-}
-
 
 function tabFromHash(): TabKey {
     if (typeof window === 'undefined') return 'apercu';
@@ -208,7 +260,11 @@ function Section({
             <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 px-5 pt-4 pb-3">
                 <div className="min-w-0 grow basis-40">
                     <h2 className="text-sm font-semibold text-ink">{title}</h2>
-                    {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
+                    {description && (
+                        <p className="mt-0.5 text-xs text-slate-500">
+                            {description}
+                        </p>
+                    )}
                 </div>
                 {actions}
             </header>
@@ -221,7 +277,7 @@ function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
     return (
         <div
             className={cn(
-                'flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-50 to-green-100 font-semibold text-motriks-deep ring-1 ring-inset ring-green-600/10',
+                'flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-green-50 to-green-100 font-semibold text-motriks-deep ring-1 ring-green-600/10 ring-inset',
                 size === 'sm' ? 'size-9 text-xs' : 'size-10 text-sm',
             )}
         >
@@ -230,21 +286,33 @@ function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
     );
 }
 
-function Fact({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
+function Fact({
+    icon: Icon,
+    label,
+    children,
+}: {
+    icon: LucideIcon;
+    label: string;
+    children: React.ReactNode;
+}) {
     return (
         <div className="flex items-start gap-3">
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-400 ring-1 ring-slate-100">
+            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-500 ring-1 ring-slate-100">
                 <Icon className="size-4" />
             </span>
             <div className="min-w-0">
-                <p className="text-[11px] font-medium tracking-wide text-slate-400 uppercase">{label}</p>
-                <div className="mt-0.5 text-sm font-medium text-ink">{children}</div>
+                <p className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">
+                    {label}
+                </p>
+                <div className="mt-0.5 text-sm font-medium text-ink">
+                    {children}
+                </div>
             </div>
         </div>
     );
 }
 
-const muted = <span className="font-normal text-slate-400">Non renseigné</span>;
+const muted = <span className="font-normal text-slate-500">Non renseigné</span>;
 
 function Tabs({
     tabs,
@@ -256,7 +324,10 @@ function Tabs({
     onChange: (key: TabKey) => void;
 }) {
     return (
-        <div role="tablist" className="-mx-1 flex gap-1 overflow-x-auto border-b border-slate-200/80 px-1">
+        <div
+            role="tablist"
+            className="-mx-1 flex gap-1 overflow-x-auto border-b border-slate-200/80 px-1"
+        >
             {tabs.map((t) => {
                 const selected = t.key === active;
                 return (
@@ -268,7 +339,9 @@ function Tabs({
                         onClick={() => onChange(t.key)}
                         className={cn(
                             '-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors focus-visible:outline-none',
-                            selected ? 'border-motriks text-ink' : 'border-transparent text-slate-500 hover:text-ink',
+                            selected
+                                ? 'border-motriks text-ink'
+                                : 'border-transparent text-slate-500 hover:text-ink',
                         )}
                     >
                         {t.label}
@@ -276,7 +349,9 @@ function Tabs({
                             <span
                                 className={cn(
                                     'rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
-                                    selected ? 'bg-motriks-soft text-motriks-deep' : 'bg-slate-100 text-slate-500',
+                                    selected
+                                        ? 'bg-motriks-soft text-motriks-deep'
+                                        : 'bg-slate-100 text-slate-500',
                                 )}
                             >
                                 {t.badge}
@@ -293,10 +368,27 @@ function Tabs({
 /*  Modals (formulaires)                                                      */
 /* -------------------------------------------------------------------------- */
 
-function ModalFooter({ onCancel, saving, submitLabel, savingLabel, disabled }: { onCancel: () => void; saving: boolean; submitLabel: string; savingLabel: string; disabled?: boolean }) {
+function ModalFooter({
+    onCancel,
+    saving,
+    submitLabel,
+    savingLabel,
+    disabled,
+}: {
+    onCancel: () => void;
+    saving: boolean;
+    submitLabel: string;
+    savingLabel: string;
+    disabled?: boolean;
+}) {
     return (
         <footer className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-6 py-4">
-            <ActionButton type="button" variant="secondary" onClick={onCancel} disabled={saving}>
+            <ActionButton
+                type="button"
+                variant="secondary"
+                onClick={onCancel}
+                disabled={saving}
+            >
                 Annuler
             </ActionButton>
             <ActionButton type="submit" loading={saving} disabled={disabled}>
@@ -306,7 +398,15 @@ function ModalFooter({ onCancel, saving, submitLabel, savingLabel, disabled }: {
     );
 }
 
-function InventoryAddModal({ siteUuid, products, onClose }: { siteUuid: string; products: ProductOption[]; onClose: () => void }) {
+function InventoryAddModal({
+    siteUuid,
+    products,
+    onClose,
+}: {
+    siteUuid: string;
+    products: ProductOption[];
+    onClose: () => void;
+}) {
     const [productId, setProductId] = useState('');
     const [currentStock, setCurrentStock] = useState('0');
     const [alertThreshold, setAlertThreshold] = useState('10');
@@ -337,38 +437,96 @@ function InventoryAddModal({ siteUuid, products, onClose }: { siteUuid: string; 
     };
 
     return (
-        <Modal onClose={() => !saving && onClose()} title="Ajouter un produit" description="Suivez le stock et recevez des alertes.">
+        <Modal
+            onClose={() => !saving && onClose()}
+            title="Ajouter un produit"
+            description="Suivez le stock et recevez des alertes."
+        >
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
                     <Field label="Produit" htmlFor="inv_product" required>
-                        <SelectInput id="inv_product" value={productId} onChange={(e) => setProductId(e.target.value)} required>
+                        <SelectInput
+                            id="inv_product"
+                            value={productId}
+                            onChange={(e) => setProductId(e.target.value)}
+                            required
+                        >
                             <option value="">Choisir un produit…</option>
                             {products.map((p) => (
-                                <option key={p.value} value={p.value}>{p.label} · {p.unit}</option>
+                                <option key={p.value} value={p.value}>
+                                    {p.label} · {p.unit}
+                                </option>
                             ))}
                         </SelectInput>
                     </Field>
 
                     <Field label="Stock actuel" htmlFor="inv_stock">
-                        <TextInput id="inv_stock" type="number" min="0" value={currentStock} onChange={(e) => setCurrentStock(e.target.value)} required />
+                        <TextInput
+                            id="inv_stock"
+                            type="number"
+                            min="0"
+                            value={currentStock}
+                            onChange={(e) => setCurrentStock(e.target.value)}
+                            required
+                        />
                     </Field>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Seuil d'alerte" htmlFor="inv_alert" hint="en dessous : orange">
-                            <TextInput id="inv_alert" type="number" min="0" value={alertThreshold} onChange={(e) => setAlertThreshold(e.target.value)} required />
+                        <Field
+                            label="Seuil d'alerte"
+                            htmlFor="inv_alert"
+                            hint="en dessous : orange"
+                        >
+                            <TextInput
+                                id="inv_alert"
+                                type="number"
+                                min="0"
+                                value={alertThreshold}
+                                onChange={(e) =>
+                                    setAlertThreshold(e.target.value)
+                                }
+                                required
+                            />
                         </Field>
-                        <Field label="Seuil critique" htmlFor="inv_critical" hint="en dessous : rouge">
-                            <TextInput id="inv_critical" type="number" min="0" value={criticalThreshold} onChange={(e) => setCriticalThreshold(e.target.value)} required />
+                        <Field
+                            label="Seuil critique"
+                            htmlFor="inv_critical"
+                            hint="en dessous : rouge"
+                        >
+                            <TextInput
+                                id="inv_critical"
+                                type="number"
+                                min="0"
+                                value={criticalThreshold}
+                                onChange={(e) =>
+                                    setCriticalThreshold(e.target.value)
+                                }
+                                required
+                            />
                         </Field>
                     </div>
                 </div>
-                <ModalFooter onCancel={onClose} saving={saving} submitLabel="Ajouter" savingLabel="Ajout…" disabled={!productId} />
+                <ModalFooter
+                    onCancel={onClose}
+                    saving={saving}
+                    submitLabel="Ajouter"
+                    savingLabel="Ajout…"
+                    disabled={!productId}
+                />
             </form>
         </Modal>
     );
 }
 
-function StockModal({ siteUuid, item, onClose }: { siteUuid: string; item: InventoryItem; onClose: () => void }) {
+function StockModal({
+    siteUuid,
+    item,
+    onClose,
+}: {
+    siteUuid: string;
+    item: InventoryItem;
+    onClose: () => void;
+}) {
     const [current, setCurrent] = useState(String(item.current_stock));
     const [alert, setAlert] = useState(String(item.alert_threshold));
     const [critical, setCritical] = useState(String(item.critical_threshold));
@@ -389,7 +547,9 @@ function StockModal({ siteUuid, item, onClose }: { siteUuid: string; item: Inven
                 preserveScroll: true,
                 onStart: () => setSaving(true),
                 onSuccess: () => {
-                    toast.success('Stock mis à jour', { description: item.product_name });
+                    toast.success('Stock mis à jour', {
+                        description: item.product_name,
+                    });
                     onClose();
                 },
                 onError: toastFormError,
@@ -399,33 +559,90 @@ function StockModal({ siteUuid, item, onClose }: { siteUuid: string; item: Inven
     };
 
     return (
-        <Modal onClose={() => !saving && onClose()} title="Inventaire et seuils" description={`${item.product_name} · pour une livraison, utilisez plutôt « Réassort ».`}>
+        <Modal
+            onClose={() => !saving && onClose()}
+            title="Inventaire et seuils"
+            description={`${item.product_name} · pour une livraison, utilisez plutôt « Réassort ».`}
+        >
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-                    <Field label={`Stock compté (${item.product_unit})`} htmlFor="stk_current" hint="l'écart avec le stock actuel est inscrit dans le journal">
-                        <TextInput id="stk_current" type="number" min="0" value={current} onChange={(e) => setCurrent(e.target.value)} required autoFocus />
+                    <Field
+                        label={`Stock compté (${item.product_unit})`}
+                        htmlFor="stk_current"
+                        hint="l'écart avec le stock actuel est inscrit dans le journal"
+                    >
+                        <TextInput
+                            id="stk_current"
+                            type="number"
+                            min="0"
+                            value={current}
+                            onChange={(e) => setCurrent(e.target.value)}
+                            required
+                            autoFocus
+                        />
                     </Field>
                     {Number(current) !== item.current_stock && (
                         <Field label="Motif de l'écart" htmlFor="stk_notes">
-                            <TextInput id="stk_notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder="Ex. inventaire mensuel, casse, vol…" />
+                            <TextInput
+                                id="stk_notes"
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                maxLength={500}
+                                placeholder="Ex. inventaire mensuel, casse, vol…"
+                            />
                         </Field>
                     )}
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Seuil d'alerte" htmlFor="stk_alert" hint="en dessous : orange">
-                            <TextInput id="stk_alert" type="number" min="0" value={alert} onChange={(e) => setAlert(e.target.value)} required />
+                        <Field
+                            label="Seuil d'alerte"
+                            htmlFor="stk_alert"
+                            hint="en dessous : orange"
+                        >
+                            <TextInput
+                                id="stk_alert"
+                                type="number"
+                                min="0"
+                                value={alert}
+                                onChange={(e) => setAlert(e.target.value)}
+                                required
+                            />
                         </Field>
-                        <Field label="Seuil critique" htmlFor="stk_critical" hint="en dessous : rouge">
-                            <TextInput id="stk_critical" type="number" min="0" value={critical} onChange={(e) => setCritical(e.target.value)} required />
+                        <Field
+                            label="Seuil critique"
+                            htmlFor="stk_critical"
+                            hint="en dessous : rouge"
+                        >
+                            <TextInput
+                                id="stk_critical"
+                                type="number"
+                                min="0"
+                                value={critical}
+                                onChange={(e) => setCritical(e.target.value)}
+                                required
+                            />
                         </Field>
                     </div>
                 </div>
-                <ModalFooter onCancel={onClose} saving={saving} submitLabel="Enregistrer" savingLabel="Enregistrement…" />
+                <ModalFooter
+                    onCancel={onClose}
+                    saving={saving}
+                    submitLabel="Enregistrer"
+                    savingLabel="Enregistrement…"
+                />
             </form>
         </Modal>
     );
 }
 
-function RestockModal({ siteUuid, item, onClose }: { siteUuid: string; item: InventoryItem; onClose: () => void }) {
+function RestockModal({
+    siteUuid,
+    item,
+    onClose,
+}: {
+    siteUuid: string;
+    item: InventoryItem;
+    onClose: () => void;
+}) {
     const [quantity, setQuantity] = useState('');
     const [notes, setNotes] = useState('');
     const [saving, setSaving] = useState(false);
@@ -439,7 +656,9 @@ function RestockModal({ siteUuid, item, onClose }: { siteUuid: string; item: Inv
                 preserveScroll: true,
                 onStart: () => setSaving(true),
                 onSuccess: () => {
-                    toast.success('Réassort enregistré', { description: `${item.product_name} : +${quantity}` });
+                    toast.success('Réassort enregistré', {
+                        description: `${item.product_name} : +${quantity}`,
+                    });
                     onClose();
                 },
                 onError: toastFormError,
@@ -451,17 +670,45 @@ function RestockModal({ siteUuid, item, onClose }: { siteUuid: string; item: Inv
     const after = item.current_stock + (Number(quantity) || 0);
 
     return (
-        <Modal onClose={() => !saving && onClose()} title="Réassort" description={`${item.product_name} · stock actuel ${item.current_stock} ${item.product_unit}`}>
+        <Modal
+            onClose={() => !saving && onClose()}
+            title="Réassort"
+            description={`${item.product_name} · stock actuel ${item.current_stock} ${item.product_unit}`}
+        >
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-                    <Field label={`Quantité livrée (${item.product_unit})`} htmlFor="rst_qty" hint={quantity ? `nouveau stock : ${after}` : undefined}>
-                        <TextInput id="rst_qty" type="number" min="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} required autoFocus />
+                    <Field
+                        label={`Quantité livrée (${item.product_unit})`}
+                        htmlFor="rst_qty"
+                        hint={quantity ? `nouveau stock : ${after}` : undefined}
+                    >
+                        <TextInput
+                            id="rst_qty"
+                            type="number"
+                            min="1"
+                            value={quantity}
+                            onChange={(e) => setQuantity(e.target.value)}
+                            required
+                            autoFocus
+                        />
                     </Field>
                     <Field label="Note" htmlFor="rst_notes">
-                        <TextInput id="rst_notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} placeholder="Ex. bon de livraison n° 1245" />
+                        <TextInput
+                            id="rst_notes"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            maxLength={500}
+                            placeholder="Ex. bon de livraison n° 1245"
+                        />
                     </Field>
                 </div>
-                <ModalFooter onCancel={onClose} saving={saving} submitLabel="Ajouter au stock" savingLabel="Enregistrement…" disabled={!(Number(quantity) > 0)} />
+                <ModalFooter
+                    onCancel={onClose}
+                    saving={saving}
+                    submitLabel="Ajouter au stock"
+                    savingLabel="Enregistrement…"
+                    disabled={!(Number(quantity) > 0)}
+                />
             </form>
         </Modal>
     );
@@ -474,13 +721,22 @@ function StockMovements({ movements }: { movements: StockMovementItem[] }) {
     }
 
     return (
-        <Section title="Mouvements de stock" description="Les 50 derniers changements du stock de ce site, du plus récent au plus ancien.">
+        <Section
+            title="Mouvements de stock"
+            description="Les 50 derniers changements du stock de ce site, du plus récent au plus ancien."
+        >
             <ul className="divide-y divide-slate-100">
                 {movements.map((m) => (
-                    <li key={m.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm">
+                    <li
+                        key={m.id}
+                        className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 text-sm"
+                    >
                         <div className="min-w-0 grow basis-full sm:basis-0">
                             <p className="font-medium text-ink">
-                                {m.product_name ?? 'Produit retiré'} <span className="font-normal text-slate-500">· {m.type_label}</span>
+                                {m.product_name ?? 'Produit retiré'}{' '}
+                                <span className="font-normal text-slate-500">
+                                    · {m.type_label}
+                                </span>
                             </p>
                             <p className="mt-0.5 text-xs text-slate-500">
                                 {m.date}
@@ -489,17 +745,36 @@ function StockMovements({ movements }: { movements: StockMovementItem[] }) {
                                 {m.daily_report_uuid && (
                                     <>
                                         {' · '}
-                                        <Link href={dailyReportShow({ dailyReport: m.daily_report_uuid }).url} className="font-semibold text-motriks-deep hover:underline">
+                                        <Link
+                                            href={
+                                                dailyReportShow({
+                                                    dailyReport:
+                                                        m.daily_report_uuid,
+                                                }).url
+                                            }
+                                            className="font-semibold text-motriks-deep hover:underline"
+                                        >
                                             voir le rapport
                                         </Link>
                                     </>
                                 )}
                             </p>
                         </div>
-                        <span className={cn('ml-auto w-16 text-right font-semibold tabular-nums sm:ml-0', m.quantity > 0 ? 'text-motriks-deep' : m.quantity < 0 ? 'text-red-600' : 'text-slate-400')}>
+                        <span
+                            className={cn(
+                                'ml-auto w-16 text-right font-semibold tabular-nums sm:ml-0',
+                                m.quantity > 0
+                                    ? 'text-motriks-deep'
+                                    : m.quantity < 0
+                                      ? 'text-red-600'
+                                      : 'text-slate-500',
+                            )}
+                        >
                             {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
                         </span>
-                        <span className="w-20 text-right text-xs text-slate-500 tabular-nums">stock {m.stock_after}</span>
+                        <span className="w-20 text-right text-xs text-slate-500 tabular-nums">
+                            stock {m.stock_after}
+                        </span>
                     </li>
                 ))}
             </ul>
@@ -518,7 +793,7 @@ function AssignModal({
     staff: StaffOption[];
     onClose: () => void;
 }) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localISODate();
     const [userId, setUserId] = useState('');
     const [startsOn, setStartsOn] = useState(today);
     const [endsOn, setEndsOn] = useState('');
@@ -544,7 +819,9 @@ function AssignModal({
             preserveScroll: true,
             onStart: () => setSaving(true),
             onSuccess: () => {
-                toast.success(isSwap ? 'Permutation effectuée' : 'Affectation créée');
+                toast.success(
+                    isSwap ? 'Permutation effectuée' : 'Affectation créée',
+                );
                 onClose();
             },
             onError: toastFormError,
@@ -552,9 +829,17 @@ function AssignModal({
         };
 
         if (modal.mode === 'permuter') {
-            router.post(affectationPermuter({ affectation: modal.replacingUuid }).url, data, options);
+            router.post(
+                affectationPermuter({ affectation: modal.replacingUuid }).url,
+                data,
+                options,
+            );
         } else {
-            router.post(affectationStore().url, { ...data, site_id: siteId }, options);
+            router.post(
+                affectationStore().url,
+                { ...data, site_id: siteId },
+                options,
+            );
         }
     };
 
@@ -562,34 +847,75 @@ function AssignModal({
         <Modal
             onClose={() => !saving && onClose()}
             title={isSwap ? "Permuter l'hôtesse" : 'Affecter un membre'}
-            description={isSwap ? `Remplace ${modal.replacingName}` : 'Choisissez un membre et sa période.'}
+            description={
+                isSwap
+                    ? `Remplace ${modal.replacingName}`
+                    : 'Choisissez un membre et sa période.'
+            }
         >
             <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
                 <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-                    <Field label="Hôtesse / Superviseur" htmlFor="as_user" required>
-                        <SelectInput id="as_user" icon={User} value={userId} onChange={(e) => setUserId(e.target.value)} required>
+                    <Field
+                        label="Hôtesse / Superviseur"
+                        htmlFor="as_user"
+                        required
+                    >
+                        <SelectInput
+                            id="as_user"
+                            icon={User}
+                            value={userId}
+                            onChange={(e) => setUserId(e.target.value)}
+                            required
+                        >
                             <option value="">Choisir un membre…</option>
                             {staff.map((s) => (
-                                <option key={s.value} value={s.value}>{s.label} · {s.role_label}</option>
+                                <option key={s.value} value={s.value}>
+                                    {s.label} · {s.role_label}
+                                </option>
                             ))}
                         </SelectInput>
                     </Field>
 
                     <div className="grid grid-cols-2 gap-4">
                         <Field label="Début" htmlFor="as_start" required>
-                            <TextInput id="as_start" type="date" icon={CalendarRange} value={startsOn} onChange={(e) => setStartsOn(e.target.value)} required />
+                            <TextInput
+                                id="as_start"
+                                type="date"
+                                icon={CalendarRange}
+                                value={startsOn}
+                                onChange={(e) => setStartsOn(e.target.value)}
+                                required
+                            />
                         </Field>
                         <Field label="Fin" htmlFor="as_end" hint="(optionnel)">
-                            <TextInput id="as_end" type="date" icon={CalendarRange} value={endsOn} onChange={(e) => setEndsOn(e.target.value)} />
+                            <TextInput
+                                id="as_end"
+                                type="date"
+                                icon={CalendarRange}
+                                value={endsOn}
+                                onChange={(e) => setEndsOn(e.target.value)}
+                            />
                         </Field>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <Field label="Heure de début" htmlFor="as_slot_start">
-                            <TextInput id="as_slot_start" type="time" icon={Clock} value={slotStart} onChange={(e) => setSlotStart(e.target.value)} />
+                            <TextInput
+                                id="as_slot_start"
+                                type="time"
+                                icon={Clock}
+                                value={slotStart}
+                                onChange={(e) => setSlotStart(e.target.value)}
+                            />
                         </Field>
                         <Field label="Heure de fin" htmlFor="as_slot_end">
-                            <TextInput id="as_slot_end" type="time" icon={Clock} value={slotEnd} onChange={(e) => setSlotEnd(e.target.value)} />
+                            <TextInput
+                                id="as_slot_end"
+                                type="time"
+                                icon={Clock}
+                                value={slotEnd}
+                                onChange={(e) => setSlotEnd(e.target.value)}
+                            />
                         </Field>
                     </div>
                 </div>
@@ -609,7 +935,17 @@ function AssignModal({
 /*  Photos                                                                    */
 /* -------------------------------------------------------------------------- */
 
-function PhotoGallery({ photos, siteUuid, canAdd, canDelete = true }: { photos: string[]; siteUuid: string; canAdd: boolean; canDelete?: boolean }) {
+function PhotoGallery({
+    photos,
+    siteUuid,
+    canAdd,
+    canDelete = true,
+}: {
+    photos: string[];
+    siteUuid: string;
+    canAdd: boolean;
+    canDelete?: boolean;
+}) {
     const [lightbox, setLightbox] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
@@ -625,7 +961,9 @@ function PhotoGallery({ photos, siteUuid, canAdd, canDelete = true }: { photos: 
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 3 * 1024 * 1024) {
-            toast.error('Image trop lourde', { description: 'La taille maximale est de 3 Mo.' });
+            toast.error('Image trop lourde', {
+                description: 'La taille maximale est de 3 Mo.',
+            });
             e.target.value = '';
             return;
         }
@@ -646,7 +984,10 @@ function PhotoGallery({ photos, siteUuid, canAdd, canDelete = true }: { photos: 
         <>
             <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3">
                 {photos.map((url, i) => (
-                    <div key={url + i} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50">
+                    <div
+                        key={url + i}
+                        className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-200/80 bg-slate-50"
+                    >
                         <img
                             src={url}
                             alt={`Photo ${i + 1}`}
@@ -654,14 +995,14 @@ function PhotoGallery({ photos, siteUuid, canAdd, canDelete = true }: { photos: 
                             onClick={() => setLightbox(url)}
                         />
                         {canDelete && (
-                        <button
-                            type="button"
-                            onClick={() => ask(i)}
-                            aria-label={`Supprimer la photo ${i + 1}`}
-                            className="absolute top-2 right-2 flex size-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600 focus-visible:opacity-100 pointer-coarse:size-9 pointer-coarse:opacity-100"
-                        >
-                            <X className="size-3.5" />
-                        </button>
+                            <button
+                                type="button"
+                                onClick={() => ask(i)}
+                                aria-label={`Supprimer la photo ${i + 1}`}
+                                className="absolute top-2 right-2 flex size-11 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600 focus-visible:opacity-100 sm:size-7 pointer-coarse:size-9 pointer-coarse:opacity-100"
+                            >
+                                <X className="size-3.5" />
+                            </button>
                         )}
                     </div>
                 ))}
@@ -669,12 +1010,18 @@ function PhotoGallery({ photos, siteUuid, canAdd, canDelete = true }: { photos: 
                 {canAdd && (
                     <label
                         className={cn(
-                            'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 text-slate-400 transition-colors hover:border-motriks hover:bg-motriks-soft/40 hover:text-motriks-deep',
+                            'flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 text-slate-500 transition-colors hover:border-motriks hover:bg-motriks-soft/40 hover:text-motriks-deep',
                             uploading && 'pointer-events-none opacity-70',
                         )}
                     >
-                        {uploading ? <Spinner className="size-5" /> : <ImagePlus className="size-5" />}
-                        <span className="text-xs font-medium">{uploading ? 'Envoi…' : 'Ajouter une photo'}</span>
+                        {uploading ? (
+                            <Spinner className="size-5" />
+                        ) : (
+                            <ImagePlus className="size-5" />
+                        )}
+                        <span className="text-xs font-medium">
+                            {uploading ? 'Envoi…' : 'Ajouter une photo'}
+                        </span>
                         <input
                             ref={fileRef}
                             type="file"
@@ -696,7 +1043,7 @@ function PhotoGallery({ photos, siteUuid, canAdd, canDelete = true }: { photos: 
                     // Échap, ou bouton Retour d'Android (lib/back-button.ts), referme l'aperçu
                     onKeyDown={(e) => e.key === 'Escape' && setLightbox(null)}
                     ref={(el) => el?.focus()}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 outline-none backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm outline-none"
                     onClick={() => setLightbox(null)}
                 >
                     <img
@@ -741,7 +1088,9 @@ function VisitsChart({ chart }: { chart: ChartData }) {
                             onClick={() => setPeriod(p)}
                             className={cn(
                                 'rounded-lg px-3 py-1 text-xs font-semibold transition-colors',
-                                period === p ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-ink',
+                                period === p
+                                    ? 'bg-white text-ink shadow-sm'
+                                    : 'text-slate-500 hover:text-ink',
                             )}
                         >
                             {PERIOD_LABELS[p]}
@@ -752,20 +1101,57 @@ function VisitsChart({ chart }: { chart: ChartData }) {
         >
             <div className="px-2 pt-4 pb-4">
                 {data.every((d) => d.count === 0) ? (
-                    <div className="flex h-48 items-center justify-center text-sm text-slate-400">Aucune visite sur cette période</div>
+                    <div className="flex h-48 items-center justify-center text-sm text-slate-500">
+                        Aucune visite sur cette période
+                    </div>
                 ) : (
                     <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                            <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} interval={period === 'month' ? 4 : 0} />
-                            <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                        <BarChart
+                            data={data}
+                            margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
+                        >
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                stroke="#f1f5f9"
+                                vertical={false}
+                            />
+                            <XAxis
+                                dataKey="label"
+                                tick={{ fontSize: 11, fill: '#64748b' }}
+                                axisLine={false}
+                                tickLine={false}
+                                interval={period === 'month' ? 4 : 0}
+                            />
+                            <YAxis
+                                allowDecimals={false}
+                                tick={{ fontSize: 11, fill: '#64748b' }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
                             <Tooltip
-                                contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 24px rgb(15 23 42 / 0.08)' }}
-                                formatter={(v) => [`${v} visite${Number(v) > 1 ? 's' : ''}`, '']}
-                                labelStyle={{ color: '#334155', fontWeight: 600 }}
+                                contentStyle={{
+                                    borderRadius: 12,
+                                    border: '1px solid #e2e8f0',
+                                    fontSize: 12,
+                                    boxShadow:
+                                        '0 8px 24px rgb(15 23 42 / 0.08)',
+                                }}
+                                formatter={(v) => [
+                                    `${Number(v)} visite${Number(v) > 1 ? 's' : ''}`,
+                                    '',
+                                ]}
+                                labelStyle={{
+                                    color: '#334155',
+                                    fontWeight: 600,
+                                }}
                                 cursor={{ fill: '#ecfdf3' }}
                             />
-                            <Bar dataKey="count" fill="#039855" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                            <Bar
+                                dataKey="count"
+                                fill="#039855"
+                                radius={[6, 6, 0, 0]}
+                                maxBarSize={36}
+                            />
                         </BarChart>
                     </ResponsiveContainer>
                 )}
@@ -790,8 +1176,8 @@ export default function SiteShow({
     inventory,
     stock_movements,
     available_products,
-    types = [],
-    statuses = [],
+    types,
+    statuses,
 }: Props) {
     // Supprimer un site : réservé au gérant. Modifier, affecter, gérer le stock : gérant et superviseur.
     // Le comptable consulte la fiche sans rien pouvoir modifier.
@@ -805,37 +1191,55 @@ export default function SiteShow({
     const [restockItem, setRestockItem] = useState<InventoryItem | null>(null);
     // Ouvre directement le modal quand on arrive depuis l'icône « Modifier » de la liste (?modifier=1)
     const [editingSite, setEditingSite] = useState(
-        () => !readOnly && typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('modifier'),
+        () =>
+            !readOnly &&
+            typeof window !== 'undefined' &&
+            new URLSearchParams(window.location.search).has('modifier'),
     );
 
     const setTab = (key: TabKey) => {
         setTabState(key);
         if (typeof window !== 'undefined') {
-            window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#${key}`);
+            window.history.replaceState(
+                window.history.state,
+                '',
+                `${window.location.pathname}${window.location.search}#${key}`,
+            );
         }
     };
 
     const closeEditSite = () => {
         setEditingSite(false);
-        if (typeof window !== 'undefined' && window.location.search.includes('modifier')) {
-            window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.hash}`);
+        if (
+            typeof window !== 'undefined' &&
+            window.location.search.includes('modifier')
+        ) {
+            window.history.replaceState(
+                window.history.state,
+                '',
+                `${window.location.pathname}${window.location.hash}`,
+            );
         }
     };
 
     const deleteSite = useDeleteDialog<typeof site>({
         getUrl: (s) => siteDestroy(s.uuid).url,
         getTitle: (s) => `Supprimer « ${s.name} » ?`,
-        getDescription: () => 'Les affectations et visites passées restent consultables.',
+        getDescription: () =>
+            'Les affectations et visites passées restent consultables.',
         getSuccessMessage: (s) => `« ${s.name} » a été supprimé.`,
         confirmLabel: 'Supprimer',
         icon: Trash2,
     });
 
     const removeInventory = useDeleteDialog<InventoryItem>({
-        getUrl: (i) => inventoryDestroy({ site: site.uuid, inventory: i.uuid }).url,
+        getUrl: (i) =>
+            inventoryDestroy({ site: site.uuid, inventory: i.uuid }).url,
         getTitle: (i) => `Retirer « ${i.product_name} » ?`,
-        getDescription: () => "Le produit ne sera plus suivi dans l'inventaire de ce site.",
-        getSuccessMessage: (i) => `« ${i.product_name} » retiré de l'inventaire.`,
+        getDescription: () =>
+            "Le produit ne sera plus suivi dans l'inventaire de ce site.",
+        getSuccessMessage: (i) =>
+            `« ${i.product_name} » retiré de l'inventaire.`,
         confirmLabel: 'Retirer',
     });
 
@@ -847,7 +1251,10 @@ export default function SiteShow({
         confirmLabel: 'Retirer',
     });
 
-    const completionRate = stats.total_visits > 0 ? Math.round((stats.completed_visits / stats.total_visits) * 100) : 0;
+    const completionRate =
+        stats.total_visits > 0
+            ? Math.round((stats.completed_visits / stats.total_visits) * 100)
+            : 0;
     const stockAlerts = inventory.filter((i) => i.stock_status !== 'normal');
     const TypeIcon = typeIcon[site.type] ?? Building2;
     const hasCoordinates = site.latitude != null && site.longitude != null;
@@ -863,7 +1270,11 @@ export default function SiteShow({
 
     const addProductButton =
         !readOnly && available_products.length > 0 ? (
-            <ActionButton size="sm" icon={<Plus />} onClick={() => setShowInventoryModal(true)}>
+            <ActionButton
+                size="sm"
+                icon={<Plus />}
+                onClick={() => setShowInventoryModal(true)}
+            >
                 Ajouter
             </ActionButton>
         ) : undefined;
@@ -874,7 +1285,9 @@ export default function SiteShow({
 
             <Page
                 title={site.name}
-                description={[site.type_label, site.city, site.region].filter(Boolean).join(' · ')}
+                description={[site.type_label, site.city, site.region]
+                    .filter(Boolean)
+                    .join(' · ')}
                 actions={
                     readOnly ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200 ring-inset">
@@ -882,21 +1295,25 @@ export default function SiteShow({
                             Consultation
                         </span>
                     ) : (
-                    <>
-                        <ActionButton variant="secondary" icon={<Pencil />} onClick={() => setEditingSite(true)}>
-                            Modifier
-                        </ActionButton>
-                        {manageCompany && (
+                        <>
                             <ActionButton
                                 variant="secondary"
-                                icon={<Trash2 />}
-                                onClick={() => deleteSite.ask(site)}
-                                className="border-transparent bg-transparent text-red-600 shadow-none hover:bg-red-50"
+                                icon={<Pencil />}
+                                onClick={() => setEditingSite(true)}
                             >
-                                Supprimer
+                                Modifier
                             </ActionButton>
-                        )}
-                    </>
+                            {manageCompany && (
+                                <ActionButton
+                                    variant="secondary"
+                                    icon={<Trash2 />}
+                                    onClick={() => deleteSite.ask(site)}
+                                    className="border-transparent bg-transparent text-red-600 shadow-none hover:bg-red-50"
+                                >
+                                    Supprimer
+                                </ActionButton>
+                            )}
+                        </>
                     )
                 }
             >
@@ -904,16 +1321,26 @@ export default function SiteShow({
                     {/* ───────────── Identité du site ───────────── */}
                     <div className="rounded-2xl border border-slate-200/70 bg-white p-5 sm:p-6">
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                            <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 text-motriks-deep ring-1 ring-inset ring-green-600/10">
+                            <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 text-motriks-deep ring-1 ring-green-600/10 ring-inset">
                                 <TypeIcon className="size-6" />
                             </div>
 
                             <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <StatusBadge tone={statusTone[site.status] ?? 'neutral'}>{site.status_label}</StatusBadge>
-                                    <span className="text-sm text-slate-500">{site.type_label}</span>
+                                    <StatusBadge
+                                        tone={
+                                            statusTone[site.status] ?? 'neutral'
+                                        }
+                                    >
+                                        {site.status_label}
+                                    </StatusBadge>
+                                    <span className="text-sm text-slate-500">
+                                        {site.type_label}
+                                    </span>
                                     {site.code && (
-                                        <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">{site.code}</span>
+                                        <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">
+                                            {site.code}
+                                        </span>
                                     )}
                                 </div>
 
@@ -921,20 +1348,31 @@ export default function SiteShow({
                                     <Fact icon={Building2} label="Adresse">
                                         {site.address ? (
                                             <>
-                                                <span className="block">{site.address}</span>
+                                                <span className="block">
+                                                    {site.address}
+                                                </span>
                                                 <span className="block text-xs font-normal text-slate-500">
-                                                    {[site.city, site.region].filter(Boolean).join(' · ')}
+                                                    {[site.city, site.region]
+                                                        .filter(Boolean)
+                                                        .join(' · ')}
                                                 </span>
                                             </>
                                         ) : (
-                                            [site.city, site.region].filter(Boolean).join(' · ')
+                                            [site.city, site.region]
+                                                .filter(Boolean)
+                                                .join(' · ')
                                         )}
                                     </Fact>
 
                                     <Fact icon={User} label="Contact sur place">
-                                        {site.contact_name || site.contact_phone ? (
+                                        {site.contact_name ||
+                                        site.contact_phone ? (
                                             <>
-                                                {site.contact_name && <span className="block">{site.contact_name}</span>}
+                                                {site.contact_name && (
+                                                    <span className="block">
+                                                        {site.contact_name}
+                                                    </span>
+                                                )}
                                                 {site.contact_phone && (
                                                     <a
                                                         href={`tel:${site.contact_phone}`}
@@ -952,15 +1390,29 @@ export default function SiteShow({
 
                                     <Fact icon={Clock} label="Horaires">
                                         {site.opening_time || site.closing_time
-                                            ? [site.opening_time, site.closing_time].filter(Boolean).join(' – ')
+                                            ? [
+                                                  site.opening_time,
+                                                  site.closing_time,
+                                              ]
+                                                  .filter(Boolean)
+                                                  .join(' – ')
                                             : muted}
                                     </Fact>
 
-                                    <Fact icon={MapPin} label="Localisation GPS">
+                                    <Fact
+                                        icon={MapPin}
+                                        label="Localisation GPS"
+                                    >
                                         {hasCoordinates ? (
                                             <>
                                                 <span className="block font-mono text-xs font-normal text-slate-600">
-                                                    {Number(site.latitude).toFixed(5)}, {Number(site.longitude).toFixed(5)}
+                                                    {Number(
+                                                        site.latitude,
+                                                    ).toFixed(5)}
+                                                    ,{' '}
+                                                    {Number(
+                                                        site.longitude,
+                                                    ).toFixed(5)}
                                                 </span>
                                                 <a
                                                     href={`https://www.google.com/maps?q=${site.latitude},${site.longitude}`}
@@ -977,7 +1429,11 @@ export default function SiteShow({
                                     </Fact>
 
                                     <Fact icon={Timer} label="Dernière visite">
-                                        {site.last_visit_at ?? <span className="font-normal text-slate-400">Jamais</span>}
+                                        {site.last_visit_at ?? (
+                                            <span className="font-normal text-slate-500">
+                                                Jamais
+                                            </span>
+                                        )}
                                     </Fact>
                                 </div>
 
@@ -993,12 +1449,34 @@ export default function SiteShow({
                     {/* ───────────── Chiffres clés du mois ───────────── */}
                     <MetricStrip
                         items={[
-                            { label: 'Visites ce mois-ci', value: stats.visits_this_month, sub: 'depuis le 1er' },
-                            { label: "Chiffre d'affaires", value: `${formatCurrency(stats.revenue_this_month)} FCFA`, sub: `${formatCurrency(stats.revenue_all_time)} FCFA au total` },
-                            { label: 'Unités vendues', value: stats.units_sold_this_month, sub: 'ce mois-ci' },
+                            {
+                                label: 'Visites ce mois-ci',
+                                value: stats.visits_this_month,
+                                sub: 'depuis le 1er',
+                            },
+                            {
+                                label: "Chiffre d'affaires",
+                                value: `${compactAmount(stats.revenue_this_month)} FCFA`,
+                                sub: `${compactAmount(stats.revenue_all_time)} FCFA au total`,
+                            },
+                            {
+                                label: 'Unités vendues',
+                                value: stats.units_sold_this_month,
+                                sub: 'ce mois-ci',
+                            },
                             {
                                 label: 'Taux de complétion',
-                                value: <span className={completionRate >= 80 ? 'text-motriks-deep' : undefined}>{completionRate}%</span>,
+                                value: (
+                                    <span
+                                        className={
+                                            completionRate >= 80
+                                                ? 'text-motriks-deep'
+                                                : undefined
+                                        }
+                                    >
+                                        {completionRate}%
+                                    </span>
+                                ),
                                 sub: `${stats.completed_visits} visites complètes`,
                             },
                         ]}
@@ -1010,26 +1488,57 @@ export default function SiteShow({
                         onChange={setTab}
                         tabs={[
                             { key: 'apercu', label: 'Aperçu' },
-                            { key: 'equipe', label: 'Équipe', badge: affectations.length },
-                            { key: 'inventaire', label: 'Inventaire', badge: inventory.length },
+                            {
+                                key: 'equipe',
+                                label: 'Équipe',
+                                badge: affectations.length,
+                            },
+                            {
+                                key: 'inventaire',
+                                label: 'Inventaire',
+                                badge: inventory.length,
+                            },
                             { key: 'visites', label: 'Visites' },
-                            { key: 'photos', label: 'Photos', badge: `${site.photos_count}/3` },
+                            {
+                                key: 'photos',
+                                label: 'Photos',
+                                badge: `${site.photos_count}/3`,
+                            },
                         ]}
                     />
 
                     {/* ───────────── Aperçu ───────────── */}
                     {tab === 'apercu' && (
                         <div className="flex flex-col gap-6">
-                            <SitePerformance data={performance} linkHostesses={!readOnly} />
+                            <SitePerformance
+                                data={performance}
+                                linkHostesses={!readOnly}
+                            />
 
                             <VisitsChart chart={chart} />
 
                             <MetricStrip
                                 items={[
-                                    { label: 'Visites totales', value: stats.total_visits },
-                                    { label: 'Durée moyenne', value: formatDuration(stats.avg_duration), sub: 'par visite' },
-                                    { label: "CA total", value: `${formatCurrency(stats.revenue_all_time)} FCFA` },
-                                    { label: 'Rapports soumis', value: stats.reports_submitted },
+                                    {
+                                        label: 'Visites totales',
+                                        value: stats.total_visits,
+                                    },
+                                    {
+                                        label: 'Durée moyenne',
+                                        value: formatDuration(
+                                            stats.avg_duration,
+                                            { zeroIsEmpty: true },
+                                        ),
+                                        sub: 'par visite',
+                                    },
+                                    {
+                                        label: 'CA total',
+                                        value: `${compactAmount(stats.revenue_all_time)} FCFA`,
+                                    },
+                                    {
+                                        label: 'Rapports soumis',
+                                        value: stats.reports_submitted,
+                                    },
                                 ]}
                             />
 
@@ -1038,28 +1547,54 @@ export default function SiteShow({
                                     title="Équipe en poste"
                                     actions={
                                         affectations.length > 0 && (
-                                            <button type="button" onClick={() => setTab('equipe')} className="text-xs font-semibold text-motriks-deep hover:underline">
+                                            <button
+                                                type="button"
+                                                onClick={() => setTab('equipe')}
+                                                className="text-xs font-semibold text-motriks-deep hover:underline"
+                                            >
                                                 Gérer
                                             </button>
                                         )
                                     }
                                 >
                                     {affectations.length === 0 ? (
-                                        <EmptyState icon={CalendarRange} title="Aucune affectation" description="Personne n'est encore affecté à ce site." action={assignButton} />
+                                        <EmptyState
+                                            icon={CalendarRange}
+                                            title="Aucune affectation"
+                                            description="Personne n'est encore affecté à ce site."
+                                            action={assignButton}
+                                        />
                                     ) : (
                                         <ul className="divide-y divide-slate-100">
-                                            {affectations.slice(0, 4).map((a) => (
-                                                <li key={a.id} className="flex items-center gap-3 px-5 py-3">
-                                                    <Avatar name={a.agent_name} size="sm" />
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate text-sm font-medium text-ink">{a.agent_name}</p>
-                                                        <p className="text-xs text-slate-500">
-                                                            {a.slot_start && a.slot_end ? `${a.slot_start} – ${a.slot_end}` : `Depuis le ${a.starts_on}`}
-                                                        </p>
-                                                    </div>
-                                                    {a.is_current && <StatusBadge tone="success">En poste</StatusBadge>}
-                                                </li>
-                                            ))}
+                                            {affectations
+                                                .slice(0, 4)
+                                                .map((a) => (
+                                                    <li
+                                                        key={a.id}
+                                                        className="flex items-center gap-3 px-5 py-3"
+                                                    >
+                                                        <Avatar
+                                                            name={a.agent_name}
+                                                            size="sm"
+                                                        />
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate text-sm font-medium text-ink">
+                                                                {a.agent_name}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500">
+                                                                {a.slot_start &&
+                                                                a.slot_end
+                                                                    ? `${a.slot_start} – ${a.slot_end}`
+                                                                    : `Depuis le ${a.starts_on}`}
+                                                            </p>
+                                                        </div>
+                                                        {a.is_current && (
+                                                            <StatusBadge tone="success">
+                                                                En poste
+                                                            </StatusBadge>
+                                                        )}
+                                                    </li>
+                                                ))}
                                         </ul>
                                     )}
                                 </Section>
@@ -1068,31 +1603,77 @@ export default function SiteShow({
                                     title="Stock à surveiller"
                                     actions={
                                         inventory.length > 0 && (
-                                            <button type="button" onClick={() => setTab('inventaire')} className="text-xs font-semibold text-motriks-deep hover:underline">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setTab('inventaire')
+                                                }
+                                                className="text-xs font-semibold text-motriks-deep hover:underline"
+                                            >
                                                 Voir l'inventaire
                                             </button>
                                         )
                                     }
                                 >
                                     {inventory.length === 0 ? (
-                                        <EmptyState icon={Package} title="Aucun produit suivi" description="Ajoutez des produits à l'inventaire de ce site." action={addProductButton} />
+                                        <EmptyState
+                                            icon={Package}
+                                            title="Aucun produit suivi"
+                                            description="Ajoutez des produits à l'inventaire de ce site."
+                                            action={addProductButton}
+                                        />
                                     ) : stockAlerts.length === 0 ? (
-                                        <p className="px-5 py-8 text-center text-sm text-slate-500">Tous les stocks sont au niveau normal.</p>
+                                        <p className="px-5 py-8 text-center text-sm text-slate-500">
+                                            Tous les stocks sont au niveau
+                                            normal.
+                                        </p>
                                     ) : (
                                         <ul className="divide-y divide-slate-100">
-                                            {stockAlerts.slice(0, 4).map((item) => (
-                                                <li key={item.id} className="flex items-center gap-3 px-5 py-3">
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate text-sm font-medium text-ink">{item.product_name}</p>
-                                                        <p className="text-xs text-slate-500">
-                                                            {item.current_stock} {item.product_unit} restant{item.current_stock > 1 ? 's' : ''}
-                                                        </p>
-                                                    </div>
-                                                    <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset', stockStyle[item.stock_status].chip)}>
-                                                        {stockStyle[item.stock_status].label}
-                                                    </span>
-                                                </li>
-                                            ))}
+                                            {stockAlerts
+                                                .slice(0, 4)
+                                                .map((item) => (
+                                                    <li
+                                                        key={item.id}
+                                                        className="flex items-center gap-3 px-5 py-3"
+                                                    >
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate text-sm font-medium text-ink">
+                                                                {
+                                                                    item.product_name
+                                                                }
+                                                            </p>
+                                                            <p className="text-xs text-slate-500">
+                                                                {
+                                                                    item.current_stock
+                                                                }{' '}
+                                                                {
+                                                                    item.product_unit
+                                                                }{' '}
+                                                                restant
+                                                                {item.current_stock >
+                                                                1
+                                                                    ? 's'
+                                                                    : ''}
+                                                            </p>
+                                                        </div>
+                                                        <span
+                                                            className={cn(
+                                                                'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset',
+                                                                stockStyle[
+                                                                    item
+                                                                        .stock_status
+                                                                ].chip,
+                                                            )}
+                                                        >
+                                                            {
+                                                                stockStyle[
+                                                                    item
+                                                                        .stock_status
+                                                                ].label
+                                                            }
+                                                        </span>
+                                                    </li>
+                                                ))}
                                         </ul>
                                     )}
                                 </Section>
@@ -1103,46 +1684,96 @@ export default function SiteShow({
                     {/* ───────────── Équipe ───────────── */}
                     {tab === 'equipe' && (
                         <div className="flex flex-col gap-6">
-                            <Section title="Affectées actuellement" description="Les membres en poste sur ce site." actions={assignButton}>
+                            <Section
+                                title="Affectées actuellement"
+                                description="Les membres en poste sur ce site."
+                                actions={assignButton}
+                            >
                                 {affectations.length === 0 ? (
-                                    <EmptyState icon={CalendarRange} title="Aucune affectation" description="Personne n'est encore affecté à ce site." action={assignButton} />
+                                    <EmptyState
+                                        icon={CalendarRange}
+                                        title="Aucune affectation"
+                                        description="Personne n'est encore affecté à ce site."
+                                        action={assignButton}
+                                    />
                                 ) : (
                                     <ul className="divide-y divide-slate-100">
                                         {affectations.map((a) => (
-                                            <li key={a.id} className="flex items-center gap-4 px-5 py-4">
+                                            <li
+                                                key={a.id}
+                                                className="flex items-center gap-4 px-5 py-4"
+                                            >
                                                 <Avatar name={a.agent_name} />
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <Link href={personnelShow({ personnel: a.agent_uuid }).url} className="text-sm font-semibold text-ink hover:text-motriks-deep">
+                                                        <Link
+                                                            href={
+                                                                personnelShow({
+                                                                    personnel:
+                                                                        a.agent_uuid,
+                                                                }).url
+                                                            }
+                                                            className="text-sm font-semibold text-ink hover:text-motriks-deep"
+                                                        >
                                                             {a.agent_name}
                                                         </Link>
-                                                        {a.is_current && <StatusBadge tone="success">En poste</StatusBadge>}
+                                                        {a.is_current && (
+                                                            <StatusBadge tone="success">
+                                                                En poste
+                                                            </StatusBadge>
+                                                        )}
                                                     </div>
                                                     <p className="text-xs text-slate-500">
-                                                        {a.agent_phone && `${a.agent_phone} · `}
+                                                        {a.agent_phone &&
+                                                            `${a.agent_phone} · `}
                                                         Depuis le {a.starts_on}
-                                                        {a.ends_on && ` · jusqu'au ${a.ends_on}`}
+                                                        {a.ends_on &&
+                                                            ` · jusqu'au ${a.ends_on}`}
                                                     </p>
-                                                    {a.slot_start && a.slot_end && (
-                                                        <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
-                                                            <Clock className="size-3" />
-                                                            {a.slot_start} – {a.slot_end}
-                                                        </p>
-                                                    )}
+                                                    {a.slot_start &&
+                                                        a.slot_end && (
+                                                            <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
+                                                                <Clock className="size-3" />
+                                                                {a.slot_start} –{' '}
+                                                                {a.slot_end}
+                                                            </p>
+                                                        )}
                                                 </div>
                                                 {!readOnly && (
-                                                <div className="flex shrink-0 gap-1">
-                                                    <ActionButton
-                                                        variant="secondary"
-                                                        size="icon"
-                                                        icon={<ArrowLeftRight />}
-                                                        title="Permuter"
-                                                        aria-label="Permuter"
-                                                        className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
-                                                        onClick={() => setAssign({ open: true, mode: 'permuter', replacingUuid: a.uuid, replacingName: a.agent_name })}
-                                                    />
-                                                    <ActionButton variant="icon-danger" size="icon" icon={<X />} title="Retirer" aria-label="Retirer" onClick={() => removeAffectation.ask(a)} />
-                                                </div>
+                                                    <div className="flex shrink-0 gap-1">
+                                                        <ActionButton
+                                                            variant="secondary"
+                                                            size="icon"
+                                                            icon={
+                                                                <ArrowLeftRight />
+                                                            }
+                                                            title="Permuter"
+                                                            aria-label="Permuter"
+                                                            className="hover:border-green-200 hover:bg-green-50 hover:text-motriks-deep"
+                                                            onClick={() =>
+                                                                setAssign({
+                                                                    open: true,
+                                                                    mode: 'permuter',
+                                                                    replacingUuid:
+                                                                        a.uuid,
+                                                                    replacingName:
+                                                                        a.agent_name,
+                                                                })
+                                                            }
+                                                        />
+                                                        <ActionButton
+                                                            variant="icon-danger"
+                                                            size="icon"
+                                                            icon={<X />}
+                                                            title="Retirer"
+                                                            aria-label="Retirer"
+                                                            onClick={() =>
+                                                                removeAffectation.ask(
+                                                                    a,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
                                                 )}
                                             </li>
                                         ))}
@@ -1153,30 +1784,65 @@ export default function SiteShow({
                             <Section
                                 title="Historique de l'équipe"
                                 description="Toutes les personnes ayant travaillé sur ce site."
-                                actions={<span className="text-xs font-semibold text-slate-400 tabular-nums">{hostess_history.length}</span>}
+                                actions={
+                                    <span className="text-xs font-semibold text-slate-500 tabular-nums">
+                                        {hostess_history.length}
+                                    </span>
+                                }
                             >
                                 {hostess_history.length === 0 ? (
-                                    <EmptyState icon={Users} title="Aucun historique" description="Les membres affectés à ce site apparaîtront ici." />
+                                    <EmptyState
+                                        icon={Users}
+                                        title="Aucun historique"
+                                        description="Les membres affectés à ce site apparaîtront ici."
+                                    />
                                 ) : (
                                     <ul className="divide-y divide-slate-100">
                                         {hostess_history.map((h) => (
                                             <li key={h.agent_id}>
-                                                <Link href={personnelShow({ personnel: h.agent_uuid }).url} className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-green-50/40">
-                                                    <Avatar name={h.agent_name} />
+                                                <Link
+                                                    href={
+                                                        personnelShow({
+                                                            personnel:
+                                                                h.agent_uuid,
+                                                        }).url
+                                                    }
+                                                    className="group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-green-50/40"
+                                                >
+                                                    <Avatar
+                                                        name={h.agent_name}
+                                                    />
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <span className="text-sm font-semibold text-ink group-hover:text-motriks-deep">{h.agent_name}</span>
-                                                            {h.is_current && <StatusBadge tone="success">Actif</StatusBadge>}
+                                                            <span className="text-sm font-semibold text-ink group-hover:text-motriks-deep">
+                                                                {h.agent_name}
+                                                            </span>
+                                                            {h.is_current && (
+                                                                <StatusBadge tone="success">
+                                                                    Actif
+                                                                </StatusBadge>
+                                                            )}
                                                         </div>
                                                         <p className="text-xs text-slate-500">
                                                             {h.role_label}
-                                                            {h.agent_phone && ` · ${h.agent_phone}`}
+                                                            {h.agent_phone &&
+                                                                ` · ${h.agent_phone}`}
                                                         </p>
-                                                        <p className="text-xs text-slate-400">{h.first_date} → {h.last_date}</p>
+                                                        <p className="text-xs text-slate-500">
+                                                            {h.first_date} →{' '}
+                                                            {h.last_date}
+                                                        </p>
                                                     </div>
                                                     <div className="shrink-0 text-right">
-                                                        <p className="text-sm font-semibold text-ink tabular-nums">{h.visit_count}</p>
-                                                        <p className="text-xs text-slate-400">visite{h.visit_count !== 1 ? 's' : ''}</p>
+                                                        <p className="text-sm font-semibold text-ink tabular-nums">
+                                                            {h.visit_count}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500">
+                                                            visite
+                                                            {h.visit_count !== 1
+                                                                ? 's'
+                                                                : ''}
+                                                        </p>
                                                     </div>
                                                 </Link>
                                             </li>
@@ -1190,11 +1856,19 @@ export default function SiteShow({
                     {/* ───────────── Inventaire ───────────── */}
                     {tab === 'inventaire' &&
                         (inventory.length === 0 ? (
-                            <Section title="Inventaire" description="Le stock suivi sur ce site." actions={addProductButton}>
+                            <Section
+                                title="Inventaire"
+                                description="Le stock suivi sur ce site."
+                                actions={addProductButton}
+                            >
                                 <EmptyState
                                     icon={Package}
                                     title="Aucun produit"
-                                    description={readOnly ? 'Aucun produit n’est encore suivi sur ce site.' : 'Ajoutez des produits à suivre sur ce site.'}
+                                    description={
+                                        readOnly
+                                            ? 'Aucun produit n’est encore suivi sur ce site.'
+                                            : 'Ajoutez des produits à suivre sur ce site.'
+                                    }
                                     action={addProductButton}
                                 />
                             </Section>
@@ -1209,33 +1883,65 @@ export default function SiteShow({
                                 onRemove={(item) => removeInventory.ask(item)}
                             />
                         ))}
-                    {tab === 'inventaire' && hasStocks && <StockMovements movements={stock_movements} />}
+                    {tab === 'inventaire' && hasStocks && (
+                        <StockMovements movements={stock_movements} />
+                    )}
 
                     {/* ───────────── Visites ───────────── */}
                     {tab === 'visites' && (
-                        <Section title="Visites récentes" description="Les 10 dernières prises de poste sur ce site.">
+                        <Section
+                            title="Visites récentes"
+                            description="Les 10 dernières prises de poste sur ce site."
+                        >
                             {recent_visits.length === 0 ? (
-                                <EmptyState icon={Timer} title="Aucune visite enregistrée" description="Les pointages de vos hôtesses apparaîtront ici." />
+                                <EmptyState
+                                    icon={Timer}
+                                    title="Aucune visite enregistrée"
+                                    description="Les pointages de vos hôtesses apparaîtront ici."
+                                />
                             ) : (
                                 <ul className="divide-y divide-slate-100">
                                     {recent_visits.map((visit) => (
-                                        <li key={visit.id} className="flex items-center gap-4 px-5 py-3.5 text-sm">
-                                            <Avatar name={visit.agent_name ?? '?'} size="sm" />
+                                        <li
+                                            key={visit.id}
+                                            className="flex items-center gap-4 px-5 py-3.5 text-sm"
+                                        >
+                                            <Avatar
+                                                name={visit.agent_name ?? '?'}
+                                                size="sm"
+                                            />
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate font-medium text-ink">{visit.agent_name}</p>
+                                                <p className="truncate font-medium text-ink">
+                                                    {visit.agent_name}
+                                                </p>
                                                 <p className="text-xs text-slate-500">
                                                     {visit.checked_in_at}
-                                                    {visit.checked_out_at && ` → ${visit.checked_out_at}`}
+                                                    {visit.checked_out_at &&
+                                                        ` → ${visit.checked_out_at}`}
                                                 </p>
                                             </div>
                                             <div className="flex shrink-0 items-center gap-3">
-                                                {visit.duration_minutes != null && (
+                                                {visit.duration_minutes !=
+                                                    null && (
                                                     <span className="hidden items-center gap-1 text-xs text-slate-500 sm:flex">
                                                         <Clock className="size-3" />
-                                                        {formatDuration(visit.duration_minutes)}
+                                                        {formatDuration(
+                                                            visit.duration_minutes,
+                                                            {
+                                                                zeroIsEmpty: true,
+                                                            },
+                                                        )}
                                                     </span>
                                                 )}
-                                                <StatusBadge tone={statusTone[visit.status] ?? 'neutral'}>{visit.status_label}</StatusBadge>
+                                                <StatusBadge
+                                                    tone={
+                                                        statusTone[
+                                                            visit.status
+                                                        ] ?? 'neutral'
+                                                    }
+                                                >
+                                                    {visit.status_label}
+                                                </StatusBadge>
                                             </div>
                                         </li>
                                     ))}
@@ -1249,19 +1955,60 @@ export default function SiteShow({
                         <Section
                             title="Photos du site"
                             description="Jusqu'à 3 photos pour reconnaître le point de vente."
-                            actions={<span className="text-xs font-semibold text-slate-400 tabular-nums">{site.photos_count}/3</span>}
+                            actions={
+                                <span className="text-xs font-semibold text-slate-500 tabular-nums">
+                                    {site.photos_count}/3
+                                </span>
+                            }
                         >
-                            <PhotoGallery photos={site.photos ?? []} siteUuid={site.uuid} canAdd={!readOnly && canAddPhoto} canDelete={!readOnly} />
+                            <PhotoGallery
+                                photos={site.photos ?? []}
+                                siteUuid={site.uuid}
+                                canAdd={!readOnly && canAddPhoto}
+                                canDelete={!readOnly}
+                            />
                         </Section>
                     )}
                 </div>
             </Page>
 
-            {editingSite && <EditSiteModal site={site} types={types} statuses={statuses} onClose={closeEditSite} />}
-            {showInventoryModal && <InventoryAddModal siteUuid={site.uuid} products={available_products} onClose={() => setShowInventoryModal(false)} />}
-            {stockItem && <StockModal siteUuid={site.uuid} item={stockItem} onClose={() => setStockItem(null)} />}
-            {restockItem && <RestockModal siteUuid={site.uuid} item={restockItem} onClose={() => setRestockItem(null)} />}
-            {assign.open && <AssignModal modal={assign} siteId={site.id} staff={available_staff} onClose={() => setAssign({ open: false })} />}
+            {editingSite && (
+                <EditSiteModal
+                    site={site}
+                    types={types}
+                    statuses={statuses}
+                    onClose={closeEditSite}
+                />
+            )}
+            {showInventoryModal && (
+                <InventoryAddModal
+                    siteUuid={site.uuid}
+                    products={available_products}
+                    onClose={() => setShowInventoryModal(false)}
+                />
+            )}
+            {stockItem && (
+                <StockModal
+                    siteUuid={site.uuid}
+                    item={stockItem}
+                    onClose={() => setStockItem(null)}
+                />
+            )}
+            {restockItem && (
+                <RestockModal
+                    siteUuid={site.uuid}
+                    item={restockItem}
+                    onClose={() => setRestockItem(null)}
+                />
+            )}
+            {assign.open && (
+                <AssignModal
+                    modal={assign}
+                    siteId={site.id}
+                    staff={available_staff}
+                    onClose={() => setAssign({ open: false })}
+                />
+            )}
 
             {deleteSite.dialog}
             {removeInventory.dialog}

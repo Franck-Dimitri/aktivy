@@ -118,7 +118,8 @@ async function send(op: OutboxOperation, retried = false): Promise<Outcome> {
     if (op.blob) {
         const form = new FormData();
         Object.entries(op.body).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) form.append(key, String(value));
+            // Un objet (liste, détail) part en JSON, jamais en « [object Object] »
+            if (value !== null && value !== undefined) form.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value as string | number | boolean));
         });
         form.append('photo', new File([op.blob], op.fileName ?? 'photo.jpg', { type: op.blob.type || 'image/jpeg' }));
         if (method !== 'POST') {
@@ -217,15 +218,27 @@ async function drain(userId: number): Promise<FlushResult> {
 
             if (outcome.type === 'rejected') {
                 await removeOperation(op.id);
-                rejected.push({ kind: op.kind, siteName: op.siteName, message: outcome.message });
+                let message = outcome.message;
 
                 if (op.kind === 'checkin') {
                     // Sans prise de service, rien de cette journée ne peut être reçu
+                    const dropped: string[] = [];
                     for (const other of await operations(userId)) {
-                        if (other.visit === op.visit && other.id !== undefined) await removeOperation(other.id);
+                        if (other.visit === op.visit && other.id !== undefined) {
+                            await removeOperation(other.id);
+                            dropped.push(KIND_LABEL[other.kind].toLowerCase());
+                        }
                     }
                     await deleteLocalVisit(op.visit);
-                } else if (op.kind === 'submit') {
+                    // L'hôtesse doit savoir ce qui est perdu avec elle, pour prévenir son responsable
+                    if (dropped.length > 0) {
+                        message += ` Le reste de la journée (${[...new Set(dropped)].join(', ')}) n’a pas pu être envoyé : prévenez votre responsable.`;
+                    }
+                }
+
+                rejected.push({ kind: op.kind, siteName: op.siteName, message });
+
+                if (op.kind === 'submit') {
                     // Le rapport redevient modifiable pour être corrigé
                     await updateLocalVisit(op.visit, { reportStatus: 'draft' });
                 }

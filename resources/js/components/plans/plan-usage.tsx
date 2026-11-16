@@ -33,10 +33,17 @@ export type PackCatalog = {
 };
 
 /** « 2 packs hôtesses et 1 pack superviseur », ou null s'il n'y en a aucun. */
-export function packSummary(hostessPacks: number, supervisorPacks: number): string | null {
+export function packSummary(
+    hostessPacks: number,
+    supervisorPacks: number,
+): string | null {
     const parts = [
-        hostessPacks > 0 ? `${hostessPacks} pack${hostessPacks > 1 ? 's' : ''} hôtesses` : null,
-        supervisorPacks > 0 ? `${supervisorPacks} pack${supervisorPacks > 1 ? 's' : ''} superviseur` : null,
+        hostessPacks > 0
+            ? `${hostessPacks} pack${hostessPacks > 1 ? 's' : ''} hôtesses`
+            : null,
+        supervisorPacks > 0
+            ? `${supervisorPacks} pack${supervisorPacks > 1 ? 's' : ''} superviseur`
+            : null,
     ].filter(Boolean);
 
     return parts.length ? parts.join(' et ') : null;
@@ -71,7 +78,7 @@ export function PlanUsageList({ plan }: { plan: PlanState }) {
                                 )}
                             >
                                 {used}
-                                <span className="font-normal text-slate-400">
+                                <span className="font-normal text-slate-500">
                                     {' '}
                                     /{' '}
                                     {limit === null
@@ -83,7 +90,7 @@ export function PlanUsageList({ plan }: { plan: PlanState }) {
                             </span>
                         </div>
                         {limit !== null && limit > 0 && (
-                            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
+                            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                                 <div
                                     className={cn(
                                         'h-full rounded-full',

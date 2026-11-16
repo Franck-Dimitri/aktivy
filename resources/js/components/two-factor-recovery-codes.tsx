@@ -53,15 +53,15 @@ export default function TwoFactorRecoveryCodes({
     const RecoveryCodeIconComponent = codesAreVisible ? EyeOff : Eye;
 
     return (
-        <Card className="gap-4 rounded-xl border-slate-200/80 py-5 shadow-none dark:border-sidebar-border">
+        <Card className="gap-4 rounded-xl border-slate-200/80 py-5 shadow-none">
             <CardHeader>
                 <CardTitle className="flex gap-3">
                     <LockKeyhole className="size-4" aria-hidden="true" />
                     Codes de secours
                 </CardTitle>
                 <CardDescription>
-                    Ils permettent de vous connecter si vous perdez votre téléphone.
-                    Gardez-les en lieu sûr, hors de ce téléphone.
+                    Ils permettent de vous connecter si vous perdez votre
+                    téléphone. Gardez-les en lieu sûr, hors de ce téléphone.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -76,7 +76,9 @@ export default function TwoFactorRecoveryCodes({
                             className="size-4"
                             aria-hidden="true"
                         />
-                        {codesAreVisible ? 'Masquer les codes' : 'Afficher les codes'}
+                        {codesAreVisible
+                            ? 'Masquer les codes'
+                            : 'Afficher les codes'}
                     </Button>
 
                     {canRegenerateCodes && (
@@ -145,9 +147,8 @@ export default function TwoFactorRecoveryCodes({
 
                                 <div className="text-xs text-muted-foreground select-none">
                                     <p id="regenerate-warning">
-                                        Chaque code ne sert qu’une fois. S’il vous
-                                        en faut d’autres, utilisez
-                                        {' '}
+                                        Chaque code ne sert qu’une fois. S’il
+                                        vous en faut d’autres, utilisez{' '}
                                         <span className="font-bold">
                                             Nouveaux codes
                                         </span>{' '}

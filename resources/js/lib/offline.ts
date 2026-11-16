@@ -9,11 +9,20 @@ const USER_KEY = 'motriks:utilisateur';
  * sur un téléphone partagé, l'hôtesse suivante ne doit pas voir les données de la précédente.
  */
 export function setupOffline() {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !import.meta.env.PROD) {
+    if (
+        typeof window === 'undefined' ||
+        !('serviceWorker' in navigator) ||
+        !import.meta.env.PROD
+    ) {
         return;
     }
 
-    const post = (message: { type: string }) => navigator.serviceWorker.ready.then((sw) => sw.active?.postMessage(message));
+    // Message au service worker, sans attendre : il le recevra dès qu'il sera prêt
+    const post = (message: { type: string; url?: string }) => {
+        void navigator.serviceWorker.ready.then((sw) =>
+            sw.active?.postMessage(message),
+        );
+    };
 
     window.addEventListener('load', () => {
         navigator.serviceWorker
@@ -34,7 +43,11 @@ export function setupOffline() {
      */
     let lastCheck = Date.now();
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState !== 'visible' || !navigator.onLine || Date.now() - lastCheck < 60 * 60 * 1000) {
+        if (
+            document.visibilityState !== 'visible' ||
+            !navigator.onLine ||
+            Date.now() - lastCheck < 60 * 60 * 1000
+        ) {
             return;
         }
         lastCheck = Date.now();
@@ -48,9 +61,14 @@ export function setupOffline() {
     });
 
     router.on('navigate', (event) => {
-        const props = event.detail.page.props as { auth?: { user?: { id: number } | null } };
+        const props = event.detail.page.props as {
+            auth?: { user?: { id: number } | null };
+        };
         const userId = String(props.auth?.user?.id ?? '');
-        const { pathname, search } = new URL(event.detail.page.url, window.location.origin);
+        const { pathname, search } = new URL(
+            event.detail.page.url,
+            window.location.origin,
+        );
 
         try {
             if (window.localStorage.getItem(USER_KEY) !== userId) {
@@ -61,8 +79,11 @@ export function setupOffline() {
             post({ type: 'clear-pages' });
         }
 
-        if (navigator.onLine && (pathname === '/terrain' || pathname.startsWith('/terrain/'))) {
-            navigator.serviceWorker.ready.then((sw) => sw.active?.postMessage({ type: 'cache-page', url: `${pathname}${search}` }));
+        if (
+            navigator.onLine &&
+            (pathname === '/terrain' || pathname.startsWith('/terrain/'))
+        ) {
+            post({ type: 'cache-page', url: `${pathname}${search}` });
         }
     });
 }

@@ -1,7 +1,23 @@
 import { Head, Link } from '@inertiajs/react';
-import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCheck, ClipboardList, Download, ExternalLink, Lock, Pencil, Search, X } from 'lucide-react';
+import {
+    AlertTriangle,
+    CheckCircle2,
+    ChevronRight,
+    ClipboardCheck,
+    ClipboardList,
+    Download,
+    ExternalLink,
+    Lock,
+    Pencil,
+    Search,
+    X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { ExternalSalesList, externalTotal, type ExternalShopSales } from '@/components/external-sales';
+import {
+    ExternalSalesList,
+    externalTotal,
+    type ExternalShopSales,
+} from '@/components/external-sales';
 import { ActionLink, buttonClass } from '@/components/page/buttons';
 import { EmptyState } from '@/components/page/empty-state';
 import { Modal } from '@/components/page/modal';
@@ -9,8 +25,12 @@ import { Page } from '@/components/page/page';
 import { ProductImage } from '@/components/page/product-image';
 import { StatStrip } from '@/components/page/stat-strip';
 import { cn } from '@/lib/utils';
-import { index as terrainReports, pdf as reportPdf } from '@/routes/terrain/reports';
+import {
+    index as terrainReports,
+    pdf as reportPdf,
+} from '@/routes/terrain/reports';
 import { show as reportShow } from '@/routes/terrain/report';
+import { formatAmount } from '@/lib/format';
 
 /* ─────────────────────── Types ─────────────────────── */
 
@@ -59,21 +79,20 @@ const FEATURED_MAX = 3;
 
 const card = 'rounded-2xl border border-slate-200/80 bg-white';
 
-function formatMoney(amount: number): string {
-    return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-}
-
 function Money({ amount }: { amount: number }) {
     return (
         <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-            <span className="whitespace-nowrap">{formatMoney(amount)}</span>
+            <span className="whitespace-nowrap">{formatAmount(amount)}</span>
             <small>FCFA</small>
         </span>
     );
 }
 
 function monthKey(iso: string): string {
-    return new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    return new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', {
+        month: 'long',
+        year: 'numeric',
+    });
 }
 
 function groupByMonth(reports: Report[]): [string, Report[]][] {
@@ -94,20 +113,30 @@ function normalize(text: string): string {
 }
 
 function shortDate(iso: string): string {
-    return new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    return new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'short',
+    });
 }
 
 /** Produits vendus, du plus rentable au moins rentable. */
 function soldLines(report: Report): ReportLine[] {
-    return report.lines.filter((l) => l.units_sold > 0).sort((x, y) => y.revenue - x.revenue);
+    return report.lines
+        .filter((l) => l.units_sold > 0)
+        .sort((x, y) => y.revenue - x.revenue);
 }
 
 /** « buillie kalis's et 2 autres » : résumé lisible des produits vendus. */
 function productSummary(report: Report): string {
     const [first, ...rest] = soldLines(report);
     const shops = report.external_sales.length;
-    if (!first) return shops > 0 ? `${shops} boutique${shops > 1 ? 's' : ''} extérieure${shops > 1 ? 's' : ''}` : 'Aucune vente';
-    return rest.length > 0 ? `${first.product_name} et ${rest.length} autre${rest.length > 1 ? 's' : ''}` : first.product_name;
+    if (!first)
+        return shops > 0
+            ? `${shops} boutique${shops > 1 ? 's' : ''} extérieure${shops > 1 ? 's' : ''}`
+            : 'Aucune vente';
+    return rest.length > 0
+        ? `${first.product_name} et ${rest.length} autre${rest.length > 1 ? 's' : ''}`
+        : first.product_name;
 }
 
 /** Tout ce qui est cherchable dans un rapport : site, date, mois, statut, montant. */
@@ -129,14 +158,25 @@ function searchableText(r: Report): string {
 /* ─────────────────────── PDF ─────────────────────── */
 
 /** Télécharger le PDF du rapport ; sinon, le forfait qui le permet. */
-function PdfButton({ report, pdf, className }: { report: Report; pdf: PdfAccess; className?: string }) {
+function PdfButton({
+    report,
+    pdf,
+    className,
+}: {
+    report: Report;
+    pdf: PdfAccess;
+    className?: string;
+}) {
     if (report.status !== 'submitted') return null;
 
     if (!pdf.available) {
         return (
             <span
                 title={`Le PDF du rapport est disponible à partir de ${pdf.plan}`}
-                className={cn('inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-slate-400 ring-1 ring-slate-200', className)}
+                className={cn(
+                    'inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-slate-500 ring-1 ring-slate-200',
+                    className,
+                )}
             >
                 <Lock className="size-3.5" />
                 PDF dès {pdf.plan.replace('Motriks ', '')}
@@ -145,7 +185,15 @@ function PdfButton({ report, pdf, className }: { report: Report; pdf: PdfAccess;
     }
 
     return (
-        <a href={reportPdf({ dailyReport: report.uuid }).url} download className={cn(buttonClass('secondary'), 'h-10 rounded-xl', className)}>
+        <a
+            href={reportPdf({ dailyReport: report.uuid }).url}
+            download
+            className={cn(
+                buttonClass('secondary'),
+                'h-10 rounded-xl',
+                className,
+            )}
+        >
             <Download />
             PDF
         </a>
@@ -154,11 +202,25 @@ function PdfButton({ report, pdf, className }: { report: Report; pdf: PdfAccess;
 
 /* ─────────────────────── Modal d'aperçu ─────────────────────── */
 
-function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess; onClose: () => void }) {
+function ReportModal({
+    report,
+    pdf,
+    onClose,
+}: {
+    report: Report;
+    pdf: PdfAccess;
+    onClose: () => void;
+}) {
     const sold = report.lines.filter((l) => l.units_sold > 0);
 
     return (
-        <Modal onClose={onClose} title={report.site_name} description={report.report_date} size="lg" icon={<ClipboardCheck />}>
+        <Modal
+            onClose={onClose}
+            title={report.site_name}
+            description={report.report_date}
+            size="lg"
+            icon={<ClipboardCheck />}
+        >
             <div className="flex-1 overflow-y-auto px-6 pt-3 pb-6">
                 <div className="flex flex-col gap-5">
                     {/* Total */}
@@ -167,14 +229,21 @@ function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess;
                             <CheckCircle2 className="size-5" />
                         </span>
                         <div className="min-w-0">
-                            <p className="text-xs font-medium text-green-800/80">Chiffre d'affaires</p>
+                            <p className="text-xs font-medium text-green-800/80">
+                                Chiffre d'affaires
+                            </p>
                             <p className="text-2xl font-semibold tracking-tight text-motriks-deep tabular-nums">
-                                {formatMoney(report.total_revenue)}
-                                <span className="ml-1.5 text-sm font-medium text-green-700/70">FCFA</span>
+                                {formatAmount(report.total_revenue)}
+                                <span className="ml-1.5 text-sm font-medium text-green-700/70">
+                                    FCFA
+                                </span>
                             </p>
                             <p className="mt-0.5 text-xs text-green-800/80">
-                                {report.total_units_sold} unité{report.total_units_sold > 1 ? 's' : ''} vendue{report.total_units_sold > 1 ? 's' : ''}
-                                {report.submitted_at && `, soumis à ${report.submitted_at}`}
+                                {report.total_units_sold} unité
+                                {report.total_units_sold > 1 ? 's' : ''} vendue
+                                {report.total_units_sold > 1 ? 's' : ''}
+                                {report.submitted_at &&
+                                    `, soumis à ${report.submitted_at}`}
                             </p>
                         </div>
                     </div>
@@ -182,28 +251,48 @@ function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess;
                     {/* Produits vendus */}
                     <div>
                         <p className="mb-2.5 text-sm font-semibold text-ink">
-                            {report.external_sales.length > 0 ? 'Sur le point de vente' : 'Produits vendus'}
-                            <span className="ml-2 font-normal text-slate-400">{sold.length}</span>
+                            {report.external_sales.length > 0
+                                ? 'Sur le point de vente'
+                                : 'Produits vendus'}
+                            <span className="ml-2 font-normal text-slate-500">
+                                {sold.length}
+                            </span>
                         </p>
                         {sold.length === 0 ? (
-                            <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400">
-                                {report.external_sales.length > 0 ? 'Aucune vente sur le point de vente ce jour.' : 'Aucune vente enregistrée ce jour.'}
+                            <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
+                                {report.external_sales.length > 0
+                                    ? 'Aucune vente sur le point de vente ce jour.'
+                                    : 'Aucune vente enregistrée ce jour.'}
                             </p>
                         ) : (
                             <ul className="grid gap-2.5">
                                 {sold.map((l) => (
-                                    <li key={l.id} className="flex items-center gap-4 rounded-2xl p-2.5 ring-1 ring-slate-200/70">
-                                        <ProductImage src={l.image_url} alt={l.product_name} className="size-14" />
+                                    <li
+                                        key={l.id}
+                                        className="flex items-center gap-4 rounded-2xl p-2.5 ring-1 ring-slate-200/70"
+                                    >
+                                        <ProductImage
+                                            src={l.image_url}
+                                            alt={l.product_name}
+                                            className="size-14"
+                                        />
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold text-ink">{l.product_name}</p>
-                                            <p className="mt-0.5 text-xs text-slate-500 tabular-nums">
-                                                {l.units_sold} × {formatMoney(l.unit_price)} FCFA
+                                            <p className="truncate text-sm font-semibold text-ink">
+                                                {l.product_name}
                                             </p>
-                                            <p className="text-xs text-slate-400 tabular-nums">
-                                                Stock {l.opening_stock} → {l.closing_stock}
+                                            <p className="mt-0.5 text-xs text-slate-500 tabular-nums">
+                                                {l.units_sold} ×{' '}
+                                                {formatAmount(l.unit_price)}{' '}
+                                                FCFA
+                                            </p>
+                                            <p className="text-xs text-slate-500 tabular-nums">
+                                                Stock {l.opening_stock} →{' '}
+                                                {l.closing_stock}
                                             </p>
                                         </div>
-                                        <p className="shrink-0 pr-1 text-sm font-bold text-motriks-deep tabular-nums">{formatMoney(l.revenue)}</p>
+                                        <p className="shrink-0 pr-1 text-sm font-bold text-motriks-deep tabular-nums">
+                                            {formatAmount(l.revenue)}
+                                        </p>
                                     </li>
                                 ))}
                             </ul>
@@ -214,7 +303,12 @@ function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess;
                         <div>
                             <p className="mb-2.5 text-sm font-semibold text-ink">
                                 Boutiques extérieures
-                                <span className="ml-2 font-normal text-slate-400">{formatMoney(externalTotal(report.external_sales))} FCFA</span>
+                                <span className="ml-2 font-normal text-slate-500">
+                                    {formatAmount(
+                                        externalTotal(report.external_sales),
+                                    )}{' '}
+                                    FCFA
+                                </span>
                             </p>
                             <ExternalSalesList sales={report.external_sales} />
                         </div>
@@ -222,8 +316,12 @@ function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess;
 
                     {report.notes && (
                         <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                            <p className="text-xs font-medium text-slate-400">Notes du jour</p>
-                            <p className="mt-1 text-sm leading-relaxed text-ink">{report.notes}</p>
+                            <p className="text-xs font-medium text-slate-500">
+                                Notes du jour
+                            </p>
+                            <p className="mt-1 text-sm leading-relaxed text-ink">
+                                {report.notes}
+                            </p>
                         </div>
                     )}
 
@@ -233,7 +331,9 @@ function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess;
                                 <AlertTriangle className="size-3.5" />
                                 Incident signalé
                             </p>
-                            <p className="mt-1 text-sm leading-relaxed text-amber-900">{report.incident_notes}</p>
+                            <p className="mt-1 text-sm leading-relaxed text-amber-900">
+                                {report.incident_notes}
+                            </p>
                         </div>
                     )}
                 </div>
@@ -248,7 +348,11 @@ function ReportModal({ report, pdf, onClose }: { report: Report; pdf: PdfAccess;
                     Fermer
                 </button>
                 <PdfButton report={report} pdf={pdf} />
-                <ActionLink href={reportShow({ visit: report.visit_uuid }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
+                <ActionLink
+                    href={reportShow({ visit: report.visit_uuid }).url}
+                    icon={<ExternalLink />}
+                    className="h-10 rounded-xl"
+                >
                     Ouvrir le rapport
                 </ActionLink>
             </footer>
@@ -269,11 +373,19 @@ function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
                         <ClipboardCheck className="size-5" />
                     </span>
                     <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-500">Dernier rapport</p>
-                        <h2 className="truncate text-lg font-semibold tracking-tight text-ink">{report.site_name}</h2>
+                        <p className="text-xs font-medium text-slate-500">
+                            Dernier rapport
+                        </p>
+                        <h2 className="truncate text-lg font-semibold tracking-tight text-ink">
+                            {report.site_name}
+                        </h2>
                         <p className="text-sm text-slate-500 capitalize">
                             {report.report_date}
-                            {report.submitted_at && <span className="normal-case">, soumis à {report.submitted_at}</span>}
+                            {report.submitted_at && (
+                                <span className="normal-case">
+                                    , soumis à {report.submitted_at}
+                                </span>
+                            )}
                         </p>
                     </div>
                 </div>
@@ -281,16 +393,24 @@ function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
                 <div className="flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-3 sm:w-auto sm:justify-start">
                     <div className="sm:text-right">
                         <p className="text-2xl font-semibold tracking-tight whitespace-nowrap text-motriks-deep tabular-nums">
-                            {formatMoney(report.total_revenue)}
-                            <span className="ml-1.5 text-sm font-medium text-slate-400">FCFA</span>
+                            {formatAmount(report.total_revenue)}
+                            <span className="ml-1.5 text-sm font-medium text-slate-500">
+                                FCFA
+                            </span>
                         </p>
                         <p className="text-xs text-slate-500 tabular-nums">
-                            {report.total_units_sold} unité{report.total_units_sold > 1 ? 's' : ''} vendue{report.total_units_sold > 1 ? 's' : ''}
+                            {report.total_units_sold} unité
+                            {report.total_units_sold > 1 ? 's' : ''} vendue
+                            {report.total_units_sold > 1 ? 's' : ''}
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
                         <PdfButton report={report} pdf={pdf} />
-                        <ActionLink href={reportShow({ visit: report.visit_uuid }).url} icon={<ExternalLink />} className="h-10 rounded-xl">
+                        <ActionLink
+                            href={reportShow({ visit: report.visit_uuid }).url}
+                            icon={<ExternalLink />}
+                            className="h-10 rounded-xl"
+                        >
                             Ouvrir
                         </ActionLink>
                     </div>
@@ -299,27 +419,46 @@ function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
 
             <div className="px-6 py-5">
                 <p className="mb-3 text-sm font-semibold text-ink">
-                    {report.external_sales.length > 0 ? 'Sur le point de vente' : 'Produits vendus'}
-                    <span className="ml-2 font-normal text-slate-400">{sold.length}</span>
+                    {report.external_sales.length > 0
+                        ? 'Sur le point de vente'
+                        : 'Produits vendus'}
+                    <span className="ml-2 font-normal text-slate-500">
+                        {sold.length}
+                    </span>
                 </p>
                 {sold.length === 0 ? (
-                    <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400">
-                        {report.external_sales.length > 0 ? 'Aucune vente sur le point de vente ce jour.' : 'Aucune vente enregistrée ce jour.'}
+                    <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500">
+                        {report.external_sales.length > 0
+                            ? 'Aucune vente sur le point de vente ce jour.'
+                            : 'Aucune vente enregistrée ce jour.'}
                     </p>
                 ) : (
                     <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         {sold.map((l) => (
-                            <li key={l.id} className="flex items-center gap-4 rounded-2xl p-3 ring-1 ring-slate-200/70">
-                                <ProductImage src={l.image_url} alt={l.product_name} className="size-16" />
+                            <li
+                                key={l.id}
+                                className="flex items-center gap-4 rounded-2xl p-3 ring-1 ring-slate-200/70"
+                            >
+                                <ProductImage
+                                    src={l.image_url}
+                                    alt={l.product_name}
+                                    className="size-16"
+                                />
                                 <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-semibold text-ink">{l.product_name}</p>
+                                    <p className="truncate text-sm font-semibold text-ink">
+                                        {l.product_name}
+                                    </p>
                                     <p className="mt-0.5 text-xs text-slate-500 tabular-nums">
-                                        {l.units_sold} × {formatMoney(l.unit_price)} FCFA
+                                        {l.units_sold} ×{' '}
+                                        {formatAmount(l.unit_price)} FCFA
                                     </p>
-                                    <p className="text-xs text-slate-400 tabular-nums">
-                                        Stock {l.opening_stock} → {l.closing_stock}
+                                    <p className="text-xs text-slate-500 tabular-nums">
+                                        Stock {l.opening_stock} →{' '}
+                                        {l.closing_stock}
                                     </p>
-                                    <p className="mt-1 text-sm font-bold text-motriks-deep tabular-nums">{formatMoney(l.revenue)} FCFA</p>
+                                    <p className="mt-1 text-sm font-bold text-motriks-deep tabular-nums">
+                                        {formatAmount(l.revenue)} FCFA
+                                    </p>
                                 </div>
                             </li>
                         ))}
@@ -330,9 +469,17 @@ function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
                     <div className="mt-5">
                         <p className="mb-3 text-sm font-semibold text-ink">
                             Boutiques extérieures
-                            <span className="ml-2 font-normal text-slate-400">{formatMoney(externalTotal(report.external_sales))} FCFA</span>
+                            <span className="ml-2 font-normal text-slate-500">
+                                {formatAmount(
+                                    externalTotal(report.external_sales),
+                                )}{' '}
+                                FCFA
+                            </span>
                         </p>
-                        <ExternalSalesList sales={report.external_sales} className="sm:grid sm:grid-cols-2 sm:items-start xl:grid-cols-3" />
+                        <ExternalSalesList
+                            sales={report.external_sales}
+                            className="sm:grid sm:grid-cols-2 sm:items-start xl:grid-cols-3"
+                        />
                     </div>
                 )}
 
@@ -340,8 +487,12 @@ function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         {report.notes && (
                             <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-                                <p className="text-xs font-medium text-slate-400">Notes du jour</p>
-                                <p className="mt-1 text-sm leading-relaxed text-ink">{report.notes}</p>
+                                <p className="text-xs font-medium text-slate-500">
+                                    Notes du jour
+                                </p>
+                                <p className="mt-1 text-sm leading-relaxed text-ink">
+                                    {report.notes}
+                                </p>
                             </div>
                         )}
                         {report.incident_notes && (
@@ -350,7 +501,9 @@ function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
                                     <AlertTriangle className="size-3.5" />
                                     Incident signalé
                                 </p>
-                                <p className="mt-1 text-sm leading-relaxed text-amber-900">{report.incident_notes}</p>
+                                <p className="mt-1 text-sm leading-relaxed text-amber-900">
+                                    {report.incident_notes}
+                                </p>
                             </div>
                         )}
                     </div>
@@ -362,10 +515,23 @@ function FeaturedReport({ report, pdf }: { report: Report; pdf: PdfAccess }) {
 
 /* ─────────────────────── Ligne de rapport ─────────────────────── */
 
-function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; maxRevenue: number; showBar: boolean; onOpen: () => void }) {
+function ReportRow({
+    report,
+    maxRevenue,
+    showBar,
+    onOpen,
+}: {
+    report: Report;
+    maxRevenue: number;
+    showBar: boolean;
+    onOpen: () => void;
+}) {
     const submitted = report.status === 'submitted';
     const date = new Date(report.report_date_iso + 'T00:00:00');
-    const pct = maxRevenue > 0 ? Math.round((report.total_revenue / maxRevenue) * 100) : 0;
+    const pct =
+        maxRevenue > 0
+            ? Math.round((report.total_revenue / maxRevenue) * 100)
+            : 0;
     const sold = soldLines(report);
 
     const rowClass =
@@ -376,19 +542,32 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
             <div
                 className={cn(
                     'flex size-11 shrink-0 flex-col items-center justify-center rounded-xl text-center ring-1 ring-inset',
-                    submitted ? 'bg-motriks-soft text-motriks-deep ring-green-600/10' : 'bg-amber-50 text-amber-700 ring-amber-200/70',
+                    submitted
+                        ? 'bg-motriks-soft text-motriks-deep ring-green-600/10'
+                        : 'bg-amber-50 text-amber-700 ring-amber-200/70',
                 )}
             >
-                <span className="text-sm leading-none font-bold">{String(date.getDate()).padStart(2, '0')}</span>
+                <span className="text-sm leading-none font-bold">
+                    {String(date.getDate()).padStart(2, '0')}
+                </span>
                 <span className="mt-1 text-[10px] leading-none capitalize opacity-80">
-                    {date.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '')}
+                    {date
+                        .toLocaleDateString('fr-FR', { weekday: 'short' })
+                        .replace('.', '')}
                 </span>
             </div>
 
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-semibold text-ink">{report.site_name}</p>
-                    {report.has_incident && <AlertTriangle className="size-3.5 shrink-0 text-amber-500" aria-label="Incident signalé" />}
+                    <p className="truncate text-sm font-semibold text-ink">
+                        {report.site_name}
+                    </p>
+                    {report.has_incident && (
+                        <AlertTriangle
+                            className="size-3.5 shrink-0 text-amber-500"
+                            aria-label="Incident signalé"
+                        />
+                    )}
                     {!submitted && (
                         <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200/70">
                             Brouillon
@@ -397,30 +576,53 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
                 </div>
                 {submitted ? (
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
-                        <span className="truncate">{productSummary(report)}</span>
-                        {report.submitted_at && <span className="text-slate-400">Soumis à {report.submitted_at}</span>}
+                        <span className="truncate">
+                            {productSummary(report)}
+                        </span>
+                        {report.submitted_at && (
+                            <span className="text-slate-500">
+                                Soumis à {report.submitted_at}
+                            </span>
+                        )}
                     </p>
                 ) : (
-                    <p className="mt-0.5 text-xs text-amber-600">À compléter et à soumettre</p>
+                    <p className="mt-0.5 text-xs text-amber-600">
+                        À compléter et à soumettre
+                    </p>
                 )}
             </div>
 
             {submitted && sold.length > 0 && (
                 <div className="hidden -space-x-3 md:flex" aria-hidden="true">
                     {sold.slice(0, 3).map((l) => (
-                        <ProductImage key={l.id} src={l.image_url} alt="" className="size-10 rounded-xl bg-white ring-2 ring-white" />
+                        <ProductImage
+                            key={l.id}
+                            src={l.image_url}
+                            alt=""
+                            className="size-10 rounded-xl bg-white ring-2 ring-white"
+                        />
                     ))}
                 </div>
             )}
 
             {submitted && (
                 <div className="shrink-0 text-right">
-                    <p className={cn('text-sm font-bold whitespace-nowrap tabular-nums', report.total_revenue > 0 ? 'text-motriks-deep' : 'text-slate-300')}>
-                        {formatMoney(report.total_revenue)}
-                        <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
+                    <p
+                        className={cn(
+                            'text-sm font-bold whitespace-nowrap tabular-nums',
+                            report.total_revenue > 0
+                                ? 'text-motriks-deep'
+                                : 'text-slate-300',
+                        )}
+                    >
+                        {formatAmount(report.total_revenue)}
+                        <span className="ml-1 text-xs font-medium text-slate-500">
+                            FCFA
+                        </span>
                     </p>
-                    <p className="text-xs text-slate-400 tabular-nums">
-                        {report.total_units_sold} unité{report.total_units_sold > 1 ? 's' : ''}
+                    <p className="text-xs text-slate-500 tabular-nums">
+                        {report.total_units_sold} unité
+                        {report.total_units_sold > 1 ? 's' : ''}
                     </p>
                 </div>
             )}
@@ -430,11 +632,15 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
                 className={cn(
                     'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors',
                     submitted
-                        ? 'bg-slate-50 text-slate-400 group-hover:bg-motriks-soft group-hover:text-motriks-deep'
+                        ? 'bg-slate-50 text-slate-500 group-hover:bg-motriks-soft group-hover:text-motriks-deep'
                         : 'bg-amber-50 text-amber-600 group-hover:bg-amber-100',
                 )}
             >
-                {submitted ? <ChevronRight className="size-4" /> : <Pencil className="size-4" />}
+                {submitted ? (
+                    <ChevronRight className="size-4" />
+                ) : (
+                    <Pencil className="size-4" />
+                )}
             </span>
         </>
     );
@@ -451,11 +657,19 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
             )}
 
             {submitted ? (
-                <button type="button" onClick={onOpen} className={rowClass} aria-label={`Voir le rapport du ${report.report_date}`}>
+                <button
+                    type="button"
+                    onClick={onOpen}
+                    className={rowClass}
+                    aria-label={`Voir le rapport du ${report.report_date}`}
+                >
                     {content}
                 </button>
             ) : (
-                <Link href={reportShow({ visit: report.visit_uuid }).url} className={rowClass}>
+                <Link
+                    href={reportShow({ visit: report.visit_uuid }).url}
+                    className={rowClass}
+                >
                     {content}
                 </Link>
             )}
@@ -465,29 +679,51 @@ function ReportRow({ report, maxRevenue, showBar, onOpen }: { report: Report; ma
 
 /* ─────────────────────── Page ─────────────────────── */
 
-export default function TerrainRapports({ reports, pdf }: { reports: Report[]; pdf: PdfAccess }) {
+export default function TerrainRapports({
+    reports,
+    pdf,
+}: {
+    reports: Report[];
+    pdf: PdfAccess;
+}) {
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState<StatusFilter>('all');
     const [selected, setSelected] = useState<Report | null>(null);
 
     const submitted = useMemo(
-        () => reports.filter((r) => r.status === 'submitted').sort((a, b) => b.report_date_iso.localeCompare(a.report_date_iso)),
+        () =>
+            reports
+                .filter((r) => r.status === 'submitted')
+                .sort((a, b) =>
+                    b.report_date_iso.localeCompare(a.report_date_iso),
+                ),
         [reports],
     );
     const drafts = reports.length - submitted.length;
     const totalRevenue = submitted.reduce((s, r) => s + r.total_revenue, 0);
     const totalUnits = submitted.reduce((s, r) => s + r.total_units_sold, 0);
-    const best = submitted.reduce<Report | null>((acc, r) => (acc === null || r.total_revenue > acc.total_revenue ? r : acc), null);
+    const best = submitted.reduce<Report | null>(
+        (acc, r) =>
+            acc === null || r.total_revenue > acc.total_revenue ? r : acc,
+        null,
+    );
     const last = submitted[0] ?? null;
 
     // Index de recherche calculé une seule fois
-    const index = useMemo(() => reports.map((r) => ({ report: r, text: searchableText(r) })), [reports]);
+    const index = useMemo(
+        () => reports.map((r) => ({ report: r, text: searchableText(r) })),
+        [reports],
+    );
 
     // Recherche instantanée : chaque mot saisi doit être présent, dans n'importe quel ordre
     const filtered = useMemo(() => {
         const terms = normalize(search).split(/\s+/).filter(Boolean);
         return index
-            .filter(({ report, text }) => (status === 'all' || report.status === status) && terms.every((t) => text.includes(t)))
+            .filter(
+                ({ report, text }) =>
+                    (status === 'all' || report.status === status) &&
+                    terms.every((t) => text.includes(t)),
+            )
             .map(({ report }) => report);
     }, [index, search, status]);
 
@@ -497,7 +733,9 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
 
     // Peu de rapports : le dernier est détaillé en grand, la liste ne le répète pas
     const featured = reports.length <= FEATURED_MAX && !searching ? last : null;
-    const listReports = featured ? filtered.filter((r) => r.id !== featured.id) : filtered;
+    const listReports = featured
+        ? filtered.filter((r) => r.id !== featured.id)
+        : filtered;
     const grouped = groupByMonth(listReports);
 
     const tabs: { key: StatusFilter; label: string; count: number }[] = [
@@ -509,16 +747,31 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
     // 4e chiffre : « Dernier rapport » tant qu'il n'y a rien à comparer, « Meilleure journée » ensuite
     const fourth =
         submitted.length >= 2 && best
-            ? { label: 'Meilleure journée', value: <Money amount={best.total_revenue} />, sub: best.report_date }
+            ? {
+                  label: 'Meilleure journée',
+                  value: <Money amount={best.total_revenue} />,
+                  sub: best.report_date,
+              }
             : last
-              ? { label: 'Dernier rapport', value: shortDate(last.report_date_iso), sub: last.site_name }
-              : { label: 'Dernier rapport', value: '–', sub: 'aucun rapport soumis' };
+              ? {
+                    label: 'Dernier rapport',
+                    value: shortDate(last.report_date_iso),
+                    sub: last.site_name,
+                }
+              : {
+                    label: 'Dernier rapport',
+                    value: '–',
+                    sub: 'aucun rapport soumis',
+                };
 
     return (
         <>
             <Head title="Mes rapports" />
 
-            <Page title="Mes rapports" description={`${reports.length} rapport${reports.length > 1 ? 's' : ''} dans l'historique`}>
+            <Page
+                title="Mes rapports"
+                description={`${reports.length} rapport${reports.length > 1 ? 's' : ''} dans l'historique`}
+            >
                 {reports.length === 0 ? (
                     <div className={cn(card, 'p-10 sm:p-16')}>
                         <EmptyState
@@ -534,10 +787,21 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
                                 {
                                     label: 'Rapports soumis',
                                     value: submitted.length,
-                                    sub: drafts > 0 ? `${drafts} brouillon${drafts > 1 ? 's' : ''} en attente` : 'aucun brouillon',
+                                    sub:
+                                        drafts > 0
+                                            ? `${drafts} brouillon${drafts > 1 ? 's' : ''} en attente`
+                                            : 'aucun brouillon',
                                 },
-                                { label: "Chiffre d'affaires", value: <Money amount={totalRevenue} />, sub: 'rapports soumis' },
-                                { label: 'Unités vendues', value: totalUnits, sub: 'rapports soumis' },
+                                {
+                                    label: "Chiffre d'affaires",
+                                    value: <Money amount={totalRevenue} />,
+                                    sub: 'rapports soumis',
+                                },
+                                {
+                                    label: 'Unités vendues',
+                                    value: totalUnits,
+                                    sub: 'rapports soumis',
+                                },
                                 fourth,
                             ]}
                         />
@@ -546,23 +810,31 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 {showSearch ? (
                                     <div className="relative w-full sm:max-w-sm">
-                                        <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                                        <Search
+                                            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400"
+                                            aria-hidden="true"
+                                        />
                                         <input
                                             type="search"
                                             value={search}
-                                            onChange={(e) => setSearch(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Escape' && setSearch('')}
+                                            onChange={(e) =>
+                                                setSearch(e.target.value)
+                                            }
+                                            onKeyDown={(e) =>
+                                                e.key === 'Escape' &&
+                                                setSearch('')
+                                            }
                                             placeholder="Site, date, mois, produit…"
                                             aria-label="Rechercher un rapport"
                                             autoComplete="off"
-                                            className="h-10 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-10 text-base text-ink sm:text-sm transition-colors outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:ring-2 focus:ring-motriks/20 [&::-webkit-search-cancel-button]:hidden"
+                                            className="h-10 w-full rounded-xl border border-slate-200 bg-white pr-10 pl-10 text-base text-ink transition-colors outline-none placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:ring-2 focus:ring-motriks/20 sm:text-sm [&::-webkit-search-cancel-button]:hidden"
                                         />
                                         {search && (
                                             <button
                                                 type="button"
                                                 onClick={() => setSearch('')}
                                                 aria-label="Effacer la recherche"
-                                                className="absolute top-1/2 right-1 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                                                className="absolute top-1/2 right-1 flex size-11 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none sm:size-8"
                                             >
                                                 <X className="size-3.5" />
                                             </button>
@@ -573,7 +845,11 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
                                 )}
 
                                 {showTabs && (
-                                    <div role="tablist" aria-label="Statut" className="flex w-full max-w-full gap-1 overflow-x-auto rounded-2xl bg-slate-100/80 p-1 sm:inline-flex sm:w-fit">
+                                    <div
+                                        role="tablist"
+                                        aria-label="Statut"
+                                        className="flex w-full max-w-full gap-1 overflow-x-auto rounded-2xl bg-slate-100/80 p-1 sm:inline-flex sm:w-fit"
+                                    >
                                         {tabs.map((t) => (
                                             <button
                                                 key={t.key}
@@ -582,15 +858,19 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
                                                 aria-selected={status === t.key}
                                                 onClick={() => setStatus(t.key)}
                                                 className={cn(
-                                                    'flex h-9 flex-1 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm sm:h-8 sm:flex-none sm:gap-2 sm:px-3.5 font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
-                                                    status === t.key ? 'bg-white text-ink shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-ink',
+                                                    'flex h-9 flex-1 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none sm:h-8 sm:flex-none sm:gap-2 sm:px-3.5',
+                                                    status === t.key
+                                                        ? 'bg-white text-ink shadow-sm ring-1 ring-black/5'
+                                                        : 'text-slate-500 hover:text-ink',
                                                 )}
                                             >
                                                 {t.label}
                                                 <span
                                                     className={cn(
                                                         'rounded-full px-1 text-xs font-semibold tabular-nums sm:px-1.5',
-                                                        status === t.key ? 'bg-motriks-soft text-motriks-deep' : 'text-slate-400',
+                                                        status === t.key
+                                                            ? 'bg-motriks-soft text-motriks-deep'
+                                                            : 'text-slate-500',
                                                     )}
                                                 >
                                                     {t.count}
@@ -603,8 +883,12 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
                         )}
 
                         {searching && filtered.length > 0 && (
-                            <p className="px-1 text-xs text-slate-500" aria-live="polite">
-                                {filtered.length} résultat{filtered.length > 1 ? 's' : ''}
+                            <p
+                                className="px-1 text-xs text-slate-500"
+                                aria-live="polite"
+                            >
+                                {filtered.length} résultat
+                                {filtered.length > 1 ? 's' : ''}
                             </p>
                         )}
 
@@ -630,43 +914,79 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
                             </div>
                         )}
 
-                        {featured && <FeaturedReport report={featured} pdf={pdf} />}
+                        {featured && (
+                            <FeaturedReport report={featured} pdf={pdf} />
+                        )}
 
-                        {featured && listReports.length > 0 && <h2 className="mt-2 px-1 text-sm font-semibold text-ink">Historique</h2>}
+                        {featured && listReports.length > 0 && (
+                            <h2 className="mt-2 px-1 text-sm font-semibold text-ink">
+                                Historique
+                            </h2>
+                        )}
 
                         {grouped.map(([month, monthReports]) => {
-                            const monthSubmitted = monthReports.filter((r) => r.status === 'submitted');
-                            const monthRevenue = monthSubmitted.reduce((s, r) => s + r.total_revenue, 0);
-                            const monthUnits = monthSubmitted.reduce((s, r) => s + r.total_units_sold, 0);
-                            const maxRevenue = Math.max(...monthSubmitted.map((r) => r.total_revenue), 1);
+                            const monthSubmitted = monthReports.filter(
+                                (r) => r.status === 'submitted',
+                            );
+                            const monthRevenue = monthSubmitted.reduce(
+                                (s, r) => s + r.total_revenue,
+                                0,
+                            );
+                            const monthUnits = monthSubmitted.reduce(
+                                (s, r) => s + r.total_units_sold,
+                                0,
+                            );
+                            const maxRevenue = Math.max(
+                                ...monthSubmitted.map((r) => r.total_revenue),
+                                1,
+                            );
 
                             return (
-                                <section key={month} className="flex flex-col gap-2">
+                                <section
+                                    key={month}
+                                    className="flex flex-col gap-2"
+                                >
                                     <div className="flex flex-wrap items-baseline justify-between gap-x-4 px-1">
-                                        <h3 className="text-sm font-medium text-slate-500 capitalize">{month}</h3>
+                                        <h3 className="text-sm font-medium text-slate-500 capitalize">
+                                            {month}
+                                        </h3>
                                         {monthRevenue > 0 ? (
                                             <p className="text-xs text-slate-500 tabular-nums">
-                                                <span className="font-semibold text-motriks-deep">{formatMoney(monthRevenue)} FCFA</span>
+                                                <span className="font-semibold text-motriks-deep">
+                                                    {formatAmount(monthRevenue)}{' '}
+                                                    FCFA
+                                                </span>
                                                 <span className="ml-3">
-                                                    {monthUnits} unité{monthUnits > 1 ? 's' : ''}
+                                                    {monthUnits} unité
+                                                    {monthUnits > 1 ? 's' : ''}
                                                 </span>
                                             </p>
                                         ) : (
-                                            <p className="text-xs text-slate-400">
-                                                {monthReports.length} rapport{monthReports.length > 1 ? 's' : ''}
+                                            <p className="text-xs text-slate-500">
+                                                {monthReports.length} rapport
+                                                {monthReports.length > 1
+                                                    ? 's'
+                                                    : ''}
                                             </p>
                                         )}
                                     </div>
 
-                                    <div className={cn(card, 'overflow-hidden')}>
+                                    <div
+                                        className={cn(card, 'overflow-hidden')}
+                                    >
                                         <ul className="divide-y divide-slate-100">
                                             {monthReports.map((r) => (
                                                 <ReportRow
                                                     key={r.id}
                                                     report={r}
                                                     maxRevenue={maxRevenue}
-                                                    showBar={monthSubmitted.length > 1}
-                                                    onOpen={() => setSelected(r)}
+                                                    showBar={
+                                                        monthSubmitted.length >
+                                                        1
+                                                    }
+                                                    onOpen={() =>
+                                                        setSelected(r)
+                                                    }
                                                 />
                                             ))}
                                         </ul>
@@ -678,7 +998,13 @@ export default function TerrainRapports({ reports, pdf }: { reports: Report[]; p
                 )}
             </Page>
 
-            {selected && <ReportModal report={selected} pdf={pdf} onClose={() => setSelected(null)} />}
+            {selected && (
+                <ReportModal
+                    report={selected}
+                    pdf={pdf}
+                    onClose={() => setSelected(null)}
+                />
+            )}
         </>
     );
 }

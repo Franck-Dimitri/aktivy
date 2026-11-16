@@ -22,6 +22,8 @@ function Toaster({ ...props }: ToasterProps) {
                 loading: <Loader2 className="size-5 animate-spin text-green-600" />,
             }}
             toastOptions={{
+                // Lu par les lecteurs d'écran (sonner dit « Close toast » par défaut)
+                closeButtonAriaLabel: 'Fermer la notification',
                 classNames: {
                     toast: 'group toast !gap-3 !rounded-2xl !border !p-4 !font-sans !shadow-lg !shadow-slate-900/10',
                     title: '!text-sm !font-semibold',
@@ -34,6 +36,9 @@ function Toaster({ ...props }: ToasterProps) {
                     '--normal-bg': 'var(--popover)',
                     '--normal-text': 'var(--popover-foreground)',
                     '--normal-border': 'var(--border)',
+                    // Une fenêtre Radix ouverte coupe les clics hors d'elle (body en pointer-events: none) :
+                    // les notifications restent cliquables (fermer, action), la fenêtre <Modal> les ignore
+                    pointerEvents: 'auto',
                 } as React.CSSProperties
             }
             {...props}

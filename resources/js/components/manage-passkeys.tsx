@@ -23,12 +23,20 @@ export default function ManagePasskeys(props: Props) {
     };
 
     return (
-        <SettingsCard icon={Fingerprint} title="Clés d’accès" description="Connectez-vous avec l’empreinte, le visage ou le code de votre appareil, sans mot de passe.">
+        <SettingsCard
+            icon={Fingerprint}
+            title="Clés d’accès"
+            description="Connectez-vous avec l’empreinte, le visage ou le code de votre appareil, sans mot de passe."
+        >
             <div className="flex flex-col gap-4 px-5 py-5 sm:px-7">
                 {passkeys.length > 0 ? (
-                    <div className="overflow-hidden rounded-xl border border-slate-200/80 dark:border-sidebar-border">
+                    <div className="overflow-hidden rounded-xl border border-slate-200/80">
                         {passkeys.map((passkey) => (
-                            <PasskeyItem key={passkey.id} passkey={passkey} onDelete={handleDelete} />
+                            <PasskeyItem
+                                key={passkey.id}
+                                passkey={passkey}
+                                onDelete={handleDelete}
+                            />
                         ))}
                     </div>
                 ) : (

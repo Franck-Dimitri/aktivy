@@ -28,6 +28,19 @@ import { StatusBadge } from '@/components/page/status-badge';
 import { SurfaceCard } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
 import { haptic } from '@/lib/haptics';
+import {
+    canAddPack as packFits,
+    countedStock,
+    filledLinesCount,
+    hasStockGap,
+    missingGapReason,
+    packUnitsByLine,
+    remainingStock as sumRemainingStock,
+    stockGap,
+    theoreticalStock,
+    totalRevenue as reportRevenue,
+    totalUnitsSold,
+} from '@/lib/report-math';
 import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
 import { update as reportUpdate, submit as reportSubmit, flag as reportFlag } from '@/routes/terrain/report';
@@ -35,7 +48,7 @@ import { checkout as visitCheckout } from '@/routes/terrain/visit';
 import { store as photoStore, destroy as photoDestroy } from '@/routes/terrain/report/photos';
 import { ReportPhotos, type ReportPhoto } from '@/components/report-photos';
 import { useSyncState } from '@/lib/sync';
-import { addPhotoOffline, cancelQueuedSubmit, checkoutOffline, saveReportOffline, submitReportOffline } from '@/lib/terrain-offline';
+import { addPhotoOffline, cancelQueuedSubmit, checkoutOffline, offlineSaveFailed, saveReportOffline, submitReportOffline } from '@/lib/terrain-offline';
 import { ExternalSalesList, externalTotal, type ExternalShopSales } from '@/components/external-sales';
 import {
     ExternalSalesEditor,
@@ -163,7 +176,7 @@ function Steps({ current }: { current: 1 | 2 | 3 }) {
                         <p
                             className={cn(
                                 'mt-2 text-xs font-medium transition-colors',
-                                n === current ? 'text-motriks-deep' : n < current ? 'text-slate-500' : 'text-slate-400',
+                                n === current ? 'text-motriks-deep' : n < current ? 'text-slate-600' : 'text-slate-500',
                             )}
                         >
                             {label}
@@ -245,7 +258,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                                 <span
                                     className={cn(
                                         'shrink-0 text-[11px] font-medium tabular-nums',
-                                        soldOut ? 'text-red-600' : lowStock ? 'text-amber-600' : 'text-slate-400',
+                                        soldOut ? 'text-red-600' : lowStock ? 'text-amber-600' : 'text-slate-500',
                                     )}
                                 >
                                     Reste {remaining}
@@ -300,7 +313,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                         )}
                     >
                         <span className="whitespace-nowrap">{amount > 0 ? formatMoney(amount) : '—'}</span>
-                        <span className="text-xs font-medium text-slate-400">FCFA</span>
+                        <span className="text-xs font-medium text-slate-500">FCFA</span>
                     </p>
                 </div>
             </div>
@@ -322,7 +335,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                         type="button"
                         disabled={disabled}
                         onClick={() => onChange(0)}
-                        className="inline-flex min-h-9 items-center font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
+                        className="inline-flex min-h-9 items-center font-medium text-slate-500 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
                     >
                         Remettre à 0
                     </button>
@@ -330,7 +343,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                 <button
                     type="button"
                     onClick={() => setNoteOpen((o) => !o)}
-                    className="inline-flex min-h-9 items-center gap-1 font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                    className="inline-flex min-h-9 items-center gap-1 font-medium text-slate-500 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                 >
                     <Pencil className="size-3" />
                     Note
@@ -382,10 +395,10 @@ function SummaryPanel({
     return (
         <SurfaceCard contentClassName="flex flex-col gap-5 p-5 sm:p-6">
             <div>
-                <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Total de la journée</p>
+                <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Total de la journée</p>
                 <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 text-4xl font-extrabold tracking-tight text-ink tabular-nums">
                     <span className="whitespace-nowrap">{formatMoney(totalRevenue)}</span>
-                    <span className="text-base font-medium text-slate-400">FCFA</span>
+                    <span className="text-base font-medium text-slate-500">FCFA</span>
                 </p>
             </div>
 
@@ -417,7 +430,7 @@ function SummaryPanel({
 
             <div className="border-t border-slate-100 pt-5">
                 <label htmlFor="day-notes" className="text-sm font-semibold text-ink">
-                    Notes du jour <span className="font-normal text-slate-400">(facultatif)</span>
+                    Notes du jour <span className="font-normal text-slate-500">(facultatif)</span>
                 </label>
                 <TextArea
                     id="day-notes"
@@ -583,39 +596,25 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         setUnsynced(true);
     }, [lines, packCounts, notes, incidentNotes, counted, reasons, externalShops, isSubmitted, visit.uuid]);
 
-    // Unités de chaque produit consommées par les packs saisis
-    const packUnits: Record<number, number> = {};
-    for (const pack of report.packs) {
-        for (const item of pack.items) {
-            if (item.line_id !== null) {
-                packUnits[item.line_id] = (packUnits[item.line_id] ?? 0) + (packCounts[pack.id] ?? 0) * item.quantity;
-            }
-        }
-    }
+    // Unités de chaque produit consommées par les packs saisis (calculs : lib/report-math.ts)
+    const packUnits = packUnitsByLine(report.packs, packCounts);
 
     // Boutiques extérieures : comptées dans la journée, sans toucher au stock du point de vente
     const external = externalTotals(externalShops, report.external_products);
     const externalBlocking = externalIncomplete(externalShops);
-    const totalSold = lines.reduce((s, l) => s + l.units_sold + (packUnits[l.id] ?? 0), 0) + external.units;
-    const totalRevenue =
-        lines.reduce((s, l) => s + l.units_sold * l.unit_price, 0) +
-        report.packs.reduce((s, p) => s + (packCounts[p.id] ?? 0) * p.value, 0) +
-        external.revenue;
-    const filledCount = lines.filter((l) => l.units_sold + (packUnits[l.id] ?? 0) > 0).length;
-    const theoretical = (l: ReportLine) => Math.max(0, l.opening_stock + l.restocked - l.units_sold - (packUnits[l.id] ?? 0));
-    const countOf = (l: ReportLine) => (counted[l.id] === undefined || counted[l.id] === '' ? theoretical(l) : Number(counted[l.id]));
-    const hasGap = (l: ReportLine) => countOf(l) !== theoretical(l);
-    const missingReason = lines.some((l) => hasGap(l) && !reasons[l.id]?.trim());
-    const remainingStock = lines.reduce((s, l) => s + theoretical(l), 0);
+    const totalSold = totalUnitsSold(lines, packUnits, external.units);
+    const totalRevenue = reportRevenue(lines, report.packs, packCounts, external.revenue);
+    const filledCount = filledLinesCount(lines, packUnits);
+    const theoretical = (l: ReportLine) => theoreticalStock(l, packUnits);
+    const countOf = (l: ReportLine) => countedStock(l, counted, packUnits);
+    const hasGap = (l: ReportLine) => hasStockGap(l, counted, packUnits);
+    const gapOf = (l: ReportLine) => stockGap(l, counted, packUnits);
+    const missingReason = missingGapReason(lines, counted, reasons, packUnits);
+    const remainingStock = sumRemainingStock(lines, packUnits);
     const payloadPacks = () => report.packs.map((p) => ({ id: p.id, quantity: packCounts[p.id] ?? 0 }));
 
     /** Un pack de plus est possible si chacun de ses produits a encore assez de stock. */
-    const canAddPack = (pack: PackOffer) =>
-        pack.items.every((item) => {
-            const line = lines.find((l) => l.id === item.line_id);
-
-            return line !== undefined && line.opening_stock + line.restocked - line.units_sold - (packUnits[line.id] ?? 0) >= item.quantity;
-        });
+    const canAddPack = (pack: PackOffer) => packFits(pack, lines, packUnits);
     const soldLines = lines.filter((l) => l.units_sold > 0);
     const payloadLines = () => lines.map((l) => ({ id: l.id, site_product_id: l.site_product_id ?? null, units_sold: l.units_sold, notes: l.notes }));
     const forgetDraft = () => {
@@ -639,9 +638,11 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         const draft = { notes, lines: payloadLines(), packs: payloadPacks(), external_sales: externalPayload(externalShops) };
 
         if (mustQueue()) {
-            void saveReportOffline(visitRef, draft).then(() => {
-                if (!silent) toast.info('Saisie gardée sur ce téléphone', { description: 'Elle sera envoyée toute seule au retour du réseau.' });
-            });
+            saveReportOffline(visitRef, draft)
+                .then(() => {
+                    if (!silent) toast.info('Saisie gardée sur ce téléphone', { description: 'Elle sera envoyée toute seule au retour du réseau.' });
+                })
+                .catch(() => offlineSaveFailed('Votre saisie'));
 
             return;
         }
@@ -659,8 +660,11 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             onError: toastFormError,
             // Réseau faible : la saisie part dans la file et repartira toute seule
             onNetworkError: () => {
-                void saveReportOffline(visitRef, draft);
-                if (!silent) toast.info('Réseau instable', { description: 'Votre saisie est gardée sur ce téléphone et repartira toute seule.' });
+                saveReportOffline(visitRef, draft)
+                    .then(() => {
+                        if (!silent) toast.info('Réseau instable', { description: 'Votre saisie est gardée sur ce téléphone et repartira toute seule.' });
+                    })
+                    .catch(() => offlineSaveFailed('Votre saisie'));
 
                 return false;
             },
@@ -693,12 +697,17 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             external_sales: externalPayload(externalShops),
         };
 
+        // « Rapport prêt » seulement une fois le rapport réellement gardé sur le téléphone
         const queueForLater = () => {
-            setQueuedNow(true);
-            void submitReportOffline(visitRef, payload).then(() => {
-                haptic('success');
-                toast.success('Rapport prêt', { description: 'Il partira tout seul dès que le réseau revient.' });
-            });
+            setBusy('submit');
+            submitReportOffline(visitRef, payload)
+                .then(() => {
+                    setQueuedNow(true);
+                    haptic('success');
+                    toast.success('Rapport prêt', { description: 'Il partira tout seul dès que le réseau revient.' });
+                })
+                .catch(() => offlineSaveFailed('Le rapport'))
+                .finally(() => setBusy(null));
         };
 
         if (mustQueue()) {
@@ -740,13 +749,16 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         const doCheckout = (lat?: number, lng?: number) => {
             // Sans réseau : fin de service gardée sur le téléphone, avec l'heure et la position du moment
             const withoutNetwork = () => {
-                void checkoutOffline(visitRef, { latitude: lat ?? null, longitude: lng ?? null }).then(() => {
-                    haptic('success');
-                    toast.success('Service terminé !', { description: 'Enregistré sur ce téléphone, envoyé dès le retour du réseau.' });
-                    setConfirmCheckout(false);
-                    setBusy(null);
-                    router.visit(terrainHome().url);
-                });
+                checkoutOffline(visitRef, { latitude: lat ?? null, longitude: lng ?? null })
+                    .then(() => {
+                        haptic('success');
+                        toast.success('Service terminé !', { description: 'Enregistré sur ce téléphone, envoyé dès le retour du réseau.' });
+                        setConfirmCheckout(false);
+                        router.visit(terrainHome().url);
+                    })
+                    // Le bouton ne tourne plus sans fin : la fin de service peut être retentée
+                    .catch(() => offlineSaveFailed('La fin de service'))
+                    .finally(() => setBusy(null));
             };
 
             if (mustQueue()) {
@@ -886,7 +898,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         <div className="flex flex-col items-center gap-2 px-5 py-14 text-center">
                                             <Package className="size-10 text-slate-200" />
                                             <p className="text-sm font-medium text-slate-500">Aucun produit configuré</p>
-                                            <p className="text-xs text-slate-400">
+                                            <p className="text-xs text-slate-500">
                                                 Votre responsable doit d'abord ajouter des produits à ce site.
                                             </p>
                                         </div>
@@ -923,7 +935,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                             <p className="text-xs text-slate-500">
                                                                 {pack.items.map((i) => `${i.quantity} × ${i.name}${i.free ? ' (offert)' : ''}`).join(' + ')}
                                                             </p>
-                                                            <p className="text-xs text-slate-400">{formatMoney(pack.value)} FCFA le pack</p>
+                                                            <p className="text-xs text-slate-500">{formatMoney(pack.value)} FCFA le pack</p>
                                                         </div>
                                                         <div className="inline-flex items-center rounded-2xl bg-slate-100 p-1">
                                                             <button
@@ -1023,7 +1035,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         </p>
                                         <p className="truncate text-xl font-bold text-ink tabular-nums">
                                             {formatMoney(totalRevenue)}
-                                            <span className="ml-1.5 text-sm font-medium text-slate-400">FCFA</span>
+                                            <span className="ml-1.5 text-sm font-medium text-slate-500">FCFA</span>
                                         </p>
                                     </div>
                                     <ActionButton
@@ -1053,7 +1065,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </div>
 
                                 {soldLines.length === 0 && external.units === 0 ? (
-                                    <p className="px-5 py-10 text-center text-sm text-slate-400">Aucune vente saisie.</p>
+                                    <p className="px-5 py-10 text-center text-sm text-slate-500">Aucune vente saisie.</p>
                                 ) : (
                                     <ul className="divide-y divide-dashed divide-slate-200">
                                         {soldLines.map((l) => (
@@ -1067,7 +1079,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                 )}
                                                 <div className="min-w-0 flex-1">
                                                     <p className="truncate text-sm font-medium text-ink">{l.product_name}</p>
-                                                    <p className="text-xs text-slate-400">
+                                                    <p className="text-xs text-slate-500">
                                                         {l.units_sold} × {formatMoney(l.unit_price)} FCFA
                                                     </p>
                                                 </div>
@@ -1086,7 +1098,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         </span>
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-sm font-medium text-ink">{p.name}</p>
-                                            <p className="text-xs text-slate-400">
+                                            <p className="text-xs text-slate-500">
                                                 {packCounts[p.id]} pack{(packCounts[p.id] ?? 0) > 1 ? 's' : ''} × {formatMoney(p.value)} FCFA
                                             </p>
                                         </div>
@@ -1109,7 +1121,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                 </span>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="truncate text-sm font-medium text-ink">{s.name.trim()}</p>
-                                                    <p className="text-xs text-slate-400">
+                                                    <p className="text-xs text-slate-500">
                                                         Boutique extérieure · {sold.units} unité{sold.units > 1 ? 's' : ''}
                                                     </p>
                                                 </div>
@@ -1127,7 +1139,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </div>
                                     <p className="text-3xl font-extrabold whitespace-nowrap text-motriks-deep tabular-nums">
                                         {formatMoney(totalRevenue)}
-                                        <span className="ml-1 text-sm font-medium text-slate-400">FCFA</span>
+                                        <span className="ml-1 text-sm font-medium text-slate-500">FCFA</span>
                                     </p>
                                 </div>
                             </SurfaceCard>
@@ -1146,7 +1158,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div className="min-w-0">
                                                         <p className="line-clamp-2 text-sm font-medium break-words text-ink">{l.product_name}</p>
-                                                        <p className="text-xs text-slate-400">Attendu : {theoretical(l)} {l.unit}</p>
+                                                        <p className="text-xs text-slate-500">Attendu : {theoretical(l)} {l.unit}</p>
                                                     </div>
                                                     <input
                                                         type="number"
@@ -1164,7 +1176,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                         value={reasons[l.id] ?? ''}
                                                         onChange={(e) => setReasons({ ...reasons, [l.id]: e.target.value })}
                                                         maxLength={300}
-                                                        placeholder={`Motif de l’écart (${countOf(l) - theoretical(l) > 0 ? '+' : ''}${countOf(l) - theoretical(l)}) : casse, vol, erreur…`}
+                                                        placeholder={`Motif de l’écart (${gapOf(l) > 0 ? '+' : ''}${gapOf(l)}) : casse, vol, erreur…`}
                                                         aria-label={`Motif de l’écart — ${l.product_name}`}
                                                         className="mt-2.5 h-10 bg-white"
                                                     />
@@ -1255,7 +1267,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                                     {l.units_sold + l.pack_units > 0 && ` · ${l.units_sold + l.pack_units} vendus`}
                                                     {l.pack_units > 0 && ` (dont ${l.pack_units} en packs)`}
                                                 </p>
-                                                {l.notes && <p className="mt-0.5 text-xs text-slate-400 italic">{l.notes}</p>}
+                                                {l.notes && <p className="mt-0.5 text-xs text-slate-500 italic">{l.notes}</p>}
                                                 {l.stock_gap !== 0 && (
                                                     <p className="mt-0.5 text-xs font-medium text-amber-700">
                                                         Écart {l.stock_gap > 0 ? '+' : ''}{l.stock_gap} : {l.gap_reason}
@@ -1265,7 +1277,7 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                             {l.revenue > 0 && (
                                                 <p className="shrink-0 font-semibold whitespace-nowrap text-motriks-deep tabular-nums">
                                                     {formatMoney(l.revenue)}
-                                                    <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
+                                                    <span className="ml-1 text-xs font-medium text-slate-500">FCFA</span>
                                                 </p>
                                             )}
                                         </li>

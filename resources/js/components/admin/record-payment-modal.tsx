@@ -12,7 +12,7 @@ import { Modal } from '@/components/page/modal';
 import type { PackCatalog } from '@/components/plans/plan-usage';
 import { toastFormError } from '@/lib/form-toast';
 import { store as paymentStore } from '@/routes/admin/subscriptions/payments';
-import { number } from '@/pages/reports/format';
+import { formatNumber, localISODate } from '@/lib/format';
 
 export type Option = { key: string; label: string };
 export type PlanOption = {
@@ -23,8 +23,8 @@ export type PlanOption = {
     accepts_supervisor_packs: boolean;
 };
 
-const fcfa = number;
-const iso = (d: Date) => d.toISOString().slice(0, 10);
+// Date locale : toISOString donnerait la veille entre minuit et 1 h au Cameroun (UTC+1)
+const iso = localISODate;
 
 const addMonths = (months: number) => {
     const d = new Date();
@@ -61,23 +61,42 @@ export function RecordPaymentModal({
     const [months, setMonths] = useState(1);
 
     /** Prix mensuel d'un forfait avec ses packs (ceux que le forfait n'accepte pas ne comptent pas). */
-    const perMonth = (p: PlanOption, hostessPacks: number, supervisorPacks: number) =>
+    const perMonth = (
+        p: PlanOption,
+        hostessPacks: number,
+        supervisorPacks: number,
+    ) =>
         p.price +
         (p.accepts_packs ? hostessPacks * packs.hostesses.price : 0) +
-        (p.accepts_supervisor_packs ? supervisorPacks * packs.supervisors.price : 0);
+        (p.accepts_supervisor_packs
+            ? supervisorPacks * packs.supervisors.price
+            : 0);
 
     /** Montant proposé : forfait et packs, multipliés par le nombre de mois (10 mois payés pour 12 à l'année). */
-    const suggest = (planKey: string, hostessPacks: number, supervisorPacks: number, periodMonths: number) => {
+    const suggest = (
+        planKey: string,
+        hostessPacks: number,
+        supervisorPacks: number,
+        periodMonths: number,
+    ) => {
         const p = paid.find((x) => x.key === planKey) ?? paid[0];
 
-        return String(perMonth(p, hostessPacks, supervisorPacks) * (periodMonths === 12 ? 10 : periodMonths));
+        return String(
+            perMonth(p, hostessPacks, supervisorPacks) *
+                (periodMonths === 12 ? 10 : periodMonths),
+        );
     };
 
     const { data, setData, post, processing, errors } = useForm({
         plan: initialPlan.key,
         extra_packs: currentPacks,
         supervisor_packs: currentSupervisorPacks,
-        amount: suggest(initialPlan.key, currentPacks, currentSupervisorPacks, 1),
+        amount: suggest(
+            initialPlan.key,
+            currentPacks,
+            currentSupervisorPacks,
+            1,
+        ),
         method: methods[0]?.key ?? 'orange_money',
         reference: '',
         paid_at: iso(new Date()),
@@ -88,7 +107,8 @@ export function RecordPaymentModal({
     const plan = paid.find((p) => p.key === data.plan) ?? paid[0];
     const monthly = perMonth(plan, data.extra_packs, data.supervisor_packs);
 
-    const packCount = (value: string) => Math.min(50, Math.max(0, Number(value) || 0));
+    const packCount = (value: string) =>
+        Math.min(50, Math.max(0, Number(value) || 0));
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -134,7 +154,7 @@ export function RecordPaymentModal({
                         >
                             {paid.map((p) => (
                                 <option key={p.key} value={p.key}>
-                                    {p.label} · {fcfa.format(p.price)} FCFA /
+                                    {p.label} · {formatNumber(p.price)} FCFA /
                                     mois
                                 </option>
                             ))}
@@ -145,7 +165,7 @@ export function RecordPaymentModal({
                         <Field
                             label={`Packs hôtesses (+${packs.hostesses.hostesses} / +${packs.hostesses.sites})`}
                             htmlFor="p-packs"
-                            hint={`${fcfa.format(packs.hostesses.price)} FCFA / mois chacun`}
+                            hint={`${formatNumber(packs.hostesses.price)} FCFA / mois chacun`}
                             error={errors.extra_packs}
                         >
                             <TextInput
@@ -159,7 +179,12 @@ export function RecordPaymentModal({
                                     setData((d) => ({
                                         ...d,
                                         extra_packs: count,
-                                        amount: suggest(d.plan, count, d.supervisor_packs, months),
+                                        amount: suggest(
+                                            d.plan,
+                                            count,
+                                            d.supervisor_packs,
+                                            months,
+                                        ),
                                     }));
                                 }}
                                 error={errors.extra_packs}
@@ -170,7 +195,7 @@ export function RecordPaymentModal({
                             htmlFor="p-sup-packs"
                             hint={
                                 plan.accepts_supervisor_packs
-                                    ? `${fcfa.format(packs.supervisors.price)} FCFA / mois chacun`
+                                    ? `${formatNumber(packs.supervisors.price)} FCFA / mois chacun`
                                     : 'Superviseurs illimités dans ce forfait'
                             }
                             error={errors.supervisor_packs}
@@ -181,13 +206,22 @@ export function RecordPaymentModal({
                                 min={0}
                                 max={50}
                                 disabled={!plan.accepts_supervisor_packs}
-                                value={plan.accepts_supervisor_packs ? data.supervisor_packs : 0}
+                                value={
+                                    plan.accepts_supervisor_packs
+                                        ? data.supervisor_packs
+                                        : 0
+                                }
                                 onChange={(e) => {
                                     const count = packCount(e.target.value);
                                     setData((d) => ({
                                         ...d,
                                         supervisor_packs: count,
-                                        amount: suggest(d.plan, d.extra_packs, count, months),
+                                        amount: suggest(
+                                            d.plan,
+                                            d.extra_packs,
+                                            count,
+                                            months,
+                                        ),
                                     }));
                                 }}
                                 error={errors.supervisor_packs}
@@ -236,7 +270,7 @@ export function RecordPaymentModal({
                                             ),
                                         }));
                                     }}
-                                    className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-200 dark:bg-white/10"
+                                    className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-200"
                                 >
                                     {label}
                                 </button>
@@ -249,7 +283,7 @@ export function RecordPaymentModal({
                             label="Montant reçu (FCFA)"
                             htmlFor="p-amount"
                             required
-                            hint={`${fcfa.format(monthly)} FCFA / mois`}
+                            hint={`${formatNumber(monthly)} FCFA / mois`}
                             error={errors.amount}
                         >
                             <TextInput
@@ -333,7 +367,7 @@ export function RecordPaymentModal({
                         />
                     </Field>
                 </div>
-                <footer className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-6 py-4 dark:border-sidebar-border dark:bg-white/[0.02]">
+                <footer className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-6 py-4">
                     <ActionButton
                         type="button"
                         variant="secondary"

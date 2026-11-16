@@ -43,7 +43,16 @@ export function SitePicker({
 
     if (!multiple) {
         return (
-            <SelectInput id={id} icon={MapPin} value={value[0] ?? ''} onChange={(e) => onChange(e.target.value ? [Number(e.target.value)] : [])} error={error} required>
+            <SelectInput
+                id={id}
+                icon={MapPin}
+                value={value[0] ?? ''}
+                onChange={(e) =>
+                    onChange(e.target.value ? [Number(e.target.value)] : [])
+                }
+                error={error}
+                required
+            >
                 <option value="">Choisir un site…</option>
                 {sites.map((s) => (
                     <option key={s.value} value={s.value}>
@@ -55,27 +64,56 @@ export function SitePicker({
     }
 
     const selected = new Set(value);
-    const allShown = shown.length > 0 && shown.every((s) => selected.has(s.value));
-    const toggle = (siteId: number) => onChange(selected.has(siteId) ? value.filter((v) => v !== siteId) : [...value, siteId]);
+    const allShown =
+        shown.length > 0 && shown.every((s) => selected.has(s.value));
+    const toggle = (siteId: number) =>
+        onChange(
+            selected.has(siteId)
+                ? value.filter((v) => v !== siteId)
+                : [...value, siteId],
+        );
     const toggleShown = () =>
-        onChange(allShown ? value.filter((v) => !shown.some((s) => s.value === v)) : [...new Set([...value, ...shown.map((s) => s.value)])]);
+        onChange(
+            allShown
+                ? value.filter((v) => !shown.some((s) => s.value === v))
+                : [...new Set([...value, ...shown.map((s) => s.value)])],
+        );
 
     return (
-        <div id={id} className={cn('overflow-hidden rounded-xl border bg-white', error ? 'border-red-300' : 'border-slate-200')}>
+        <div
+            id={id}
+            className={cn(
+                'overflow-hidden rounded-xl border bg-white',
+                error ? 'border-red-300' : 'border-slate-200',
+            )}
+        >
             <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-3.5 py-2.5">
                 <p className="text-sm text-slate-600" aria-live="polite">
-                    {value.length === 0 ? 'Aucun point de vente coché' : `${value.length} point${value.length > 1 ? 's' : ''} de vente coché${value.length > 1 ? 's' : ''}`}
+                    {value.length === 0
+                        ? 'Aucun point de vente coché'
+                        : `${value.length} point${value.length > 1 ? 's' : ''} de vente coché${value.length > 1 ? 's' : ''}`}
                 </p>
                 {shown.length > 0 && (
-                    <button type="button" onClick={toggleShown} className="text-sm font-medium text-motriks-deep hover:underline">
-                        {allShown ? 'Tout décocher' : query ? 'Cocher les résultats' : 'Tout cocher'}
+                    <button
+                        type="button"
+                        onClick={toggleShown}
+                        className="text-sm font-medium text-motriks-deep hover:underline"
+                    >
+                        {allShown
+                            ? 'Tout décocher'
+                            : query
+                              ? 'Cocher les résultats'
+                              : 'Tout cocher'}
                     </button>
                 )}
             </div>
 
             {sites.length > SEARCH_FROM && (
                 <div className="relative border-b border-slate-100">
-                    <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                    <Search
+                        className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400"
+                        aria-hidden="true"
+                    />
                     <input
                         type="search"
                         value={query}
@@ -88,26 +126,62 @@ export function SitePicker({
             )}
 
             {shown.length === 0 ? (
-                <p className="px-4 py-6 text-center text-sm text-slate-400">{sites.length === 0 ? 'Aucun point de vente actif.' : 'Aucun point de vente ne correspond.'}</p>
+                <p className="px-4 py-6 text-center text-sm text-slate-500">
+                    {sites.length === 0
+                        ? 'Aucun point de vente actif.'
+                        : 'Aucun point de vente ne correspond.'}
+                </p>
             ) : (
-                <ul role="group" aria-label="Points de vente supervisés" className="max-h-64 divide-y divide-slate-100 overflow-y-auto">
+                <ul
+                    role="group"
+                    aria-label="Points de vente supervisés"
+                    className="max-h-64 divide-y divide-slate-100 overflow-y-auto"
+                >
                     {shown.map((s) => {
                         const checked = selected.has(s.value);
 
                         return (
                             <li key={s.value}>
-                                <label className={cn('flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition-colors', checked ? 'bg-motriks-soft/40' : 'hover:bg-slate-50')}>
-                                    <input type="checkbox" checked={checked} onChange={() => toggle(s.value)} className="peer sr-only" />
+                                <label
+                                    className={cn(
+                                        'flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition-colors',
+                                        checked
+                                            ? 'bg-motriks-soft/40'
+                                            : 'hover:bg-slate-50',
+                                    )}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => toggle(s.value)}
+                                        className="peer sr-only"
+                                    />
                                     <span
                                         aria-hidden="true"
                                         className={cn(
                                             'flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-motriks/30',
-                                            checked ? 'border-motriks bg-motriks text-white' : 'border-slate-300 bg-white',
+                                            checked
+                                                ? 'border-motriks bg-motriks text-white'
+                                                : 'border-slate-300 bg-white',
                                         )}
                                     >
-                                        {checked && <Check className="size-3.5" strokeWidth={3} />}
+                                        {checked && (
+                                            <Check
+                                                className="size-3.5"
+                                                strokeWidth={3}
+                                            />
+                                        )}
                                     </span>
-                                    <span className={cn('min-w-0 truncate text-sm', checked ? 'font-medium text-ink' : 'text-slate-700')}>{s.label}</span>
+                                    <span
+                                        className={cn(
+                                            'min-w-0 truncate text-sm',
+                                            checked
+                                                ? 'font-medium text-ink'
+                                                : 'text-slate-700',
+                                        )}
+                                    >
+                                        {s.label}
+                                    </span>
                                 </label>
                             </li>
                         );
@@ -119,6 +193,12 @@ export function SitePicker({
 }
 
 /** Erreur de validation des sites, quelle que soit sa clé (site_ids, site_ids.0, site_id). */
-export function siteError(errors: Record<string, string | undefined>): string | undefined {
-    return errors.site_ids ?? errors.site_id ?? Object.entries(errors).find(([k]) => k.startsWith('site_ids.'))?.[1];
+export function siteError(
+    errors: Record<string, string | undefined>,
+): string | undefined {
+    return (
+        errors.site_ids ??
+        errors.site_id ??
+        Object.entries(errors).find(([k]) => k.startsWith('site_ids.'))?.[1]
+    );
 }

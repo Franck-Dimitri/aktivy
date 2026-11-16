@@ -3,7 +3,10 @@
  * installer (Android : beforeinstallprompt ; iPhone : étapes Safari), abonnement WebPush.
  */
 
-type BeforeInstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> };
+type BeforeInstallPromptEvent = Event & {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+};
 
 const SNOOZE_DAYS = 7;
 const INSTALL_KEY = 'motriks:install-snoozed-until';
@@ -37,15 +40,25 @@ export function setupInstallCapture(): void {
  * Le tout premier lancement a déjà ouvert la bonne page (redirection du serveur) : il est ignoré.
  */
 export function setupLaunchQueue(navigate: (url: string) => void): void {
-    type LaunchQueue = { setConsumer: (consumer: (params: { targetURL?: string }) => void) => void };
-    const queue = typeof window === 'undefined' ? undefined : (window as Window & { launchQueue?: LaunchQueue }).launchQueue;
+    type LaunchQueue = {
+        setConsumer: (
+            consumer: (params: { targetURL?: string }) => void,
+        ) => void;
+    };
+    const queue =
+        typeof window === 'undefined'
+            ? undefined
+            : (window as Window & { launchQueue?: LaunchQueue }).launchQueue;
     if (!queue) return;
 
     const loadedAt = Date.now();
     queue.setConsumer(({ targetURL }) => {
         if (!targetURL || Date.now() - loadedAt < 3000) return;
         const url = new URL(targetURL);
-        if (url.origin === window.location.origin && url.searchParams.has('ouvrir')) {
+        if (
+            url.origin === window.location.origin &&
+            url.searchParams.has('ouvrir')
+        ) {
             navigate(`${url.pathname}${url.search}`);
         }
     });
@@ -61,7 +74,10 @@ export function onInstallChange(listener: () => void): () => void {
 /** iPhone, iPod, et iPad (iPadOS se présente comme un Mac tactile). */
 export function isIOS(): boolean {
     const ua = navigator.userAgent;
-    return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    return (
+        /iPhone|iPad|iPod/i.test(ua) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    );
 }
 
 export function isAndroid(): boolean {
@@ -75,12 +91,20 @@ export function isMobileDevice(): boolean {
 
 /** Safari sur iOS (Chrome, Firefox, Edge… sur iPhone ne permettent pas l'ajout à l'écran d'accueil de la même façon). */
 export function isIOSSafari(): boolean {
-    return isIOS() && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA|Instagram|FBAN|FBAV/i.test(navigator.userAgent);
+    return (
+        isIOS() &&
+        !/CriOS|FxiOS|EdgiOS|OPiOS|GSA|Instagram|FBAN|FBAV/i.test(
+            navigator.userAgent,
+        )
+    );
 }
 
 /** Lancée depuis l'écran d'accueil (application installée). */
 export function isStandalone(): boolean {
-    return window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    return (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (navigator as Navigator & { standalone?: boolean }).standalone === true
+    );
 }
 
 export function canPromptInstall(): boolean {
@@ -117,9 +141,11 @@ function read(key: string): string | null {
 }
 
 const snoozed = (key: string) => Number(read(key) ?? 0) > Date.now();
-const snooze = (key: string) => store(key, String(Date.now() + SNOOZE_DAYS * 86_400_000));
+const snooze = (key: string) =>
+    store(key, String(Date.now() + SNOOZE_DAYS * 86_400_000));
 
-export const installSnoozed = () => snoozed(INSTALL_KEY) || read(INSTALLED_KEY) === '1';
+export const installSnoozed = () =>
+    snoozed(INSTALL_KEY) || read(INSTALLED_KEY) === '1';
 export const snoozeInstall = () => snooze(INSTALL_KEY);
 export const pushSnoozed = () => snoozed(PUSH_KEY);
 export const snoozePush = () => snooze(PUSH_KEY);
@@ -127,7 +153,11 @@ export const snoozePush = () => snooze(PUSH_KEY);
 // ── Notifications push ─────────────────────────────────────────────────
 
 export function pushSupported(): boolean {
-    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    return (
+        'serviceWorker' in navigator &&
+        'PushManager' in window &&
+        'Notification' in window
+    );
 }
 
 export type PushState = 'unsupported' | 'denied' | 'enabled' | 'available';
@@ -137,13 +167,15 @@ export async function pushState(): Promise<PushState> {
     if (Notification.permission === 'denied') return 'denied';
     const registration = await navigator.serviceWorker.getRegistration();
     const subscription = await registration?.pushManager.getSubscription();
-    return subscription && Notification.permission === 'granted' ? 'enabled' : 'available';
+    return subscription && Notification.permission === 'granted'
+        ? 'enabled'
+        : 'available';
 }
 
 function urlBase64ToUint8Array(base64: string): Uint8Array {
     const padding = '='.repeat((4 - (base64.length % 4)) % 4);
     const raw = atob((base64 + padding).replace(/-/g, '+').replace(/_/g, '/'));
-    return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+    return Uint8Array.from({ length: raw.length }, (_, i) => raw.charCodeAt(i));
 }
 
 function xsrf(): string {
@@ -155,7 +187,12 @@ async function send(method: 'POST' | 'DELETE', body: unknown): Promise<void> {
     const res = await fetch('/push/abonnement', {
         method,
         credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': xsrf(), 'X-Requested-With': 'XMLHttpRequest' },
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-XSRF-TOKEN': xsrf(),
+            'X-Requested-With': 'XMLHttpRequest',
+        },
         body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(String(res.status));
@@ -182,32 +219,61 @@ function rememberDevice(endpoint: string | null): void {
 function sameKey(current: ArrayBuffer | null, wanted: Uint8Array): boolean {
     if (!current) return false;
     const bytes = new Uint8Array(current);
-    return bytes.length === wanted.length && bytes.every((b, i) => b === wanted[i]);
+    return (
+        bytes.length === wanted.length && bytes.every((b, i) => b === wanted[i])
+    );
 }
 
 /** Envoie l'abonnement de cet appareil au serveur, pour le compte connecté. */
-async function register(subscription: PushSubscription, userId: number | null): Promise<void> {
+async function register(
+    subscription: PushSubscription,
+    userId: number | null,
+): Promise<void> {
     const json = subscription.toJSON();
-    await send('POST', { endpoint: json.endpoint, keys: json.keys, contentEncoding: (PushManager as unknown as { supportedContentEncodings?: string[] }).supportedContentEncodings?.[0] ?? 'aes128gcm' });
+    await send('POST', {
+        endpoint: json.endpoint,
+        keys: json.keys,
+        contentEncoding:
+            (PushManager as unknown as { supportedContentEncodings?: string[] })
+                .supportedContentEncodings?.[0] ?? 'aes128gcm',
+    });
     rememberDevice(subscription.endpoint);
-    store(SYNC_KEY, JSON.stringify({ user: userId, endpoint: subscription.endpoint, at: Date.now() }));
+    store(
+        SYNC_KEY,
+        JSON.stringify({
+            user: userId,
+            endpoint: subscription.endpoint,
+            at: Date.now(),
+        }),
+    );
 }
 
 /**
  * Active les notifications sur cet appareil. Doit être appelé depuis un clic (exigence d'iOS).
  * Renvoie l'état obtenu : « denied » si l'utilisateur refuse dans la fenêtre du système.
  */
-export async function enablePush(publicKey: string, userId: number | null = null): Promise<PushState> {
+export async function enablePush(
+    publicKey: string,
+    userId: number | null = null,
+): Promise<PushState> {
     if (!pushSupported()) return 'unsupported';
 
     const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return permission === 'denied' ? 'denied' : 'available';
+    if (permission !== 'granted')
+        return permission === 'denied' ? 'denied' : 'available';
 
-    const registration = (await navigator.serviceWorker.getRegistration()) ?? (await navigator.serviceWorker.register('/sw.js'));
+    const registration =
+        (await navigator.serviceWorker.getRegistration()) ??
+        (await navigator.serviceWorker.register('/sw.js'));
     await navigator.serviceWorker.ready;
     const subscription =
         (await registration.pushManager.getSubscription()) ??
-        (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource }));
+        (await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(
+                publicKey,
+            ) as BufferSource,
+        }));
 
     try {
         window.localStorage.removeItem(OFF_KEY);
@@ -225,7 +291,9 @@ export async function disablePush(): Promise<void> {
     const registration = await navigator.serviceWorker.getRegistration();
     const subscription = await registration?.pushManager.getSubscription();
     if (subscription) {
-        await send('DELETE', { endpoint: subscription.endpoint }).catch(() => {});
+        await send('DELETE', { endpoint: subscription.endpoint }).catch(
+            () => {},
+        );
         await subscription.unsubscribe();
     }
 }
@@ -238,19 +306,34 @@ export async function disablePush(): Promise<void> {
  * - les clés du serveur ont changé : réabonnement avec les nouvelles.
  * Sinon, un simple renvoi toutes les 12 heures. Rien si la personne a coupé les notifications.
  */
-async function syncPush(publicKey: string, userId: number, force: boolean): Promise<void> {
-    if (!pushSupported() || Notification.permission !== 'granted' || read(OFF_KEY) === '1') return;
+async function syncPush(
+    publicKey: string,
+    userId: number,
+    force: boolean,
+): Promise<void> {
+    if (
+        !pushSupported() ||
+        Notification.permission !== 'granted' ||
+        read(OFF_KEY) === '1'
+    )
+        return;
 
     const registration = await navigator.serviceWorker.getRegistration();
     if (!registration) return;
 
     const key = urlBase64ToUint8Array(publicKey);
     let subscription = await registration.pushManager.getSubscription();
-    if (subscription && !sameKey(subscription.options.applicationServerKey, key)) {
+    if (
+        subscription &&
+        !sameKey(subscription.options.applicationServerKey, key)
+    ) {
         await subscription.unsubscribe();
         subscription = null;
     }
-    subscription ??= await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key as BufferSource });
+    subscription ??= await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: key as BufferSource,
+    });
 
     let last: { user?: number; endpoint?: string; at?: number } = {};
     try {
@@ -258,7 +341,10 @@ async function syncPush(publicKey: string, userId: number, force: boolean): Prom
     } catch {
         // valeur abîmée : on renvoie
     }
-    const fresh = last.user === userId && last.endpoint === subscription.endpoint && Date.now() - (last.at ?? 0) < SYNC_EVERY_MS;
+    const fresh =
+        last.user === userId &&
+        last.endpoint === subscription.endpoint &&
+        Date.now() - (last.at ?? 0) < SYNC_EVERY_MS;
     if (fresh && !force) return;
 
     await register(subscription, userId);
@@ -287,11 +373,17 @@ export function setupPushSync(): (account: PushAccount) => void {
         });
     };
 
-    document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && check());
+    document.addEventListener(
+        'visibilitychange',
+        () => document.visibilityState === 'visible' && check(),
+    );
     window.addEventListener('online', () => check());
-    navigator.serviceWorker.addEventListener('message', (event: MessageEvent<{ type?: string }>) => {
-        if (event.data?.type === 'push-resubscribed') check(true);
-    });
+    navigator.serviceWorker.addEventListener(
+        'message',
+        (event: MessageEvent<{ type?: string }>) => {
+            if (event.data?.type === 'push-resubscribed') check(true);
+        },
+    );
 
     return (next) => {
         // Déconnecté : le serveur vient de retirer cet appareil (ForgetPushDevice), à renvoyer à la prochaine connexion
@@ -303,7 +395,8 @@ export function setupPushSync(): (account: PushAccount) => void {
             }
         }
         // Changement de compte sans rechargement : tout de suite, sans attendre la minute
-        const switched = account.userId !== null && next.userId !== account.userId;
+        const switched =
+            account.userId !== null && next.userId !== account.userId;
         account = next;
         check(switched);
     };

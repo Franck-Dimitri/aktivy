@@ -2,12 +2,22 @@ import { Head, useForm } from '@inertiajs/react';
 import { FileText, Package, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
-import { Field, FormActions, SelectInput, TextArea, TextInput, ToggleField } from '@/components/page/form-fields';
+import {
+    Field,
+    FormActions,
+    SelectInput,
+    TextArea,
+    TextInput,
+    ToggleField,
+} from '@/components/page/form-fields';
 import { ImagePicker } from '@/components/page/image-picker';
 import { Page, Panel } from '@/components/page/page';
 import { toastFormError } from '@/lib/form-toast';
 import { dashboard } from '@/routes';
-import { index as productsIndex, update as productUpdate } from '@/routes/products';
+import {
+    index as productsIndex,
+    update as productUpdate,
+} from '@/routes/products';
 
 type ProductData = {
     id: number;
@@ -41,7 +51,10 @@ export default function ProductEdit({ product, units }: Props) {
         post(productUpdate({ product: product.uuid }).url, {
             forceFormData: true,
             preserveScroll: true,
-            onSuccess: () => toast.success('Produit mis à jour', { description: `Les modifications de « ${data.name} » sont enregistrées.` }),
+            onSuccess: () =>
+                toast.success('Produit mis à jour', {
+                    description: `Les modifications de « ${data.name} » sont enregistrées.`,
+                }),
             onError: toastFormError,
         });
     };
@@ -56,24 +69,41 @@ export default function ProductEdit({ product, units }: Props) {
                         <div className="flex flex-col gap-6 lg:col-span-2">
                             <Panel title="Informations">
                                 <div className="grid gap-5 p-6">
-                                    <Field label="Nom" htmlFor="name" required error={errors.name}>
+                                    <Field
+                                        label="Nom"
+                                        htmlFor="name"
+                                        required
+                                        error={errors.name}
+                                    >
                                         <TextInput
                                             id="name"
                                             icon={Package}
                                             value={data.name}
-                                            onChange={(e) => setData('name', e.target.value)}
+                                            onChange={(e) =>
+                                                setData('name', e.target.value)
+                                            }
                                             error={errors.name}
                                             required
                                         />
                                     </Field>
 
-                                    <Field label="Description" htmlFor="description" hint="(optionnel)" error={errors.description}>
+                                    <Field
+                                        label="Description"
+                                        htmlFor="description"
+                                        hint="(optionnel)"
+                                        error={errors.description}
+                                    >
                                         <TextArea
                                             id="description"
                                             icon={FileText}
                                             rows={4}
                                             value={data.description}
-                                            onChange={(e) => setData('description', e.target.value)}
+                                            onChange={(e) =>
+                                                setData(
+                                                    'description',
+                                                    e.target.value,
+                                                )
+                                            }
                                             error={errors.description}
                                         />
                                     </Field>
@@ -82,33 +112,67 @@ export default function ProductEdit({ product, units }: Props) {
 
                             <Panel title="Prix et référence">
                                 <div className="grid gap-5 p-6 sm:grid-cols-2">
-                                    <Field label="Prix de vente" htmlFor="price" hint="(optionnel)" error={errors.price}>
+                                    <Field
+                                        label="Prix de vente"
+                                        htmlFor="price"
+                                        hint="(optionnel)"
+                                        error={errors.price}
+                                    >
                                         <TextInput
                                             id="price"
                                             type="number"
                                             min="0"
                                             step="1"
                                             value={data.price}
-                                            onChange={(e) => setData('price', e.target.value)}
+                                            onChange={(e) =>
+                                                setData('price', e.target.value)
+                                            }
                                             error={errors.price}
-                                            trailing={<span className="text-xs font-semibold text-slate-400">FCFA</span>}
+                                            trailing={
+                                                <span className="text-xs font-semibold text-slate-500">
+                                                    FCFA
+                                                </span>
+                                            }
                                         />
                                     </Field>
 
-                                    <Field label="Unité" htmlFor="unit" required error={errors.unit}>
-                                        <SelectInput id="unit" value={data.unit} onChange={(e) => setData('unit', e.target.value)} error={errors.unit} required>
+                                    <Field
+                                        label="Unité"
+                                        htmlFor="unit"
+                                        required
+                                        error={errors.unit}
+                                    >
+                                        <SelectInput
+                                            id="unit"
+                                            value={data.unit}
+                                            onChange={(e) =>
+                                                setData('unit', e.target.value)
+                                            }
+                                            error={errors.unit}
+                                            required
+                                        >
                                             {units.map((u) => (
-                                                <option key={u} value={u}>{u}</option>
+                                                <option key={u} value={u}>
+                                                    {u}
+                                                </option>
                                             ))}
                                         </SelectInput>
                                     </Field>
 
-                                    <Field label="Code SKU" htmlFor="sku" hint="(optionnel)" error={errors.sku} className="sm:col-span-2">
+                                    <Field
+                                        label="Code SKU"
+                                        htmlFor="sku"
+                                        hint="(optionnel)"
+                                        error={errors.sku}
+                                        className="sm:col-span-2"
+                                    >
                                         <TextInput
                                             id="sku"
                                             icon={Tag}
                                             value={data.sku}
-                                            onChange={(e) => setData('sku', e.target.value)}
+                                            onChange={(e) =>
+                                                setData('sku', e.target.value)
+                                            }
                                             error={errors.sku}
                                             className="font-mono"
                                         />
@@ -125,9 +189,19 @@ export default function ProductEdit({ product, units }: Props) {
                                         file={data.image}
                                         currentUrl={product.image_url}
                                         removed={data.remove_image}
-                                        onChange={(f) => setData((prev) => ({ ...prev, image: f, remove_image: false }))}
-                                        onRemoveCurrent={() => setData('remove_image', true)}
-                                        onRestore={() => setData('remove_image', false)}
+                                        onChange={(f) =>
+                                            setData((prev) => ({
+                                                ...prev,
+                                                image: f,
+                                                remove_image: false,
+                                            }))
+                                        }
+                                        onRemoveCurrent={() =>
+                                            setData('remove_image', true)
+                                        }
+                                        onRestore={() =>
+                                            setData('remove_image', false)
+                                        }
                                         error={errors.image}
                                     />
                                 </div>
@@ -137,7 +211,9 @@ export default function ProductEdit({ product, units }: Props) {
                                 <div className="p-6">
                                     <ToggleField
                                         checked={data.is_active}
-                                        onChange={(v) => setData('is_active', v)}
+                                        onChange={(v) =>
+                                            setData('is_active', v)
+                                        }
                                         label="Produit actif"
                                         description="Un produit inactif ne peut pas être ajouté à un site."
                                     />
@@ -147,7 +223,12 @@ export default function ProductEdit({ product, units }: Props) {
                     </div>
 
                     <FormActions>
-                        <ActionLink href={productsIndex().url} variant="secondary">Annuler</ActionLink>
+                        <ActionLink
+                            href={productsIndex().url}
+                            variant="secondary"
+                        >
+                            Annuler
+                        </ActionLink>
                         <ActionButton type="submit" loading={processing}>
                             {processing ? 'Enregistrement…' : 'Enregistrer'}
                         </ActionButton>

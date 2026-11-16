@@ -51,8 +51,20 @@ export default function ManageTwoFactor(props: Props) {
             title="Double authentification"
             description="Un code à 6 chiffres, généré par une application sur votre téléphone, vous est demandé à la connexion."
             badge={
-                <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1', twoFactorEnabled ? 'bg-motriks-soft text-motriks-deep ring-green-200/70' : 'bg-slate-50 text-slate-500 ring-slate-200/80 dark:bg-white/5')}>
-                    <span className={cn('size-1.5 rounded-full', twoFactorEnabled ? 'bg-motriks' : 'bg-slate-300')} />
+                <span
+                    className={cn(
+                        'inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1',
+                        twoFactorEnabled
+                            ? 'bg-motriks-soft text-motriks-deep ring-green-200/70'
+                            : 'bg-slate-50 text-slate-500 ring-slate-200/80',
+                    )}
+                >
+                    <span
+                        className={cn(
+                            'size-1.5 rounded-full',
+                            twoFactorEnabled ? 'bg-motriks' : 'bg-slate-300',
+                        )}
+                    />
                     {twoFactorEnabled ? 'Activée' : 'Désactivée'}
                 </span>
             }
@@ -61,29 +73,56 @@ export default function ManageTwoFactor(props: Props) {
                 {twoFactorEnabled ? (
                     <>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-sm leading-relaxed text-slate-500">Votre compte est protégé, même si votre mot de passe venait à être connu.</p>
+                            <p className="text-sm leading-relaxed text-slate-500">
+                                Votre compte est protégé, même si votre mot de
+                                passe venait à être connu.
+                            </p>
                             <Form {...disable.form()}>
                                 {({ processing }) => (
-                                    <ActionButton type="submit" variant="secondary" loading={processing} className="w-full border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 sm:w-auto">
+                                    <ActionButton
+                                        type="submit"
+                                        variant="secondary"
+                                        loading={processing}
+                                        className="w-full border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50 sm:w-auto"
+                                    >
                                         Désactiver
                                     </ActionButton>
                                 )}
                             </Form>
                         </div>
 
-                        <TwoFactorRecoveryCodes recoveryCodesList={recoveryCodesList} fetchRecoveryCodes={fetchRecoveryCodes} errors={errors} />
+                        <TwoFactorRecoveryCodes
+                            recoveryCodesList={recoveryCodesList}
+                            fetchRecoveryCodes={fetchRecoveryCodes}
+                            errors={errors}
+                        />
                     </>
                 ) : (
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-sm leading-relaxed text-slate-500">Utilisez Google Authenticator, Microsoft Authenticator ou une application équivalente.</p>
+                        <p className="text-sm leading-relaxed text-slate-500">
+                            Utilisez Google Authenticator, Microsoft
+                            Authenticator ou une application équivalente.
+                        </p>
                         {hasSetupData ? (
-                            <ActionButton icon={<ShieldCheck />} onClick={() => setShowSetupModal(true)} className="w-full sm:w-auto">
+                            <ActionButton
+                                icon={<ShieldCheck />}
+                                onClick={() => setShowSetupModal(true)}
+                                className="w-full sm:w-auto"
+                            >
                                 Reprendre l’activation
                             </ActionButton>
                         ) : (
-                            <Form {...enable.form()} onSuccess={() => setShowSetupModal(true)}>
+                            <Form
+                                {...enable.form()}
+                                onSuccess={() => setShowSetupModal(true)}
+                            >
                                 {({ processing }) => (
-                                    <ActionButton type="submit" icon={<ShieldCheck />} loading={processing} className="w-full sm:w-auto">
+                                    <ActionButton
+                                        type="submit"
+                                        icon={<ShieldCheck />}
+                                        loading={processing}
+                                        className="w-full sm:w-auto"
+                                    >
                                         Activer
                                     </ActionButton>
                                 )}

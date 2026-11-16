@@ -1,29 +1,22 @@
-const frenchNumber = new Intl.NumberFormat('fr-FR');
+import { compactAmount, parseISODate } from '@/lib/format';
 
-/**
- * Nombres au format français. L'espace fine insécable (U+202F) d'Intl n'est pas dessinée par
- * toutes les graisses de la police : « 42500 » au lieu de « 42 500 ». On utilise l'espace insécable.
- */
-export const number = {
-    format: (value: number | bigint) => frenchNumber.format(value).replace(/\u202f/g, '\u00a0'),
-};
-
-/** Franc CFA (BEAC « XAF » ou BCEAO « XOF ») : affiché « FCFA », comme sur le terrain. */
-export const currencyLabel = (currency: string) => (currency === 'XAF' || currency === 'XOF' ? 'FCFA' : currency);
-
-/** « 125 000 FCFA » : espace insécable, le montant ne se coupe jamais de sa devise. */
-export const money = (n: number | string, currency: string) => `${number.format(Math.round(Number(n)))} ${currencyLabel(currency)}`;
+// Nombres et montants : formatage commun à toute l'application (lib/format.ts)
+export { currencyLabel, money, number } from '@/lib/format';
 
 /** Montant court pour les axes : 1,2 M, 350 k. */
-export const compactMoney = (n: number) =>
-    new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
+export const compactMoney = compactAmount;
 
-const date = (iso: string) => new Date(`${iso.slice(0, 10)}T00:00:00`);
-
-export const day = (iso: string) => date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+export const day = (iso: string) =>
+    parseISODate(iso).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+    });
 
 export const monthName = (iso: string, style: 'long' | 'short' = 'long') => {
-    const label = date(iso).toLocaleDateString('fr-FR', { month: style, year: style === 'long' ? 'numeric' : '2-digit' });
+    const label = parseISODate(iso).toLocaleDateString('fr-FR', {
+        month: style,
+        year: style === 'long' ? 'numeric' : '2-digit',
+    });
 
     return label.charAt(0).toUpperCase() + label.slice(1);
 };

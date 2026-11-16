@@ -33,7 +33,7 @@ export function LegalDocumentsList({
     compact?: boolean;
 }) {
     return (
-        <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
+        <ul className="divide-y divide-slate-100">
             {documents.map((doc) => (
                 <DocumentRow
                     key={doc.type}

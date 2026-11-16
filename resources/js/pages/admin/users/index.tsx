@@ -251,8 +251,8 @@ export default function AdminUsers({
                     ]}
                 />
 
-                <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] dark:border-sidebar-border dark:bg-card">
-                    <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))] dark:border-sidebar-border">
+                <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03]">
+                    <div className="grid gap-3 border-b border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))]">
                         <TextInput
                             icon={Search}
                             value={form.q}
@@ -337,7 +337,7 @@ export default function AdminUsers({
                         <div role="table" aria-label="Utilisateurs">
                             <div
                                 role="row"
-                                className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1fr)_auto] gap-4 border-b border-slate-100 bg-slate-50/60 px-5 py-2.5 text-[11px] font-semibold tracking-wider text-slate-400 uppercase lg:grid dark:border-sidebar-border dark:bg-white/[0.02]"
+                                className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1fr)_auto] gap-4 border-b border-slate-100 bg-slate-50/60 px-5 py-2.5 text-[11px] font-semibold tracking-wider text-slate-500 uppercase lg:grid"
                             >
                                 <span role="columnheader">Utilisateur</span>
                                 <span role="columnheader">Entreprise</span>
@@ -351,7 +351,7 @@ export default function AdminUsers({
                                 </span>
                             </div>
 
-                            <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
+                            <ul className="divide-y divide-slate-100">
                                 {users.data.map((u) => (
                                     <UserRow
                                         key={u.id}
@@ -368,7 +368,7 @@ export default function AdminUsers({
 
                     <Pagination
                         page={users}
-                        className="border-t border-slate-100 dark:border-sidebar-border"
+                        className="border-t border-slate-100"
                     />
                 </section>
             </Page>
@@ -415,7 +415,7 @@ function UserRow({
         <li
             role="row"
             className={cn(
-                'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-3.5 transition-colors hover:bg-slate-50/60 sm:px-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1fr)_auto] dark:hover:bg-white/[0.02]',
+                'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-3.5 transition-colors hover:bg-slate-50/60 sm:px-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,1fr)_auto]',
                 deleted && 'opacity-70',
             )}
         >
@@ -424,7 +424,7 @@ function UserRow({
                     className={cn(
                         'flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold',
                         deleted || u.status === 'suspended'
-                            ? 'bg-slate-100 text-slate-400'
+                            ? 'bg-slate-100 text-slate-500'
                             : 'bg-motriks-soft text-motriks-deep',
                     )}
                     aria-hidden
@@ -438,7 +438,7 @@ function UserRow({
                     <p className="truncate text-xs text-slate-500">
                         {[u.email, u.phone].filter(Boolean).join(' · ') || '—'}
                     </p>
-                    <p className="mt-0.5 truncate text-[11px] text-slate-400 lg:hidden">
+                    <p className="mt-0.5 truncate text-[11px] text-slate-500 lg:hidden">
                         {ROLE_SHORT[u.role] ?? u.role_label}
                         {u.company && ` · ${u.company.name}`}
                     </p>
@@ -449,20 +449,17 @@ function UserRow({
                 {u.company ? (
                     <Link
                         href={companyShow(u.company.uuid).url}
-                        className="inline-flex max-w-full items-center gap-1.5 text-slate-700 hover:text-motriks-deep hover:underline dark:text-slate-200"
+                        className="inline-flex max-w-full items-center gap-1.5 text-slate-700 hover:text-motriks-deep hover:underline"
                     >
                         <Building2 className="size-3.5 shrink-0 text-slate-400" />
                         <span className="truncate">{u.company.name}</span>
                     </Link>
                 ) : (
-                    <span className="text-slate-400">—</span>
+                    <span className="text-slate-500">—</span>
                 )}
             </div>
 
-            <div
-                role="cell"
-                className="hidden text-sm text-slate-700 lg:block dark:text-slate-200"
-            >
+            <div role="cell" className="hidden text-sm text-slate-700 lg:block">
                 {ROLE_SHORT[u.role] ?? u.role_label}
             </div>
 
@@ -471,7 +468,7 @@ function UserRow({
                 className="flex flex-col items-end gap-1 lg:items-start"
             >
                 <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-slate-500">
                     {deleted
                         ? `le ${u.deleted_at}`
                         : u.invited
@@ -703,7 +700,7 @@ function EditUserModal({
                         </p>
                     )}
                 </div>
-                <footer className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-6 py-4 dark:border-sidebar-border dark:bg-white/[0.02]">
+                <footer className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/60 px-6 py-4">
                     <ActionButton
                         type="button"
                         variant="secondary"

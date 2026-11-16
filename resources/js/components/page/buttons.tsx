@@ -3,7 +3,12 @@ import { Loader2 } from 'lucide-react';
 import { useState, type ComponentProps, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'icon-danger';
+export type ButtonVariant =
+    | 'primary'
+    | 'secondary'
+    | 'danger'
+    | 'ghost'
+    | 'icon-danger';
 export type ButtonSize = 'sm' | 'md' | 'icon';
 
 const base =
@@ -17,17 +22,22 @@ const variants: Record<ButtonVariant, string> = {
     danger: 'bg-red-600 text-white shadow-sm shadow-red-600/25 hover:bg-red-700',
     ghost: 'text-slate-600 hover:bg-slate-100',
     'icon-danger':
-        'border border-slate-200 bg-white text-slate-400 hover:border-red-200 hover:bg-red-50 hover:text-red-600',
+        'border border-slate-200 bg-white text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600',
 };
 
 const sizes: Record<ButtonSize, string> = {
-    sm: 'h-8 rounded-lg px-3 text-xs [&_svg]:size-3.5',
+    // Téléphone : 44 px de haut au moins (cible tactile), taille compacte à partir de sm
+    sm: 'h-11 rounded-lg px-3 text-xs sm:h-8 [&_svg]:size-3.5',
     md: 'h-10 rounded-xl px-4 text-sm [&_svg]:size-4',
-    icon: 'size-9 rounded-lg sm:size-8 [&_svg]:size-3.5',
+    icon: 'size-11 rounded-lg sm:size-8 [&_svg]:size-3.5',
 };
 
 /** Classes d'un bouton, utilisables sur n'importe quel élément. */
-export function buttonClass(variant: ButtonVariant = 'primary', size: ButtonSize = 'md', className?: string) {
+export function buttonClass(
+    variant: ButtonVariant = 'primary',
+    size: ButtonSize = 'md',
+    className?: string,
+) {
     return cn(base, variants[variant], sizes[size], className);
 }
 
@@ -100,7 +110,11 @@ export function ActionLink({
                 setLoading(false);
                 onFinish?.(visit);
             }}
-            className={buttonClass(variant, size, cn(loading && 'pointer-events-none opacity-70', className))}
+            className={buttonClass(
+                variant,
+                size,
+                cn(loading && 'pointer-events-none opacity-70', className),
+            )}
         >
             {loading ? <Spinner /> : icon}
             {children}

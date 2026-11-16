@@ -16,7 +16,15 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 import { CreateCompanyModal } from '@/components/admin/create-company-modal';
 import { buttonClass } from '@/components/page/buttons';
 import { CompanyAvatar } from '@/components/page/list-kit';
@@ -24,11 +32,14 @@ import { Page, Panel } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes/admin';
-import { index as companiesIndex, show as companyShow } from '@/routes/admin/companies';
+import {
+    index as companiesIndex,
+    show as companyShow,
+} from '@/routes/admin/companies';
 import { index as onboardingIndex } from '@/routes/admin/onboarding';
 import { index as subscriptionsIndex } from '@/routes/admin/subscriptions';
 import { index as supportIndex } from '@/routes/admin/support';
-import { number } from '@/pages/reports/format';
+import { money, number } from '@/lib/format';
 
 type CompanyLink = { id: number; uuid: string; name: string };
 
@@ -57,7 +68,11 @@ type Props = {
         created_at: string | null;
     })[];
     inactive_days: number;
-    trials_ending: (CompanyLink & { plan: string; ends_on: string; days_left: number })[];
+    trials_ending: (CompanyLink & {
+        plan: string;
+        ends_on: string;
+        days_left: number;
+    })[];
     unverified_managers: {
         id: number;
         name: string;
@@ -91,38 +106,65 @@ const STATUS: Record<string, { label: string; tone: StatusTone }> = {
 /** Vert Motriks : contraste et lisibilité validés sur fond blanc (une seule série). */
 const BAR = '#039855';
 
-const fcfa = (n: number) => `${number.format(Math.round(n))} FCFA`;
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n > 1 ? many : one}`;
+const plural = (n: number, one: string, many = `${one}s`) =>
+    `${n} ${n > 1 ? many : one}`;
 const toDate = (iso: string) => new Date(`${iso}T00:00:00`);
-const shortDay = (iso: string) => toDate(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-const longDay = (iso: string) => toDate(iso).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+const shortDay = (iso: string) =>
+    toDate(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+const longDay = (iso: string) =>
+    toDate(iso).toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+    });
 
 // ── Activité des 30 derniers jours ─────────────────────────────────────────
 
-function DayTooltip({ active, payload }: { active?: boolean; payload?: { payload: DayPoint }[] }) {
+function DayTooltip({
+    active,
+    payload,
+}: {
+    active?: boolean;
+    payload?: { payload: DayPoint }[];
+}) {
     if (!active || !payload?.length) return null;
 
     const p = payload[0].payload;
 
     return (
         <div className="min-w-44 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs shadow-lg shadow-slate-900/10">
-            <p className="font-medium text-slate-500 first-letter:uppercase">{longDay(p.date)}</p>
+            <p className="font-medium text-slate-500 first-letter:uppercase">
+                {longDay(p.date)}
+            </p>
             <div className="mt-1.5 flex items-center justify-between gap-4">
                 <span className="flex items-center gap-2 text-slate-500">
-                    <span className="size-2 rounded-[2px]" style={{ backgroundColor: BAR }} />
+                    <span
+                        className="size-2 rounded-[2px]"
+                        style={{ backgroundColor: BAR }}
+                    />
                     Rapports
                 </span>
-                <span className="font-semibold text-ink tabular-nums">{number.format(p.reports)}</span>
+                <span className="font-semibold text-ink tabular-nums">
+                    {number.format(p.reports)}
+                </span>
             </div>
             <div className="mt-1 flex items-center justify-between gap-4">
                 <span className="pl-4 text-slate-500">CA déclaré</span>
-                <span className="text-slate-700 tabular-nums">{fcfa(p.revenue)}</span>
+                <span className="text-slate-700 tabular-nums">
+                    {money(p.revenue)}
+                </span>
             </div>
         </div>
     );
 }
 
-function ActivityCard({ series, usage }: { series: DayPoint[]; usage: Props['usage'] }) {
+function ActivityCard({
+    series,
+    usage,
+}: {
+    series: DayPoint[];
+    usage: Props['usage'];
+}) {
     const total = series.reduce((s, p) => s + p.reports, 0);
     const revenue = series.reduce((s, p) => s + p.revenue, 0);
     const empty = total === 0;
@@ -131,24 +173,36 @@ function ActivityCard({ series, usage }: { series: DayPoint[]; usage: Props['usa
         <Panel className="lg:col-span-2">
             <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 px-5 pt-5">
                 <div>
-                    <h2 className="text-[15px] font-semibold text-ink">Activité terrain</h2>
-                    <p className="mt-0.5 text-sm text-slate-500">Rapports soumis par jour, sur les 30 derniers jours.</p>
+                    <h2 className="text-[15px] font-semibold text-ink">
+                        Activité terrain
+                    </h2>
+                    <p className="mt-0.5 text-sm text-slate-500">
+                        Rapports soumis par jour, sur les 30 derniers jours.
+                    </p>
                 </div>
                 <dl className="flex gap-6">
                     <div>
                         <dt className="text-xs text-slate-500">Rapports</dt>
-                        <dd className="text-xl font-semibold tracking-tight text-ink tabular-nums">{number.format(total)}</dd>
+                        <dd className="text-xl font-semibold tracking-tight text-ink tabular-nums">
+                            {number.format(total)}
+                        </dd>
                     </div>
                     <div>
                         <dt className="text-xs text-slate-500">CA déclaré</dt>
-                        <dd className="text-xl font-semibold tracking-tight text-ink tabular-nums">{fcfa(revenue)}</dd>
+                        <dd className="text-xl font-semibold tracking-tight text-ink tabular-nums">
+                            {money(revenue)}
+                        </dd>
                     </div>
                 </dl>
             </div>
 
             <div className="relative h-56 w-full px-2 pt-4 pb-1 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={series} margin={{ top: 4, right: 12, bottom: 0, left: 0 }} barCategoryGap="22%">
+                    <BarChart
+                        data={series}
+                        margin={{ top: 4, right: 12, bottom: 0, left: 0 }}
+                        barCategoryGap="22%"
+                    >
                         <CartesianGrid vertical={false} stroke="#f1f5f9" />
                         <XAxis
                             dataKey="date"
@@ -159,29 +213,62 @@ function ActivityCard({ series, usage }: { series: DayPoint[]; usage: Props['usa
                             interval="preserveStartEnd"
                             minTickGap={28}
                         />
-                        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} tickLine={false} axisLine={false} width={32} />
-                        {!empty && <Tooltip content={<DayTooltip />} cursor={{ fill: '#f1f5f9' }} />}
-                        <Bar dataKey="reports" fill={BAR} radius={[4, 4, 0, 0]} maxBarSize={18} isAnimationActive={false} />
+                        <YAxis
+                            allowDecimals={false}
+                            tick={{ fontSize: 11, fill: '#64748b' }}
+                            tickLine={false}
+                            axisLine={false}
+                            width={32}
+                        />
+                        {!empty && (
+                            <Tooltip
+                                content={<DayTooltip />}
+                                cursor={{ fill: '#f1f5f9' }}
+                            />
+                        )}
+                        <Bar
+                            dataKey="reports"
+                            fill={BAR}
+                            radius={[4, 4, 0, 0]}
+                            maxBarSize={18}
+                            isAnimationActive={false}
+                        />
                     </BarChart>
                 </ResponsiveContainer>
                 {empty && (
-                    <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-slate-400">
+                    <p className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-slate-500">
                         Aucun rapport soumis sur les 30 derniers jours.
                     </p>
                 )}
             </div>
 
             {/* Le mois en cours, entreprises actives */}
-            <dl className="grid grid-cols-2 gap-px border-t border-slate-100 bg-slate-100 sm:grid-cols-4 dark:border-sidebar-border dark:bg-sidebar-border">
+            <dl className="grid grid-cols-2 gap-px border-t border-slate-100 bg-slate-100 sm:grid-cols-4">
                 {[
-                    { label: 'CA déclaré ce mois-ci', value: fcfa(usage.revenue_month) },
-                    { label: 'Rapports ce mois-ci', value: number.format(usage.reports_month) },
-                    { label: 'Points de vente', value: number.format(usage.sites) },
-                    { label: 'Utilisateurs', value: number.format(usage.users) },
+                    {
+                        label: 'CA déclaré ce mois-ci',
+                        value: money(usage.revenue_month),
+                    },
+                    {
+                        label: 'Rapports ce mois-ci',
+                        value: number.format(usage.reports_month),
+                    },
+                    {
+                        label: 'Points de vente',
+                        value: number.format(usage.sites),
+                    },
+                    {
+                        label: 'Utilisateurs',
+                        value: number.format(usage.users),
+                    },
                 ].map((item) => (
-                    <div key={item.label} className="bg-white px-5 py-3.5 dark:bg-card">
-                        <dt className="truncate text-xs text-slate-500 first-letter:uppercase">{item.label}</dt>
-                        <dd className="mt-0.5 text-sm font-semibold text-ink tabular-nums">{item.value}</dd>
+                    <div key={item.label} className="bg-white px-5 py-3.5">
+                        <dt className="truncate text-xs text-slate-500 first-letter:uppercase">
+                            {item.label}
+                        </dt>
+                        <dd className="mt-0.5 text-sm font-semibold text-ink tabular-nums">
+                            {item.value}
+                        </dd>
                     </div>
                 ))}
             </dl>
@@ -191,17 +278,26 @@ function ActivityCard({ series, usage }: { series: DayPoint[]; usage: Props['usa
 
 // ── À traiter ───────────────────────────────────────────────────────────────
 
-type Todo = { label: string; detail: string; count: number; icon: LucideIcon; href: string; external?: boolean };
+type Todo = {
+    label: string;
+    detail: string;
+    count: number;
+    icon: LucideIcon;
+    href: string;
+    external?: boolean;
+};
 
 function TodoCard({ items }: { items: Todo[] }) {
     const pending = items.reduce((s, i) => s + i.count, 0);
 
     return (
         <Panel>
-            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 dark:border-sidebar-border">
-                <h2 className="text-[15px] font-semibold text-ink">À traiter</h2>
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                <h2 className="text-[15px] font-semibold text-ink">
+                    À traiter
+                </h2>
                 {pending > 0 ? (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-600/15 tabular-nums">
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 tabular-nums ring-1 ring-amber-600/15">
                         {pending}
                     </span>
                 ) : (
@@ -211,7 +307,7 @@ function TodoCard({ items }: { items: Todo[] }) {
                     </span>
                 )}
             </div>
-            <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
+            <ul className="divide-y divide-slate-100">
                 {items.map((item) => {
                     const done = item.count === 0;
                     const content = (
@@ -219,19 +315,32 @@ function TodoCard({ items }: { items: Todo[] }) {
                             <span
                                 className={cn(
                                     'flex size-9 shrink-0 items-center justify-center rounded-lg',
-                                    done ? 'bg-slate-50 text-slate-400' : 'bg-amber-50 text-amber-600',
+                                    done
+                                        ? 'bg-slate-50 text-slate-500'
+                                        : 'bg-amber-50 text-amber-600',
                                 )}
                             >
                                 <item.icon className="size-[18px]" />
                             </span>
                             <span className="min-w-0 flex-1">
-                                <span className={cn('block truncate text-sm font-medium', done ? 'text-slate-500' : 'text-ink')}>{item.label}</span>
-                                <span className="block truncate text-xs text-slate-400">{item.detail}</span>
+                                <span
+                                    className={cn(
+                                        'block truncate text-sm font-medium',
+                                        done ? 'text-slate-500' : 'text-ink',
+                                    )}
+                                >
+                                    {item.label}
+                                </span>
+                                <span className="block truncate text-xs text-slate-500">
+                                    {item.detail}
+                                </span>
                             </span>
                             <span
                                 className={cn(
                                     'min-w-7 rounded-md px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums',
-                                    done ? 'text-slate-400' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900',
+                                    done
+                                        ? 'text-slate-500'
+                                        : 'bg-slate-900 text-white',
                                 )}
                             >
                                 {item.count}
@@ -239,12 +348,14 @@ function TodoCard({ items }: { items: Todo[] }) {
                             <ChevronRight
                                 className={cn(
                                     'size-4 shrink-0 text-slate-300 transition-transform',
-                                    !done && 'group-hover:translate-x-0.5 group-hover:text-slate-500',
+                                    !done &&
+                                        'group-hover:translate-x-0.5 group-hover:text-slate-500',
                                 )}
                             />
                         </>
                     );
-                    const className = 'group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.02]';
+                    const className =
+                        'group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-slate-50/70';
 
                     return (
                         <li key={item.label}>
@@ -267,22 +378,39 @@ function TodoCard({ items }: { items: Todo[] }) {
 
 // ── Forfaits ────────────────────────────────────────────────────────────────
 
-function PlansCard({ plans, active }: { plans: Props['plans']; active: number }) {
+function PlansCard({
+    plans,
+    active,
+}: {
+    plans: Props['plans'];
+    active: number;
+}) {
     const max = Math.max(1, ...plans.map((p) => p.count));
 
     return (
-        <Panel title="Forfaits" description={`Les ${plural(active, 'entreprise active', 'entreprises actives')}, essais compris.`}>
+        <Panel
+            title="Forfaits"
+            description={`Les ${plural(active, 'entreprise active', 'entreprises actives')}, essais compris.`}
+        >
             <ul className="flex flex-col gap-3.5 px-5 pt-5 pb-4">
                 {plans.map((p) => (
                     <li key={p.key} className="flex flex-col gap-1.5">
                         <div className="flex items-baseline justify-between gap-3 text-sm">
-                            <span className="truncate text-slate-600">{p.label}</span>
-                            <span className="font-semibold text-ink tabular-nums">{p.count}</span>
+                            <span className="truncate text-slate-600">
+                                {p.label}
+                            </span>
+                            <span className="font-semibold text-ink tabular-nums">
+                                {p.count}
+                            </span>
                         </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
+                        <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                             <div
                                 className="h-full rounded-full transition-[width] duration-500"
-                                style={{ width: `${(p.count / max) * 100}%`, backgroundColor: BAR, opacity: p.count === 0 ? 0 : 1 }}
+                                style={{
+                                    width: `${(p.count / max) * 100}%`,
+                                    backgroundColor: BAR,
+                                    opacity: p.count === 0 ? 0 : 1,
+                                }}
                             />
                         </div>
                     </li>
@@ -290,7 +418,7 @@ function PlansCard({ plans, active }: { plans: Props['plans']; active: number })
             </ul>
             <Link
                 href={subscriptionsIndex().url}
-                className="group flex items-center justify-between border-t border-slate-100 px-5 py-3 text-sm font-medium text-motriks-deep hover:bg-slate-50/70 dark:border-sidebar-border"
+                className="group flex items-center justify-between border-t border-slate-100 px-5 py-3 text-sm font-medium text-motriks-deep hover:bg-slate-50/70"
             >
                 Voir les abonnements
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
@@ -301,21 +429,41 @@ function PlansCard({ plans, active }: { plans: Props['plans']; active: number })
 
 // ── Chiffres clés ───────────────────────────────────────────────────────────
 
-type Kpi = { label: string; value: string | number; hint: string; icon: LucideIcon; tone: string };
+type Kpi = {
+    label: string;
+    value: string | number;
+    hint: string;
+    icon: LucideIcon;
+    tone: string;
+};
 
 /** Bandeau des chiffres clés : une carte, séparateurs fins ; l'icône s'efface sur téléphone pour laisser la place au chiffre. */
 function KpiGrid({ items }: { items: Kpi[] }) {
     return (
-        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-100 shadow-sm shadow-slate-900/[0.03] lg:grid-cols-4 dark:border-sidebar-border dark:bg-sidebar-border">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-100 shadow-sm shadow-slate-900/[0.03] lg:grid-cols-4">
             {items.map(({ label, value, hint, icon: Icon, tone }) => (
-                <div key={label} className="flex min-w-0 items-start gap-3.5 bg-white px-4 py-4 sm:px-5 dark:bg-card">
-                    <span className={cn('hidden size-9 shrink-0 items-center justify-center rounded-lg sm:flex', tone)}>
+                <div
+                    key={label}
+                    className="flex min-w-0 items-start gap-3.5 bg-white px-4 py-4 sm:px-5"
+                >
+                    <span
+                        className={cn(
+                            'hidden size-9 shrink-0 items-center justify-center rounded-lg sm:flex',
+                            tone,
+                        )}
+                    >
                         <Icon className="size-[18px]" />
                     </span>
                     <div className="min-w-0">
-                        <dt className="text-xs leading-snug font-medium text-slate-500">{label}</dt>
-                        <dd className="mt-1 text-xl font-semibold tracking-tight whitespace-nowrap text-ink tabular-nums sm:text-2xl">{value}</dd>
-                        <p className="mt-0.5 text-[11px] leading-snug text-slate-400">{hint}</p>
+                        <dt className="text-xs leading-snug font-medium text-slate-500">
+                            {label}
+                        </dt>
+                        <dd className="mt-1 text-xl font-semibold tracking-tight whitespace-nowrap text-ink tabular-nums sm:text-2xl">
+                            {value}
+                        </dd>
+                        <p className="mt-0.5 text-[11px] leading-snug text-slate-500">
+                            {hint}
+                        </p>
                     </div>
                 </div>
             ))}
@@ -325,15 +473,27 @@ function KpiGrid({ items }: { items: Kpi[] }) {
 
 // ── Listes détaillées ───────────────────────────────────────────────────────
 
-function DetailRow({ companyUuid, title, detail, aside }: { companyUuid: string; title: string; detail: ReactNode; aside?: ReactNode }) {
+function DetailRow({
+    companyUuid,
+    title,
+    detail,
+    aside,
+}: {
+    companyUuid: string;
+    title: string;
+    detail: ReactNode;
+    aside?: ReactNode;
+}) {
     return (
         <li>
             <Link
                 href={companyShow(companyUuid).url}
-                className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.02]"
+                className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-slate-50/70"
             >
                 <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-ink">{title}</p>
+                    <p className="truncate text-sm font-semibold text-ink">
+                        {title}
+                    </p>
                     <p className="truncate text-xs text-slate-500">{detail}</p>
                 </div>
                 {aside}
@@ -361,11 +521,11 @@ function DetailPanel({
     return (
         <div id={id} className="scroll-mt-24">
             <Panel title={title} description={description} className="h-full">
-                <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">{children}</ul>
+                <ul className="divide-y divide-slate-100">{children}</ul>
                 {more > 0 && (
                     <Link
                         href={companiesIndex().url}
-                        className="block border-t border-slate-100 px-5 py-3 text-xs font-medium text-motriks-deep hover:underline dark:border-sidebar-border"
+                        className="block border-t border-slate-100 px-5 py-3 text-xs font-medium text-motriks-deep hover:underline"
                     >
                         Et {plural(more, 'autre')}
                     </Link>
@@ -451,7 +611,9 @@ export default function AdminDashboard({
                         detail={`${m.name}${m.email ? ` · ${m.email}` : ''}`}
                         aside={
                             <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                                {m.invited ? 'Invitation non ouverte' : 'Non confirmé'}
+                                {m.invited
+                                    ? 'Invitation non ouverte'
+                                    : 'Non confirmé'}
                             </span>
                         }
                     />
@@ -475,7 +637,9 @@ export default function AdminDashboard({
                         aside={
                             <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 tabular-nums">
                                 <AlarmClock className="size-3" />
-                                {t.days_left === 0 ? 'Aujourd’hui' : `J-${t.days_left}`}
+                                {t.days_left === 0
+                                    ? 'Aujourd’hui'
+                                    : `J-${t.days_left}`}
                             </span>
                         }
                     />
@@ -495,8 +659,17 @@ export default function AdminDashboard({
                         key={c.id}
                         companyUuid={c.uuid}
                         title={c.name}
-                        detail={c.last_report ? `Dernier rapport le ${c.last_report}` : `Aucun rapport · ${plural(c.hostesses_count, 'hôtesse')}`}
-                        aside={<Moon className="size-4 shrink-0 text-slate-300" aria-hidden />}
+                        detail={
+                            c.last_report
+                                ? `Dernier rapport le ${c.last_report}`
+                                : `Aucun rapport · ${plural(c.hostesses_count, 'hôtesse')}`
+                        }
+                        aside={
+                            <Moon
+                                className="size-4 shrink-0 text-slate-300"
+                                aria-hidden
+                            />
+                        }
                     />
                 ))}
             </DetailPanel>
@@ -511,7 +684,11 @@ export default function AdminDashboard({
                 title="Tableau de bord"
                 description="L’état de Motriks aujourd’hui, et ce qui demande votre attention."
                 actions={
-                    <button type="button" onClick={() => setCreating(true)} className={buttonClass('primary', 'md')}>
+                    <button
+                        type="button"
+                        onClick={() => setCreating(true)}
+                        className={buttonClass('primary', 'md')}
+                    >
                         <Plus />
                         Créer une entreprise
                     </button>
@@ -546,7 +723,7 @@ export default function AdminDashboard({
                             },
                             {
                                 label: 'Encaissé ce mois-ci',
-                                value: fcfa(paid_month),
+                                value: money(paid_month),
                                 hint: 'Paiements d’abonnements',
                                 icon: Wallet,
                                 tone: 'bg-slate-100 text-slate-500',
@@ -564,32 +741,52 @@ export default function AdminDashboard({
                             title="Dernières inscriptions"
                             className="lg:col-span-2"
                             actions={
-                                <Link href={companiesIndex().url} className={buttonClass('ghost', 'sm')}>
-                                    <span className="hidden sm:inline">Toutes les entreprises</span>
+                                <Link
+                                    href={companiesIndex().url}
+                                    className={buttonClass('ghost', 'sm')}
+                                >
+                                    <span className="hidden sm:inline">
+                                        Toutes les entreprises
+                                    </span>
                                     <span className="sm:hidden">Tout voir</span>
                                     <ArrowRight />
                                 </Link>
                             }
                         >
                             {recent_companies.length === 0 ? (
-                                <p className="px-5 py-6 text-sm text-slate-400">Aucune entreprise pour l’instant.</p>
+                                <p className="px-5 py-6 text-sm text-slate-500">
+                                    Aucune entreprise pour l’instant.
+                                </p>
                             ) : (
-                                <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
+                                <ul className="divide-y divide-slate-100">
                                     {recent_companies.map((c) => (
                                         <li key={c.id}>
                                             <Link
                                                 href={companyShow(c.uuid).url}
-                                                className="flex items-center gap-3.5 px-5 py-3 transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.02]"
+                                                className="flex items-center gap-3.5 px-5 py-3 transition-colors hover:bg-slate-50/70"
                                             >
-                                                <CompanyAvatar name={c.name} className="size-9" />
+                                                <CompanyAvatar
+                                                    name={c.name}
+                                                    className="size-9"
+                                                />
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-sm font-semibold text-ink">{c.name}</p>
+                                                    <p className="truncate text-sm font-semibold text-ink">
+                                                        {c.name}
+                                                    </p>
                                                     <p className="truncate text-xs text-slate-500">
-                                                        {c.created_at ? `Inscrite le ${c.created_at}` : '—'}
+                                                        {c.created_at
+                                                            ? `Inscrite le ${c.created_at}`
+                                                            : '—'}
                                                     </p>
                                                 </div>
-                                                <StatusBadge tone={STATUS[c.status]?.tone ?? 'neutral'}>
-                                                    {STATUS[c.status]?.label ?? c.status}
+                                                <StatusBadge
+                                                    tone={
+                                                        STATUS[c.status]
+                                                            ?.tone ?? 'neutral'
+                                                    }
+                                                >
+                                                    {STATUS[c.status]?.label ??
+                                                        c.status}
                                                 </StatusBadge>
                                             </Link>
                                         </li>
@@ -602,14 +799,28 @@ export default function AdminDashboard({
                     </div>
 
                     {details.length > 0 && (
-                        <div className={cn('grid gap-6', details.length === 2 ? 'lg:grid-cols-2' : details.length === 3 ? 'lg:grid-cols-3' : '')}>
+                        <div
+                            className={cn(
+                                'grid gap-6',
+                                details.length === 2
+                                    ? 'lg:grid-cols-2'
+                                    : details.length === 3
+                                      ? 'lg:grid-cols-3'
+                                      : '',
+                            )}
+                        >
                             {details}
                         </div>
                     )}
                 </div>
             </Page>
 
-            {creating && <CreateCompanyModal sectors={sectors} onClose={() => setCreating(false)} />}
+            {creating && (
+                <CreateCompanyModal
+                    sectors={sectors}
+                    onClose={() => setCreating(false)}
+                />
+            )}
         </>
     );
 }

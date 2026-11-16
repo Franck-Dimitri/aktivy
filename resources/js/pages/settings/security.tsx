@@ -13,7 +13,13 @@ import ManagePasskeys from '@/components/manage-passkeys';
 import type { Props as ManageTwoFactorProps } from '@/components/manage-two-factor';
 import ManageTwoFactor from '@/components/manage-two-factor';
 /* @end-chisel-2fa */
-import { CardBody, PasswordField, SaveFooter, SettingsCard, SettingsRow } from './settings-kit';
+import {
+    CardBody,
+    PasswordField,
+    SaveFooter,
+    SettingsCard,
+    SettingsRow,
+} from './settings-kit';
 
 // oxfmt-ignore
 type Props = {
@@ -36,47 +42,126 @@ export default function Security(props: Props) {
             onSuccess: () => form.reset(),
             onError: (errs) => {
                 form.reset();
-                if (errs.current_password) currentPasswordInput.current?.focus();
+                if (errs.current_password)
+                    currentPasswordInput.current?.focus();
                 else if (errs.password) passwordInput.current?.focus();
                 toastFormError(errs);
             },
         });
     };
 
-    const mismatch = data.password_confirmation !== '' && data.password !== data.password_confirmation;
+    const mismatch =
+        data.password_confirmation !== '' &&
+        data.password !== data.password_confirmation;
 
     return (
         <>
             <Head title="Sécurité du compte" />
 
-            <SettingsCard icon={LockKeyhole} title="Mot de passe" description="Choisissez un mot de passe long, que vous n’utilisez nulle part ailleurs.">
+            <SettingsCard
+                icon={LockKeyhole}
+                title="Mot de passe"
+                description="Choisissez un mot de passe long, que vous n’utilisez nulle part ailleurs."
+            >
                 <form onSubmit={submit}>
                     <CardBody>
-                        <SettingsRow label="Mot de passe actuel" htmlFor="current_password" error={errors.current_password}>
-                            <PasswordField id="current_password" ref={currentPasswordInput} icon={KeyRound} value={data.current_password} onChange={(e) => setData('current_password', e.target.value)} error={errors.current_password} autoComplete="current-password" />
+                        <SettingsRow
+                            label="Mot de passe actuel"
+                            htmlFor="current_password"
+                            error={errors.current_password}
+                        >
+                            <PasswordField
+                                id="current_password"
+                                ref={currentPasswordInput}
+                                icon={KeyRound}
+                                value={data.current_password}
+                                onChange={(e) =>
+                                    setData('current_password', e.target.value)
+                                }
+                                error={errors.current_password}
+                                autoComplete="current-password"
+                            />
                         </SettingsRow>
 
-                        <div className="h-px bg-slate-100 dark:bg-sidebar-border" />
+                        <div className="h-px bg-slate-100" />
 
-                        <SettingsRow label="Nouveau mot de passe" htmlFor="password" hint={passwordHint(props.passwordRules)} error={errors.password}>
-                            <PasswordField id="password" ref={passwordInput} icon={LockKeyhole} value={data.password} onChange={(e) => setData('password', e.target.value)} error={errors.password} autoComplete="new-password" passwordrules={props.passwordRules} />
+                        <SettingsRow
+                            label="Nouveau mot de passe"
+                            htmlFor="password"
+                            hint={passwordHint(props.passwordRules)}
+                            error={errors.password}
+                        >
+                            <PasswordField
+                                id="password"
+                                ref={passwordInput}
+                                icon={LockKeyhole}
+                                value={data.password}
+                                onChange={(e) =>
+                                    setData('password', e.target.value)
+                                }
+                                error={errors.password}
+                                autoComplete="new-password"
+                                passwordrules={props.passwordRules}
+                            />
                         </SettingsRow>
 
-                        <SettingsRow label="Confirmation" htmlFor="password_confirmation" error={errors.password_confirmation ?? (mismatch ? 'Les deux mots de passe ne correspondent pas.' : undefined)}>
-                            <PasswordField id="password_confirmation" icon={LockKeyhole} value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)} error={errors.password_confirmation ?? (mismatch ? ' ' : undefined)} autoComplete="new-password" passwordrules={props.passwordRules} />
+                        <SettingsRow
+                            label="Confirmation"
+                            htmlFor="password_confirmation"
+                            error={
+                                errors.password_confirmation ??
+                                (mismatch
+                                    ? 'Les deux mots de passe ne correspondent pas.'
+                                    : undefined)
+                            }
+                        >
+                            <PasswordField
+                                id="password_confirmation"
+                                icon={LockKeyhole}
+                                value={data.password_confirmation}
+                                onChange={(e) =>
+                                    setData(
+                                        'password_confirmation',
+                                        e.target.value,
+                                    )
+                                }
+                                error={
+                                    errors.password_confirmation ??
+                                    (mismatch ? ' ' : undefined)
+                                }
+                                autoComplete="new-password"
+                                passwordrules={props.passwordRules}
+                            />
                         </SettingsRow>
                     </CardBody>
 
-                    <SaveFooter dirty={isDirty} processing={processing} idle="Vous restez connecté après le changement." label="Changer le mot de passe" onCancel={() => { form.reset(); form.clearErrors(); }} testId="update-password-button" />
+                    <SaveFooter
+                        dirty={isDirty}
+                        processing={processing}
+                        idle="Vous restez connecté après le changement."
+                        label="Changer le mot de passe"
+                        onCancel={() => {
+                            form.reset();
+                            form.clearErrors();
+                        }}
+                        testId="update-password-button"
+                    />
                 </form>
             </SettingsCard>
 
             {/* @chisel-2fa */}
-            <ManageTwoFactor canManageTwoFactor={props.canManageTwoFactor} requiresConfirmation={props.requiresConfirmation} twoFactorEnabled={props.twoFactorEnabled} />
+            <ManageTwoFactor
+                canManageTwoFactor={props.canManageTwoFactor}
+                requiresConfirmation={props.requiresConfirmation}
+                twoFactorEnabled={props.twoFactorEnabled}
+            />
             {/* @end-chisel-2fa */}
 
             {/* @chisel-passkeys */}
-            <ManagePasskeys canManagePasskeys={props.canManagePasskeys} passkeys={props.passkeys} />
+            <ManagePasskeys
+                canManagePasskeys={props.canManagePasskeys}
+                passkeys={props.passkeys}
+            />
             {/* @end-chisel-passkeys */}
         </>
     );

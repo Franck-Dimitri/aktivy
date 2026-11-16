@@ -1,5 +1,14 @@
 import { Head, router } from '@inertiajs/react';
-import { Check, ChevronRight, Clock, MessageSquare, MessageSquarePlus, Send, Trash2, Zap } from 'lucide-react';
+import {
+    Check,
+    ChevronRight,
+    Clock,
+    MessageSquare,
+    MessageSquarePlus,
+    Send,
+    Trash2,
+    Zap,
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
@@ -10,7 +19,11 @@ import { Page } from '@/components/page/page';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { toastFormError } from '@/lib/form-toast';
 import { cn } from '@/lib/utils';
-import { cancel as ticketCancel, index as terrainTickets, store as ticketStore } from '@/routes/terrain/tickets';
+import {
+    cancel as ticketCancel,
+    index as terrainTickets,
+    store as ticketStore,
+} from '@/routes/terrain/tickets';
 
 /* ─────────────────────── Types ─────────────────────── */
 
@@ -66,7 +79,12 @@ function AnsweredBadge() {
 
 const priorityOptions = [
     { value: 'normal', label: 'Normal', hint: 'Délai standard', icon: Clock },
-    { value: 'urgent', label: 'Urgent', hint: 'Traitement prioritaire', icon: Zap },
+    {
+        value: 'urgent',
+        label: 'Urgent',
+        hint: 'Traitement prioritaire',
+        icon: Zap,
+    },
 ] as const;
 
 function NewTicketModal({ onClose }: { onClose: () => void }) {
@@ -90,7 +108,10 @@ function NewTicketModal({ onClose }: { onClose: () => void }) {
                 preserveScroll: true,
                 onStart: () => setBusy(true),
                 onSuccess: () => {
-                    toast.success('Demande envoyée', { description: 'Votre responsable va la traiter prochainement.' });
+                    toast.success('Demande envoyée', {
+                        description:
+                            'Votre responsable va la traiter prochainement.',
+                    });
                     onClose();
                 },
                 onError: toastFormError,
@@ -108,47 +129,68 @@ function NewTicketModal({ onClose }: { onClose: () => void }) {
         >
             <div className="flex-1 space-y-5 overflow-y-auto px-6 py-4">
                 {/* Priorité */}
-                <div role="radiogroup" aria-label="Priorité" className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100/80 p-1">
-                    {priorityOptions.map(({ value, label, hint, icon: Icon }) => {
-                        const active = priority === value;
-                        return (
-                            <button
-                                key={value}
-                                type="button"
-                                role="radio"
-                                aria-checked={active}
-                                onClick={() => setPriority(value)}
-                                className={cn(
-                                    'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
-                                    active ? 'bg-white shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-ink',
-                                )}
-                            >
-                                <span
+                <div
+                    role="radiogroup"
+                    aria-label="Priorité"
+                    className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100/80 p-1"
+                >
+                    {priorityOptions.map(
+                        ({ value, label, hint, icon: Icon }) => {
+                            const active = priority === value;
+                            return (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={active}
+                                    onClick={() => setPriority(value)}
                                     className={cn(
-                                        'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+                                        'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
                                         active
-                                            ? value === 'urgent'
-                                                ? 'bg-red-50 text-red-600'
-                                                : 'bg-green-50 text-motriks-deep'
-                                            : 'bg-transparent text-slate-400',
+                                            ? 'bg-white shadow-sm ring-1 ring-black/5'
+                                            : 'text-slate-500 hover:text-ink',
                                     )}
                                 >
-                                    <Icon className="size-4" />
-                                </span>
-                                <span className="min-w-0">
-                                    <span className={cn('block text-sm font-semibold', active ? 'text-ink' : '')}>{label}</span>
-                                    <span className="block truncate text-xs text-slate-400">{hint}</span>
-                                </span>
-                            </button>
-                        );
-                    })}
+                                    <span
+                                        className={cn(
+                                            'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+                                            active
+                                                ? value === 'urgent'
+                                                    ? 'bg-red-50 text-red-600'
+                                                    : 'bg-green-50 text-motriks-deep'
+                                                : 'bg-transparent text-slate-500',
+                                        )}
+                                    >
+                                        <Icon className="size-4" />
+                                    </span>
+                                    <span className="min-w-0">
+                                        <span
+                                            className={cn(
+                                                'block text-sm font-semibold',
+                                                active ? 'text-ink' : '',
+                                            )}
+                                        >
+                                            {label}
+                                        </span>
+                                        <span className="block truncate text-xs text-slate-500">
+                                            {hint}
+                                        </span>
+                                    </span>
+                                </button>
+                            );
+                        },
+                    )}
                 </div>
 
                 {/* Sujet */}
                 <div>
                     <div className="mb-1.5 flex items-baseline justify-between">
-                        <label className="text-sm font-medium text-ink">Sujet</label>
-                        <span className="text-xs text-slate-400 tabular-nums">{subject.length}/200</span>
+                        <label className="text-sm font-medium text-ink">
+                            Sujet
+                        </label>
+                        <span className="text-xs text-slate-500 tabular-nums">
+                            {subject.length}/200
+                        </span>
                     </div>
                     <TextInput
                         placeholder="Ex : rupture de stock, problème de matériel…"
@@ -162,8 +204,12 @@ function NewTicketModal({ onClose }: { onClose: () => void }) {
                 {/* Description */}
                 <div>
                     <div className="mb-1.5 flex items-baseline justify-between">
-                        <label className="text-sm font-medium text-ink">Description</label>
-                        <span className="text-xs text-slate-400 tabular-nums">{body.length}/2000</span>
+                        <label className="text-sm font-medium text-ink">
+                            Description
+                        </label>
+                        <span className="text-xs text-slate-500 tabular-nums">
+                            {body.length}/2000
+                        </span>
                     </div>
                     <TextArea
                         rows={5}
@@ -183,7 +229,13 @@ function NewTicketModal({ onClose }: { onClose: () => void }) {
                 >
                     Annuler
                 </button>
-                <ActionButton onClick={submit} loading={busy} icon={<Send />} disabled={!canSend} className="h-10 rounded-xl">
+                <ActionButton
+                    onClick={submit}
+                    loading={busy}
+                    icon={<Send />}
+                    disabled={!canSend}
+                    className="h-10 rounded-xl"
+                >
                     {busy ? 'Envoi…' : 'Envoyer'}
                 </ActionButton>
             </footer>
@@ -193,7 +245,13 @@ function NewTicketModal({ onClose }: { onClose: () => void }) {
 
 /* ─────────────────────── Modal : conversation ─────────────────────── */
 
-function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () => void }) {
+function TicketModal({
+    ticket,
+    onClose,
+}: {
+    ticket: Ticket;
+    onClose: () => void;
+}) {
     const [confirming, setConfirming] = useState(false);
     const [busy, setBusy] = useState(false);
 
@@ -202,7 +260,9 @@ function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
             preserveScroll: true,
             onStart: () => setBusy(true),
             onSuccess: () => {
-                toast.success('Demande retirée', { description: 'Votre responsable ne la verra plus.' });
+                toast.success('Demande retirée', {
+                    description: 'Votre responsable ne la verra plus.',
+                });
                 onClose();
             },
             onError: toastFormError,
@@ -211,39 +271,63 @@ function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
     }
 
     return (
-        <Modal onClose={onClose} title={ticket.subject} description={`Envoyée ${ticket.created_at} · ${ticket.created_date}`} icon={<MessageSquare />}>
+        <Modal
+            onClose={onClose}
+            title={ticket.subject}
+            description={`Envoyée ${ticket.created_at} · ${ticket.created_date}`}
+            icon={<MessageSquare />}
+        >
             <div className="flex-1 overflow-y-auto px-6 pt-3 pb-6">
                 <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge tone={statusTone[ticket.status]}>{statusLabel[ticket.status]}</StatusBadge>
+                    <StatusBadge tone={statusTone[ticket.status]}>
+                        {statusLabel[ticket.status]}
+                    </StatusBadge>
                     {ticket.priority === 'urgent' && <UrgentBadge />}
                 </div>
 
                 <div className="mt-5 flex flex-col gap-5">
                     {/* Ma demande */}
                     <div className="flex flex-col items-end gap-1.5">
-                        <p className="text-xs font-medium text-slate-400">Vous</p>
+                        <p className="text-xs font-medium text-slate-500">
+                            Vous
+                        </p>
                         <div className="max-w-[88%] rounded-2xl rounded-tr-md bg-ink px-4 py-3">
-                            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-white">{ticket.body}</p>
+                            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-white">
+                                {ticket.body}
+                            </p>
                         </div>
                     </div>
 
                     {/* Réponse */}
                     {ticket.response ? (
                         <div className="flex flex-col items-start gap-1.5">
-                            <p className="text-xs font-medium text-motriks-deep">Votre responsable</p>
+                            <p className="text-xs font-medium text-motriks-deep">
+                                Votre responsable
+                            </p>
                             <div className="max-w-[88%] rounded-2xl rounded-tl-md border border-green-200/70 bg-motriks-soft px-4 py-3">
-                                <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-green-950">{ticket.response}</p>
+                                <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-green-950">
+                                    {ticket.response}
+                                </p>
                             </div>
-                            {ticket.responded_at && <p className="text-xs text-slate-400">{ticket.responded_at}</p>}
+                            {ticket.responded_at && (
+                                <p className="text-xs text-slate-500">
+                                    {ticket.responded_at}
+                                </p>
+                            )}
                         </div>
                     ) : (
                         <div className="flex items-center gap-3 rounded-2xl border border-dashed border-slate-200 px-4 py-3.5">
-                            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+                            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
                                 <Clock className="size-4" />
                             </span>
                             <div>
-                                <p className="text-sm font-medium text-ink">En attente de réponse</p>
-                                <p className="text-xs text-slate-500">Votre responsable vous répondra prochainement.</p>
+                                <p className="text-sm font-medium text-ink">
+                                    En attente de réponse
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                    Votre responsable vous répondra
+                                    prochainement.
+                                </p>
                             </div>
                         </div>
                     )}
@@ -255,7 +339,9 @@ function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
                 <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-6 py-3.5">
                     {confirming ? (
                         <>
-                            <p className="text-sm text-slate-600">Retirer cette demande ?</p>
+                            <p className="text-sm text-slate-600">
+                                Retirer cette demande ?
+                            </p>
                             <div className="flex items-center gap-2">
                                 <button
                                     type="button"
@@ -307,28 +393,44 @@ function TicketRow({ ticket, onOpen }: { ticket: Ticket; onOpen: () => void }) {
                     className={cn(
                         'flex size-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset',
                         closed
-                            ? 'bg-slate-50 text-slate-400 ring-slate-200'
+                            ? 'bg-slate-50 text-slate-500 ring-slate-200'
                             : ticket.priority === 'urgent'
                               ? 'bg-red-50 text-red-600 ring-red-200/70'
                               : 'bg-green-50 text-motriks-deep ring-green-600/15',
                     )}
                 >
-                    {closed ? <Check className="size-4.5" /> : ticket.priority === 'urgent' ? <Zap className="size-4.5" /> : <MessageSquare className="size-4.5" />}
+                    {closed ? (
+                        <Check className="size-4.5" />
+                    ) : ticket.priority === 'urgent' ? (
+                        <Zap className="size-4.5" />
+                    ) : (
+                        <MessageSquare className="size-4.5" />
+                    )}
                 </span>
 
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <p className="truncate text-sm font-semibold text-ink">{ticket.subject}</p>
-                        {ticket.priority === 'urgent' && !closed && <UrgentBadge />}
+                        <p className="truncate text-sm font-semibold text-ink">
+                            {ticket.subject}
+                        </p>
+                        {ticket.priority === 'urgent' && !closed && (
+                            <UrgentBadge />
+                        )}
                         {ticket.response && <AnsweredBadge />}
                     </div>
-                    <p className="mt-0.5 truncate text-sm text-slate-500">{ticket.body}</p>
-                    <p className="mt-1 text-xs text-slate-400">{ticket.created_at}</p>
+                    <p className="mt-0.5 truncate text-sm text-slate-500">
+                        {ticket.body}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                        {ticket.created_at}
+                    </p>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-3">
                     <span className="hidden sm:block">
-                        <StatusBadge tone={statusTone[ticket.status]}>{statusLabel[ticket.status]}</StatusBadge>
+                        <StatusBadge tone={statusTone[ticket.status]}>
+                            {statusLabel[ticket.status]}
+                        </StatusBadge>
                     </span>
                     <ChevronRight className="size-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-motriks" />
                 </div>
@@ -353,7 +455,13 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
         { key: 'closed', label: 'Résolues', count: closedCount },
     ];
 
-    const visible = tickets.filter((t) => (filter === 'all' ? true : filter === 'open' ? t.status !== 'closed' : t.status === 'closed'));
+    const visible = tickets.filter((t) =>
+        filter === 'all'
+            ? true
+            : filter === 'open'
+              ? t.status !== 'closed'
+              : t.status === 'closed',
+    );
     const selected = tickets.find((t) => t.id === selectedId) ?? null;
 
     return (
@@ -365,7 +473,10 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
                 description="Soumettez vos demandes et suivez leur avancement"
                 actions={
                     tickets.length > 0 ? (
-                        <ActionButton icon={<MessageSquarePlus />} onClick={() => setCreating(true)}>
+                        <ActionButton
+                            icon={<MessageSquarePlus />}
+                            onClick={() => setCreating(true)}
+                        >
                             Nouvelle demande
                         </ActionButton>
                     ) : undefined
@@ -378,7 +489,10 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
                             title="Aucune demande"
                             description="Signalez un besoin ou posez une question à votre responsable."
                             action={
-                                <ActionButton icon={<MessageSquarePlus />} onClick={() => setCreating(true)}>
+                                <ActionButton
+                                    icon={<MessageSquarePlus />}
+                                    onClick={() => setCreating(true)}
+                                >
                                     Créer ma première demande
                                 </ActionButton>
                             }
@@ -387,7 +501,11 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
                 ) : (
                     <div className="flex flex-col gap-5">
                         {/* Filtres */}
-                        <div role="tablist" aria-label="Filtrer les demandes" className="flex w-full max-w-full gap-1 overflow-x-auto rounded-2xl bg-slate-100/80 p-1 sm:inline-flex sm:w-fit">
+                        <div
+                            role="tablist"
+                            aria-label="Filtrer les demandes"
+                            className="flex w-full max-w-full gap-1 overflow-x-auto rounded-2xl bg-slate-100/80 p-1 sm:inline-flex sm:w-fit"
+                        >
                             {filters.map((f) => {
                                 const active = filter === f.key;
                                 return (
@@ -398,15 +516,19 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
                                         aria-selected={active}
                                         onClick={() => setFilter(f.key)}
                                         className={cn(
-                                            'flex min-h-9 flex-1 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-medium whitespace-nowrap transition-all sm:min-h-0 sm:flex-none sm:gap-2 sm:px-3.5 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
-                                            active ? 'bg-white text-ink shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-ink',
+                                            'flex min-h-9 flex-1 shrink-0 items-center justify-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none sm:min-h-0 sm:flex-none sm:gap-2 sm:px-3.5',
+                                            active
+                                                ? 'bg-white text-ink shadow-sm ring-1 ring-black/5'
+                                                : 'text-slate-500 hover:text-ink',
                                         )}
                                     >
                                         {f.label}
                                         <span
                                             className={cn(
                                                 'rounded-full px-1 text-xs font-semibold tabular-nums sm:px-1.5',
-                                                active ? 'bg-motriks-soft text-motriks-deep' : 'text-slate-400',
+                                                active
+                                                    ? 'bg-motriks-soft text-motriks-deep'
+                                                    : 'text-slate-500',
                                             )}
                                         >
                                             {f.count}
@@ -421,7 +543,11 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
                             {visible.length > 0 ? (
                                 <ul className="divide-y divide-slate-100">
                                     {visible.map((t) => (
-                                        <TicketRow key={t.id} ticket={t} onOpen={() => setSelectedId(t.id)} />
+                                        <TicketRow
+                                            key={t.id}
+                                            ticket={t}
+                                            onOpen={() => setSelectedId(t.id)}
+                                        />
                                     ))}
                                 </ul>
                             ) : (
@@ -439,7 +565,12 @@ export default function TerrainTickets({ tickets }: { tickets: Ticket[] }) {
             </Page>
 
             {creating && <NewTicketModal onClose={() => setCreating(false)} />}
-            {selected && <TicketModal ticket={selected} onClose={() => setSelectedId(null)} />}
+            {selected && (
+                <TicketModal
+                    ticket={selected}
+                    onClose={() => setSelectedId(null)}
+                />
+            )}
         </>
     );
 }

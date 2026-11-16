@@ -43,9 +43,18 @@ export type EventHostess = {
     site_name: string | null;
 };
 
-export type CompanySite    = { id: number; name: string; city: string; address: string | null };
+export type CompanySite = {
+    id: number;
+    name: string;
+    city: string;
+    address: string | null;
+};
 export type CompanyProduct = { id: number; name: string; image: string | null };
-export type AvailableHostess = { id: number; name: string; phone: string | null };
+export type AvailableHostess = {
+    id: number;
+    name: string;
+    phone: string | null;
+};
 
 export type EventSalesPdv = {
     id: number;
@@ -54,7 +63,11 @@ export type EventSalesPdv = {
     units_sold: number;
     reports_count: number;
 };
-export type EventSalesProduct = { name: string; revenue: number; units_sold: number };
+export type EventSalesProduct = {
+    name: string;
+    revenue: number;
+    units_sold: number;
+};
 export type EventSales = {
     revenue: number;
     units_sold: number;
@@ -89,13 +102,12 @@ export type ShowProps = {
     eventSales: EventSales;
 };
 
-export const STATUS_TONE: Record<string, 'warning' | 'success' | 'info' | 'neutral'> = {
-    draft:     'warning',
-    active:    'success',
+export const STATUS_TONE: Record<
+    string,
+    'warning' | 'success' | 'info' | 'neutral'
+> = {
+    draft: 'warning',
+    active: 'success',
     completed: 'info',
-    archived:  'neutral',
+    archived: 'neutral',
 };
-
-export function formatMoney(n: number): string {
-    return new Intl.NumberFormat('fr-FR').format(n);
-}

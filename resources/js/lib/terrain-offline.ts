@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { toast } from 'sonner';
 import { show as reportShow } from '@/routes/terrain/report';
 import { store as photoStore } from '@/routes/terrain/report/photos';
 import { checkout as visitCheckout, store as visitStore } from '@/routes/terrain/visit';
@@ -153,9 +154,7 @@ export async function saveReportOffline(ref: VisitRef, payload: Record<string, u
 }
 
 export async function submitReportOffline(ref: VisitRef, payload: Record<string, unknown>): Promise<void> {
-    // Le rapport complet remplace les brouillons pas encore partis
-    await dropSaves(ref.userId, ref.visitUuid);
-    await overlay(ref, { reportStatus: 'submitted' });
+    // D'abord le rapport complet dans la file : si l'écriture échoue, les brouillons restent intacts
     await enqueue({
         userId: ref.userId,
         kind: 'submit',
@@ -164,6 +163,20 @@ export async function submitReportOffline(ref: VisitRef, payload: Record<string,
         url: reportSubmit({ visit: ref.visitUuid }).url,
         body: { ...payload, queued: true, submitted_at: new Date().toISOString() },
         siteName: ref.siteName,
+    });
+    // Puis il remplace les brouillons pas encore partis
+    await dropSaves(ref.userId, ref.visitUuid);
+    await overlay(ref, { reportStatus: 'submitted' });
+}
+
+/**
+ * Le téléphone n'a pas pu garder l'action (mémoire pleine, stockage du navigateur bloqué ou effacé) :
+ * on le dit clairement, plutôt que d'afficher « gardé » alors que rien ne l'est.
+ */
+export function offlineSaveFailed(what: string): void {
+    toast.error(`${what} n’a pas pu être gardé sur ce téléphone`, {
+        description: 'Mémoire du téléphone pleine ou stockage bloqué. Libérez de la place, puis réessayez. Rien n’a été envoyé.',
+        duration: 12_000,
     });
 }
 

@@ -1,5 +1,11 @@
 import { Head } from '@inertiajs/react';
-import { CalendarRange, ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react';
+import {
+    CalendarRange,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    MapPin,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { EmptyState } from '@/components/page/empty-state';
 import { Modal } from '@/components/page/modal';
@@ -7,6 +13,7 @@ import { Page } from '@/components/page/page';
 import { StatStrip } from '@/components/page/stat-strip';
 import { cn } from '@/lib/utils';
 import { planning as terrainPlanning } from '@/routes/terrain';
+import { formatDuration, formatShortDate, localISODate } from '@/lib/format';
 
 /* ─────────────────────── Types ─────────────────────── */
 
@@ -48,7 +55,20 @@ type Period = 'week' | 'month' | 'year';
 
 /* ─────────────────────── Helpers ─────────────────────── */
 
-const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+const MONTH_NAMES = [
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre',
+];
 const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 const periodLabel: Record<Period, string> = {
@@ -57,24 +77,12 @@ const periodLabel: Record<Period, string> = {
     year: 'cette année',
 };
 
-/** Date locale au format AAAA-MM-JJ (toISOString donnerait la date UTC, parfois décalée d'un jour). */
-function localISO(d: Date = new Date()): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function formatDuration(minutes: number): string {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    if (h === 0) return `${m} min`;
-    return m === 0 ? `${h}h` : `${h}h${m.toString().padStart(2, '0')}`;
-}
-
-function shortDate(iso: string): string {
-    return new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-}
-
 function longDate(iso: string): string {
-    return new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+    });
 }
 
 const card = 'rounded-2xl border border-slate-200/80 bg-white';
@@ -108,11 +116,18 @@ function MonthCalendar({
     onToday: () => void;
     isCurrentMonth: boolean;
 }) {
-    const today = localISO();
+    const today = localISODate();
 
     const visitMap = useMemo(() => {
-        const map: Record<string, { duration: number | null; inProgress: boolean }> = {};
-        for (const v of visits) map[v.date] = { duration: v.duration_minutes, inProgress: v.status === 'in_progress' };
+        const map: Record<
+            string,
+            { duration: number | null; inProgress: boolean }
+        > = {};
+        for (const v of visits)
+            map[v.date] = {
+                duration: v.duration_minutes,
+                inProgress: v.status === 'in_progress',
+            };
         return map;
     }, [visits]);
 
@@ -149,7 +164,7 @@ function MonthCalendar({
                         {MONTH_NAMES[month]} {year}
                     </h2>
                     {elapsed > 0 && (
-                        <span className="inline-flex items-center whitespace-nowrap rounded-full bg-motriks-soft px-2.5 py-0.5 text-xs font-semibold text-motriks-deep ring-1 ring-green-200/70 tabular-nums">
+                        <span className="inline-flex items-center rounded-full bg-motriks-soft px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap text-motriks-deep tabular-nums ring-1 ring-green-200/70">
                             {worked}/{elapsed} jours
                         </span>
                     )}
@@ -160,7 +175,7 @@ function MonthCalendar({
                         <button
                             type="button"
                             onClick={onToday}
-                            className="mr-1 h-8 rounded-lg px-2.5 text-xs font-semibold text-motriks-deep transition-colors hover:bg-motriks-soft focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                            className="mr-1 h-11 rounded-lg px-2.5 text-xs font-semibold text-motriks-deep transition-colors hover:bg-motriks-soft focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none sm:h-8"
                         >
                             Aujourd'hui
                         </button>
@@ -169,7 +184,7 @@ function MonthCalendar({
                         type="button"
                         onClick={onPrev}
                         aria-label="Mois précédent"
-                        className="flex size-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                        className="flex size-11 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none sm:size-9"
                     >
                         <ChevronLeft className="size-4" />
                     </button>
@@ -177,7 +192,7 @@ function MonthCalendar({
                         type="button"
                         onClick={onNext}
                         aria-label="Mois suivant"
-                        className="flex size-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                        className="flex size-11 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none sm:size-9"
                     >
                         <ChevronRight className="size-4" />
                     </button>
@@ -186,7 +201,10 @@ function MonthCalendar({
 
             <div className="mt-6 grid grid-cols-7 gap-1 sm:gap-2">
                 {DAY_NAMES.map((d) => (
-                    <div key={d} className="pb-1 text-center text-xs font-medium text-slate-400">
+                    <div
+                        key={d}
+                        className="pb-1 text-center text-xs font-medium text-slate-500"
+                    >
                         {d}
                     </div>
                 ))}
@@ -195,15 +213,21 @@ function MonthCalendar({
             {/* Les lignes se partagent toute la hauteur disponible : le calendrier va jusqu'en bas de la carte */}
             <div
                 className="mt-1 grid min-h-0 flex-1 grid-cols-7 gap-1 sm:gap-2"
-                style={{ gridTemplateRows: `repeat(${rows}, minmax(3rem, 1fr))` }}
+                style={{
+                    gridTemplateRows: `repeat(${rows}, minmax(3rem, 1fr))`,
+                }}
             >
                 {cells.map((c, i) =>
                     c ? (
                         <div
                             key={c.date}
-                            title={c.worked ? `${longDate(c.date)}${c.duration ? ` · ${formatDuration(c.duration)}` : ''}` : undefined}
+                            title={
+                                c.worked
+                                    ? `${longDate(c.date)}${c.duration ? ` · ${formatDuration(c.duration)}` : ''}`
+                                    : undefined
+                            }
                             className={cn(
-                                'relative flex min-w-0 flex-col justify-between overflow-hidden rounded-xl p-1.5 text-sm sm:rounded-2xl sm:p-2.5 font-medium tabular-nums transition-colors',
+                                'relative flex min-w-0 flex-col justify-between overflow-hidden rounded-xl p-1.5 text-sm font-medium tabular-nums transition-colors sm:rounded-2xl sm:p-2.5',
                                 c.worked
                                     ? 'bg-motriks text-white shadow-sm shadow-green-600/20'
                                     : c.isToday
@@ -211,13 +235,26 @@ function MonthCalendar({
                                       : c.isFuture
                                         ? 'text-slate-300'
                                         : 'bg-slate-50/70 text-slate-500',
-                                c.isToday && c.worked && 'ring-2 ring-motriks ring-offset-2',
+                                c.isToday &&
+                                    c.worked &&
+                                    'ring-2 ring-motriks ring-offset-2',
                             )}
                         >
-                            <span className={cn('leading-none', c.isToday && 'font-bold')}>{c.day}</span>
+                            <span
+                                className={cn(
+                                    'leading-none',
+                                    c.isToday && 'font-bold',
+                                )}
+                            >
+                                {c.day}
+                            </span>
                             {c.worked && (
                                 <span className="hidden text-[11px] leading-none font-semibold text-white/85 sm:block">
-                                    {c.inProgress ? 'En cours' : c.duration ? formatDuration(c.duration) : ''}
+                                    {c.inProgress
+                                        ? 'En cours'
+                                        : c.duration
+                                          ? formatDuration(c.duration)
+                                          : ''}
                                 </span>
                             )}
                         </div>
@@ -232,20 +269,30 @@ function MonthCalendar({
 
 /* ─────────────────────── Éléments de liste ─────────────────────── */
 
-function AffectationItem({ a, detailed = false }: { a: Affectation; detailed?: boolean }) {
+function AffectationItem({
+    a,
+    detailed = false,
+}: {
+    a: Affectation;
+    detailed?: boolean;
+}) {
     return (
         <li className="flex items-start gap-3.5">
             <span
                 className={cn(
                     'mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl',
-                    a.is_active ? 'bg-motriks text-white shadow-sm shadow-green-600/20' : 'bg-slate-100 text-slate-400',
+                    a.is_active
+                        ? 'bg-motriks text-white shadow-sm shadow-green-600/20'
+                        : 'bg-slate-100 text-slate-500',
                 )}
             >
                 <MapPin className="size-4.5" />
             </span>
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-semibold text-ink">{a.site_name}</p>
+                    <p className="truncate text-sm font-semibold text-ink">
+                        {a.site_name}
+                    </p>
                     {a.is_active && (
                         <span className="shrink-0 rounded-full bg-motriks-soft px-2 py-0.5 text-[10px] font-semibold text-motriks-deep ring-1 ring-green-200/70">
                             Actif
@@ -255,10 +302,15 @@ function AffectationItem({ a, detailed = false }: { a: Affectation; detailed?: b
                 <p className="truncate text-xs text-slate-500">
                     {a.site_type}, {a.site_city}
                 </p>
-                {detailed && a.site_address && <p className="truncate text-xs text-slate-400">{a.site_address}</p>}
-                <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-400">
+                {detailed && a.site_address && (
+                    <p className="truncate text-xs text-slate-500">
+                        {a.site_address}
+                    </p>
+                )}
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
                     <span>
-                        {shortDate(a.starts_on)} → {a.ends_on ? shortDate(a.ends_on) : 'sans fin'}
+                        {formatShortDate(a.starts_on)} →{' '}
+                        {a.ends_on ? formatShortDate(a.ends_on) : 'sans fin'}
                     </span>
                     {(a.slot_start || a.slot_end) && (
                         <span className="inline-flex items-center gap-1">
@@ -272,7 +324,15 @@ function AffectationItem({ a, detailed = false }: { a: Affectation; detailed?: b
     );
 }
 
-function PresenceItem({ v, today, detailed = false }: { v: Visit; today: string; detailed?: boolean }) {
+function PresenceItem({
+    v,
+    today,
+    detailed = false,
+}: {
+    v: Visit;
+    today: string;
+    detailed?: boolean;
+}) {
     const d = new Date(v.date + 'T00:00:00');
     const isToday = v.date === today;
 
@@ -281,24 +341,52 @@ function PresenceItem({ v, today, detailed = false }: { v: Visit; today: string;
             <div
                 className={cn(
                     'flex size-11 shrink-0 flex-col items-center justify-center rounded-xl text-center',
-                    isToday ? 'bg-motriks text-white shadow-sm shadow-green-600/20' : 'bg-green-50 text-motriks-deep ring-1 ring-green-600/10 ring-inset',
+                    isToday
+                        ? 'bg-motriks text-white shadow-sm shadow-green-600/20'
+                        : 'bg-green-50 text-motriks-deep ring-1 ring-green-600/10 ring-inset',
                 )}
             >
-                <span className="text-sm leading-none font-bold">{String(d.getDate()).padStart(2, '0')}</span>
-                <span className={cn('mt-1 text-[10px] leading-none capitalize', isToday ? 'text-green-100' : 'text-slate-400')}>
-                    {d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '')}
+                <span className="text-sm leading-none font-bold">
+                    {String(d.getDate()).padStart(2, '0')}
+                </span>
+                <span
+                    className={cn(
+                        'mt-1 text-[10px] leading-none capitalize',
+                        isToday ? 'text-green-100' : 'text-slate-500',
+                    )}
+                >
+                    {d
+                        .toLocaleDateString('fr-FR', { weekday: 'short' })
+                        .replace('.', '')}
                 </span>
             </div>
             <div className="min-w-0 flex-1">
-                {detailed && <p className="truncate text-sm font-semibold text-ink capitalize">{longDate(v.date)}</p>}
-                <p className={cn('truncate tabular-nums', detailed ? 'text-xs text-slate-500' : 'text-sm font-medium text-ink')}>
+                {detailed && (
+                    <p className="truncate text-sm font-semibold text-ink capitalize">
+                        {longDate(v.date)}
+                    </p>
+                )}
+                <p
+                    className={cn(
+                        'truncate tabular-nums',
+                        detailed
+                            ? 'text-xs text-slate-500'
+                            : 'text-sm font-medium text-ink',
+                    )}
+                >
                     {v.checked_in_at}
                     {v.checked_out_at && ` → ${v.checked_out_at}`}
                 </p>
-                {v.status === 'in_progress' && <p className="text-xs font-semibold text-motriks-deep">En cours</p>}
+                {v.status === 'in_progress' && (
+                    <p className="text-xs font-semibold text-motriks-deep">
+                        En cours
+                    </p>
+                )}
             </div>
             {v.duration_minutes ? (
-                <p className="shrink-0 text-sm font-semibold text-ink tabular-nums">{formatDuration(v.duration_minutes)}</p>
+                <p className="shrink-0 text-sm font-semibold text-ink tabular-nums">
+                    {formatDuration(v.duration_minutes)}
+                </p>
             ) : null}
         </li>
     );
@@ -324,16 +412,27 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
     const [period, setPeriod] = useState<Period>('month');
     const [calYear, setCalYear] = useState(now.getFullYear());
     const [calMonth, setCalMonth] = useState(now.getMonth());
-    const [modal, setModal] = useState<'affectations' | 'presences' | null>(null);
+    const [modal, setModal] = useState<'affectations' | 'presences' | null>(
+        null,
+    );
 
     const current = stats[period];
-    const today = localISO();
-    const avg = current.visits > 0 ? Math.round(current.total_minutes / current.visits) : 0;
-    const isCurrentMonth = calYear === now.getFullYear() && calMonth === now.getMonth();
+    const today = localISODate();
+    const avg =
+        current.visits > 0
+            ? Math.round(current.total_minutes / current.visits)
+            : 0;
+    const isCurrentMonth =
+        calYear === now.getFullYear() && calMonth === now.getMonth();
 
     // Affectations : l'active d'abord, puis les plus récentes
     const sortedAffectations = useMemo(
-        () => [...upcoming].sort((a, b) => Number(b.is_active) - Number(a.is_active) || b.starts_on.localeCompare(a.starts_on)),
+        () =>
+            [...upcoming].sort(
+                (a, b) =>
+                    Number(b.is_active) - Number(a.is_active) ||
+                    b.starts_on.localeCompare(a.starts_on),
+            ),
         [upcoming],
     );
     const recentAffectations = sortedAffectations.slice(0, 2);
@@ -349,9 +448,16 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
         <>
             <Head title="Mon planning" />
 
-            <Page title="Mon planning" description="Présence, affectations et historique">
+            <Page
+                title="Mon planning"
+                description="Présence, affectations et historique"
+            >
                 <div className="flex flex-col gap-4">
-                    <div role="tablist" aria-label="Période" className="inline-flex w-fit gap-1 rounded-2xl bg-slate-100/80 p-1">
+                    <div
+                        role="tablist"
+                        aria-label="Période"
+                        className="inline-flex w-fit gap-1 rounded-2xl bg-slate-100/80 p-1"
+                    >
                         {(['week', 'month', 'year'] as const).map((p) => (
                             <button
                                 key={p}
@@ -361,10 +467,16 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                 onClick={() => setPeriod(p)}
                                 className={cn(
                                     'h-8 rounded-xl px-4 text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
-                                    period === p ? 'bg-white text-ink shadow-sm ring-1 ring-black/5' : 'text-slate-500 hover:text-ink',
+                                    period === p
+                                        ? 'bg-white text-ink shadow-sm ring-1 ring-black/5'
+                                        : 'text-slate-500 hover:text-ink',
                                 )}
                             >
-                                {p === 'week' ? 'Semaine' : p === 'month' ? 'Mois' : 'Année'}
+                                {p === 'week'
+                                    ? 'Semaine'
+                                    : p === 'month'
+                                      ? 'Mois'
+                                      : 'Année'}
                             </button>
                         ))}
                     </div>
@@ -375,17 +487,34 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                 label: 'Jours travaillés',
                                 value: current.visits,
                                 sub: periodLabel[period],
-                                live: visits.some((v) => v.date === today && v.status === 'in_progress'),
+                                live: visits.some(
+                                    (v) =>
+                                        v.date === today &&
+                                        v.status === 'in_progress',
+                                ),
                             },
                             {
                                 label: 'Temps total',
-                                value: current.total_minutes > 0 ? formatDuration(current.total_minutes) : '–',
-                                sub: avg > 0 ? `environ ${formatDuration(avg)} par jour` : 'aucune visite',
+                                value:
+                                    current.total_minutes > 0
+                                        ? formatDuration(current.total_minutes)
+                                        : '–',
+                                sub:
+                                    avg > 0
+                                        ? `environ ${formatDuration(avg)} par jour`
+                                        : 'aucune visite',
                             },
-                            { label: 'Rapports soumis', value: current.reports, sub: periodLabel[period] },
+                            {
+                                label: 'Rapports soumis',
+                                value: current.reports,
+                                sub: periodLabel[period],
+                            },
                             {
                                 label: 'Taux de rapport',
-                                value: current.visits > 0 ? `${Math.round((current.reports / current.visits) * 100)}%` : '–',
+                                value:
+                                    current.visits > 0
+                                        ? `${Math.round((current.reports / current.visits) * 100)}%`
+                                        : '–',
                                 sub: 'visites avec rapport',
                             },
                         ]}
@@ -407,10 +536,20 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                         />
 
                         <div className="flex flex-col gap-4">
-                            <section className={cn(card, 'flex flex-1 flex-col gap-4 p-5')}>
-                                <h2 className="text-sm font-semibold text-ink">Mes affectations</h2>
+                            <section
+                                className={cn(
+                                    card,
+                                    'flex flex-1 flex-col gap-4 p-5',
+                                )}
+                            >
+                                <h2 className="text-sm font-semibold text-ink">
+                                    Mes affectations
+                                </h2>
                                 {recentAffectations.length === 0 ? (
-                                    <p className="text-sm text-slate-400">Votre responsable vous assignera bientôt un site.</p>
+                                    <p className="text-sm text-slate-500">
+                                        Votre responsable vous assignera bientôt
+                                        un site.
+                                    </p>
                                 ) : (
                                     <ul className="flex flex-col gap-4">
                                         {recentAffectations.map((a) => (
@@ -419,12 +558,22 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                     </ul>
                                 )}
                                 {sortedAffectations.length > 2 && (
-                                    <SeeAll count={sortedAffectations.length} onClick={() => setModal('affectations')} />
+                                    <SeeAll
+                                        count={sortedAffectations.length}
+                                        onClick={() => setModal('affectations')}
+                                    />
                                 )}
                             </section>
 
-                            <section className={cn(card, 'flex flex-1 flex-col gap-4 p-5')}>
-                                <h2 className="text-sm font-semibold text-ink">Dernières présences</h2>
+                            <section
+                                className={cn(
+                                    card,
+                                    'flex flex-1 flex-col gap-4 p-5',
+                                )}
+                            >
+                                <h2 className="text-sm font-semibold text-ink">
+                                    Dernières présences
+                                </h2>
                                 {recentVisits.length === 0 ? (
                                     <EmptyState
                                         icon={CalendarRange}
@@ -434,11 +583,20 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                                 ) : (
                                     <ul className="flex flex-col gap-4">
                                         {recentVisits.map((v) => (
-                                            <PresenceItem key={v.id} v={v} today={today} />
+                                            <PresenceItem
+                                                key={v.id}
+                                                v={v}
+                                                today={today}
+                                            />
                                         ))}
                                     </ul>
                                 )}
-                                {visits.length > 2 && <SeeAll count={visits.length} onClick={() => setModal('presences')} />}
+                                {visits.length > 2 && (
+                                    <SeeAll
+                                        count={visits.length}
+                                        onClick={() => setModal('presences')}
+                                    />
+                                )}
                             </section>
                         </div>
                     </div>
@@ -469,7 +627,12 @@ export default function TerrainPlanning({ upcoming, visits, stats }: Props) {
                 >
                     <ul className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 pt-3 pb-6">
                         {visits.map((v) => (
-                            <PresenceItem key={v.id} v={v} today={today} detailed />
+                            <PresenceItem
+                                key={v.id}
+                                v={v}
+                                today={today}
+                                detailed
+                            />
                         ))}
                     </ul>
                 </Modal>

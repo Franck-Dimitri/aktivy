@@ -36,6 +36,10 @@ class OfflineModeTest extends TestCase
     {
         parent::setUp();
 
+        // 20 h : les heures « il y a 2, 4 ou 8 heures » restent le même jour (prise de service hors ligne
+        // acceptée le jour même seulement), quelle que soit l'heure à laquelle les tests tournent
+        $this->travelTo(now()->setTime(20, 0));
+
         $this->withoutVite();
         $this->manager = User::factory()->create();
         $this->agent = User::factory()->fieldAgent()->create(['company_id' => $this->manager->company_id]);
@@ -98,6 +102,24 @@ class OfflineModeTest extends TestCase
         $this->checkin((string) Str::uuid(), now()->subHours(49)->toIso8601String())->assertStatus(422)->assertJsonValidationErrors('checked_in_at');
 
         $this->assertSame(0, Visit::count());
+    }
+
+    public function test_an_offline_check_in_is_only_accepted_the_same_day()
+    {
+        // Journée de la veille déclarée après coup : refusée, même dans les 48 h
+        $this->checkin((string) Str::uuid(), now()->subDay()->setTime(8, 0)->toIso8601String())
+            ->assertStatus(422)->assertJsonValidationErrors('checked_in_at');
+
+        $this->assertSame(0, Visit::count());
+    }
+
+    public function test_a_check_in_received_late_is_flagged_to_the_manager()
+    {
+        $this->checkin((string) Str::uuid(), now()->subHours(3)->toIso8601String())->assertOk();
+
+        // Le titre signale d'abord l'absence de position ; le texte, l'heure de réception à vérifier
+        $bodies = $this->manager->fresh()->notifications->pluck('data.body')->implode(' | ');
+        $this->assertStringContainsString('heure donnée par le téléphone, à vérifier', $bodies);
     }
 
     public function test_the_report_typed_offline_finds_its_lines_by_product_and_keeps_the_phone_time()

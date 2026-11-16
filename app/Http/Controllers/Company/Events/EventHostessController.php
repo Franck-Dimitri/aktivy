@@ -39,7 +39,9 @@ class EventHostessController extends Controller
     private function storeExisting(Request $request, Event $event): RedirectResponse
     {
         $data = $request->validate([
-            'user_id'       => ['required', 'integer', "exists:users,id,company_id,{$event->company_id}"],
+            // Une hôtesse active de l'entreprise : ni un superviseur (l'affectation d'événement lui ouvrirait
+            // d'autres sites), ni un compte supprimé
+            'user_id'       => ['required', 'integer', "exists:users,id,company_id,{$event->company_id},role,field_agent,deleted_at,NULL"],
             'event_site_id' => ['nullable', 'integer', "exists:event_sites,id,event_id,{$event->id}"],
         ]);
 

@@ -21,8 +21,8 @@ class EnsureAccountIsActive
             return $next($request);
         }
 
-        // Super-admin bypass
-        if ($user->role === Role::SuperAdmin) {
+        // Super administrateur : pas d'entreprise à contrôler, mais un compte suspendu reste suspendu
+        if ($user->role === Role::SuperAdmin && $user->isActive()) {
             return $next($request);
         }
 

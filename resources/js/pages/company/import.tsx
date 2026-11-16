@@ -47,7 +47,7 @@ function ImportCard({ item }: { item: ImportType }) {
                 </p>
 
                 {item.type === 'personnel' && (
-                    <Field label="Mot de passe provisoire des comptes créés" htmlFor={`pwd-${item.type}`} error={errors.password} hint="chacun le change à sa première connexion">
+                    <Field label="Mot de passe provisoire des comptes créés" htmlFor={`pwd-${item.type}`} error={errors.password} hint="8 caractères au moins ; chacun le change à sa première connexion">
                         <TextInput id={`pwd-${item.type}`} value={data.password} onChange={(e) => setData('password', e.target.value)} error={errors.password} autoComplete="new-password" />
                     </Field>
                 )}

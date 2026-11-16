@@ -348,5 +348,8 @@ class AffectationController extends Controller
     {
         abort_if($affectation->company_id !== $request->user()->company_id, 403);
         abort_unless($request->user()->managesSite($affectation->site_id), 403);
+        // La personne affectée doit aussi être de celles qu'il gère : un superviseur ne touche qu'aux
+        // affectations d'hôtesses, pas à celle d'un collègue superviseur sur un site qu'ils partagent
+        abort_unless($this->staff($request)->whereKey($affectation->user_id)->exists(), 403);
     }
 }

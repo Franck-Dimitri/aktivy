@@ -116,7 +116,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('sites/{site}/inventory/{inventory}/reassort', [SiteInventoryController::class, 'restock'])->middleware(EnsureModuleIsActive::using(Module::Stocks))->name('sites.inventory.restock');
 
             Route::resource('personnel', PersonnelController::class);
-            Route::post('personnel/{personnel}/documents', [PersonnelDocumentController::class, 'store'])->name('personnel.documents.store');
+            Route::post('personnel/{personnel}/documents', [PersonnelDocumentController::class, 'store'])->middleware('throttle:30,1')->name('personnel.documents.store');
             Route::get('personnel/{personnel}/documents/{document}', [PersonnelDocumentController::class, 'show'])->name('personnel.documents.show');
             Route::delete('personnel/{personnel}/documents/{document}', [PersonnelDocumentController::class, 'destroy'])->name('personnel.documents.destroy');
 

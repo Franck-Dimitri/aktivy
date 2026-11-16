@@ -192,7 +192,13 @@ class DailyReportController extends Controller
 
         [$submittedAt, $offline] = OfflineTime::resolve($validated['submitted_at'] ?? null, 'submitted_at', $visit->checked_in_at);
 
-        DB::transaction(function () use ($report, $validated, $request, $submittedAt, $offline) {
+        $already = DB::transaction(function () use ($report, $validated, $request, $submittedAt, $offline) {
+            // Deux envois simultanés (renvoi sur réseau lent, double toucher) : le second attend le premier
+            // sur ce verrou, puis voit le rapport soumis. Sans lui, les ventes sortaient deux fois du stock.
+            if (DailyReport::whereKey($report->id)->lockForUpdate()->value('status') === 'submitted') {
+                return true;
+            }
+
             $report->update([
                 'notes'          => $validated['notes'] ?? null,
                 'incident_notes' => $validated['incident_notes'] ?? null,
@@ -218,7 +224,19 @@ class DailyReportController extends Controller
             if (Incident::meaningful($report->incident_notes) !== null) {
                 $this->notifyIncident($report);
             }
+
+            return false;
         });
+
+        if ($already) {
+            if ($request->boolean('queued')) {
+                HandleBackgroundSync::done($request);
+
+                return redirect()->route('terrain.home');
+            }
+
+            abort(422, 'Ce rapport a déjà été soumis.');
+        }
 
         // Rapport envoyé : les responsables du site en sont prévenus ; objectif peut-être atteint
         $report->load(['agent', 'site:id,name', 'lines', 'externalLines']);
@@ -286,7 +304,7 @@ class DailyReportController extends Controller
             'lines.*.site_product_id' => ['nullable', 'integer'],
             'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
             'lines.*.notes'       => ['nullable', 'string', 'max:500'],
-            'lines.*.counted_stock' => ['nullable', 'integer', 'min:0'],
+            'lines.*.counted_stock' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'lines.*.gap_reason'  => ['nullable', 'string', 'max:300'],
             'packs'               => ['nullable', 'array'],
             'packs.*.id'          => ['required', 'integer'],

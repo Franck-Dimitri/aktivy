@@ -86,7 +86,7 @@ class CompanyImport
         }
 
         if (count($rows) > self::MAX_ROWS) {
-            $this->errors[] = 'Le fichier contient '.count($rows).' lignes : '.self::MAX_ROWS.' au maximum par import.';
+            $this->errors[] = 'Le fichier contient plus de '.self::MAX_ROWS.' lignes : '.self::MAX_ROWS.' au maximum par import.';
 
             return false;
         }

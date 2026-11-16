@@ -17,7 +17,7 @@ class ProvisionalPasswordAndVerificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_a_manager_gives_any_provisional_password_to_a_new_member()
+    public function test_a_manager_gives_a_simple_provisional_password_of_8_characters_to_a_new_member()
     {
         $manager = User::factory()->create();
 
@@ -25,13 +25,14 @@ class ProvisionalPasswordAndVerificationTest extends TestCase
             'name' => 'Awa',
             'phone' => '690000011',
             'role' => Role::FieldAgent->value,
-            'password' => '12345',
-            'password_confirmation' => '12345',
+            // Facile à dicter, sans autre règle que la longueur
+            'password' => '12345678',
+            'password_confirmation' => '12345678',
         ])->assertSessionHasNoErrors();
 
         $member = User::where('name', 'Awa')->firstOrFail();
         $this->assertTrue($member->must_change_password);
-        $this->assertTrue(Hash::check('12345', $member->password));
+        $this->assertTrue(Hash::check('12345678', $member->password));
     }
 
     public function test_the_member_replaces_the_provisional_password_with_8_characters_upper_lower_and_digit()

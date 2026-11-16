@@ -123,7 +123,9 @@ async function updateBadge() {
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const target = new URL(event.notification.data?.url || '/app', self.location.origin).href;
+    // Jamais vers un autre site : une adresse d'un autre domaine ouvre l'application
+    const asked = new URL(event.notification.data?.url || '/app', self.location.origin);
+    const target = asked.origin === self.location.origin ? asked.href : new URL('/app', self.location.origin).href;
 
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
@@ -178,7 +180,7 @@ self.addEventListener('fetch', (event) => {
  */
 async function launch(request) {
     const kept = await (await caches.open(PAGES)).match('/terrain');
-    const network = fetch(request);
+    const network = fetch(request).then(forgetIfSignedOut);
 
     if (!kept) {
         return network.catch(() => caches.match(OFFLINE_PAGE));
@@ -193,6 +195,18 @@ async function launch(request) {
     } catch {
         return kept;
     }
+}
+
+/**
+ * Le serveur renvoie vers la connexion (session expirée, compte suspendu) : les pages gardées hors ligne
+ * ne doivent plus s'ouvrir sans lui, surtout sur un téléphone partagé où quelqu'un d'autre va se connecter.
+ */
+function forgetIfSignedOut(response) {
+    if (response.redirected && new URL(response.url).pathname === '/login') {
+        caches.delete(PAGES);
+    }
+
+    return response;
 }
 
 /**
@@ -230,7 +244,7 @@ async function networkFirst(request, url, isInertia) {
     // Une même adresse existe en page complète et en réponse Inertia : deux entrées distinctes
     const key = isInertia ? `${url.pathname}${url.search}#inertia`.replace('#', url.search ? '&_i=' : '?_i=') : `${url.pathname}${url.search}`;
 
-    const network = fetch(request).then((response) => {
+    const network = fetch(request).then(forgetIfSignedOut).then((response) => {
         // Une redirection (session expirée vers la connexion) n'est pas la page demandée
         if (response.ok && !response.redirected && response.type === 'basic') {
             cache.put(key, response.clone());

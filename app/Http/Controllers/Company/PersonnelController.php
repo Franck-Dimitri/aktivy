@@ -111,16 +111,21 @@ class PersonnelController extends Controller
     {
         $this->authorizeCompany($request, $personnel);
 
+        // Superviseur : seulement ce qui s'est passé sur ses sites (l'hôtesse a pu travailler ailleurs)
+        $siteIds = $request->user()->managedSiteIds();
+        $visits = fn () => $personnel->visits()->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds));
+
         // Performance stats
         $stats = [
-            'total_visits'    => $personnel->visits()->count(),
-            'visits_30d'      => $personnel->visits()->where('checked_in_at', '>=', now()->subDays(30))->count(),
-            'avg_duration'    => (int) $personnel->visits()->whereNotNull('duration_minutes')->avg('duration_minutes'),
-            'completed_visits'=> $personnel->visits()->where('status', 'completed')->count(),
+            'total_visits'    => $visits()->count(),
+            'visits_30d'      => $visits()->where('checked_in_at', '>=', now()->subDays(30))->count(),
+            'avg_duration'    => (int) $visits()->whereNotNull('duration_minutes')->avg('duration_minutes'),
+            'completed_visits'=> $visits()->where('status', 'completed')->count(),
         ];
 
         // Current affectations with site info
         $affectations = $personnel->affectations()
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds))
             ->with('site:id,uuid,name,city,type')
             ->where('status', 'active')
             ->orderBy('starts_on')
@@ -141,7 +146,7 @@ class PersonnelController extends Controller
             ]);
 
         // Recent visits with site
-        $recentVisits = $personnel->visits()
+        $recentVisits = $visits()
             ->with('site:id,name')
             ->latest('checked_in_at')
             ->limit(10)

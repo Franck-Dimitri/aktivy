@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\HandleBackgroundSync;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\TrackPageView;
 use App\Support\HttpErrors;
 use Illuminate\Foundation\Application;
@@ -28,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'motriks_appareil']);
 
         $middleware->redirectUsersTo(fn (Request $request) => $request->user()->homeUrl());
+
+        // Toutes les réponses (pages, fichiers, erreurs) : cadre interdit aux autres sites, nosniff, HSTS…
+        $middleware->append(SecurityHeaders::class);
 
         $middleware->web(append: [
             EnsureAccountIsActive::class,

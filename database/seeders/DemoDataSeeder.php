@@ -50,7 +50,9 @@ class DemoDataSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->isProduction()) {
+        // Liste blanche : un serveur de recette (« staging ») accessible depuis Internet aurait sinon des
+        // comptes au mot de passe connu de tous, dont un super administrateur
+        if (! app()->environment('local', 'testing')) {
             return;
         }
 

@@ -73,7 +73,7 @@ class ImportController extends Controller
         $import = new CompanyImport($request->user()->company, $type, $request->user(), $request->input('password'));
 
         try {
-            $ok = $import->run(Spreadsheet::rows($file->getRealPath(), $file->getClientOriginalExtension() ?: 'csv'));
+            $ok = $import->run(Spreadsheet::rows($file->getRealPath(), $file->getClientOriginalExtension() ?: 'csv', CompanyImport::MAX_ROWS));
         } catch (\Throwable $e) {
             report($e);
             $ok = false;

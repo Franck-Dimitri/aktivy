@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\AccountStatus;
 use App\Enums\Role;
+use App\Http\Controllers\Auth\InvitationController;
 use App\Models\Company;
 use App\Models\User;
 use App\Notifications\CompanyInvitation;
@@ -123,7 +124,7 @@ class AdminPlatformTest extends TestCase
         $manager = User::where('email', 'paul@kalis.cm')->firstOrFail();
         auth()->logout();
 
-        $url = URL::temporarySignedRoute('invitation.accept', now()->addDays(7), ['user' => $manager->uuid]);
+        $url = URL::temporarySignedRoute('invitation.accept', now()->addDays(7), ['user' => $manager->uuid, 'cle' => InvitationController::emailKey($manager)]);
 
         $response = $this->get($url);
         $response->assertRedirect();
@@ -150,6 +151,18 @@ class AdminPlatformTest extends TestCase
 
         $this->get(route('invitation.accept', $manager))->assertForbidden();
         $this->get(URL::temporarySignedRoute('invitation.accept', now()->subMinute(), ['user' => $manager->uuid]))->assertForbidden();
+    }
+
+    public function test_an_invitation_sent_to_a_corrected_address_no_longer_works()
+    {
+        $manager = User::factory()->mustChangePassword()->create(['email' => 'erreur@kalis.cm', 'email_verified_at' => null]);
+        $oldLink = URL::temporarySignedRoute('invitation.accept', now()->addDays(7), ['user' => $manager->uuid, 'cle' => InvitationController::emailKey($manager)]);
+
+        // L'adresse est corrigée : le lien parti vers l'ancienne ne confirme pas la nouvelle
+        $manager->update(['email' => 'paul@kalis.cm']);
+
+        $this->get($oldLink)->assertRedirect(route('login'));
+        $this->assertNull($manager->fresh()->email_verified_at);
     }
 
     public function test_the_company_page_shows_its_manager_and_can_be_corrected()

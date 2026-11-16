@@ -72,7 +72,7 @@ function AddHostessModal({ event, available, onClose }: { event: EventData; avai
                                     <TextInput id="h-phone" type="tel" icon={Phone} value={data.phone} onChange={(e) => setData('phone', e.target.value)} placeholder="6XX XX XX XX" error={errors.phone} maxLength={25} />
                                 </Field>
                             </div>
-                            <Field label="Mot de passe provisoire" htmlFor="h-password" required error={errors.password} hint="à changer à la première connexion">
+                            <Field label="Mot de passe provisoire" htmlFor="h-password" required error={errors.password} hint="8 caractères au moins, à changer à la première connexion">
                                 <TextInput id="h-password" type="text" autoComplete="off" icon={KeyRound} value={data.password} onChange={(e) => setData('password', e.target.value)} placeholder="Provisoire, ex. 12345 : elle le changera" error={errors.password} className="font-mono" />
                             </Field>
                             <p className="text-xs leading-relaxed text-slate-500">Elle se connecte avec son numéro de téléphone et ce mot de passe. Communiquez-le-lui directement.</p>

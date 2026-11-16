@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Support\CheckinPlace;
 use App\Support\Pdf\PdfDocument;
+use App\Support\Terrain\OfflineTime;
 
 /**
  * Notifications « temps réel » : envoyées au moment de l'action, sous la cloche et en push.
@@ -56,16 +57,25 @@ class LiveNotification extends TextNotification
     {
         $place = CheckinPlace::describe($visit, $visit->site, $visit->isOffSite() ? CheckinPlace::companySites($visit->company_id) : null);
 
+        // Pointage fait hors ligne et reçu nettement plus tard : l'heure vient du téléphone, le responsable
+        // est invité à la vérifier (une heure d'arrivée peut être avancée en coupant le réseau)
+        $deferred = $visit->checkin_synced_at !== null
+            && $visit->checked_in_at->diffInMinutes($visit->checkin_synced_at) > OfflineTime::DEFERRED_MINUTES;
+
         $title = match ($place['state']) {
             'other_site', 'off_site' => "{$hostess->name} a pris son service hors de son point de vente",
             'unknown' => "{$hostess->name} a pris son service sans partager sa position",
-            default => "{$hostess->name} a pris son service",
+            default => $deferred
+                ? "{$hostess->name} a pris son service (pointage envoyé en différé)"
+                : "{$hostess->name} a pris son service",
         };
 
-        return new self('shift_started', 'presence',
-            $title,
-            "{$visit->site?->name} · arrivée à {$visit->checked_in_at->format('H:i')} · {$place['short']}.",
-            'activity.index');
+        $body = "{$visit->site?->name} · arrivée à {$visit->checked_in_at->format('H:i')} · {$place['short']}.";
+        if ($deferred) {
+            $body .= " Pointage reçu à {$visit->checkin_synced_at->format('H:i')} : heure donnée par le téléphone, à vérifier.";
+        }
+
+        return new self('shift_started', 'presence', $title, $body, 'activity.index');
     }
 
     public static function shiftEnded(Visit $visit, User $hostess): self

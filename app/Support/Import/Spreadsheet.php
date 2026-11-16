@@ -13,9 +13,12 @@ use OpenSpout\Reader\XLSX\Reader as XlsxReader;
 class Spreadsheet
 {
     /**
+     * Lecture arrêtée après $limit lignes de données (+1, pour savoir qu'il y en a trop) : un petit fichier
+     * très compressé peut contenir des millions de lignes, qui saturaient la mémoire avant tout contrôle.
+     *
      * @return array<int, array<string, string>> lignes indexées par leur numéro dans le fichier
      */
-    public static function rows(string $path, string $extension): array
+    public static function rows(string $path, string $extension, int $limit = 5000): array
     {
         $reader = strtolower($extension) === 'xlsx' ? new XlsxReader : new CsvReader(self::csvOptions($path));
         $reader->open($path);
@@ -41,6 +44,10 @@ class Spreadsheet
                 }
 
                 $rows[$number] = array_combine($headers, array_pad(array_slice($values, 0, count($headers)), count($headers), ''));
+
+                if (count($rows) > $limit) {
+                    break;
+                }
             }
 
             break; // première feuille seulement

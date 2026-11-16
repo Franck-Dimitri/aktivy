@@ -123,7 +123,7 @@ class PlanTest extends TestCase
     {
         return [
             'name' => 'Nouveau', 'phone' => $phone, 'role' => $role,
-            'password' => '12345', 'password_confirmation' => '12345',
+            'password' => '12345678', 'password_confirmation' => '12345678',
         ];
     }
 

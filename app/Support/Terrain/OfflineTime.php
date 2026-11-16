@@ -11,6 +11,11 @@ use Illuminate\Validation\ValidationException;
  * Heure d'une action faite sans réseau (pointage, fin de service, envoi du rapport) : celle du
  * téléphone, envoyée avec l'action au retour du réseau. Elle est bornée pour rester crédible :
  * ni dans le futur (au-delà d'un petit décalage d'horloge), ni plus vieille que la limite donnée.
+ *
+ * La prise de service hors ligne n'est acceptée que le jour même (sameDay) : l'heure vient du
+ * téléphone, une journée entière (ou une arrivée avancée de la veille) ne doit pas pouvoir être
+ * déclarée après coup. Un écart notable avec l'heure de réception est signalé au responsable
+ * (LiveNotification::shiftStarted, DEFERRED_MINUTES).
  */
 final class OfflineTime
 {
@@ -20,12 +25,15 @@ final class OfflineTime
     /** Au-delà, une action hors ligne n'est plus acceptée. */
     public const MAX_AGE_HOURS = 48;
 
+    /** Au-delà de cet écart entre l'heure déclarée et la réception, le responsable est prévenu. */
+    public const DEFERRED_MINUTES = 15;
+
     /**
      * @param  string|null  $value  heure envoyée par le téléphone (ISO 8601), null pour une action en direct
      * @param  CarbonInterface|null  $notBefore  heure plancher (ex. la prise de service, pour la fin de service)
      * @return array{0: Carbon, 1: bool} l'heure retenue, et si l'action a été faite hors ligne
      */
-    public static function resolve(?string $value, string $field, ?CarbonInterface $notBefore = null): array
+    public static function resolve(?string $value, string $field, ?CarbonInterface $notBefore = null, bool $sameDay = false): array
     {
         if ($value === null || $value === '') {
             return [now(), false];
@@ -36,6 +44,12 @@ final class OfflineTime
         if ($at->greaterThan(now()->addMinutes(self::CLOCK_SKEW_MINUTES))) {
             throw ValidationException::withMessages([
                 $field => 'L’heure du téléphone est en avance : vérifiez la date et l’heure du téléphone.',
+            ]);
+        }
+
+        if ($sameDay && ! $at->isSameDay(now())) {
+            throw ValidationException::withMessages([
+                $field => 'Ce pointage date d’un autre jour : il ne peut plus être envoyé. Prévenez votre responsable.',
             ]);
         }
 

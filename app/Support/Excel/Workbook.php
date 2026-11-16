@@ -4,6 +4,7 @@ namespace App\Support\Excel;
 
 use DateTimeInterface;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Cell\StringCell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Color;
 use OpenSpout\Common\Entity\Style\Style;
@@ -74,7 +75,10 @@ class Workbook
 
         // Lignes d'introduction éventuelles (titre, période…), avant le tableau
         foreach ($intro as $line) {
-            $this->writer->addRow(Row::fromValues((array) $line));
+            $this->writer->addRow(new Row(array_map(
+                fn (mixed $value) => is_string($value) ? new StringCell($value, null) : Cell::fromValue($value),
+                array_values((array) $line),
+            )));
         }
 
         $headerRow = count($intro) + 1;
@@ -125,7 +129,10 @@ class Workbook
                 $value instanceof DateTimeInterface ? $value : new \DateTimeImmutable((string) $value),
                 $this->styles[$type],
             ),
-            default => Cell::fromValue(is_scalar($value) ? (string) $value : json_encode($value, JSON_UNESCAPED_UNICODE)),
+            // Toujours du texte : avec Cell::fromValue, un texte commençant par « = » devenait une vraie formule
+            // dans le fichier. Une hôtesse pouvait glisser =HYPERLINK(…) dans une remarque, et des données
+            // partaient du classeur quand le gérant l'ouvrait et cliquait.
+            default => new StringCell(is_scalar($value) ? (string) $value : (string) json_encode($value, JSON_UNESCAPED_UNICODE), null),
         };
     }
 }

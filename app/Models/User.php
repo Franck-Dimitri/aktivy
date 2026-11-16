@@ -62,10 +62,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
     /**
      * Mot de passe provisoire donné par un gérant (membre du personnel, hôtesse d'événement, import) :
-     * libre, même « 12345 ». Le compte est créé avec must_change_password, et la personne choisit
-     * un vrai mot de passe (règles Password::defaults()) à sa première connexion.
+     * 8 caractères au moins, sans autre contrainte (facile à dicter). Le compte est créé avec
+     * must_change_password, et la personne choisit un vrai mot de passe (règles Password::defaults())
+     * à sa première connexion. Plus court, « 1234 » se devinait en quelques essais : le compte
+     * de l'hôtesse pouvait être pris avant qu'elle ne s'y connecte.
      */
-    public const PROVISIONAL_PASSWORD_RULES = ['string', 'min:4', 'max:255'];
+    public const PROVISIONAL_PASSWORD_RULES = ['string', 'min:8', 'max:255'];
 
     /**
      * The model's default values for attributes.
@@ -258,10 +260,24 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
      */
     public function isManageableBy(User $viewer): bool
     {
-        return $this->company_id === $viewer->company_id
-            && $viewer->hasRole(Role::CompanyAdmin, Role::Supervisor)
-            && $this->hasRole(...self::manageableRolesFor($viewer))
-            && self::visibleTo($viewer)->whereKey($this->id)->exists();
+        if ($this->company_id !== $viewer->company_id
+            || ! $viewer->hasRole(Role::CompanyAdmin, Role::Supervisor)
+            || ! $this->hasRole(...self::manageableRolesFor($viewer))) {
+            return false;
+        }
+
+        $siteIds = $viewer->managedSiteIds();
+        if ($siteIds === null) {
+            return true;
+        }
+
+        // Superviseur : plus strict que la liste (visibleTo). Une hôtesse sans affectation en cours peut
+        // y figurer pour être affectée, mais sa fiche (téléphone, mot de passe, pièces d'identité,
+        // historique) n'est ouverte que si elle travaille sur un de ses sites, ou si elle n'a encore
+        // jamais été affectée nulle part (compte tout juste créé). Sinon, entre deux missions sur le site
+        // d'un autre superviseur, elle pouvait être modifiée, et son compte pris, par n'importe lequel.
+        return $this->affectations()->ongoing()->whereIn('site_id', $siteIds)->exists()
+            || ! $this->affectations()->exists();
     }
 
     public function documents(): HasMany

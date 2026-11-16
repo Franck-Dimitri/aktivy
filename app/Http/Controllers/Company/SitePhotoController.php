@@ -17,7 +17,7 @@ class SitePhotoController extends Controller
         abort_unless($request->user()->managesSite($site->id), 403);
 
         $request->validate([
-            'photo' => ['required', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
+            'photo' => ['required', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp', 'dimensions:max_width=8000,max_height=8000'],
         ]);
 
         $photos = $site->photos ?? [];

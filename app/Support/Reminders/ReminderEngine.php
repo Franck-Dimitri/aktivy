@@ -82,7 +82,11 @@ class ReminderEngine
         return $this->managers["{$companyId}:{$siteId}"] ??= Notify::siteManagers($companyId, [$siteId]);
     }
 
-    /** Envoie si ce cas n'a jamais été rappelé. */
+    /**
+     * Envoie si ce cas n'a jamais été rappelé.
+     *
+     * @param  iterable<User>|User  $to
+     */
     private function once(string $type, string $key, ?int $companyId, iterable|User $to, AppNotification $notification): bool
     {
         if (! ReminderLog::claim($type, $key, $companyId)) {
@@ -119,7 +123,7 @@ class ReminderEngine
         foreach ($affectations as $a) {
             $start = $s->at($now, $a->slot_start ?: $s->time('default_start'));
             $end = $s->at($now, $a->slot_end ?: $s->time('default_end'));
-            $site = $a->site?->name ?? 'votre point de vente';
+            $site = $a->site->name;
             $visit = $visits->get($a->user_id);
 
             if (! $visit) {
@@ -164,8 +168,12 @@ class ReminderEngine
                 ->where('status', 'draft')
                 ->with(['agent', 'site:id,name'])
                 ->get()
-                ->each(fn (DailyReport $r) => $r->agent && $this->once('report_not_sent', "report-not-sent:{$r->id}", $company->id, $r->agent,
-                    ReminderNotification::reportNotSent($r->site?->name ?? 'votre point de vente', $r->visit_id)));
+                // Sans « return » : each() s'arrête dès que la fonction renvoie false, et un rappel déjà
+                // envoyé (once() renvoie false) privait de leur rappel les hôtesses suivantes
+                ->each(function (DailyReport $r) use ($company) {
+                    $this->once('report_not_sent', "report-not-sent:{$r->id}", $company->id, $r->agent,
+                        ReminderNotification::reportNotSent($r->site->name, $r->visit_id));
+                });
         }
 
         if ($s->enabled('missing_reports') && $now->gte($s->at($now, $s->time('missing_reports_time')))) {

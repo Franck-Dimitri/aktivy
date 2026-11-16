@@ -31,7 +31,7 @@ final class OfflineTime
     /**
      * @param  string|null  $value  heure envoyée par le téléphone (ISO 8601), null pour une action en direct
      * @param  CarbonInterface|null  $notBefore  heure plancher (ex. la prise de service, pour la fin de service)
-     * @return array{0: Carbon, 1: bool} l'heure retenue, et si l'action a été faite hors ligne
+     * @return array{0: CarbonInterface, 1: bool} l'heure retenue, et si l'action a été faite hors ligne
      */
     public static function resolve(?string $value, string $field, ?CarbonInterface $notBefore = null, bool $sameDay = false): array
     {

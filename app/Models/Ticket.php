@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property-read Company $company
- * @property-read User $agent
+ * @property-read User|null $agent Null si le compte de l’hôtesse est supprimé
  * @property-read User|null $responder
  */
 #[Fillable(['company_id', 'user_id', 'subject', 'body', 'priority', 'status', 'response', 'responded_by', 'responded_at'])]
@@ -38,16 +38,25 @@ class Ticket extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function responder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responded_by');

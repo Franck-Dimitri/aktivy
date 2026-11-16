@@ -24,6 +24,9 @@ class SupportReplied extends Notification implements ShouldQueue
 
     public function __construct(public SupportRequest $request, public string $body) {}
 
+    /**
+     * @return list<string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];

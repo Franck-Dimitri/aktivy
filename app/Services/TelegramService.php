@@ -46,9 +46,16 @@ class TelegramService
             return false;
         }
 
+        $contents = file_get_contents($filePath);
+        if ($contents === false) {
+            $this->sendMessage($chatId, '❌ Fichier illisible : `'.basename($filePath).'`');
+
+            return false;
+        }
+
         try {
             $response = Http::timeout(120)
-                ->attach('document', file_get_contents($filePath), basename($filePath))
+                ->attach('document', $contents, basename($filePath))
                 ->post("{$this->apiBase}/sendDocument", [
                     'chat_id' => $chatId,
                     'caption' => $caption,
@@ -64,6 +71,9 @@ class TelegramService
         }
     }
 
+    /**
+     * @return array<string, mixed> réponse de l'API Telegram
+     */
     public function setWebhook(string $url, string $secret): array
     {
         return Http::post("{$this->apiBase}/setWebhook", [
@@ -73,6 +83,9 @@ class TelegramService
         ])->json();
     }
 
+    /**
+     * @return array<string, mixed> réponse de l'API Telegram
+     */
     public function deleteWebhook(): array
     {
         return Http::post("{$this->apiBase}/deleteWebhook")->json();

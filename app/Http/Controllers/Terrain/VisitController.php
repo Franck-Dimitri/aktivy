@@ -115,7 +115,9 @@ class VisitController extends Controller
         ]);
 
         // Snapshot : une ligne par produit du site avec son stock actuel
+        // Produits archivés exclus : leur ligne de stock reste sur le site, mais le produit n'est plus chargé
         $siteProducts = $affectation->site->siteProducts()
+            ->whereHas('product')
             ->with('product:id,name,unit,price')
             ->get();
 

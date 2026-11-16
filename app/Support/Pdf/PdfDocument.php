@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
  * Les documents suivent la présentation d'un document Word : Times New Roman 12 pt
  * (servie par Liberation Serif, de mêmes dimensions et sous licence libre), marges de 2,5 cm,
  * numérotation « Page X sur Y ».
+ *
+ * @phpstan-type PageNumberStyle array{font?: string, margin?: float, bottom?: float, size?: float, color?: array<int, float>, format?: string}
  */
 class PdfDocument
 {
@@ -24,6 +26,10 @@ class PdfDocument
     /** Marge gauche et droite, en points (2,5 cm). */
     private const SIDE_MARGIN_PT = 70.87;
 
+    /**
+     * @param  view-string  $view
+     * @param  array<string, mixed>  $data
+     */
     public static function download(string $view, array $data, string $filename): Response
     {
         return self::respond(self::render($view, $data), $filename);
@@ -43,6 +49,10 @@ class PdfDocument
     /**
      * Contenu du PDF. `$numberPages` : « Page X sur Y » ajoutée par le moteur (documents au gabarit
      * pdf/layout) ; un gabarit qui numérote lui-même ses pages (facture) passe false.
+     *
+     * @param  view-string  $view
+     * @param  array<string, mixed>  $data
+     * @param  bool|PageNumberStyle  $numberPages
      */
     public static function render(string $view, array $data, bool|array $numberPages = true): string
     {
@@ -79,10 +89,8 @@ class PdfDocument
 
     /**
      * « Page X sur Y » en bas à droite de chaque page, sur la ligne du pied de page.
-     */
-    /**
-     * @param  array{font?: string, margin?: float, bottom?: float, size?: float, color?: array<int, float>, format?: string}  $style
-     *                                                                                                                                 réglages d'un gabarit autre que pdf/layout (ex. la facture)
+     *
+     * @param  PageNumberStyle  $style  réglages d'un gabarit autre que pdf/layout (ex. la facture)
      */
     private static function numberPages(Dompdf $dompdf, array $style = []): void
     {

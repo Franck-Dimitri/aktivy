@@ -49,7 +49,7 @@ class CompanyDocuments
     {
         $disk = Storage::disk('local');
 
-        return array_values(array_map(function (string $type) use ($company, $url, $disk) {
+        return array_map(function (string $type) use ($company, $url, $disk) {
             [$column, $label] = self::TYPES[$type];
             $path = $company->{$column};
             $present = $path && $disk->exists($path);
@@ -62,7 +62,7 @@ class CompanyDocuments
                 'updated_at' => $present ? date('d/m/Y', $disk->lastModified($path)) : null,
                 'url' => $present ? $url($type) : null,
             ];
-        }, array_keys(self::TYPES)));
+        }, array_keys(self::TYPES));
     }
 
     /**

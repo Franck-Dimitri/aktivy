@@ -30,11 +30,17 @@ class EventPackLine extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<EventPack, $this>
+     */
     public function pack(): BelongsTo
     {
         return $this->belongsTo(EventPack::class, 'event_pack_id');
     }
 
+    /**
+     * @return BelongsTo<Product, $this>
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

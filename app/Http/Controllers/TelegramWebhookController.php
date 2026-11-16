@@ -107,9 +107,15 @@ class TelegramWebhookController extends Controller
 
         // Read last 200 lines, keep only ERROR / CRITICAL
         $handle = fopen($logPath, 'r');
+        if ($handle === false) {
+            $this->telegram->sendMessage($chatId, '📭 Fichier de log illisible.');
+
+            return;
+        }
+
         $lines = [];
-        while (! feof($handle)) {
-            $lines[] = fgets($handle);
+        while (($line = fgets($handle)) !== false) {
+            $lines[] = $line;
             if (count($lines) > 200) {
                 array_shift($lines);
             }

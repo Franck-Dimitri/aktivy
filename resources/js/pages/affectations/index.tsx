@@ -14,13 +14,7 @@ import {
     User,
     X,
 } from 'lucide-react';
-import {
-    useCallback,
-    useMemo,
-    useState,
-    type FormEvent,
-    type ReactNode,
-} from 'react';
+import { useCallback, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { SitePicker, siteError } from '@/components/affectations/site-picker';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
@@ -33,7 +27,9 @@ import {
     TextInput,
 } from '@/components/page/form-fields';
 import { Modal } from '@/components/page/modal';
+import { useListQuery } from '@/components/page/list-query';
 import { Page, Panel } from '@/components/page/page';
+import { Pagination, type Paginated } from '@/components/page/pagination';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { MetricStrip } from '@/components/page/surface';
 import {
@@ -70,8 +66,15 @@ type StatusOption = { value: string; label: string };
 type Item = AffectationListItem & { notes?: string | null };
 
 type Props = {
-    affectations: Item[];
-    stats: AffectationStats;
+    /** Page d'affectations déjà filtrée par le serveur (filtres de l'URL). */
+    affectations: Paginated<Item>;
+    /** Compteurs sur toutes les affectations visibles, pas seulement la page affichée. */
+    stats: AffectationStats & { cancelled: number };
+    filters: {
+        statut: Exclude<FilterStatus, 'all'> | null;
+        en_poste: boolean;
+        q: string;
+    };
     /** Optionnels : fournis par le correctif backend. Sans eux, « Modifier » ouvre l'ancienne page. */
     sites?: AffectationSelectOption[];
     staff?: AffectationSelectOption[];
@@ -837,13 +840,17 @@ function EditAffectationDialog({
 export default function AffectationsIndex({
     affectations,
     stats,
+    filters: applied,
     sites,
     staff,
     statuses,
 }: Props) {
-    const [filter, setFilter] = useState<FilterStatus>('all');
-    const [currentOnly, setCurrentOnly] = useState(false);
-    const [query, setQuery] = useState('');
+    // Filtres gardés dans l'URL et appliqués par le serveur : « Toutes » est la valeur par défaut
+    const list = useListQuery(affectationsIndex().url, applied);
+    const filter: FilterStatus = applied.statut ?? 'all';
+    const currentOnly = applied.en_poste;
+    const setFilter = (value: FilterStatus) =>
+        list.apply({ statut: value === 'all' ? null : value });
 
     // Fenêtre montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
     const [editing, setEditing] = useState<Item | null>(null);
@@ -888,37 +895,15 @@ export default function AffectationsIndex({
             `L'affectation de ${a.agent_name} a été supprimée.`,
     });
 
-    const cancelledCount = affectations.filter(
-        (a) => a.status === 'cancelled',
-    ).length;
+    const cancelledCount = stats.cancelled;
 
-    const filtered = useMemo(() => {
-        const q = query.trim().toLowerCase();
+    // Page déjà filtrée par le serveur (statut, « en poste » et recherche de l'URL)
+    const filtered = affectations.data;
 
-        return affectations.filter((a) => {
-            if (filter !== 'all' && a.status !== filter) return false;
-            if (currentOnly && !a.is_current) return false;
-            if (
-                q &&
-                !(
-                    a.agent_name.toLowerCase().includes(q) ||
-                    a.site_name.toLowerCase().includes(q) ||
-                    a.site_city.toLowerCase().includes(q)
-                )
-            ) {
-                return false;
-            }
-            return true;
-        });
-    }, [affectations, filter, currentOnly, query]);
+    const hasFilters =
+        filter !== 'all' || currentOnly || list.search.trim() !== '';
 
-    const hasFilters = filter !== 'all' || currentOnly || query.trim() !== '';
-
-    const resetFilters = () => {
-        setFilter('all');
-        setCurrentOnly(false);
-        setQuery('');
-    };
+    const resetFilters = () => list.reset({ statut: null, en_poste: null });
 
     const filters: { value: FilterStatus; label: string; count: number }[] = [
         { value: 'all', label: 'Toutes', count: stats.total },
@@ -944,7 +929,7 @@ export default function AffectationsIndex({
                 description="Qui travaille où et à quelle période."
                 actions={newButton('Nouvelle affectation')}
             >
-                {affectations.length === 0 ? (
+                {stats.total === 0 ? (
                     <Panel>
                         <EmptyState
                             icon={CalendarRange}
@@ -974,8 +959,10 @@ export default function AffectationsIndex({
                                 <TextInput
                                     icon={Search}
                                     type="search"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
+                                    value={list.search}
+                                    onChange={(e) =>
+                                        list.setSearch(e.target.value)
+                                    }
                                     placeholder="Rechercher un membre ou un site"
                                     aria-label="Rechercher une affectation"
                                 />
@@ -995,7 +982,11 @@ export default function AffectationsIndex({
 
                                 <button
                                     type="button"
-                                    onClick={() => setCurrentOnly((v) => !v)}
+                                    onClick={() =>
+                                        list.apply({
+                                            en_poste: currentOnly ? null : true,
+                                        })
+                                    }
                                     aria-pressed={currentOnly}
                                     className={cn(
                                         'inline-flex h-10 items-center gap-2 rounded-xl border px-3.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
@@ -1094,6 +1085,13 @@ export default function AffectationsIndex({
                                     />
                                 ))}
                             </div>
+                        )}
+
+                        {affectations.last_page > 1 && (
+                            <Pagination
+                                page={affectations}
+                                className="px-0 py-0"
+                            />
                         )}
                     </div>
                 )}

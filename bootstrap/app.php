@@ -24,7 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->validateCsrfTokens(except: ['telegram/webhook']);
+        // csp-rapport : envoyé par le navigateur lui-même, sans jeton
+        $middleware->validateCsrfTokens(except: ['telegram/webhook', 'csp-rapport']);
 
         // motriks_appareil : posé par l'application (lib/pwa.ts), lu à la déconnexion (ForgetPushDevice)
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'motriks_appareil']);

@@ -71,13 +71,7 @@ class HandleInertiaRequests extends Middleware
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
-     * @see https://inertiajs.com/shared-data
-     *
-     * @return array<string, mixed>
-     */
+    /** Compte sans point de vente : hôtesse sans affectation en cours, superviseur sans site. */
     private function hasNoSite(?User $user): bool
     {
         return match ($user?->role) {
@@ -87,6 +81,13 @@ class HandleInertiaRequests extends Middleware
         };
     }
 
+    /**
+     * Define the props that are shared by default.
+     *
+     * @see https://inertiajs.com/shared-data
+     *
+     * @return array<string, mixed>
+     */
     public function share(Request $request): array
     {
         return [
@@ -103,7 +104,7 @@ class HandleInertiaRequests extends Middleware
                 'company' => $request->user()?->company
                     ? [
                         ...$request->user()->company->only('id', 'name', 'logo_path', 'primary_color'),
-                        'status' => $request->user()->company->status?->value,
+                        'status' => $request->user()->company->status->value,
                     ]
                     : null,
                 'can' => fn () => [

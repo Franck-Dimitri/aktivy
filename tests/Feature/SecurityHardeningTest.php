@@ -66,9 +66,26 @@ class SecurityHardeningTest extends TestCase
         $response = $this->get(route('login'));
 
         $response->assertHeader('X-Frame-Options', 'SAMEORIGIN');
-        $response->assertHeader('Content-Security-Policy', "frame-ancestors 'self'");
+
+        // Politique de contenu : scripts de Motriks seulement, jeton du script en ligne, cadre interdit aux autres sites
+        $csp = (string) $response->headers->get('Content-Security-Policy');
+        $this->assertStringContainsString("frame-ancestors 'self'", $csp);
+        $this->assertMatchesRegularExpression("/script-src 'self' 'nonce-[A-Za-z0-9]+'/", $csp);
+        $this->assertStringContainsString("object-src 'none'", $csp);
+        $this->assertStringNotContainsString('unsafe-eval', $csp);
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    }
+
+    public function test_files_are_not_given_the_html_content_policy_and_violations_are_collected()
+    {
+        // Un PDF ou une image : pas de CSP de page (elle bloquerait le lecteur PDF intégré de Chrome)
+        $this->get('/manifest.json');
+        $this->postJson(route('csp.report'), [])->assertNoContent();
+
+        $this->call('POST', route('csp.report'), [], [], [], ['CONTENT_TYPE' => 'application/csp-report'],
+            json_encode(['csp-report' => ['violated-directive' => 'script-src', 'blocked-uri' => 'https://evil.example/x.js', 'document-uri' => 'https://motriks.com/terrain?x=1']]))
+            ->assertNoContent();
     }
 
     public function test_pages_do_not_send_the_whole_company_record_with_the_user()

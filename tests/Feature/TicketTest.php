@@ -34,8 +34,8 @@ class TicketTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('tickets/index')
-                ->has('tickets', 1)
-                ->where('tickets.0.id', $mine->id));
+                ->has('tickets.data', 1)
+                ->where('tickets.data.0.id', $mine->id));
     }
 
     public function test_a_manager_can_answer_and_close_a_ticket()
@@ -82,6 +82,6 @@ class TicketTest extends TestCase
         $this->actingAs($agent)->delete(route('terrain.tickets.cancel', $ticket))->assertSessionHasNoErrors();
 
         $this->withoutVite()->actingAs($manager)->get(route('tickets.index'))
-            ->assertInertia(fn ($page) => $page->has('tickets', 0));
+            ->assertInertia(fn ($page) => $page->has('tickets.data', 0)->where('counts.all', 0));
     }
 }

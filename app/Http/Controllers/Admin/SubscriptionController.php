@@ -208,7 +208,7 @@ class SubscriptionController extends Controller
 
     /**
      * @param  Collection<int, SubscriptionPayment>  $payments
-     * @return Collection<int, array<string, mixed>>
+     * @return Collection<int, array{id: int, uuid: string, invoice_number: string, company_id: int, company_uuid: string|null, company: string|null, amount: int, currency: string, method: string, plan: string|null, extra_packs: int, supervisor_packs: int, reference: string|null, paid_at: string, period_start: string|null, period_end: string|null}>
      */
     public static function payments(Collection $payments): Collection
     {
@@ -279,7 +279,7 @@ class SubscriptionController extends Controller
             'supervisor_packs' => $state['supervisor_packs'],
             'monthly_price' => $state['monthly_price'],
             'can_remind' => $company->plan !== Plan::Starter && $company->plan_ends_on !== null,
-            'last_paid' => $lastPaid ? date('d/m/Y', strtotime($lastPaid)) : null,
+            'last_paid' => $lastPaid ? Carbon::parse($lastPaid)->format('d/m/Y') : null,
         ];
     }
 }

@@ -13,7 +13,7 @@ use Carbon\CarbonInterface;
 final class OfflineTrace
 {
     /**
-     * @return list<array{label: string, at: string, received: string}>
+     * @return array<int, array{label: string, at: string, received: string}>
      */
     public static function of(?Visit $visit, ?DailyReport $report): array
     {

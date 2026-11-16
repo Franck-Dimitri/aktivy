@@ -171,7 +171,7 @@ class ReportController extends Controller
         $key = SalesTarget::keyFor($siteId, $userId);
         $desired = (int) ($data['amount'] ?? 0);
 
-        $inherited = (int) (SalesTarget::latestFor($company->id, $monthStart->subMonth())->get($key)?->amount ?? 0);
+        $inherited = (int) (SalesTarget::latestFor($company->id, $monthStart->subMonth())->get($key)->amount ?? 0);
         $thisMonth = SalesTarget::where('company_id', $company->id)
             ->where('site_id', $siteId)
             ->where('user_id', $userId)
@@ -195,6 +195,8 @@ class ReportController extends Controller
     /**
      * Objectifs du mois en cours : réalisé, progression et projection de fin de mois au rythme actuel.
      * Indépendants des filtres de la page ; le superviseur ne voit que ses sites et ses hôtesses.
+     *
+     * @return array<string, mixed>
      */
     private function targets(User $user): array
     {
@@ -208,7 +210,7 @@ class ReportController extends Controller
         $targets = SalesTarget::effective($company->id, $monthStart);
         $global = $targets->get('g');
         $bySiteTarget = $targets->filter(fn (SalesTarget $t) => $t->site_id && ! $t->user_id)->keyBy('site_id');
-        $byHostessTarget = $targets->filter(fn (SalesTarget $t) => $t->user_id)->keyBy('user_id');
+        $byHostessTarget = $targets->filter(fn (SalesTarget $t) => $t->user_id !== null)->keyBy('user_id');
         // Mois depuis lequel un objectif est reconduit (null s'il a été fixé ce mois-ci)
         $since = fn (?SalesTarget $t) => $t && $t->month->lt($monthStart) ? $t->month->toDateString() : null;
 
@@ -260,6 +262,8 @@ class ReportController extends Controller
 
     /**
      * Filtres validés ; un site, une hôtesse ou un événement d'une autre entreprise est refusé.
+     *
+     * @return array<string, mixed>
      */
     private function filters(Request $request, Company $company): array
     {
@@ -272,6 +276,9 @@ class ReportController extends Controller
         ]);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function options(User $user): array
     {
         $company = $user->company;
@@ -294,6 +301,8 @@ class ReportController extends Controller
 
     /**
      * Libellés des filtres appliqués, repris dans l'onglet « Synthèse » de l'export.
+     *
+     * @return array<string, mixed>
      */
     private function filterLabels(SalesReport $report): array
     {

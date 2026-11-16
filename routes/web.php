@@ -19,6 +19,7 @@ use App\Http\Controllers\AppLaunchController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\CspReportController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\NotificationController;
@@ -63,6 +64,9 @@ Route::post('register', [RegisteredUserController::class, 'store'])
 
 // Santé réelle (base, file d'attente, planificateur, stockage) pour la surveillance externe
 Route::get('sante', HealthController::class)->middleware('throttle:60,1')->name('health');
+
+// Violations de la politique de contenu (CSP) envoyées par le navigateur : journalisées
+Route::post('csp-rapport', CspReportController::class)->middleware('throttle:30,1')->name('csp.report');
 
 // Ouverture de l'application installée (start_url du manifeste) et raccourcis de son icône (?ouvrir=)
 Route::get('/app', AppLaunchController::class)->name('app');

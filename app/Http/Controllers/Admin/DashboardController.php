@@ -169,7 +169,7 @@ class DashboardController extends Controller
             'plans' => collect(Plan::cases())->map(fn (Plan $p) => ['key' => $p->value, 'label' => $p->label(), 'count' => (int) ($plans[$p->value] ?? 0)]),
             // Pour le formulaire « Créer une entreprise » (modal)
             'sectors' => OnboardingController::SECTORS,
-            'month_label' => $today->locale('fr')->isoFormat('MMMM YYYY'),
+            'month_label' => $today->settings(['locale' => 'fr'])->isoFormat('MMMM YYYY'),
         ]);
     }
 }

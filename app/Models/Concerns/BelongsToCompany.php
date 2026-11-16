@@ -30,7 +30,10 @@ trait BelongsToCompany
         });
 
         static::creating(function (self $model) {
-            $model->company_id ??= static::currentCompanyId();
+            // Lecture brute : la colonne est vide tant que l'entreprise n'est pas renseignée
+            if ($model->getAttribute('company_id') === null) {
+                $model->setAttribute('company_id', static::currentCompanyId());
+            }
         });
     }
 

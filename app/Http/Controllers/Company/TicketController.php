@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Company;
 
 use App\Enums\AccountStatus;
+use App\Http\Controllers\Company\Concerns\PaginatesLists;
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use App\Notifications\TicketAnswered;
@@ -19,18 +20,49 @@ use Inertia\Response;
  */
 class TicketController extends Controller
 {
+    use PaginatesLists;
+
     private const STATUSES = ['open', 'in_review', 'closed'];
 
-    public function index(Request $request): Response
+    /** Onglets de la liste : à traiter, sans réponse, résolues, toutes. */
+    private const FILTERS = ['pending', 'unanswered', 'closed', 'all'];
+
+    /** Le corps des demandes est envoyé : une page courte reste légère sur téléphone. */
+    private const PER_PAGE = 25;
+
+    public function index(Request $request): Response|RedirectResponse
     {
+        // « À traiter » par défaut : c'est ce que le responsable vient chercher
+        $filter = $this->choice($request, 'filtre', self::FILTERS) ?? 'pending';
+        $search = $this->searchTerm($request);
+
+        // Compteurs sur toutes les demandes visibles, pas seulement la page affichée
+        $counts = $this->visibleTickets($request)
+            ->toBase()
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) as closed")
+            ->selectRaw("SUM(CASE WHEN status <> 'closed' AND response IS NULL THEN 1 ELSE 0 END) as unanswered")
+            ->selectRaw("SUM(CASE WHEN status <> 'closed' AND priority = 'urgent' THEN 1 ELSE 0 END) as urgent")
+            ->first();
+
         $tickets = $this->visibleTickets($request)
+            ->when($filter === 'pending', fn (Builder $q) => $q->where('status', '!=', 'closed'))
+            ->when($filter === 'unanswered', fn (Builder $q) => $q->where('status', '!=', 'closed')->whereNull('response'))
+            ->when($filter === 'closed', fn (Builder $q) => $q->where('status', 'closed'))
+            ->when($search !== '', fn (Builder $q) => $q->where(fn (Builder $w) => $w
+                ->whereLike('subject', "%{$search}%")
+                ->orWhereLike('body', "%{$search}%")
+                // Le nom de l'hôtesse reste cherchable même si son compte a été supprimé
+                ->orWhereHas('agent', fn ($agent) => $agent->withTrashed()->whereLike('name', "%{$search}%"))))
             ->with(['agent' => fn ($q) => $q->withTrashed()->select('id', 'name', 'phone'), 'responder:id,name'])
             // Les demandes à traiter d'abord, les urgentes en tête
             ->orderByRaw("CASE status WHEN 'open' THEN 0 WHEN 'in_review' THEN 1 ELSE 2 END")
             ->orderByRaw("CASE priority WHEN 'urgent' THEN 0 ELSE 1 END")
             ->latest()
-            ->get()
-            ->map(fn (Ticket $t) => [
+            ->latest('id')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString()
+            ->through(fn (Ticket $t) => [
                 'id' => $t->id,
                 'uuid' => $t->uuid,
                 'subject' => $t->subject,
@@ -46,8 +78,23 @@ class TicketController extends Controller
                 'agent_phone' => $t->agent?->phone,
             ]);
 
+        if ($redirect = $this->beyondLastPage($tickets)) {
+            return $redirect;
+        }
+
+        $total = (int) $counts->total;
+        $closed = (int) $counts->closed;
+
         return Inertia::render('tickets/index', [
             'tickets' => $tickets,
+            'filters' => ['filtre' => $filter, 'q' => $search],
+            'counts' => [
+                'all' => $total,
+                'pending' => $total - $closed,
+                'unanswered' => (int) $counts->unanswered,
+                'urgent' => (int) $counts->urgent,
+                'closed' => $closed,
+            ],
         ]);
     }
 

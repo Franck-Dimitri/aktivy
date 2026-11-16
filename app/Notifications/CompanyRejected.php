@@ -23,6 +23,9 @@ class CompanyRejected extends Notification implements ShouldQueue
 
     public function __construct(public Company $company, public string $reason) {}
 
+    /**
+     * @return list<string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];

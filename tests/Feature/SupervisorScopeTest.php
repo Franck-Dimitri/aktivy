@@ -71,8 +71,8 @@ class SupervisorScopeTest extends TestCase
     {
         $this->actingAs($this->supervisor)->get(route('sites.index'))
             ->assertInertia(fn ($page) => $page
-                ->has('sites', 1)
-                ->where('sites.0.id', $this->mySite->id));
+                ->has('sites.data', 1)
+                ->where('sites.data.0.id', $this->mySite->id));
 
         $this->actingAs($this->supervisor)->get(route('sites.show', $this->mySite))->assertOk();
         $this->actingAs($this->supervisor)->get(route('sites.show', $this->otherSite))->assertForbidden();
@@ -92,7 +92,7 @@ class SupervisorScopeTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $this->actingAs($this->supervisor->fresh())->get(route('sites.index'))
-            ->assertInertia(fn ($page) => $page->has('sites', 2));
+            ->assertInertia(fn ($page) => $page->has('sites.data', 2));
     }
 
     public function test_a_supervisor_manages_the_hostesses_of_his_sites_and_unassigned_ones_only()
@@ -101,7 +101,7 @@ class SupervisorScopeTest extends TestCase
 
         $this->actingAs($this->supervisor)->get(route('personnel.index'))
             ->assertInertia(fn ($page) => $page
-                ->has('staff', 2)
+                ->has('staff.data', 2)
                 ->where('roles', [['value' => Role::FieldAgent->value, 'label' => Role::FieldAgent->label()]]));
 
         $this->actingAs($this->supervisor)->get(route('personnel.show', $unassigned))->assertOk();
@@ -120,7 +120,7 @@ class SupervisorScopeTest extends TestCase
 
         // Elle figure dans la liste (pour être affectée)…
         $this->actingAs($this->supervisor)->get(route('personnel.index'))
-            ->assertInertia(fn ($page) => $page->where('staff', fn ($staff) => collect($staff)->contains('id', $between->id)));
+            ->assertInertia(fn ($page) => $page->where('staff.data', fn ($staff) => collect($staff)->contains('id', $between->id)));
 
         // … mais sa fiche, son téléphone et son mot de passe restent hors de portée
         $this->actingAs($this->supervisor)->get(route('personnel.show', $between))->assertForbidden();
@@ -195,13 +195,13 @@ class SupervisorScopeTest extends TestCase
                 ->where('has_scope', false));
 
         $this->actingAs($idle)->get(route('sites.index'))
-            ->assertInertia(fn ($page) => $page->has('sites', 0));
+            ->assertInertia(fn ($page) => $page->has('sites.data', 0));
     }
 
     public function test_the_manager_still_sees_everything()
     {
         $this->actingAs($this->manager)->get(route('sites.index'))
-            ->assertInertia(fn ($page) => $page->has('sites', 2)->where('auth.noSite', false));
+            ->assertInertia(fn ($page) => $page->has('sites.data', 2)->where('auth.noSite', false));
 
         $this->actingAs($this->manager)->get(route('reports.objectives'))
             ->assertInertia(fn ($page) => $page->has('targets.hostesses', 2)->whereNot('targets.global', null));

@@ -7,7 +7,6 @@ use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -41,10 +40,10 @@ use Illuminate\Support\Carbon;
 ])]
 class Affectation extends Model
 {
-    use HasFactory, SoftDeletes;
-
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
+
+    use SoftDeletes;
 
     protected $attributes = [
         'status' => 'active',
@@ -53,12 +52,17 @@ class Affectation extends Model
     /**
      * Créneau lu « HH:MM » : la base renvoie « HH:MM:SS » (colonne time), affiché tel quel jusqu'ici,
      * et refusé par la validation H:i quand un formulaire le renvoyait sans modification.
+     *
+     * @return Attribute<string|null, never>
      */
     protected function slotStart(): Attribute
     {
         return Attribute::make(get: fn (?string $value) => $value ? substr($value, 0, 5) : null);
     }
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     protected function slotEnd(): Attribute
     {
         return Attribute::make(get: fn (?string $value) => $value ? substr($value, 0, 5) : null);
@@ -73,26 +77,41 @@ class Affectation extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<Site, $this>
+     */
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class)->withTrashed();
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id')->withTrashed();
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function assigner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_by');
     }
 
+    /**
+     * @return HasMany<Visit, $this>
+     */
     public function visits(): HasMany
     {
         return $this->hasMany(Visit::class);
@@ -100,6 +119,8 @@ class Affectation extends Model
 
     /**
      * Affectations actives et pas encore terminées, y compris celles qui commencent plus tard.
+     *
+     * @param  Builder<self>  $query
      */
     public function scopeOngoing(Builder $query): void
     {
@@ -109,6 +130,8 @@ class Affectation extends Model
 
     /**
      * Affectations actives qui couvrent aujourd'hui.
+     *
+     * @param  Builder<self>  $query
      */
     public function scopeCurrent(Builder $query): void
     {

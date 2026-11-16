@@ -9,10 +9,12 @@ import {
     Search,
     Siren,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { TextInput } from '@/components/page/form-fields';
 import { MetricRow, QuietEmpty, Segmented } from '@/components/page/list-kit';
+import { useListQuery } from '@/components/page/list-query';
 import { Page } from '@/components/page/page';
+import { Pagination, type Paginated } from '@/components/page/pagination';
 import { StatusBadge } from '@/components/page/status-badge';
 import { cn } from '@/lib/utils';
 import { index as ticketsIndex } from '@/routes/tickets';
@@ -132,38 +134,33 @@ function TicketCard({
     );
 }
 
-export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
-    const [filter, setFilter] = useState<Filter>('pending');
-    const [query, setQuery] = useState('');
+type Props = {
+    /** Page de demandes déjà filtrée par le serveur (onglet et recherche de l'URL). */
+    tickets: Paginated<Ticket>;
+    filters: { filtre: Filter; q: string };
+    /** Compteurs sur toutes les demandes visibles, pas seulement la page affichée. */
+    counts: Record<Filter, number> & { urgent: number };
+};
+
+export default function TicketsIndex({ tickets, filters, counts }: Props) {
     const [openId, setOpenId] = useState<number | null>(null);
+    // « À traiter » est l'onglet par défaut : il reste hors de l'URL
+    const list = useListQuery(ticketsIndex().url, {
+        ...filters,
+        filtre: filters.filtre === 'pending' ? null : filters.filtre,
+    });
+    const filter = filters.filtre;
+    const setFilter = (value: Filter) =>
+        list.apply({ filtre: value === 'pending' ? null : value });
 
-    const pending = tickets.filter((t) => t.status !== 'closed');
-    const unanswered = pending.filter((t) => t.response === null).length;
-    const urgent = pending.filter((t) => t.priority === 'urgent').length;
-    const closed = tickets.length - pending.length;
-
-    const shown = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        return tickets.filter((t) => {
-            const inFilter =
-                filter === 'all' ||
-                (filter === 'closed' && t.status === 'closed') ||
-                (filter === 'pending' && t.status !== 'closed') ||
-                (filter === 'unanswered' &&
-                    t.status !== 'closed' &&
-                    t.response === null);
-            return (
-                inFilter &&
-                (!q ||
-                    `${t.subject} ${t.body} ${t.agent_name ?? ''}`
-                        .toLowerCase()
-                        .includes(q))
-            );
-        });
-    }, [tickets, filter, query]);
+    const pending = counts.pending;
+    const unanswered = counts.unanswered;
+    const urgent = counts.urgent;
+    const closed = counts.closed;
+    const shown = tickets.data;
 
     // Le ticket ouvert est relu dans les props, pour refléter une mise à jour
-    const opened = tickets.find((t) => t.id === openId) ?? null;
+    const opened = shown.find((t) => t.id === openId) ?? null;
 
     return (
         <>
@@ -173,7 +170,7 @@ export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
                 title="Tickets"
                 description="Les demandes de votre équipe terrain, et vos réponses."
             >
-                {tickets.length === 0 ? (
+                {counts.all === 0 ? (
                     <div className="rounded-2xl border border-slate-200/80 bg-white">
                         <QuietEmpty
                             icon={MessageCircleQuestion}
@@ -189,10 +186,10 @@ export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
                             items={[
                                 {
                                     label: 'À traiter',
-                                    value: pending.length,
+                                    value: pending,
                                     hint: 'Ouvertes ou en cours',
                                     icon: Inbox,
-                                    tone: pending.length ? 'blue' : 'default',
+                                    tone: pending ? 'blue' : 'default',
                                 },
                                 {
                                     label: 'Sans réponse',
@@ -228,7 +225,7 @@ export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
                                     {
                                         value: 'pending',
                                         label: 'À traiter',
-                                        count: pending.length,
+                                        count: pending,
                                     },
                                     {
                                         value: 'unanswered',
@@ -243,15 +240,17 @@ export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
                                     {
                                         value: 'all',
                                         label: 'Toutes',
-                                        count: tickets.length,
+                                        count: counts.all,
                                     },
                                 ]}
                             />
                             <div className="sm:w-72">
                                 <TextInput
                                     icon={Search}
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
+                                    value={list.search}
+                                    onChange={(e) =>
+                                        list.setSearch(e.target.value)
+                                    }
                                     placeholder="Sujet, message ou hôtesse"
                                     aria-label="Rechercher une demande"
                                     className="h-9"
@@ -261,7 +260,7 @@ export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
 
                         {shown.length === 0 ? (
                             <div className="rounded-2xl border border-slate-200/80 bg-white">
-                                {query.trim() ? (
+                                {filters.q ? (
                                     <QuietEmpty
                                         icon={Search}
                                         title="Aucune demande ne correspond"
@@ -293,6 +292,10 @@ export default function TicketsIndex({ tickets }: { tickets: Ticket[] }) {
                                     />
                                 ))}
                             </ul>
+                        )}
+
+                        {tickets.last_page > 1 && (
+                            <Pagination page={tickets} className="px-0 py-0" />
                         )}
                     </>
                 )}

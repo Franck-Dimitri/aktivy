@@ -38,7 +38,7 @@ class AccountantAccessTest extends TestCase
     {
         $this->actingAs($this->accountant)->get(route('sites.index'))->assertOk()->assertInertia(fn ($page) => $page
             ->component('sites/index')
-            ->has('sites', 2)
+            ->has('sites.data', 2)
             ->where('auth.can.manageTeam', false));
 
         $this->actingAs($this->accountant)->get(route('sites.show', $this->site))->assertOk()->assertInertia(fn ($page) => $page
@@ -47,7 +47,7 @@ class AccountantAccessTest extends TestCase
 
         $this->actingAs($this->accountant)->get(route('products.index'))->assertOk()->assertInertia(fn ($page) => $page
             ->component('products/index')
-            ->has('products', 1));
+            ->has('products.data', 1));
     }
 
     public function test_the_accountant_can_not_change_anything()

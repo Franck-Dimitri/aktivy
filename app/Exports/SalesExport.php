@@ -13,6 +13,9 @@ class SalesExport
 {
     public function __construct(private SalesReport $report) {}
 
+    /**
+     * @param  array<string, mixed>  $filterLabels  filtres appliqués : intitulé => valeur
+     */
     public function write(string $path, array $filterLabels = []): void
     {
         $report = $this->report;
@@ -92,7 +95,7 @@ class SalesExport
             'Rapports' => [Workbook::INT, 10],
             'Variation vs mois précédent' => [Workbook::PERCENT, 22],
         ], array_map(fn ($m) => [
-            ucfirst(CarbonImmutable::parse($m['date'])->locale('fr')->isoFormat('MMMM YYYY')),
+            ucfirst(CarbonImmutable::parse($m['date'])->settings(['locale' => 'fr'])->isoFormat('MMMM YYYY')),
             $m['revenue'], $m['units_sold'], $m['reports_count'],
             $m['variation'],
         ], $report->monthly()));

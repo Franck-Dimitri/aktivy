@@ -49,7 +49,7 @@ class ImpersonationController extends Controller
     public function stop(Request $request): RedirectResponse
     {
         $adminId = $request->session()->pull(self::SESSION_KEY);
-        $admin = $adminId ? User::find($adminId) : null;
+        $admin = $adminId ? User::whereKey($adminId)->first() : null;
 
         abort_unless($admin && $admin->role === Role::SuperAdmin, 403);
 

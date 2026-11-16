@@ -132,7 +132,7 @@ final class PublicPages
     /** @return list<string> Composants Inertia indexables. */
     public static function components(): array
     {
-        return array_values(array_column(self::PAGES, 'component'));
+        return array_column(self::PAGES, 'component');
     }
 
     private static function url(string $path): string

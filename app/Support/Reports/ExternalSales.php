@@ -100,7 +100,7 @@ final class ExternalSales
     /**
      * Ventes du rapport regroupées par boutique, pour l'affichage.
      *
-     * @return list<array{shop: string, revenue: float, units: int, lines: list<array<string, mixed>>}>
+     * @return array<int, array{shop: string, revenue: float, units: int, lines: array<int, array<string, mixed>>}>
      */
     public static function present(DailyReport $report): array
     {
@@ -130,7 +130,7 @@ final class ExternalSales
     /**
      * Boutiques où l'hôtesse a déjà vendu, des plus récentes aux plus anciennes : suggestions de saisie.
      *
-     * @return list<string>
+     * @return array<int, string>
      */
     public static function shopsUsedBy(User $user, int $limit = 20): array
     {
@@ -143,6 +143,7 @@ final class ExternalSales
             ->orderByDesc('last_date')
             ->limit($limit)
             ->pluck('shop')
+            ->map(fn ($shop) => (string) $shop)
             ->all();
     }
 

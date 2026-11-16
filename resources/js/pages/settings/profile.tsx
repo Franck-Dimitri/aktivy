@@ -2,6 +2,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     BadgeCheck,
     CalendarDays,
+    Download,
     KeyRound,
     Mail,
     MailWarning,
@@ -15,6 +16,7 @@ import { TextInput } from '@/components/page/form-fields';
 import { toastFormError } from '@/lib/form-toast';
 import { roleLabels } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
+import { exportMethod as personalDataExport } from '@/routes/personal-data';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
 import type { Auth } from '@/types';
@@ -267,6 +269,24 @@ export default function Profile({
                         testId="update-profile-button"
                     />
                 </form>
+            </SettingsCard>
+
+            {/* Droit d'accès : ce que Motriks garde sur la personne, en un classeur Excel */}
+            <SettingsCard
+                icon={Download}
+                title="Mes données"
+                description="Téléchargez ce que Motriks garde sur vous : compte, affectations, pointages, rapports, documents déposés, demandes et journal de connexion."
+            >
+                <CardBody>
+                    <a
+                        href={personalDataExport().url}
+                        download
+                        className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-ink transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                    >
+                        <Download className="size-4" />
+                        Télécharger mes données (Excel)
+                    </a>
+                </CardBody>
             </SettingsCard>
 
             <DeleteUser blocker={deletionBlocker} />

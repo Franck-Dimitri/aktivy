@@ -6,6 +6,7 @@ use App\Enums\AffectationStatus;
 use App\Enums\Role;
 use App\Enums\SiteStatus;
 use App\Enums\SiteType;
+use App\Http\Controllers\Company\Concerns\PaginatesLists;
 use App\Http\Controllers\Controller;
 use App\Models\Site;
 use App\Models\StockMovement;
@@ -20,17 +21,34 @@ use Inertia\Response;
 
 class SiteController extends Controller
 {
-    public function index(Request $request): Response
+    use PaginatesLists;
+
+    /** Cartes par page : divisible par 2, 3 et 4, la grille tombe juste quel que soit l'écran. */
+    private const PER_PAGE = 36;
+
+    public function index(Request $request): Response|RedirectResponse
     {
         $company = $request->user()->company;
         $siteIds = $request->user()->managedSiteIds();
+        $search = $this->searchTerm($request);
 
-        $sites = $company->sites()
-            ->when($siteIds !== null, fn ($q) => $q->whereIn('id', $siteIds))
+        // Même périmètre pour la liste et pour les compteurs (superviseur : ses sites seulement)
+        $scoped = fn () => $company->sites()
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('id', $siteIds));
+
+        $sites = $scoped()
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->whereLike('name', "%{$search}%")
+                ->orWhereLike('city', "%{$search}%")
+                ->orWhereLike('region', "%{$search}%")
+                ->orWhereLike('code', "%{$search}%")))
             ->withCount(['affectations' => fn ($q) => $q->where('status', 'active')])
             ->orderBy('name')
-            ->get()
-            ->map(fn (Site $site) => [
+            // Ordre stable d'une page à l'autre (deux magasins du même nom dans deux villes)
+            ->orderBy('id')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString()
+            ->through(fn (Site $site) => [
                 'id' => $site->id,
                 'uuid' => $site->uuid,
                 'name' => $site->name,
@@ -46,8 +64,20 @@ class SiteController extends Controller
                 'has_coordinates' => $site->hasCoordinates(),
             ]);
 
+        if ($redirect = $this->beyondLastPage($sites)) {
+            return $redirect;
+        }
+
         return Inertia::render('sites/index', [
             'sites' => $sites,
+            'filters' => ['q' => $search],
+            // Compteurs du haut de page sur tous les sites visibles, pas seulement la page affichée
+            'stats' => [
+                'total' => $scoped()->count(),
+                'active' => $scoped()->where('status', SiteStatus::Active)->count(),
+                'with_hostess' => $scoped()->whereHas('affectations', fn ($q) => $q->where('status', 'active'))->count(),
+                'visited' => $scoped()->whereNotNull('last_visit_at')->count(),
+            ],
             // Options du modal « Nouveau site » (même source que create()).
             'types' => collect(SiteType::cases())->map(fn ($t) => [
                 'value' => $t->value,

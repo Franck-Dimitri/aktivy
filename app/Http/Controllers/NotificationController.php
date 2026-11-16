@@ -6,7 +6,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
-use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -68,9 +67,9 @@ class NotificationController extends Controller
     }
 
     /**
-     * @return Collection<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>>
      */
-    private function latest(Request $request, int $limit)
+    private function latest(Request $request, int $limit): array
     {
         return $request->user()->notifications()
             ->latest()
@@ -85,6 +84,7 @@ class NotificationController extends Controller
                 'date' => $n->created_at->diffForHumans(),
                 // Pour regrouper par jour et afficher l'heure exacte
                 'at' => $n->created_at->toIso8601String(),
-            ]);
+            ])
+            ->all();
     }
 }

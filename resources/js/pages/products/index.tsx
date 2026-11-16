@@ -18,7 +18,6 @@ import {
 import {
     useCallback,
     useEffect,
-    useMemo,
     useRef,
     useState,
     type DragEvent,
@@ -36,7 +35,9 @@ import {
     ToggleField,
 } from '@/components/page/form-fields';
 import { Modal } from '@/components/page/modal';
+import { useListQuery } from '@/components/page/list-query';
 import { Page, Panel } from '@/components/page/page';
+import { Pagination, type Paginated } from '@/components/page/pagination';
 import { StatusBadge } from '@/components/page/status-badge';
 import { MetricStrip } from '@/components/page/surface';
 import {
@@ -59,8 +60,11 @@ import type { ProductListItem, ProductStats } from '@/types';
 import { formatNumber } from '@/lib/format';
 
 type Props = {
-    products: ProductListItem[];
+    /** Page de produits déjà filtrée par le serveur (statut et recherche de l'URL). */
+    products: Paginated<ProductListItem>;
+    /** Compteurs sur tout le catalogue, pas seulement la page affichée. */
     stats: ProductStats;
+    filters: { statut: 'active' | 'inactive' | null; q: string };
     /** Optionnel : si le contrôleur l'envoie, il remplace la liste de secours ci-dessous. */
     units?: string[];
 };
@@ -832,11 +836,19 @@ function EditProductDialog({ product, units, onClose }: EditDialogProps) {
 
 /* ─────────────────────────── Page ─────────────────────────── */
 
-export default function ProductsIndex({ products, stats, units }: Props) {
+export default function ProductsIndex({
+    products,
+    stats,
+    filters: applied,
+    units,
+}: Props) {
     // Gérant et superviseur gèrent le catalogue ; le comptable le consulte (prix, déploiement)
     const canEdit = usePage().props.auth.can.manageTeam;
-    const [filter, setFilter] = useState<Filter>('all');
-    const [query, setQuery] = useState('');
+    const list = useListQuery(productsIndex().url, applied);
+    const filter: Filter = applied.statut ?? 'all';
+    // « Tous » est la valeur par défaut : elle n'apparaît pas dans l'URL
+    const setFilter = (value: Filter) =>
+        list.apply({ statut: value === 'all' ? null : value });
 
     // Fenêtre de modification : montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
     const [editing, setEditing] = useState<ProductListItem | null>(null);
@@ -868,30 +880,12 @@ export default function ProductsIndex({ products, stats, units }: Props) {
         icon: Archive,
     });
 
-    const filtered = useMemo(() => {
-        const q = query.trim().toLowerCase();
+    // Page déjà filtrée par le serveur (statut et recherche de l'URL)
+    const filtered = products.data;
 
-        return products.filter((p) => {
-            if (filter === 'active' && !p.is_active) return false;
-            if (filter === 'inactive' && p.is_active) return false;
-            if (
-                q &&
-                !(
-                    p.name.toLowerCase().includes(q) ||
-                    (p.sku ?? '').toLowerCase().includes(q)
-                )
-            )
-                return false;
-            return true;
-        });
-    }, [products, filter, query]);
+    const hasFilters = filter !== 'all' || list.search.trim() !== '';
 
-    const hasFilters = filter !== 'all' || query.trim() !== '';
-
-    const resetFilters = () => {
-        setFilter('all');
-        setQuery('');
-    };
+    const resetFilters = () => list.reset({ statut: null });
 
     const filters: { value: Filter; label: string; count: number }[] = [
         { value: 'all', label: 'Tous', count: stats.total },
@@ -908,7 +902,7 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                 description="Catalogue des produits de votre entreprise."
                 actions={newButton('Nouveau produit')}
             >
-                {products.length === 0 ? (
+                {stats.total === 0 ? (
                     <Panel>
                         <EmptyState
                             icon={Package}
@@ -942,8 +936,10 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                                 <TextInput
                                     icon={Search}
                                     type="search"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
+                                    value={list.search}
+                                    onChange={(e) =>
+                                        list.setSearch(e.target.value)
+                                    }
                                     placeholder="Rechercher un nom ou un code SKU"
                                     aria-label="Rechercher un produit"
                                 />
@@ -1031,6 +1027,10 @@ export default function ProductsIndex({ products, stats, units }: Props) {
                                     />
                                 ))}
                             </div>
+                        )}
+
+                        {products.last_page > 1 && (
+                            <Pagination page={products} className="px-0 py-0" />
                         )}
                     </div>
                 )}

@@ -25,6 +25,12 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Ventes saisies, après validation (cf. validateSales) :
+ *
+ * @phpstan-type SalesLine array{id: int, site_product_id?: int|null, units_sold: int, notes?: string|null, counted_stock?: int|null, gap_reason?: string|null}
+ * @phpstan-type SalesInput array{notes?: string|null, incident_notes?: string|null, submitted_at?: string|null, lines: array<int, SalesLine>, packs?: array<int, array{id: int, quantity: int}>|null, external_sales?: list<array{shop: string, product_id: int, units: int}>|null}
+ */
 class DailyReportController extends Controller
 {
     /** Afficher le rapport (saisie brouillon ou lecture seule si soumis). */
@@ -37,7 +43,9 @@ class DailyReportController extends Controller
         // Si le rapport n'a pas encore de lignes (produits ajoutés après la prise de service),
         // on crée le snapshot maintenant à partir des produits actuels du site.
         if ($report->lines->isEmpty() && ! $report->isSubmitted()) {
+            // Produits archivés exclus : leur ligne de stock reste sur le site, mais le produit n'est plus chargé
             $siteProducts = $visit->site->siteProducts()
+                ->whereHas('product')
                 ->with('product:id,name,unit,price')
                 ->get();
 
@@ -72,7 +80,7 @@ class DailyReportController extends Controller
             'report' => [
                 'id' => $report->id,
                 'status' => $report->status,
-                'report_date' => $report->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
+                'report_date' => $report->report_date->settings(['locale' => 'fr'])->isoFormat('dddd D MMMM YYYY'),
                 'site_name' => $visit->site->name,
                 'notes' => $report->notes,
                 'incident_notes' => $report->incident_notes,
@@ -292,10 +300,11 @@ class DailyReportController extends Controller
      * Ventes saisies : unités vendues à l'unité par ligne et packs vendus.
      *
      * @param  array<string, mixed>  $extraRules
-     * @return array<string, mixed>
+     * @return SalesInput
      */
     private function validateSales(Request $request, array $extraRules = [], ?DailyReport $report = null): array
     {
+        /** @var SalesInput $validated */
         $validated = $request->validate([
             'notes' => ['nullable', 'string', 'max:2000'],
             'lines' => ['required', 'array'],
@@ -325,8 +334,8 @@ class DailyReportController extends Controller
      * Lignes saisies hors ligne : numéro provisoire (négatif) remplacé par celui de la ligne du rapport
      * pour le même produit du point de vente. Une ligne introuvable est ignorée.
      *
-     * @param  list<array<string, mixed>>  $lines
-     * @return list<array<string, mixed>>
+     * @param  array<int, SalesLine>  $lines
+     * @return list<SalesLine>
      */
     private function resolveLines(DailyReport $report, array $lines): array
     {
@@ -334,21 +343,28 @@ class DailyReportController extends Controller
         $ids = $known->pluck('id')->all();
         $bySiteProduct = $known->pluck('id', 'site_product_id');
 
-        return collect($lines)
-            ->map(function (array $line) use ($ids, $bySiteProduct) {
-                if (! in_array((int) $line['id'], $ids, true)) {
-                    $line['id'] = $bySiteProduct[$line['site_product_id'] ?? 0] ?? null;
+        $resolved = [];
+
+        foreach ($lines as $line) {
+            if (! in_array((int) $line['id'], $ids, true)) {
+                $id = $bySiteProduct[$line['site_product_id'] ?? 0] ?? null;
+
+                // Ligne introuvable : ignorée
+                if ($id === null) {
+                    continue;
                 }
 
-                return $line;
-            })
-            ->filter(fn (array $line) => $line['id'] !== null)
-            ->values()
-            ->all();
+                $line['id'] = (int) $id;
+            }
+
+            $resolved[] = $line;
+        }
+
+        return $resolved;
     }
 
     /**
-     * @param  array<string, mixed>  $validated
+     * @param  SalesInput  $validated
      */
     private function applySales(DailyReport $report, array $validated): void
     {

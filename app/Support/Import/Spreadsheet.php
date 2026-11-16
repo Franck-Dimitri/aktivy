@@ -80,7 +80,12 @@ class Spreadsheet
     private static function csvOptions(string $path): CsvOptions
     {
         $options = new CsvOptions;
-        $first = (string) fgets(fopen($path, 'r'));
+        $first = '';
+        $handle = fopen($path, 'r');
+        if ($handle !== false) {
+            $first = (string) fgets($handle);
+            fclose($handle);
+        }
         $options->FIELD_DELIMITER = substr_count($first, ';') > substr_count($first, ',') ? ';' : ',';
 
         return $options;

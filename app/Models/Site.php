@@ -6,7 +6,6 @@ use App\Enums\SiteStatus;
 use App\Enums\SiteType;
 use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -48,10 +47,10 @@ use Illuminate\Support\Carbon;
 ])]
 class Site extends Model
 {
-    use HasFactory, SoftDeletes;
-
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
+
+    use SoftDeletes;
 
     protected $attributes = [
         'type' => 'autre',
@@ -72,26 +71,41 @@ class Site extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * @return HasMany<Affectation, $this>
+     */
     public function affectations(): HasMany
     {
         return $this->hasMany(Affectation::class);
     }
 
+    /**
+     * @return HasMany<Visit, $this>
+     */
     public function visits(): HasMany
     {
         return $this->hasMany(Visit::class);
     }
 
+    /**
+     * @return HasMany<SiteProduct, $this>
+     */
     public function siteProducts(): HasMany
     {
         return $this->hasMany(SiteProduct::class);

@@ -27,6 +27,10 @@ final class Offsite
 
         try {
             $stream = fopen($path, 'rb');
+            if ($stream === false) {
+                return 'copie hors serveur impossible (sauvegarde illisible)';
+            }
+
             $ok = Storage::disk((string) config('services.backup.disk'))->writeStream('motriks/'.basename($path), $stream);
             if (is_resource($stream)) {
                 fclose($stream);

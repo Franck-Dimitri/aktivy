@@ -47,7 +47,7 @@ class NotifyAttendanceCommand extends Command
         // Une notification par responsable, qui regroupe toutes ses hôtesses absentes
         $byManager = [];
         foreach ($missing as $a) {
-            $label = $a->agent?->name.' ('.$a->site?->name.($a->slot_start ? ', attendue à '.substr($a->slot_start, 0, 5) : '').')';
+            $label = $a->agent->name.' ('.$a->site->name.($a->slot_start ? ', attendue à '.substr($a->slot_start, 0, 5) : '').')';
 
             foreach (Notify::siteManagers($a->company_id, [$a->site_id]) as $manager) {
                 $byManager[$manager->id]['user'] = $manager;

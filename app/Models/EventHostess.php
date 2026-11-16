@@ -35,16 +35,25 @@ class EventHostess extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Event, $this>
+     */
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<EventSite, $this>
+     */
     public function eventSite(): BelongsTo
     {
         return $this->belongsTo(EventSite::class);

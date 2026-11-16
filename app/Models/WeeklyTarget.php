@@ -39,12 +39,17 @@ class WeeklyTarget extends Model
     /**
      * Toujours enregistré « AAAA-MM-JJ » : la comparaison avec une date fonctionne alors à l'identique
      * sous SQLite, PostgreSQL et MySQL (le cast seul stockerait « AAAA-MM-JJ 00:00:00 » sous SQLite).
+     *
+     * @return Attribute<CarbonImmutable, \DateTimeInterface|string>
      */
     protected function weekStart(): Attribute
     {
         return Attribute::make(set: fn ($value) => CarbonImmutable::parse($value)->toDateString());
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function hostess(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -55,7 +60,7 @@ class WeeklyTarget extends Model
      * de cette semaine ou d'une précédente. Une ligne à 0 marque un objectif retiré à partir de là.
      *
      * @param  iterable<int>  $userIds
-     * @return Collection<int, self> par user_id, y compris les retraits (montant 0)
+     * @return Collection<int, static> par user_id, y compris les retraits (montant 0)
      */
     public static function latestFor(iterable $userIds, CarbonInterface $week): Collection
     {
@@ -74,14 +79,14 @@ class WeeklyTarget extends Model
                 ->on('weekly_targets.week_start', '=', 'latest.latest_week'))
             ->select('weekly_targets.*')
             ->get()
-            ->keyBy('user_id');
+            ->keyBy(fn (self $target) => $target->user_id);
     }
 
     /**
      * Objectifs en vigueur cette semaine-là (montant > 0), par user_id.
      *
      * @param  iterable<int>  $userIds
-     * @return Collection<int, self>
+     * @return Collection<int, static>
      */
     public static function effective(iterable $userIds, CarbonInterface $week): Collection
     {

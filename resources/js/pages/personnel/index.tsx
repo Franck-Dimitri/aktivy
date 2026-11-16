@@ -11,12 +11,14 @@ import {
     Users,
     X,
 } from 'lucide-react';
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
+import { useListQuery } from '@/components/page/list-query';
 import { Page, Panel } from '@/components/page/page';
+import { Pagination, type Paginated } from '@/components/page/pagination';
 import { StatusBadge } from '@/components/page/status-badge';
 import { MetricStrip } from '@/components/page/surface';
 import {
@@ -39,7 +41,19 @@ import { CreateMemberModal } from './create-member-modal';
 import { initials } from '@/lib/initials';
 
 type Props = {
-    staff: StaffListItem[];
+    /** Page de membres déjà filtrée et triée par le serveur (filtres de l'URL). */
+    staff: Paginated<StaffListItem>;
+    filters: {
+        role: Exclude<RoleFilter, 'all'> | null;
+        statut: Exclude<StatusFilter, 'all'> | null;
+        en_poste: boolean;
+        tri: SortKey;
+        q: string;
+    };
+    /** Compteurs des filtres, sur toute l'équipe visible (pas seulement la page affichée). */
+    counts: Record<RoleFilter | Exclude<StatusFilter, 'all'>, number> & {
+        on_site: number;
+    };
     /** Optionnel : fourni par le contrôleur. Sans lui, « Ajouter un membre » ouvre l'ancienne page. */
     roles?: RoleOption[];
 };
@@ -116,7 +130,12 @@ function Chip({
     );
 }
 
-export default function PersonnelIndex({ staff, roles }: Props) {
+export default function PersonnelIndex({
+    staff,
+    filters,
+    counts,
+    roles,
+}: Props) {
     // Supprimer ou désactiver un compte : le gérant seul
     const { manageCompany } = usePage().props.auth.can;
     // Fenêtre de création : montée uniquement quand elle est visible (le formulaire repart de zéro à chaque ouverture).
@@ -138,11 +157,21 @@ export default function PersonnelIndex({ staff, roles }: Props) {
             </ActionLink>
         );
 
-    const [query, setQuery] = useState('');
-    const [role, setRole] = useState<RoleFilter>('all');
-    const [status, setStatus] = useState<StatusFilter>('all');
-    const [onSiteOnly, setOnSiteOnly] = useState(false);
-    const [sort, setSort] = useState<SortKey>('name');
+    // Filtres gardés dans l'URL et appliqués par le serveur : « Tous » et le tri par nom sont les valeurs par défaut
+    const list = useListQuery(personnelIndex().url, {
+        ...filters,
+        tri: filters.tri === 'name' ? null : filters.tri,
+    });
+    const role: RoleFilter = filters.role ?? 'all';
+    const status: StatusFilter = filters.statut ?? 'all';
+    const onSiteOnly = filters.en_poste;
+    const sort: SortKey = filters.tri;
+    const setRole = (value: RoleFilter) =>
+        list.apply({ role: value === 'all' ? null : value });
+    const setStatus = (value: StatusFilter) =>
+        list.apply({ statut: value === 'all' ? null : value });
+    const setSort = (value: SortKey) =>
+        list.apply({ tri: value === 'name' ? null : value });
 
     const { ask, dialog } = useDeleteDialog<StaffListItem>({
         getUrl: (m) => personnelDestroy({ personnel: m.uuid }).url,
@@ -154,56 +183,36 @@ export default function PersonnelIndex({ staff, roles }: Props) {
         icon: Trash2,
     });
 
-    const hostesses = staff.filter((s) => s.role === 'field_agent').length;
-    const supervisors = staff.filter((s) => s.role === 'supervisor').length;
-    const onSite = staff.filter((s) => s.on_site_now).length;
+    // Compteurs sur toute l'équipe visible, pas seulement la page affichée
+    const total = counts.all;
+    const hostesses = counts.field_agent;
+    const supervisors = counts.supervisor;
+    const onSite = counts.on_site;
 
     const roleCounts: Record<RoleFilter, number> = {
-        all: staff.length,
+        all: total,
         field_agent: hostesses,
         supervisor: supervisors,
-        accountant: staff.filter((s) => s.role === 'accountant').length,
+        accountant: counts.accountant,
     };
     const statusCounts: Record<StatusFilter, number> = {
-        all: staff.length,
-        active: staff.filter((s) => s.status === 'active').length,
-        suspended: staff.filter((s) => s.status === 'suspended').length,
+        all: total,
+        active: counts.active,
+        suspended: counts.suspended,
     };
 
     const hasFilters =
-        query.trim() !== '' || role !== 'all' || status !== 'all' || onSiteOnly;
+        list.search.trim() !== '' ||
+        role !== 'all' ||
+        status !== 'all' ||
+        onSiteOnly;
 
-    const resetFilters = () => {
-        setQuery('');
-        setRole('all');
-        setStatus('all');
-        setOnSiteOnly(false);
-    };
+    // Le tri n'est pas un filtre : il reste tel quel
+    const resetFilters = () =>
+        list.reset({ role: null, statut: null, en_poste: null });
 
-    const visible = useMemo(() => {
-        const q = query.trim().toLowerCase();
-
-        const filtered = staff.filter((s) => {
-            if (role !== 'all' && s.role !== role) return false;
-            if (status !== 'all' && s.status !== status) return false;
-            if (onSiteOnly && !s.on_site_now) return false;
-            if (
-                q &&
-                !(
-                    s.name.toLowerCase().includes(q) ||
-                    (s.phone ?? '').includes(q)
-                )
-            )
-                return false;
-            return true;
-        });
-
-        return [...filtered].sort((a, b) =>
-            sort === 'visits'
-                ? b.visits_count - a.visits_count
-                : a.name.localeCompare(b.name, 'fr'),
-        );
-    }, [staff, query, role, status, onSiteOnly, sort]);
+    // Page déjà filtrée et triée par le serveur
+    const visible = staff.data;
 
     return (
         <>
@@ -214,7 +223,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                 description="Les membres de votre équipe terrain."
                 actions={newButton('Ajouter un membre')}
             >
-                {staff.length === 0 ? (
+                {total === 0 ? (
                     <Panel>
                         <EmptyState
                             icon={Users}
@@ -227,7 +236,7 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                     <div className="flex flex-col gap-6">
                         <MetricStrip
                             items={[
-                                { label: 'Total', value: staff.length },
+                                { label: 'Total', value: total },
                                 { label: 'Hôtesses', value: hostesses },
                                 { label: 'Superviseurs', value: supervisors },
                                 {
@@ -245,9 +254,9 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                     <TextInput
                                         icon={Search}
                                         type="search"
-                                        value={query}
+                                        value={list.search}
                                         onChange={(e) =>
-                                            setQuery(e.target.value)
+                                            list.setSearch(e.target.value)
                                         }
                                         placeholder="Rechercher un nom ou un téléphone"
                                         aria-label="Rechercher un membre"
@@ -319,7 +328,11 @@ export default function PersonnelIndex({ staff, roles }: Props) {
 
                                 <Chip
                                     active={onSiteOnly}
-                                    onClick={() => setOnSiteOnly((v) => !v)}
+                                    onClick={() =>
+                                        list.apply({
+                                            en_poste: onSiteOnly ? null : true,
+                                        })
+                                    }
                                     count={onSite}
                                 >
                                     <MapPin className="size-3.5" />
@@ -342,9 +355,9 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                 className="text-sm text-slate-500"
                                 aria-live="polite"
                             >
-                                {visible.length} membre
-                                {visible.length > 1 ? 's' : ''}
-                                {hasFilters && ` sur ${staff.length}`}
+                                {staff.total} membre
+                                {staff.total > 1 ? 's' : ''}
+                                {hasFilters && ` sur ${total}`}
                             </p>
                         </div>
 
@@ -379,6 +392,10 @@ export default function PersonnelIndex({ staff, roles }: Props) {
                                     />
                                 ))}
                             </ul>
+                        )}
+
+                        {staff.last_page > 1 && (
+                            <Pagination page={staff} className="px-0 py-0" />
                         )}
                     </div>
                 )}

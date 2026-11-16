@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Company;
 
+use App\Http\Controllers\Company\Concerns\PaginatesLists;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
@@ -12,13 +13,29 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
-    public function index(Request $request): Response
+    use PaginatesLists;
+
+    /** Cartes par page : divisible par 2, 3 et 4, la grille tombe juste quel que soit l'écran. */
+    private const PER_PAGE = 36;
+
+    public function index(Request $request): Response|RedirectResponse
     {
-        $products = $request->user()->company->products()
+        $company = $request->user()->company;
+        $status = $this->choice($request, 'statut', ['active', 'inactive']);
+        $search = $this->searchTerm($request);
+
+        $products = $company->products()
+            ->when($status, fn ($q) => $q->where('is_active', $status === 'active'))
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->whereLike('name', "%{$search}%")
+                ->orWhereLike('sku', "%{$search}%")))
             ->withCount('siteProducts')
             ->orderBy('name')
-            ->get()
-            ->map(fn (Product $p) => [
+            // Ordre stable d'une page à l'autre (même nom, conditionnements différents)
+            ->orderBy('id')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString()
+            ->through(fn (Product $p) => [
                 'id' => $p->id,
                 'uuid' => $p->uuid,
                 'name' => $p->name,
@@ -31,16 +48,24 @@ class ProductController extends Controller
                 'sites_count' => $p->site_products_count,
             ]);
 
+        if ($redirect = $this->beyondLastPage($products)) {
+            return $redirect;
+        }
+
+        // Compteurs sur tout le catalogue, pas seulement la page affichée
+        $total = $company->products()->count();
+        $active = $company->products()->where('is_active', true)->count();
         $stats = [
-            'total' => $products->count(),
-            'active' => $products->where('is_active', true)->count(),
-            'inactive' => $products->where('is_active', false)->count(),
-            'deployed' => $products->where('sites_count', '>', 0)->count(),
+            'total' => $total,
+            'active' => $active,
+            'inactive' => $total - $active,
+            'deployed' => $company->products()->has('siteProducts')->count(),
         ];
 
         return Inertia::render('products/index', [
-            'products' => $products->values(),
+            'products' => $products,
             'stats' => $stats,
+            'filters' => ['statut' => $status, 'q' => $search],
         ]);
     }
 

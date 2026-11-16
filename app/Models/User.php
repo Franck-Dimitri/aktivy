@@ -78,7 +78,11 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         'must_change_password' => false,
     ];
 
-    /** Résultat de managedSiteIds(), calculé une fois par requête. */
+    /**
+     * Résultat de managedSiteIds(), calculé une fois par requête.
+     *
+     * @var array<int, int>|null
+     */
     private ?array $managedSiteIdsCache = null;
 
     /**
@@ -279,6 +283,9 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             || ! $this->affectations()->exists();
     }
 
+    /**
+     * @return HasMany<StaffDocument, $this>
+     */
     public function documents(): HasMany
     {
         return $this->hasMany(StaffDocument::class);

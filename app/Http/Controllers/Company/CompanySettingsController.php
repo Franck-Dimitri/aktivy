@@ -8,6 +8,7 @@ use App\Support\Company\CompanyDocuments;
 use App\Support\Reminders\ReminderSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,9 +45,11 @@ class CompanySettingsController extends Controller
         $rules = [];
 
         foreach (ReminderSettings::DEFAULTS as $key => $default) {
+            // Réglages numériques : ceux qui ont des bornes
+            $limits = ReminderSettings::LIMITS[$key] ?? null;
             $rules[$key] = match (true) {
                 is_bool($default) => ['required', 'boolean'],
-                is_int($default) => ['required', 'integer', 'min:'.ReminderSettings::LIMITS[$key][0], 'max:'.ReminderSettings::LIMITS[$key][1]],
+                $limits !== null => ['required', 'integer', 'min:'.$limits[0], 'max:'.$limits[1]],
                 default => ['required', 'date_format:H:i'],
             };
         }
@@ -58,7 +61,7 @@ class CompanySettingsController extends Controller
         ]);
 
         $old = ReminderSettings::for($company)->all();
-        $company->forceFill(['reminder_settings' => array_map(fn ($v) => is_numeric($v) && ! is_bool($v) ? (int) $v : $v, $data)])->save();
+        $company->forceFill(['reminder_settings' => array_map(fn ($v) => is_numeric($v) ? (int) $v : $v, $data)])->save();
         AuditLog::record('company.reminders_updated', $company, old: $old, new: $data);
 
         return back()->with('success', 'Rappels enregistrés.');
@@ -96,7 +99,7 @@ class CompanySettingsController extends Controller
         }
 
         $company->update([
-            ...collect($validated)->except(['logo', 'remove_logo'])->all(),
+            ...Arr::except($validated, ['logo', 'remove_logo']),
             'logo_path' => $logoPath,
         ]);
 

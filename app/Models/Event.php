@@ -56,36 +56,57 @@ class Event extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * @return HasMany<EventSite, $this>
+     */
     public function sites(): HasMany
     {
         return $this->hasMany(EventSite::class);
     }
 
+    /**
+     * @return HasMany<EventPack, $this>
+     */
     public function packs(): HasMany
     {
         return $this->hasMany(EventPack::class);
     }
 
+    /**
+     * @return HasMany<EventHostess, $this>
+     */
     public function hostesses(): HasMany
     {
         return $this->hasMany(EventHostess::class);
     }
 
+    /**
+     * @return HasMany<Affectation, $this>
+     */
     public function affectations(): HasMany
     {
         return $this->hasMany(Affectation::class);
     }
 
+    /**
+     * @return HasMany<DailyReport, $this>
+     */
     public function reports(): HasMany
     {
         return $this->hasMany(DailyReport::class);

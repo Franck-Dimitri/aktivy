@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Company;
 
 use App\Enums\AffectationStatus;
 use App\Enums\Role;
+use App\Http\Controllers\Company\Concerns\PaginatesLists;
 use App\Http\Controllers\Controller;
 use App\Models\Affectation;
 use App\Models\Company;
@@ -20,21 +21,42 @@ use Inertia\Response;
 
 class AffectationController extends Controller
 {
+    use PaginatesLists;
+
+    /** Cartes par page : divisible par 2, 3 et 4, la grille tombe juste quel que soit l'écran. */
+    private const PER_PAGE = 36;
+
     private const ASSIGNABLE_ROLES = [Role::Supervisor, Role::FieldAgent];
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
         $company = $request->user()->company;
 
         $siteIds = $request->user()->managedSiteIds();
+        $status = $this->choice($request, 'statut', array_column(AffectationStatus::cases(), 'value'));
+        $currentOnly = $request->boolean('en_poste');
+        $search = $this->searchTerm($request);
 
-        $affectations = $company->affectations()
-            ->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds))
+        // Même périmètre pour la liste et pour les compteurs (superviseur : ses sites seulement)
+        $scoped = fn () => $company->affectations()
+            ->when($siteIds !== null, fn ($q) => $q->whereIn('site_id', $siteIds));
+
+        $affectations = $scoped()
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($currentOnly, fn ($q) => $q->current())
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->whereHas('agent', fn ($a) => $a->whereLike('name', "%{$search}%"))
+                ->orWhereHas('site', fn ($s) => $s->where(fn ($n) => $n
+                    ->whereLike('name', "%{$search}%")
+                    ->orWhereLike('city', "%{$search}%")))))
             ->with(['agent:id,uuid,name,role,phone', 'site:id,uuid,name,city,type'])
             ->orderByRaw("CASE status WHEN 'active' THEN 0 ELSE 1 END")
             ->orderByDesc('starts_on')
-            ->get()
-            ->map(fn (Affectation $a) => [
+            // Ordre stable d'une page à l'autre (plusieurs affectations commencent le même jour)
+            ->orderByDesc('id')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString()
+            ->through(fn (Affectation $a) => [
                 'id' => $a->id,
                 'uuid' => $a->uuid,
                 'agent_id' => $a->user_id,
@@ -57,16 +79,24 @@ class AffectationController extends Controller
                 'notes' => $a->notes,
             ]);
 
+        if ($redirect = $this->beyondLastPage($affectations)) {
+            return $redirect;
+        }
+
+        // Compteurs sur toutes les affectations du périmètre, pas seulement la page affichée
+        $byStatus = $scoped()->toBase()->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
         $stats = [
-            'total' => $affectations->count(),
-            'active' => $affectations->where('status', 'active')->count(),
-            'current' => $affectations->where('is_current', true)->count(),
-            'completed' => $affectations->where('status', 'completed')->count(),
+            'total' => (int) $byStatus->sum(),
+            'active' => (int) ($byStatus[AffectationStatus::Active->value] ?? 0),
+            'current' => $scoped()->current()->count(),
+            'completed' => (int) ($byStatus[AffectationStatus::Completed->value] ?? 0),
+            'cancelled' => (int) ($byStatus[AffectationStatus::Cancelled->value] ?? 0),
         ];
 
         return Inertia::render('affectations/index', [
-            'affectations' => $affectations->values(),
+            'affectations' => $affectations,
             'stats' => $stats,
+            'filters' => ['statut' => $status, 'en_poste' => $currentOnly, 'q' => $search],
 
             // Listes en lecture seule pour la modification dans la fenêtre flottante
             // (mêmes requêtes que edit()).

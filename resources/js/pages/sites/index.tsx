@@ -19,12 +19,14 @@ import {
     Warehouse,
     type LucideIcon,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActionButton, ActionLink } from '@/components/page/buttons';
 import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
 import { TextInput } from '@/components/page/form-fields';
+import { useListQuery } from '@/components/page/list-query';
 import { Page, Panel } from '@/components/page/page';
+import { Pagination, type Paginated } from '@/components/page/pagination';
 import { StatusBadge, type StatusTone } from '@/components/page/status-badge';
 import { MetricStrip } from '@/components/page/surface';
 import {
@@ -46,7 +48,16 @@ import type { SiteListItem, SiteTypeOption } from '@/types';
 import { CreateSiteModal } from './create-site-modal';
 
 type Props = {
-    sites: SiteListItem[];
+    /** Page de sites déjà filtrée par le serveur (recherche de l'URL). */
+    sites: Paginated<SiteListItem>;
+    filters: { q: string };
+    /** Compteurs du haut de page, sur tous les sites visibles (pas seulement la page affichée). */
+    stats: {
+        total: number;
+        active: number;
+        with_hostess: number;
+        visited: number;
+    };
     /** Optionnel : fourni par le contrôleur. Sans lui, « Nouveau site » ouvre l'ancienne page. */
     types?: SiteTypeOption[];
 };
@@ -217,7 +228,7 @@ function SiteCard({
     );
 }
 
-export default function SitesIndex({ sites, types }: Props) {
+export default function SitesIndex({ sites, filters, stats, types }: Props) {
     // Le superviseur crée des sites ; seul le gérant les supprime
     const { manageCompany, manageTeam } = usePage().props.auth.can;
 
@@ -240,7 +251,7 @@ export default function SitesIndex({ sites, types }: Props) {
             </ActionLink>
         );
 
-    const [query, setQuery] = useState('');
+    const list = useListQuery(sitesIndex().url, filters);
 
     const { ask, dialog } = useDeleteDialog<SiteListItem>({
         getUrl: (s) => siteDestroy(s.uuid).url,
@@ -252,19 +263,12 @@ export default function SitesIndex({ sites, types }: Props) {
         icon: Trash2,
     });
 
-    const active = sites.filter((s) => s.status === 'active').length;
-    const withAff = sites.filter((s) => s.active_affectations_count > 0).length;
-    const withVisit = sites.filter((s) => s.last_visit_at !== null).length;
-
-    const visible = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        if (!q) return sites;
-        return sites.filter((s) =>
-            `${s.name} ${s.city} ${s.region ?? ''} ${s.code ?? ''}`
-                .toLowerCase()
-                .includes(q),
-        );
-    }, [sites, query]);
+    // Compteurs sur tous les sites visibles ; la liste, elle, est la page filtrée par le serveur
+    const total = stats.total;
+    const active = stats.active;
+    const withAff = stats.with_hostess;
+    const withVisit = stats.visited;
+    const visible = sites.data;
 
     return (
         <>
@@ -275,7 +279,7 @@ export default function SitesIndex({ sites, types }: Props) {
                 description="Vos points de vente et leur activité."
                 actions={newButton('Nouveau site')}
             >
-                {sites.length === 0 ? (
+                {total === 0 ? (
                     <Panel>
                         <EmptyState
                             icon={Store}
@@ -292,11 +296,11 @@ export default function SitesIndex({ sites, types }: Props) {
                     <div className="flex flex-col gap-6">
                         <MetricStrip
                             items={[
-                                { label: 'Total', value: sites.length },
+                                { label: 'Total', value: total },
                                 {
                                     label: 'Actifs',
                                     value: active,
-                                    sub: `${sites.length - active} inactif${sites.length - active !== 1 ? 's' : ''}`,
+                                    sub: `${total - active} inactif${total - active !== 1 ? 's' : ''}`,
                                 },
                                 {
                                     label: 'Avec hôtesse',
@@ -317,15 +321,17 @@ export default function SitesIndex({ sites, types }: Props) {
                                 <TextInput
                                     icon={Search}
                                     type="search"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
+                                    value={list.search}
+                                    onChange={(e) =>
+                                        list.setSearch(e.target.value)
+                                    }
                                     placeholder="Rechercher un site, une ville…"
                                     aria-label="Rechercher un site"
                                 />
                             </div>
                             <p className="hidden text-sm text-slate-500 sm:block">
-                                {visible.length} site
-                                {visible.length > 1 ? 's' : ''}
+                                {sites.total} site
+                                {sites.total > 1 ? 's' : ''}
                             </p>
                         </div>
 
@@ -349,6 +355,10 @@ export default function SitesIndex({ sites, types }: Props) {
                                     />
                                 ))}
                             </div>
+                        )}
+
+                        {sites.last_page > 1 && (
+                            <Pagination page={sites} className="px-0 py-0" />
                         )}
                     </div>
                 )}

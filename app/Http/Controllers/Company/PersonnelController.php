@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Company;
 use App\Enums\AccountStatus;
 use App\Enums\AffectationStatus;
 use App\Enums\Role;
+use App\Http\Controllers\Company\Concerns\PaginatesLists;
 use App\Http\Controllers\Controller;
 use App\Models\StaffDocument;
 use App\Models\User;
@@ -18,24 +19,49 @@ use Inertia\Response;
 
 class PersonnelController extends Controller
 {
+    use PaginatesLists;
+
+    /** Cartes par page : divisible par 2, 3 et 4, la grille tombe juste quel que soit l'écran. */
+    private const PER_PAGE = 36;
+
     /** Statuts qu'un responsable peut donner à un membre. */
     private const MANAGEABLE_STATUSES = [
         AccountStatus::Active,
         AccountStatus::Suspended,
     ];
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
         $company = $request->user()->company;
+        $manageable = array_column($this->manageableRoles($request->user()), 'value');
 
-        $staff = $company->users()
-            ->whereIn('role', array_column($this->manageableRoles($request->user()), 'value'))
-            ->visibleTo($request->user())
+        $role = $this->choice($request, 'role', $manageable);
+        $status = $this->choice($request, 'statut', [AccountStatus::Active->value, AccountStatus::Suspended->value]);
+        $onSiteOnly = $request->boolean('en_poste');
+        $sort = $this->choice($request, 'tri', ['visits']) ?? 'name';
+        $search = $this->searchTerm($request);
+
+        // Même périmètre pour la liste et pour les compteurs (superviseur : ses hôtesses seulement)
+        $scoped = fn () => $company->users()
+            ->whereIn('role', $manageable)
+            ->visibleTo($request->user());
+
+        $staff = $scoped()
+            ->when($role, fn ($q) => $q->where('role', $role))
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->when($onSiteOnly, fn ($q) => $q->whereHas('activeVisit'))
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->whereLike('name', "%{$search}%")
+                ->orWhereLike('phone', "%{$search}%")))
             ->withCount('visits')
             ->with(['activeVisit.site:id,name'])
+            ->when($sort === 'visits', fn ($q) => $q->orderByDesc('visits_count'))
             ->orderBy('name')
-            ->get()
-            ->map(fn (User $u) => [
+            // Ordre stable d'une page à l'autre (homonymes)
+            ->orderBy('id')
+            ->paginate(self::PER_PAGE)
+            ->withQueryString()
+            ->through(fn (User $u) => [
                 'id' => $u->id,
                 'uuid' => $u->uuid,
                 'name' => $u->name,
@@ -48,8 +74,32 @@ class PersonnelController extends Controller
                 'on_site_now' => $u->activeVisit->first()?->site?->name,
             ]);
 
+        if ($redirect = $this->beyondLastPage($staff)) {
+            return $redirect;
+        }
+
+        // Compteurs des filtres sur toute l'équipe visible, pas seulement la page affichée
+        $byRole = $scoped()->toBase()->selectRaw('role, COUNT(*) as total')->groupBy('role')->pluck('total', 'role');
+        $byStatus = $scoped()->toBase()->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
+
         return Inertia::render('personnel/index', [
             'staff' => $staff,
+            'filters' => [
+                'role' => $role,
+                'statut' => $status,
+                'en_poste' => $onSiteOnly,
+                'tri' => $sort,
+                'q' => $search,
+            ],
+            'counts' => [
+                'all' => (int) $byRole->sum(),
+                Role::FieldAgent->value => (int) ($byRole[Role::FieldAgent->value] ?? 0),
+                Role::Supervisor->value => (int) ($byRole[Role::Supervisor->value] ?? 0),
+                Role::Accountant->value => (int) ($byRole[Role::Accountant->value] ?? 0),
+                AccountStatus::Active->value => (int) ($byStatus[AccountStatus::Active->value] ?? 0),
+                AccountStatus::Suspended->value => (int) ($byStatus[AccountStatus::Suspended->value] ?? 0),
+                'on_site' => $scoped()->whereHas('activeVisit')->count(),
+            ],
             // Options du modal « Nouveau membre » (même source que create()).
             'roles' => $this->roleOptions($request->user()),
         ]);

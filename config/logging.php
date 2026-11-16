@@ -70,6 +70,9 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
+            // Un fichier par jour, créé par le premier qui écrit (serveur web, file d'attente, déploiement) :
+            // inscriptible par le groupe, sinon les autres ne peuvent plus y journaliser
+            'permission' => 0664,
             'replace_placeholders' => true,
         ],
 

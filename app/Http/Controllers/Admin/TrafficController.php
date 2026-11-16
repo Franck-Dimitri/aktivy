@@ -115,7 +115,8 @@ class TrafficController extends Controller
             ]), $visits),
             'countries' => $this->share($this->breakdown($period, 'country')->filter(fn (array $row) => $row['label'] !== null)->map(fn (array $row) => [
                 ...$row,
-                'label' => self::COUNTRIES[$row['label']] ?? $row['label'],
+                'code' => $row['label'],
+                'label' => self::COUNTRIES[$row['label']] ?? (\Locale::getDisplayRegion('-'.$row['label'], 'fr') ?: $row['label']),
             ])->values(), $visits),
         ]);
     }

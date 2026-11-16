@@ -37,6 +37,7 @@ class EnsureAccountIsActive
             if ($request->routeIs('onboarding.show', 'onboarding.store', 'verification.*', 'logout')) {
                 return $next($request);
             }
+
             return redirect()->route('onboarding.show');
         }
 

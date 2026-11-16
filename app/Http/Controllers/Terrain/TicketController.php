@@ -23,17 +23,17 @@ class TicketController extends Controller
             ->latest()
             ->get()
             ->map(fn (Ticket $t) => [
-                'id'           => $t->id,
-                'uuid'         => $t->uuid,
-                'subject'      => $t->subject,
-                'body'         => $t->body,
-                'priority'     => $t->priority,
-                'status'       => $t->status,
-                'response'     => $t->response,
+                'id' => $t->id,
+                'uuid' => $t->uuid,
+                'subject' => $t->subject,
+                'body' => $t->body,
+                'priority' => $t->priority,
+                'status' => $t->status,
+                'response' => $t->response,
                 'responded_at' => $t->responded_at?->diffForHumans(),
-                'created_at'   => $t->created_at->diffForHumans(),
+                'created_at' => $t->created_at->diffForHumans(),
                 'created_date' => $t->created_at->format('d/m/Y'),
-                'can_cancel'   => $t->status === 'open' && $t->response === null,
+                'can_cancel' => $t->status === 'open' && $t->response === null,
             ]);
 
         return Inertia::render('terrain/tickets', [
@@ -46,14 +46,14 @@ class TicketController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'subject'  => ['required', 'string', 'max:200'],
-            'body'     => ['required', 'string', 'max:2000'],
+            'subject' => ['required', 'string', 'max:200'],
+            'body' => ['required', 'string', 'max:2000'],
             'priority' => ['required', 'in:normal,urgent'],
         ]);
 
         $ticket = Ticket::create([
             'company_id' => $user->company_id,
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             ...$validated,
         ]);
 

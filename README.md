@@ -1,4 +1,3 @@
-
 # Motriks
 
 Plateforme SaaS de gestion d'équipes terrain et de reporting journalier pour les entreprises de distribution et de promotion commerciale.
@@ -19,17 +18,17 @@ Motriks permet à une entreprise de piloter ses hôtesses et agents de terrain d
 
 ## Stack technique
 
-| Couche           | Technologie                                      |
-| ---------------- | ------------------------------------------------ |
-| Backend          | Laravel 13 (PHP 8.3)                             |
-| Frontend         | React 19 + TypeScript + Inertia.js v3            |
-| Styles           | Tailwind CSS v4                                  |
-| Base de données | PostgreSQL                                       |
-| Auth             | Laravel Fortify (email **ou** téléphone) |
-| Routes typées   | Laravel Wayfinder                                |
-| Composants UI    | Radix UI + shadcn/ui                             |
-| Graphiques       | Recharts                                         |
-| Notifications    | Sonner                                           |
+| Couche          | Technologie                              |
+| --------------- | ---------------------------------------- |
+| Backend         | Laravel 13 (PHP 8.3)                     |
+| Frontend        | React 19 + TypeScript + Inertia.js v3    |
+| Styles          | Tailwind CSS v4                          |
+| Base de données | PostgreSQL                               |
+| Auth            | Laravel Fortify (email **ou** téléphone) |
+| Routes typées   | Laravel Wayfinder                        |
+| Composants UI   | Radix UI + shadcn/ui                     |
+| Graphiques      | Recharts                                 |
+| Notifications   | Sonner                                   |
 
 ---
 
@@ -47,13 +46,13 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 
 ## Rôles
 
-| Rôle             | Label                | Accès                                              |
-| ----------------- | -------------------- | --------------------------------------------------- |
-| `super_admin`   | Super administrateur | Administration globale de la plateforme             |
-| `company_admin` | Gérant              | Tableau de bord, équipe, sites, produits, rapports |
+| Rôle            | Label                | Accès                                                                                                                                                                                       |
+| --------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `super_admin`   | Super administrateur | Administration globale de la plateforme                                                                                                                                                     |
+| `company_admin` | Gérant               | Tableau de bord, équipe, sites, produits, rapports                                                                                                                                          |
 | `supervisor`    | Superviseur          | Uniquement les points de vente où il est affecté : leurs hôtesses, affectations, rapports, ventes, objectifs et tickets. Ne crée ni ne supprime de site, ne gère ni catalogue ni événements |
-| `field_agent`   | Hôtesse             | Interface terrain mobile uniquement                 |
-| `accountant`    | Comptable            | Lecture des rapports journaliers et des ventes, export Excel |
+| `field_agent`   | Hôtesse              | Interface terrain mobile uniquement                                                                                                                                                         |
+| `accountant`    | Comptable            | Lecture des rapports journaliers et des ventes, export Excel                                                                                                                                |
 
 ---
 
@@ -254,3 +253,80 @@ php artisan up
 La migration `convert_timestamps_to_douala_time` avance d'une heure les dates enregistrées en UTC
 avant le passage à l'heure de Douala. Elle refuse de tourner si `app.timezone` n'est pas encore
 `Africa/Douala`, d'où le `config:cache` placé avant.
+
+### Procédure complète (production)
+
+Avant chaque mise en production : la CI (`.github/workflows/ci.yml`) doit être verte sur la PR, et
+la version déployée est marquée d'un tag (`git tag v2026.11.17 && git push --tags`) pour pouvoir y revenir.
+
+```bash
+php artisan down --render="errors::503"
+git fetch --tags && git checkout v2026.11.17      # la version testée, pas « ce qu'il y a sur main »
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build:ssr
+php artisan config:cache
+php artisan migrate --force
+php artisan route:cache && php artisan view:cache && php artisan event:cache
+php artisan storage:link                           # une seule fois, sans effet ensuite
+php artisan queue:restart                          # les workers reprennent le nouveau code
+php artisan inertia:stop-ssr
+php artisan up
+```
+
+**Retour arrière** : `git checkout <tag précédent>` puis la même procédure. Une migration se défait avec
+`php artisan migrate:rollback --step=1` ; vérifier d'abord son `down()` (certaines anciennes migrations
+ne sont pas réversibles, ex. `convert_timestamps_to_douala_time`).
+
+### Services à faire tourner sur le serveur
+
+- **Planificateur** (rappels, sauvegardes, purges, battement de santé), dans la crontab de l'utilisateur web :
+  `* * * * * cd /var/www/motriks && php artisan schedule:run >> /dev/null 2>&1`
+- **File d'attente** (e-mails, notifications, exports) : sans worker, plus aucun e-mail ne part. Supervisor :
+
+```ini
+[program:motriks-worker]
+command=php /var/www/motriks/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+user=www-data
+numprocs=2
+autostart=true
+autorestart=true
+stopwaitsecs=900
+redirect_stderr=true
+stdout_logfile=/var/www/motriks/storage/logs/worker.log
+```
+
+- **Rendu serveur (SSR)** : `php artisan inertia:start-ssr`, sous supervisor de la même façon.
+
+### Surveillance
+
+- **Santé** : `https://motriks.com/sante` répond 200 si la base, la file d'attente, le planificateur et le
+  stockage vont bien, 503 sinon (détail « ok/ko » par point, aucune donnée). À faire appeler chaque minute
+  par un service externe (UptimeRobot, Better Stack…) qui alerte par SMS ou e-mail.
+- **Erreurs** : chaque erreur serveur et chaque tâche en échec définitif part sur Telegram (production,
+  `TELEGRAM_CHAT_ID`), une fois par 10 minutes au plus, sans le message de l'erreur.
+- **Journaux** : `LOG_STACK=daily`, 14 jours gardés (`LOG_DAILY_DAYS`).
+
+### Sauvegardes
+
+| Quoi                                                               | Quand                | Commande        |
+| ------------------------------------------------------------------ | -------------------- | --------------- |
+| Base PostgreSQL (chiffrée)                                         | chaque nuit 02 h 00  | `db:backup`     |
+| Fichiers déposés : pièces d'identité, photos, documents (chiffrés) | chaque nuit 02 h 30  | `files:backup`  |
+| Les dernières se déchiffrent et se relisent                        | chaque lundi 05 h 00 | `backup:verify` |
+
+- `BACKUP_PASSPHRASE` est obligatoire (aucune sauvegarde en clair). Garder une copie de la phrase **hors du
+  serveur** : sans elle, les sauvegardes sont illisibles.
+- `BACKUP_DISK` : disque **chez un autre hébergeur** (stockage objet S3 : OVH, Backblaze, Cloudflare R2…) où
+  chaque sauvegarde est copiée. Sans lui, la perte du serveur emporte les sauvegardes.
+- **Restauration à tester chaque trimestre**, sur une base de test, jamais sur la production :
+
+```bash
+openssl enc -d -aes-256-cbc -pbkdf2 -in motriks_AAAA-MM-JJ.sql.gz.enc -pass env:BACKUP_PASSPHRASE | gunzip | psql -d motriks_restauration
+openssl enc -d -aes-256-cbc -pbkdf2 -in motriks_fichiers_AAAA-MM-JJ.tar.gz.enc -pass env:BACKUP_PASSPHRASE | tar -xz -C /tmp/restauration
+```
+
+### Données personnelles
+
+`data:purge` (chaque nuit) applique les durées de la page Confidentialité : notifications (90 jours lues,
+180 au plus), journal d'audit (12 mois), données personnelles d'un compte supprimé (90 jours après).
+Les durées et la page Confidentialité sont à faire valider par un juriste (loi n° 2024/017 du 23 décembre 2024).

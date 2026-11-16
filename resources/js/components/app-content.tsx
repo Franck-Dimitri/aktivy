@@ -13,7 +13,12 @@ type Props = React.ComponentProps<'main'> & {
  * Sur ordinateur, c'est lui qui défile (la page fait 100 % de la hauteur) ; sur téléphone,
  * il prend tout l'écran sans marge ni arrondi et la page défile normalement.
  */
-export function AppContent({ variant = 'sidebar', children, className, ...props }: Props) {
+export function AppContent({
+    variant = 'sidebar',
+    children,
+    className,
+    ...props
+}: Props) {
     if (variant === 'sidebar') {
         return (
             <SidebarInset
@@ -35,7 +40,13 @@ export function AppContent({ variant = 'sidebar', children, className, ...props 
     }
 
     return (
-        <main className={cn('mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl', className)} {...props}>
+        <main
+            className={cn(
+                'mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl',
+                className,
+            )}
+            {...props}
+        >
             {children}
         </main>
     );

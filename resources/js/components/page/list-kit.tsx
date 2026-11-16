@@ -14,7 +14,15 @@ const AVATAR_TONES = [
 ];
 
 /** Monogramme de l'entreprise, teinte stable d'une visite à l'autre. */
-export function CompanyAvatar({ name, muted, className }: { name: string; muted?: boolean; className?: string }) {
+export function CompanyAvatar({
+    name,
+    muted,
+    className,
+}: {
+    name: string;
+    muted?: boolean;
+    className?: string;
+}) {
     const initials = name
         .trim()
         .split(/\s+/)
@@ -22,14 +30,19 @@ export function CompanyAvatar({ name, muted, className }: { name: string; muted?
         .map((w) => w[0])
         .join('')
         .toUpperCase();
-    const hash = [...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+    const hash = Array.from(name).reduce(
+        (h, c) => (h * 31 + c.charCodeAt(0)) >>> 0,
+        7,
+    );
 
     return (
         <span
             aria-hidden
             className={cn(
                 'flex size-10 shrink-0 items-center justify-center rounded-xl text-[13px] font-bold tracking-tight ring-1 ring-inset',
-                muted ? 'bg-slate-100 text-slate-400 ring-slate-500/10' : AVATAR_TONES[hash % AVATAR_TONES.length],
+                muted
+                    ? 'bg-slate-100 text-slate-500 ring-slate-500/10'
+                    : AVATAR_TONES[hash % AVATAR_TONES.length],
                 className,
             )}
         >
@@ -38,7 +51,14 @@ export function CompanyAvatar({ name, muted, className }: { name: string; muted?
     );
 }
 
-export type Metric = { label: string; value: number | string; hint?: string; icon: LucideIcon; tone?: 'default' | 'amber' | 'red' | 'green' | 'blue'; pulse?: boolean };
+export type Metric = {
+    label: string;
+    value: number | string;
+    hint?: string;
+    icon: LucideIcon;
+    tone?: 'default' | 'amber' | 'red' | 'green' | 'blue';
+    pulse?: boolean;
+};
 
 const METRIC_ICON: Record<NonNullable<Metric['tone']>, string> = {
     default: 'bg-slate-100 text-slate-500',
@@ -53,30 +73,55 @@ export function MetricRow({ items }: { items: Metric[] }) {
     return (
         <dl
             className={cn(
-                'grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-100 shadow-sm shadow-slate-900/[0.03] dark:border-sidebar-border dark:bg-sidebar-border',
+                'grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200/80 bg-slate-100 shadow-sm shadow-slate-900/[0.03]',
                 items.length === 3 ? 'sm:grid-cols-3' : 'lg:grid-cols-4',
             )}
         >
-            {items.map(({ label, value, hint, icon: Icon, tone = 'default', pulse }) => (
-                <div key={label} className="flex items-start gap-3.5 bg-white px-5 py-4 dark:bg-card">
-                    <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-lg', METRIC_ICON[tone])}>
-                        <Icon className="size-[18px]" />
-                    </span>
-                    <div className="min-w-0">
-                        <dt className="flex items-center gap-2 truncate text-xs font-medium text-slate-500">
-                            {label}
-                            {pulse && typeof value === 'number' && value > 0 && (
-                                <span className="relative flex size-1.5">
-                                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-70 motion-reduce:animate-none" />
-                                    <span className="relative inline-flex size-1.5 rounded-full bg-amber-500" />
-                                </span>
+            {items.map(
+                ({
+                    label,
+                    value,
+                    hint,
+                    icon: Icon,
+                    tone = 'default',
+                    pulse,
+                }) => (
+                    <div
+                        key={label}
+                        className="flex items-start gap-3.5 bg-white px-5 py-4"
+                    >
+                        <span
+                            className={cn(
+                                'flex size-9 shrink-0 items-center justify-center rounded-lg',
+                                METRIC_ICON[tone],
                             )}
-                        </dt>
-                        <dd className="mt-0.5 text-2xl font-semibold tracking-tight text-ink tabular-nums">{value}</dd>
-                        {hint && <p className="truncate text-[11px] text-slate-400">{hint}</p>}
+                        >
+                            <Icon className="size-[18px]" />
+                        </span>
+                        <div className="min-w-0">
+                            <dt className="flex items-center gap-2 truncate text-xs font-medium text-slate-500">
+                                {label}
+                                {pulse &&
+                                    typeof value === 'number' &&
+                                    value > 0 && (
+                                        <span className="relative flex size-1.5">
+                                            <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-70 motion-reduce:animate-none" />
+                                            <span className="relative inline-flex size-1.5 rounded-full bg-amber-500" />
+                                        </span>
+                                    )}
+                            </dt>
+                            <dd className="mt-0.5 text-2xl font-semibold tracking-tight text-ink tabular-nums">
+                                {value}
+                            </dd>
+                            {hint && (
+                                <p className="truncate text-[11px] text-slate-500">
+                                    {hint}
+                                </p>
+                            )}
+                        </div>
                     </div>
-                </div>
-            ))}
+                ),
+            )}
         </dl>
     );
 }
@@ -97,7 +142,11 @@ export function Segmented<T extends string>({
     label: string;
 }) {
     return (
-        <div role="tablist" aria-label={label} className="flex w-full flex-wrap gap-0.5 rounded-xl bg-slate-100/80 p-1 sm:inline-flex sm:w-auto sm:max-w-full sm:flex-nowrap sm:overflow-x-auto dark:bg-white/5">
+        <div
+            role="tablist"
+            aria-label={label}
+            className="flex w-full flex-wrap gap-0.5 rounded-xl bg-slate-100/80 p-1 sm:inline-flex sm:w-auto sm:max-w-full sm:flex-nowrap sm:overflow-x-auto"
+        >
             {options.map((o) => {
                 const active = o.value === value;
                 return (
@@ -109,12 +158,21 @@ export function Segmented<T extends string>({
                         onClick={() => onChange(o.value)}
                         className={cn(
                             'inline-flex h-9 grow basis-auto items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-motriks/30 focus-visible:outline-none sm:h-8 sm:shrink-0 sm:grow-0',
-                            active ? 'bg-white text-ink shadow-sm ring-1 ring-slate-900/5 dark:bg-card' : 'text-slate-500 hover:text-ink',
+                            active
+                                ? 'bg-white text-ink shadow-sm ring-1 ring-slate-900/5'
+                                : 'text-slate-500 hover:text-ink',
                         )}
                     >
                         {o.label}
                         {o.count !== undefined && (
-                            <span className={cn('rounded-md px-1.5 text-[10px] tabular-nums', active ? 'bg-slate-100 text-slate-600 dark:bg-white/10' : 'text-slate-400')}>
+                            <span
+                                className={cn(
+                                    'rounded-md px-1.5 text-[10px] tabular-nums',
+                                    active
+                                        ? 'bg-slate-100 text-slate-600'
+                                        : 'text-slate-500',
+                                )}
+                            >
                                 {o.count}
                             </span>
                         )}
@@ -126,7 +184,17 @@ export function Segmented<T extends string>({
 }
 
 /** État vide sobre, à l'intérieur d'une carte. */
-export function QuietEmpty({ icon: Icon, title, children, action }: { icon: LucideIcon; title: string; children?: ReactNode; action?: ReactNode }) {
+export function QuietEmpty({
+    icon: Icon,
+    title,
+    children,
+    action,
+}: {
+    icon: LucideIcon;
+    title: string;
+    children?: ReactNode;
+    action?: ReactNode;
+}) {
     return (
         <div className="flex flex-col items-center px-6 py-16 text-center">
             <span className="relative flex size-14 items-center justify-center">
@@ -134,7 +202,11 @@ export function QuietEmpty({ icon: Icon, title, children, action }: { icon: Luci
                 <Icon className="relative size-6 text-motriks-deep" />
             </span>
             <h3 className="mt-5 text-[15px] font-semibold text-ink">{title}</h3>
-            {children && <p className="mt-1 max-w-sm text-sm leading-relaxed text-slate-500">{children}</p>}
+            {children && (
+                <p className="mt-1 max-w-sm text-sm leading-relaxed text-slate-500">
+                    {children}
+                </p>
+            )}
             {action && <div className="mt-5">{action}</div>}
         </div>
     );

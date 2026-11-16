@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\AccountStatus;
 use App\Enums\Module;
 use App\Enums\Plan;
+use App\Models\Concerns\HasPublicUuid;
 use Database\Factories\CompanyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -53,11 +52,11 @@ use Illuminate\Support\Str;
 ])]
 class Company extends Model
 {
-    /** UUID dans les adresses à la place du numéro */
-    use HasPublicUuid;
-
     /** @use HasFactory<CompanyFactory> */
     use HasFactory, SoftDeletes;
+
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
 
     private const DEFAULT_DOCUMENT_COLOR = '#027a48';
 
@@ -82,15 +81,15 @@ class Company extends Model
     protected function casts(): array
     {
         return [
-            'status'                  => AccountStatus::class,
-            'plan'                    => Plan::class,
-            'plan_ends_on'            => 'date',
-            'plan_trial'              => 'boolean',
-            'plan_extra_packs'        => 'integer',
-            'plan_supervisor_packs'   => 'integer',
+            'status' => AccountStatus::class,
+            'plan' => Plan::class,
+            'plan_ends_on' => 'date',
+            'plan_trial' => 'boolean',
+            'plan_extra_packs' => 'integer',
+            'plan_supervisor_packs' => 'integer',
             'onboarding_completed_at' => 'datetime',
             // Rappels automatiques (cf. App\Support\Reminders\ReminderSettings)
-            'reminder_settings'       => 'array',
+            'reminder_settings' => 'array',
         ];
     }
 

@@ -72,7 +72,8 @@ export type StaffFormData = {
     name: string;
     phone: string;
     email: string;
-    role: StaffRole | string;
+    /** Un StaffRole, ou '' tant que rien n'est choisi dans la liste. */
+    role: string;
     password: string;
     password_confirmation: string;
 };

@@ -15,6 +15,7 @@ use App\Models\Visit;
 use App\Support\CheckinPlace;
 use App\Support\Pdf\PdfDocument;
 use App\Support\Terrain\OfflineTime;
+use Illuminate\Support\Collection;
 
 /**
  * Notifications « temps réel » : envoyées au moment de l'action, sous la cloche et en push.
@@ -120,9 +121,9 @@ class LiveNotification extends TextNotification
     /**
      * Superviseur affecté à plusieurs points de vente d'un coup : une seule notification.
      *
-     * @param  \Illuminate\Support\Collection<int, Affectation>  $affectations  sites chargés
+     * @param  Collection<int, Affectation>  $affectations  sites chargés
      */
-    public static function assignedToSites(\Illuminate\Support\Collection $affectations): self
+    public static function assignedToSites(Collection $affectations): self
     {
         $names = $affectations->map(fn (Affectation $a) => $a->site?->name)->filter()->values();
         $shown = $names->count() > 3

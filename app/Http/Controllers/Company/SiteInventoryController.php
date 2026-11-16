@@ -25,9 +25,9 @@ class SiteInventoryController extends Controller
         $this->authorizeSite($request, $site);
 
         $validated = $request->validate([
-            'product_id'         => ['required', 'integer', 'exists:products,id'],
-            'current_stock'      => ['required', 'integer', 'min:0'],
-            'alert_threshold'    => ['required', 'integer', 'min:0'],
+            'product_id' => ['required', 'integer', 'exists:products,id'],
+            'current_stock' => ['required', 'integer', 'min:0'],
+            'alert_threshold' => ['required', 'integer', 'min:0'],
             'critical_threshold' => ['required', 'integer', 'min:0', 'lte:alert_threshold'],
         ]);
 
@@ -43,9 +43,9 @@ class SiteInventoryController extends Controller
         $stock = SiteProduct::create([
             ...$validated,
             'current_stock' => 0,
-            'company_id'    => $company->id,
-            'site_id'       => $site->id,
-            'updated_by'    => $request->user()->id,
+            'company_id' => $company->id,
+            'site_id' => $site->id,
+            'updated_by' => $request->user()->id,
         ]);
         StockLedger::set($stock, $validated['current_stock'], StockMovement::INITIAL, $request->user());
 
@@ -59,15 +59,15 @@ class SiteInventoryController extends Controller
         abort_if($inventory->site_id !== $site->id, 404);
 
         $validated = $request->validate([
-            'current_stock'      => ['required', 'integer', 'min:0'],
-            'alert_threshold'    => ['required', 'integer', 'min:0'],
+            'current_stock' => ['required', 'integer', 'min:0'],
+            'alert_threshold' => ['required', 'integer', 'min:0'],
             'critical_threshold' => ['required', 'integer', 'min:0', 'lte:alert_threshold'],
-            'notes'              => ['nullable', 'string', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         DB::transaction(function () use ($inventory, $validated, $request) {
             $inventory->update([
-                'alert_threshold'    => $validated['alert_threshold'],
+                'alert_threshold' => $validated['alert_threshold'],
                 'critical_threshold' => $validated['critical_threshold'],
             ]);
 
@@ -86,7 +86,7 @@ class SiteInventoryController extends Controller
 
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
-            'notes'    => ['nullable', 'string', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ], [
             'quantity.min' => 'Indiquez au moins une unité livrée.',
         ]);

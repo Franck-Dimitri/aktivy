@@ -9,6 +9,9 @@ export function passwordHint(rules: string): string {
     ].filter(Boolean) as string[];
 
     if (needs.length === 0) return `${min} caractères minimum.`;
-    const list = needs.length > 1 ? `${needs.slice(0, -1).join(', ')} et ${needs[needs.length - 1]}` : needs[0];
+    const list =
+        needs.length > 1
+            ? `${needs.slice(0, -1).join(', ')} et ${needs[needs.length - 1]}`
+            : needs[0];
     return `${min} caractères minimum, avec ${list}.`;
 }

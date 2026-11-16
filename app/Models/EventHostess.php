@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\EventHostessStatus;
+use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,14 +23,14 @@ class EventHostess extends Model
     use HasPublicUuid;
 
     protected $attributes = [
-        'status'               => 'active',
-        'recruited_for_event'  => false,
+        'status' => 'active',
+        'recruited_for_event' => false,
     ];
 
     protected function casts(): array
     {
         return [
-            'status'              => EventHostessStatus::class,
+            'status' => EventHostessStatus::class,
             'recruited_for_event' => 'boolean',
         ];
     }

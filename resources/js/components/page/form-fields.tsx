@@ -1,12 +1,50 @@
 import { ChevronDown, type LucideIcon } from 'lucide-react';
-import type { ComponentProps, ReactNode } from 'react';
+import {
+    createContext,
+    useContext,
+    useId,
+    type ComponentProps,
+    type ReactNode,
+} from 'react';
 import { cn } from '@/lib/utils';
 
 const control =
     'w-full rounded-xl border border-slate-200 bg-white text-base text-ink outline-none sm:text-sm transition-[border-color,box-shadow] placeholder:text-slate-400 hover:border-slate-300 focus:border-motriks focus:ring-4 focus:ring-motriks/10 disabled:bg-slate-50 disabled:opacity-60';
-const invalid = 'border-red-300 hover:border-red-300 focus:border-red-400 focus:ring-red-500/10';
+const invalid =
+    'border-red-300 hover:border-red-300 focus:border-red-400 focus:ring-red-500/10';
 
 export const inputClass = `h-11 px-3.5 ${control}`;
+
+/**
+ * Ce que <Field> transmet au champ qu'il entoure : les identifiants de l'aide et de l'erreur
+ * (aria-describedby) et l'état invalide, pour qu'un lecteur d'écran les lise avec le champ.
+ */
+const FieldContext = createContext<{
+    describedBy?: string;
+    invalid: boolean;
+} | null>(null);
+
+/** Attributs d'accessibilité d'un champ, fusionnés avec ceux reçus en props. */
+function useFieldA11y(
+    error: string | undefined,
+    own: Pick<ComponentProps<'input'>, 'aria-invalid' | 'aria-describedby'>,
+) {
+    const field = useContext(FieldContext);
+    const ownInvalid =
+        own['aria-invalid'] !== undefined &&
+        own['aria-invalid'] !== false &&
+        own['aria-invalid'] !== 'false';
+    const isInvalid = Boolean(error) || Boolean(field?.invalid) || ownInvalid;
+
+    return {
+        isInvalid,
+        'aria-invalid': isInvalid ? true : undefined,
+        'aria-describedby':
+            [field?.describedBy, own['aria-describedby']]
+                .filter(Boolean)
+                .join(' ') || undefined,
+    } as const;
+}
 
 export function Field({
     label,
@@ -25,16 +63,43 @@ export function Field({
     className?: string;
     children: ReactNode;
 }) {
+    const id = useId();
+    const hintId = hint ? `${id}-aide` : undefined;
+    const errorId = error ? `${id}-erreur` : undefined;
+    const describedBy =
+        [hintId, errorId].filter(Boolean).join(' ') || undefined;
+
     return (
         <div className={className}>
-            <label htmlFor={htmlFor} className="mb-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm font-semibold text-ink">
-                {label}
-                {required && <span className="text-red-500">*</span>}
-                {hint && <span className="text-xs font-normal text-slate-400">{hint}</span>}
-            </label>
-            {children}
+            {/* L'aide sort du libellé : elle devient la description du champ, le nom reste court */}
+            <div className="mb-1.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-sm">
+                <label
+                    htmlFor={htmlFor}
+                    className="inline-flex items-baseline gap-x-1.5 font-semibold text-ink"
+                >
+                    {label}
+                    {required && <span className="text-red-500">*</span>}
+                </label>
+                {hint && (
+                    <span
+                        id={hintId}
+                        className="text-xs font-normal text-slate-500"
+                    >
+                        {hint}
+                    </span>
+                )}
+            </div>
+            <FieldContext.Provider
+                value={{ describedBy, invalid: Boolean(error) }}
+            >
+                {children}
+            </FieldContext.Provider>
             {error && (
-                <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+                <p
+                    id={errorId}
+                    role="alert"
+                    className="mt-1.5 text-xs font-medium text-red-600"
+                >
                     {error}
                 </p>
             )}
@@ -51,6 +116,8 @@ export function TextInput({
     className,
     ...props
 }: ComponentProps<'input'> & IconProps & { trailing?: ReactNode }) {
+    const { isInvalid, ...a11y } = useFieldA11y(error, props);
+
     return (
         <div className="relative">
             {Icon && (
@@ -58,10 +125,20 @@ export function TextInput({
             )}
             <input
                 {...props}
-                aria-invalid={error ? true : undefined}
-                className={cn(inputClass, Icon && 'pl-10', trailing && 'pr-11', error && invalid, className)}
+                {...a11y}
+                className={cn(
+                    inputClass,
+                    Icon && 'pl-10',
+                    trailing && 'pr-11',
+                    isInvalid && invalid,
+                    className,
+                )}
             />
-            {trailing && <div className="absolute top-1/2 right-3 -translate-y-1/2">{trailing}</div>}
+            {trailing && (
+                <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                    {trailing}
+                </div>
+            )}
         </div>
     );
 }
@@ -73,6 +150,8 @@ export function SelectInput({
     children,
     ...props
 }: ComponentProps<'select'> & IconProps) {
+    const { isInvalid, ...a11y } = useFieldA11y(error, props);
+
     return (
         <div className="relative">
             {Icon && (
@@ -80,8 +159,14 @@ export function SelectInput({
             )}
             <select
                 {...props}
-                aria-invalid={error ? true : undefined}
-                className={cn(inputClass, 'appearance-none pr-10', Icon && 'pl-10', error && invalid, className)}
+                {...a11y}
+                className={cn(
+                    inputClass,
+                    'appearance-none pr-10',
+                    Icon && 'pl-10',
+                    isInvalid && invalid,
+                    className,
+                )}
             >
                 {children}
             </select>
@@ -90,14 +175,29 @@ export function SelectInput({
     );
 }
 
-export function TextArea({ icon: Icon, error, className, ...props }: ComponentProps<'textarea'> & IconProps) {
+export function TextArea({
+    icon: Icon,
+    error,
+    className,
+    ...props
+}: ComponentProps<'textarea'> & IconProps) {
+    const { isInvalid, ...a11y } = useFieldA11y(error, props);
+
     return (
         <div className="relative">
-            {Icon && <Icon className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-slate-400" />}
+            {Icon && (
+                <Icon className="pointer-events-none absolute top-3.5 left-3.5 size-4 text-slate-400" />
+            )}
             <textarea
                 {...props}
-                aria-invalid={error ? true : undefined}
-                className={cn(control, 'min-h-24 resize-y px-3.5 py-2.5', Icon && 'pl-10', error && invalid, className)}
+                {...a11y}
+                className={cn(
+                    control,
+                    'min-h-24 resize-y px-3.5 py-2.5',
+                    Icon && 'pl-10',
+                    isInvalid && invalid,
+                    className,
+                )}
             />
         </div>
     );
@@ -125,13 +225,23 @@ export function ToggleField({
             />
             <span className="relative mt-0.5 h-6 w-11 shrink-0 rounded-full bg-slate-200 transition-colors peer-checked:bg-motriks peer-focus-visible:ring-4 peer-focus-visible:ring-motriks/20 after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-5" />
             <span className="min-w-0">
-                <span className="block text-sm font-semibold text-ink">{label}</span>
-                {description && <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{description}</span>}
+                <span className="block text-sm font-semibold text-ink">
+                    {label}
+                </span>
+                {description && (
+                    <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
+                        {description}
+                    </span>
+                )}
             </span>
         </label>
     );
 }
 
 export function FormActions({ children }: { children: ReactNode }) {
-    return <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">{children}</div>;
+    return (
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+            {children}
+        </div>
+    );
 }

@@ -1,6 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import { Download, Eye, Receipt } from 'lucide-react';
-import { InvoicePreviewModal, type InvoiceItem } from '@/components/invoices/invoice-preview';
+import {
+    InvoicePreviewModal,
+    type InvoiceItem,
+} from '@/components/invoices/invoice-preview';
 import { useMemo, useState } from 'react';
 import { buttonClass } from '@/components/page/buttons';
 import { Page } from '@/components/page/page';
@@ -9,8 +12,11 @@ import { QuietEmpty, Segmented } from '@/components/page/list-kit';
 import { packSummary } from '@/components/plans/plan-usage';
 import { cn } from '@/lib/utils';
 import { subscription as companySubscription } from '@/routes/company';
-import { download as invoiceDownload, index as invoicesIndex } from '@/routes/company/invoices';
-import { currencyLabel, number } from '@/pages/reports/format';
+import {
+    download as invoiceDownload,
+    index as invoicesIndex,
+} from '@/routes/company/invoices';
+import { currencyLabel, number } from '@/lib/format';
 
 export type Invoice = InvoiceItem & {
     extra_packs: number;
@@ -40,13 +46,20 @@ const year = (date: string) => date.slice(-4);
 export default function Invoices({ invoices, summary, client }: Props) {
     const [open, setOpen] = useState<Invoice | null>(null);
     const unit = currencyLabel(summary.currency);
-    const years = useMemo(() => [...new Set(invoices.map((i) => year(i.paid_at)))], [invoices]);
+    const years = useMemo(
+        () => [...new Set(invoices.map((i) => year(i.paid_at)))],
+        [invoices],
+    );
     const [shown, setShown] = useState<string>('all');
-    const visible = shown === 'all' ? invoices : invoices.filter((i) => year(i.paid_at) === shown);
+    const visible =
+        shown === 'all'
+            ? invoices
+            : invoices.filter((i) => year(i.paid_at) === shown);
 
     const amount = (n: number) => (
         <>
-            {number.format(n)} <span className="text-sm font-normal text-slate-500">{unit}</span>
+            {number.format(n)}{' '}
+            <span className="text-sm font-normal text-slate-500">{unit}</span>
         </>
     );
 
@@ -54,7 +67,10 @@ export default function Invoices({ invoices, summary, client }: Props) {
         <>
             <Head title="Factures" />
 
-            <Page title="Factures" description="Vos factures d’abonnement Motriks, à télécharger en PDF.">
+            <Page
+                title="Factures"
+                description="Vos factures d’abonnement Motriks, à télécharger en PDF."
+            >
                 <div className="flex flex-col gap-8">
                     <MetricStrip
                         items={[
@@ -77,9 +93,16 @@ export default function Invoices({ invoices, summary, client }: Props) {
 
                     {invoices.length === 0 ? (
                         <div className={card}>
-                            <QuietEmpty icon={Receipt} title="Aucune facture pour le moment">
-                                Vos factures apparaîtront ici après votre premier paiement.{' '}
-                                <Link href={companySubscription().url} className="font-semibold text-motriks-deep hover:underline">
+                            <QuietEmpty
+                                icon={Receipt}
+                                title="Aucune facture pour le moment"
+                            >
+                                Vos factures apparaîtront ici après votre
+                                premier paiement.{' '}
+                                <Link
+                                    href={companySubscription().url}
+                                    className="font-semibold text-motriks-deep hover:underline"
+                                >
                                     Voir les forfaits
                                 </Link>
                             </QuietEmpty>
@@ -118,8 +141,7 @@ export default function Invoices({ invoices, summary, client }: Props) {
                                     {visible.map((i) => (
                                         <li
                                             key={i.id}
-                                            onClick={() => setOpen(i)}
-                                            className="grid cursor-pointer gap-3 px-5 py-4 transition-colors hover:bg-slate-50/70 lg:grid-cols-[1.2fr_1fr_1.4fr_1.2fr_1fr_auto] lg:items-center lg:gap-4 lg:px-6"
+                                            className="relative grid gap-3 px-5 py-4 transition-colors hover:bg-slate-50/70 lg:grid-cols-[1.2fr_1fr_1.4fr_1.2fr_1fr_auto] lg:items-center lg:gap-4 lg:px-6"
                                         >
                                             <div className="flex min-w-0 items-center justify-between gap-3 lg:block">
                                                 <p className="truncate text-[13px] font-semibold tracking-tight text-ink tabular-nums">
@@ -131,41 +153,86 @@ export default function Invoices({ invoices, summary, client }: Props) {
                                                 </span>
                                             </div>
                                             <p className="text-sm text-slate-600 tabular-nums">
-                                                <span className="text-xs text-slate-400 lg:hidden">Payée le </span>
+                                                <span className="text-xs text-slate-500 lg:hidden">
+                                                    Payée le{' '}
+                                                </span>
                                                 {i.paid_at}
-                                                <span className="block text-xs text-slate-400">{i.method}</span>
+                                                <span className="block text-xs text-slate-500">
+                                                    {i.method}
+                                                </span>
                                             </p>
                                             <p className="text-sm text-slate-600 tabular-nums">
-                                                {i.period_start && i.period_end ? (
+                                                {i.period_start &&
+                                                i.period_end ? (
                                                     <>
-                                                        {i.period_start} <span className="text-slate-300">→</span> {i.period_end}
+                                                        {i.period_start}{' '}
+                                                        <span className="text-slate-300">
+                                                            →
+                                                        </span>{' '}
+                                                        {i.period_end}
                                                     </>
                                                 ) : i.period_end ? (
                                                     `Jusqu’au ${i.period_end}`
                                                 ) : (
-                                                    <span className="text-slate-400">—</span>
+                                                    <span className="text-slate-500">
+                                                        —
+                                                    </span>
                                                 )}
                                             </p>
                                             <p className="min-w-0 truncate text-sm text-slate-600">
                                                 {i.plan ?? '—'}
-                                                {packSummary(i.extra_packs, i.supervisor_packs ?? 0) && (
-                                                    <span className="text-slate-400"> · +{packSummary(i.extra_packs, i.supervisor_packs ?? 0)}</span>
+                                                {packSummary(
+                                                    i.extra_packs,
+                                                    i.supervisor_packs ?? 0,
+                                                ) && (
+                                                    <span className="text-slate-500">
+                                                        {' '}
+                                                        · +
+                                                        {packSummary(
+                                                            i.extra_packs,
+                                                            i.supervisor_packs ??
+                                                                0,
+                                                        )}
+                                                    </span>
                                                 )}
                                             </p>
                                             <p className="text-base font-semibold text-ink tabular-nums lg:text-right lg:text-sm">
                                                 {number.format(i.amount)}{' '}
-                                                <span className="text-xs font-normal text-slate-500">{currencyLabel(i.currency)}</span>
+                                                <span className="text-xs font-normal text-slate-500">
+                                                    {currencyLabel(i.currency)}
+                                                </span>
                                             </p>
-                                            <div className="grid grid-cols-2 gap-2 lg:flex lg:w-[11rem]" onClick={(e) => e.stopPropagation()}>
+                                            {/* « Voir » s’étend à toute la ligne (bouton étiré) : la ligne entière ouvre l’aperçu, au clavier comme au doigt */}
+                                            <div className="grid grid-cols-2 gap-2 lg:flex lg:w-[11rem]">
                                                 <button
                                                     type="button"
                                                     onClick={() => setOpen(i)}
-                                                    className={cn(buttonClass('ghost', 'sm'), 'lg:flex-1')}
+                                                    aria-label={`Voir la facture ${i.invoice_number}`}
+                                                    className={cn(
+                                                        buttonClass(
+                                                            'ghost',
+                                                            'sm',
+                                                        ),
+                                                        'static cursor-pointer after:absolute after:inset-0 active:scale-100 lg:flex-1',
+                                                    )}
                                                 >
                                                     <Eye />
                                                     Voir
                                                 </button>
-                                                <a href={invoiceDownload(i.uuid).url} download className={cn(buttonClass('secondary', 'sm'), 'lg:flex-1')}>
+                                                <a
+                                                    href={
+                                                        invoiceDownload(i.uuid)
+                                                            .url
+                                                    }
+                                                    download
+                                                    className={cn(
+                                                        buttonClass(
+                                                            'secondary',
+                                                            'sm',
+                                                        ),
+                                                        'z-10 lg:flex-1',
+                                                    )}
+                                                >
                                                     <Download />
                                                     PDF
                                                 </a>
@@ -175,14 +242,20 @@ export default function Invoices({ invoices, summary, client }: Props) {
                                 </ul>
                             </div>
                             <p className="text-xs text-slate-500">
-                                Une question sur une facture ? Écrivez-nous depuis le centre d’aide, avec son numéro.
+                                Une question sur une facture ? Écrivez-nous
+                                depuis le centre d’aide, avec son numéro.
                             </p>
                         </section>
                     )}
                 </div>
             </Page>
 
-            <InvoicePreviewModal invoice={open} open={open !== null} onClose={() => setOpen(null)} client={client} />
+            <InvoicePreviewModal
+                invoice={open}
+                open={open !== null}
+                onClose={() => setOpen(null)}
+                client={client}
+            />
         </>
     );
 }

@@ -1,9 +1,20 @@
 import { Link, useForm } from '@inertiajs/react';
-import { LifeBuoy, LockKeyhole, ShieldAlert, TriangleAlert, UserX } from 'lucide-react';
+import {
+    LifeBuoy,
+    LockKeyhole,
+    ShieldAlert,
+    TriangleAlert,
+    UserX,
+} from 'lucide-react';
 import { useRef, useState, type FormEvent } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import { ActionButton } from '@/components/page/buttons';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { PasswordField, SettingsCard } from '@/pages/settings/settings-kit';
 import { help } from '@/routes';
 
@@ -36,9 +47,16 @@ export default function DeleteUser({ blocker }: { blocker?: string | null }) {
 
     if (blocker) {
         return (
-            <SettingsCard icon={UserX} title="Supprimer mon compte" description="Votre compte est indispensable à votre entreprise.">
+            <SettingsCard
+                icon={UserX}
+                title="Supprimer mon compte"
+                description="Votre compte est indispensable à votre entreprise."
+            >
                 <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
-                    <p className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600" data-test="delete-user-blocked">
+                    <p
+                        className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-600"
+                        data-test="delete-user-blocked"
+                    >
                         <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-500" />
                         {blocker}
                     </p>
@@ -55,28 +73,44 @@ export default function DeleteUser({ blocker }: { blocker?: string | null }) {
     }
 
     return (
-        <SettingsCard icon={UserX} tone="danger" title="Supprimer mon compte" description="Vous serez déconnecté et ne pourrez plus vous connecter avec ces identifiants.">
+        <SettingsCard
+            icon={UserX}
+            tone="danger"
+            title="Supprimer mon compte"
+            description="Vous serez déconnecté et ne pourrez plus vous connecter avec ces identifiants."
+        >
             <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
                 <p className="flex items-start gap-2.5 text-sm leading-relaxed text-slate-500">
                     <TriangleAlert className="mt-0.5 size-4 shrink-0 text-red-500" />
                     Vous ne pourrez pas annuler cette action vous-même.
                 </p>
-                <ActionButton variant="secondary" className="border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50" onClick={() => setOpen(true)} data-test="delete-user-button">
+                <ActionButton
+                    variant="secondary"
+                    className="border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50"
+                    onClick={() => setOpen(true)}
+                    data-test="delete-user-button"
+                >
                     Supprimer mon compte
                 </ActionButton>
             </div>
 
             <Dialog open={open} onOpenChange={close}>
-                <DialogContent accent="red" className="gap-0 p-0 shadow-[0_24px_80px_-12px_rgba(220,38,38,0.22)] ring-red-600/15 sm:max-w-md">
+                <DialogContent
+                    accent="red"
+                    className="gap-0 p-0 shadow-[0_24px_80px_-12px_rgba(220,38,38,0.22)] ring-red-600/15 sm:max-w-md"
+                >
                     <form onSubmit={submit}>
                         <div className="flex gap-4 p-6 pb-5">
                             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-red-100 bg-red-50 text-red-600">
                                 <UserX className="size-5" />
                             </span>
                             <div className="min-w-0 pt-0.5">
-                                <DialogTitle className="text-base font-semibold text-ink">Supprimer votre compte ?</DialogTitle>
+                                <DialogTitle className="text-base font-semibold text-ink">
+                                    Supprimer votre compte ?
+                                </DialogTitle>
                                 <DialogDescription className="mt-1.5 text-sm leading-relaxed text-slate-500">
-                                    Vous serez déconnecté immédiatement. Saisissez votre mot de passe pour confirmer.
+                                    Vous serez déconnecté immédiatement.
+                                    Saisissez votre mot de passe pour confirmer.
                                 </DialogDescription>
                             </div>
                         </div>
@@ -90,24 +124,39 @@ export default function DeleteUser({ blocker }: { blocker?: string | null }) {
                                 ref={passwordInput}
                                 icon={LockKeyhole}
                                 value={form.data.password}
-                                onChange={(e) => form.setData('password', e.target.value)}
+                                onChange={(e) =>
+                                    form.setData('password', e.target.value)
+                                }
                                 error={form.errors.password}
                                 placeholder="Votre mot de passe"
                                 autoComplete="current-password"
                                 autoFocus
                             />
                             {form.errors.password && (
-                                <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+                                <p
+                                    role="alert"
+                                    className="mt-1.5 text-xs font-medium text-red-600"
+                                >
                                     {form.errors.password}
                                 </p>
                             )}
                         </div>
 
                         <div className="flex flex-col-reverse gap-2 border-t border-slate-100 px-6 py-4 sm:flex-row sm:justify-end">
-                            <ActionButton variant="secondary" disabled={form.processing} onClick={() => close(false)}>
+                            <ActionButton
+                                variant="secondary"
+                                disabled={form.processing}
+                                onClick={() => close(false)}
+                            >
                                 Annuler
                             </ActionButton>
-                            <ActionButton type="submit" variant="danger" loading={form.processing} disabled={!form.data.password} data-test="confirm-delete-user-button">
+                            <ActionButton
+                                type="submit"
+                                variant="danger"
+                                loading={form.processing}
+                                disabled={!form.data.password}
+                                data-test="confirm-delete-user-button"
+                            >
                                 Supprimer mon compte
                             </ActionButton>
                         </div>

@@ -34,22 +34,22 @@ class SalesController extends Controller
         $imageOf = function ($line) {
             $image = $line->siteProduct?->product?->image ?? $line->product?->image;
 
-            return $image ? asset('storage/' . $image) : null;
+            return $image ? asset('storage/'.$image) : null;
         };
 
         // ── Grouper par mois ──
         $months = $reports
             ->groupBy(fn ($r) => $r->report_date->locale('fr')->isoFormat('MMMM YYYY'))
             ->map(function ($monthReports, $monthKey) use ($imageOf) {
-                $allLines  = $monthReports->flatMap(fn ($r) => $r->lines);
+                $allLines = $monthReports->flatMap(fn ($r) => $r->lines);
                 $soldLines = $allLines->filter(fn ($l) => $l->units_sold > 0);
 
                 $topProducts = $soldLines
                     ->groupBy('product_name')
                     ->map(fn ($lines, $name) => [
-                        'name'      => $name,
-                        'units'     => (int) $lines->sum('units_sold'),
-                        'revenue'   => (float) $lines->sum('revenue'),
+                        'name' => $name,
+                        'units' => (int) $lines->sum('units_sold'),
+                        'revenue' => (float) $lines->sum('revenue'),
                         'image_url' => $imageOf($lines->first()),
                     ])
                     ->sortByDesc('revenue')
@@ -57,40 +57,40 @@ class SalesController extends Controller
                     ->take(3);
 
                 return [
-                    'key'           => $monthKey,
-                    'revenue'       => (float) $allLines->sum('revenue'),
-                    'units'         => (int) $allLines->sum('units_sold'),
+                    'key' => $monthKey,
+                    'revenue' => (float) $allLines->sum('revenue'),
+                    'units' => (int) $allLines->sum('units_sold'),
                     'reports_count' => $monthReports->count(),
-                    'top_products'  => $topProducts,
-                    'days'          => $monthReports->map(function ($r) use ($imageOf) {
+                    'top_products' => $topProducts,
+                    'days' => $monthReports->map(function ($r) use ($imageOf) {
                         $incident = Incident::meaningful($r->incident_notes);
 
                         return [
-                            'report_id'      => $r->id,
-                            'visit_id'       => $r->visit_id,
-                            'visit_uuid'     => $r->visit->uuid,
-                            'date'           => $r->report_date->toDateString(),
+                            'report_id' => $r->id,
+                            'visit_id' => $r->visit_id,
+                            'visit_uuid' => $r->visit->uuid,
+                            'date' => $r->report_date->toDateString(),
                             'date_formatted' => $r->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
-                            'site_name'      => $r->site->name,
-                            'site_city'      => $r->site->city,
-                            'total_revenue'  => (float) $r->lines->sum('revenue'),
-                            'total_units'    => (int) $r->lines->sum('units_sold'),
-                            'has_incident'   => $incident !== null,
+                            'site_name' => $r->site->name,
+                            'site_city' => $r->site->city,
+                            'total_revenue' => (float) $r->lines->sum('revenue'),
+                            'total_units' => (int) $r->lines->sum('units_sold'),
+                            'has_incident' => $incident !== null,
                             'incident_notes' => $incident,
-                            'notes'          => $r->notes,
-                            'lines'          => $r->lines
+                            'notes' => $r->notes,
+                            'lines' => $r->lines
                                 ->filter(fn ($l) => $l->units_sold > 0)
                                 ->sortByDesc('revenue')
                                 ->map(fn ($l) => [
                                     'product_name' => $l->product_name,
-                                    'unit'         => $l->unit,
-                                    'unit_price'   => $l->unit_price,
-                                    'units_sold'   => $l->units_sold,
-                                    'revenue'      => $l->revenue,
-                                    'notes'        => $l->notes,
+                                    'unit' => $l->unit,
+                                    'unit_price' => $l->unit_price,
+                                    'units_sold' => $l->units_sold,
+                                    'revenue' => $l->revenue,
+                                    'notes' => $l->notes,
                                     // Vente en boutique extérieure (hors stock du point de vente)
                                     'external_shop' => $l->external_shop,
-                                    'image_url'    => $imageOf($l),
+                                    'image_url' => $imageOf($l),
                                 ])
                                 ->values(),
                         ];
@@ -100,15 +100,15 @@ class SalesController extends Controller
             ->values();
 
         // ── Résumé global ──
-        $allLines  = $reports->flatMap(fn ($r) => $r->lines);
+        $allLines = $reports->flatMap(fn ($r) => $r->lines);
         $soldLines = $allLines->filter(fn ($l) => $l->units_sold > 0);
 
         $bestProduct = $soldLines
             ->groupBy('product_name')
             ->map(fn ($lines, $name) => [
-                'name'      => $name,
-                'revenue'   => (float) $lines->sum('revenue'),
-                'units'     => (int) $lines->sum('units_sold'),
+                'name' => $name,
+                'revenue' => (float) $lines->sum('revenue'),
+                'units' => (int) $lines->sum('units_sold'),
                 'image_url' => $imageOf($lines->first()),
             ])
             ->sortByDesc('revenue')
@@ -116,8 +116,8 @@ class SalesController extends Controller
 
         $bestDay = $reports
             ->map(fn ($r) => [
-                'date'      => $r->report_date->locale('fr')->isoFormat('D MMMM YYYY'),
-                'revenue'   => (float) $r->lines->sum('revenue'),
+                'date' => $r->report_date->locale('fr')->isoFormat('D MMMM YYYY'),
+                'revenue' => (float) $r->lines->sum('revenue'),
                 'site_name' => $r->site->name,
             ])
             ->sortByDesc('revenue')
@@ -126,10 +126,10 @@ class SalesController extends Controller
         return Inertia::render('terrain/ventes', [
             'summary' => [
                 'total_revenue' => (float) $allLines->sum('revenue'),
-                'total_units'   => (int) $allLines->sum('units_sold'),
+                'total_units' => (int) $allLines->sum('units_sold'),
                 'total_reports' => $reports->count(),
-                'best_product'  => $bestProduct,
-                'best_day'      => $bestDay,
+                'best_product' => $bestProduct,
+                'best_day' => $bestDay,
             ],
             'months' => $months,
         ]);

@@ -21,10 +21,15 @@ class Workbook
 {
     /** Types de colonnes : chaque valeur est écrite avec le format correspondant. */
     public const TEXT = 'text';
+
     public const INT = 'int';
+
     public const MONEY = 'money';
+
     public const DATE = 'date';
+
     public const DATETIME = 'datetime';
+
     public const PERCENT = 'percent';
 
     private Writer $writer;

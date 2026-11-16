@@ -18,11 +18,12 @@ export type Ticket = {
     agent_phone: string | null;
 };
 
-export const STATUS: Record<TicketStatus, { tone: StatusTone; label: string }> = {
-    open: { tone: 'info', label: 'Ouvert' },
-    in_review: { tone: 'warning', label: 'En cours' },
-    closed: { tone: 'success', label: 'Résolu' },
-};
+export const STATUS: Record<TicketStatus, { tone: StatusTone; label: string }> =
+    {
+        open: { tone: 'info', label: 'Ouvert' },
+        in_review: { tone: 'warning', label: 'En cours' },
+        closed: { tone: 'success', label: 'Résolu' },
+    };
 
 export function initials(name: string): string {
     return (

@@ -82,6 +82,20 @@ class SecurityHardeningTest extends TestCase
                 ->where('auth.company.name', $hostess->company->name));
     }
 
+    public function test_in_production_a_super_admin_must_turn_on_two_factor_authentication()
+    {
+        $admin = User::factory()->superAdmin()->create();
+        app()->detectEnvironment(fn () => 'production');
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertRedirect(route('security.edit'));
+        // La page Sécurité reste accessible (elle demande d'abord de confirmer le mot de passe, sans boucle)
+        $this->actingAs($admin)->get(route('security.edit'))->assertRedirect(route('password.confirm'));
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])->get(route('security.edit'))->assertOk();
+
+        $admin->forceFill(['two_factor_confirmed_at' => now()])->save();
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk();
+    }
+
     public function test_text_typed_by_users_never_becomes_an_excel_formula()
     {
         $path = tempnam(sys_get_temp_dir(), 'motriks').'.xlsx';

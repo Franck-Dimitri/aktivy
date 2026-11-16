@@ -14,14 +14,14 @@ export const LEGAL_INFO = {
     company: '[Raison sociale de la société éditrice]',
     legalForm: '[Forme juridique, ex. SARL]',
     rccm: '[Numéro RCCM]',
-    niu: '[Numéro d\'identifiant unique (NIU)]',
+    niu: "[Numéro d'identifiant unique (NIU)]",
     address: '[Adresse du siège], Yaoundé, Cameroun',
     email: 'contact@motriks.com',
     privacyEmail: 'contact@motriks.com',
     website: 'motriks.com',
-    hosting: '[Nom de l\'hébergeur et pays des serveurs]',
+    hosting: "[Nom de l'hébergeur et pays des serveurs]",
     paymentProvider: '[Prestataire de paiement, ex. agrégateur Mobile Money]',
-    aiProvider: '[Fournisseur du modèle d\'IA utilisé]',
+    aiProvider: "[Fournisseur du modèle d'IA utilisé]",
     city: '[Ville du tribunal compétent, ex. Yaoundé]',
     updatedAt: '14 octobre 2026',
     homeUrl: '/',
@@ -38,8 +38,14 @@ export function List({ items }: { items: ReactNode[] }) {
     return (
         <ul className="mt-4 space-y-2.5">
             {items.map((it, i) => (
-                <li key={i} className="flex gap-3 leading-relaxed text-slate-600">
-                    <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" aria-hidden="true" />
+                <li
+                    key={i}
+                    className="flex gap-3 leading-relaxed text-slate-600"
+                >
+                    <span
+                        className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-green-500"
+                        aria-hidden="true"
+                    />
                     <span>{it}</span>
                 </li>
             ))}
@@ -97,14 +103,27 @@ export default function LegalLayout({
                 {/* en-tête */}
                 <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
                     <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
-                        <Link href={LEGAL_INFO.homeUrl} aria-label={`${LEGAL_INFO.product}, accueil`} className="flex items-center">
+                        <Link
+                            href={LEGAL_INFO.homeUrl}
+                            aria-label={`${LEGAL_INFO.product}, accueil`}
+                            className="flex items-center"
+                        >
                             <MotriksLogo className="h-7" />
                         </Link>
                         <Link
                             href={LEGAL_INFO.homeUrl}
                             className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                         >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                            <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                            >
                                 <path d="M19 12H5m6-6l-6 6 6 6" />
                             </svg>
                             Retour à l'accueil
@@ -114,11 +133,19 @@ export default function LegalLayout({
 
                 {/* titre */}
                 <div className="border-b border-slate-100 bg-gradient-to-b from-green-50/70 to-white">
-                    <div className="mx-auto max-w-6xl px-4 pb-12 pt-14 sm:px-6 sm:pt-16">
-                        <p className="text-sm font-semibold uppercase tracking-wider text-green-600">Informations légales</p>
-                        <h1 className="mt-3 text-3xl font-extrabold tracking-tight break-words text-slate-900 min-[390px]:text-4xl sm:text-5xl">{title}</h1>
-                        <p className="mt-4 text-sm text-slate-500">Dernière mise à jour : {LEGAL_INFO.updatedAt}</p>
-                        <div className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-600">{intro}</div>
+                    <div className="mx-auto max-w-6xl px-4 pt-14 pb-12 sm:px-6 sm:pt-16">
+                        <p className="text-sm font-semibold tracking-wider text-green-600 uppercase">
+                            Informations légales
+                        </p>
+                        <h1 className="mt-3 text-3xl font-extrabold tracking-tight break-words text-slate-900 min-[390px]:text-4xl sm:text-5xl">
+                            {title}
+                        </h1>
+                        <p className="mt-4 text-sm text-slate-500">
+                            Dernière mise à jour : {LEGAL_INFO.updatedAt}
+                        </p>
+                        <div className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-600">
+                            {intro}
+                        </div>
                     </div>
                 </div>
 
@@ -126,7 +153,9 @@ export default function LegalLayout({
                     {/* sommaire */}
                     <aside className="hidden lg:block">
                         <nav className="sticky top-24">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Sommaire</p>
+                            <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                                Sommaire
+                            </p>
                             <ol className="mt-4 space-y-1 border-l border-slate-200">
                                 {sections.map((s, i) => (
                                     <li key={s.id}>
@@ -147,11 +176,17 @@ export default function LegalLayout({
                     </aside>
 
                     {/* contenu */}
-                    <main className="min-w-0 max-w-3xl">
+                    <main className="max-w-3xl min-w-0">
                         {sections.map((s, i) => (
-                            <section key={s.id} id={s.id} className="mt-10 scroll-mt-24 border-b border-slate-100 pb-10 first:mt-0 last:border-b-0">
+                            <section
+                                key={s.id}
+                                id={s.id}
+                                className="mt-10 scroll-mt-24 border-b border-slate-100 pb-10 first:mt-0 last:border-b-0"
+                            >
                                 <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
-                                    <span className="mr-2 text-green-600">{i + 1}.</span>
+                                    <span className="mr-2 text-green-600">
+                                        {i + 1}.
+                                    </span>
                                     {s.title}
                                 </h2>
                                 {s.body}
@@ -159,14 +194,22 @@ export default function LegalLayout({
                         ))}
 
                         <div className="mt-12 rounded-2xl border border-green-200 bg-green-50 p-6">
-                            <p className="font-semibold text-slate-900">Une question ?</p>
+                            <p className="font-semibold text-slate-900">
+                                Une question ?
+                            </p>
                             <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
                                 Écrivez-nous à{' '}
-                                <a href={`mailto:${LEGAL_INFO.email}`} className="font-medium text-green-700 underline-offset-2 hover:underline">
+                                <a
+                                    href={`mailto:${LEGAL_INFO.email}`}
+                                    className="font-medium text-green-700 underline-offset-2 hover:underline"
+                                >
                                     {LEGAL_INFO.email}
                                 </a>
                                 . Consultez aussi notre{' '}
-                                <Link href={otherLink.href} className="font-medium text-green-700 underline-offset-2 hover:underline">
+                                <Link
+                                    href={otherLink.href}
+                                    className="font-medium text-green-700 underline-offset-2 hover:underline"
+                                >
                                     {otherLink.label}
                                 </Link>
                                 .

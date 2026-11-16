@@ -4,11 +4,16 @@ import { buttonClass } from '@/components/page/buttons';
 import { Page } from '@/components/page/page';
 import { contact } from '@/routes';
 import { subscription as companySubscription } from '@/routes/company';
-import { number } from '@/pages/reports/format';
+import { number } from '@/lib/format';
 
 type Props = {
     module: { label: string; description: string };
-    plan?: { current: string; needed: string; price: number; highlights?: string[] };
+    plan?: {
+        current: string;
+        needed: string;
+        price: number;
+        highlights?: string[];
+    };
 };
 
 /**
@@ -37,27 +42,39 @@ export default function ModuleLocked({ module, plan }: Props) {
                                     Disponible avec {plan.needed}
                                 </p>
                             )}
-                            <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-700">{module.description}</p>
+                            <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-700">
+                                {module.description}
+                            </p>
                         </div>
 
                         {/* Le forfait qui la débloque */}
                         {plan && (
                             <div className="border-t border-slate-100 px-6 py-7 sm:px-12">
                                 <div className="flex flex-wrap items-baseline justify-between gap-3">
-                                    <p className="text-sm font-semibold text-ink">Avec {plan.needed}, vous avez aussi :</p>
+                                    <p className="text-sm font-semibold text-ink">
+                                        Avec {plan.needed}, vous avez aussi :
+                                    </p>
                                     {plan.price > 0 && (
                                         <p className="text-sm text-slate-500">
-                                            <span className="text-lg font-semibold text-ink tabular-nums">{number.format(plan.price)}</span> FCFA /
-                                            mois
+                                            <span className="text-lg font-semibold text-ink tabular-nums">
+                                                {number.format(plan.price)}
+                                            </span>{' '}
+                                            FCFA / mois
                                         </p>
                                     )}
                                 </div>
                                 {highlights.length > 0 && (
                                     <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
                                         {highlights.map((h) => (
-                                            <li key={h} className="flex items-start gap-2.5 text-sm text-slate-700">
+                                            <li
+                                                key={h}
+                                                className="flex items-start gap-2.5 text-sm text-slate-700"
+                                            >
                                                 <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-motriks text-white">
-                                                    <Check className="size-2.5" strokeWidth={3.5} />
+                                                    <Check
+                                                        className="size-2.5"
+                                                        strokeWidth={3.5}
+                                                    />
                                                 </span>
                                                 {h}
                                             </li>
@@ -71,22 +88,32 @@ export default function ModuleLocked({ module, plan }: Props) {
                         <div className="flex flex-col items-center gap-4 border-t border-slate-100 bg-slate-50/60 px-6 py-6 text-center sm:px-12">
                             {isManager ? (
                                 <div className="flex flex-wrap justify-center gap-2.5">
-                                    <Link href={companySubscription().url} className={buttonClass('primary')}>
+                                    <Link
+                                        href={companySubscription().url}
+                                        className={buttonClass('primary')}
+                                    >
                                         Voir les forfaits
                                         <ArrowRight />
                                     </Link>
-                                    <Link href={contact().url} className={buttonClass('secondary')}>
+                                    <Link
+                                        href={contact().url}
+                                        className={buttonClass('secondary')}
+                                    >
                                         Nous contacter
                                     </Link>
                                 </div>
                             ) : (
                                 <p className="text-sm font-medium text-slate-700">
-                                    Parlez-en à votre gérant : c’est lui qui choisit le forfait de l’entreprise.
+                                    Parlez-en à votre gérant : c’est lui qui
+                                    choisit le forfait de l’entreprise.
                                 </p>
                             )}
                             <p className="flex items-center gap-1.5 text-xs text-slate-500">
                                 <ShieldCheck className="size-3.5 text-motriks-deep" />
-                                {plan ? `Votre entreprise est en ${plan.current}. ` : ''}Vos données sont conservées.
+                                {plan
+                                    ? `Votre entreprise est en ${plan.current}. `
+                                    : ''}
+                                Vos données sont conservées.
                             </p>
                         </div>
                     </section>

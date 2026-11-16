@@ -3,10 +3,15 @@ import { FileText, ImageIcon, Paperclip, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
+import { useDeleteDialog } from '@/components/page/confirm-dialog';
 import { SelectInput, TextInput } from '@/components/page/form-fields';
 import { compressImage } from '@/lib/compress-image';
 import { toastFormError } from '@/lib/form-toast';
-import { destroy as documentDestroy, show as documentShow, store as documentStore } from '@/routes/personnel/documents';
+import {
+    destroy as documentDestroy,
+    show as documentShow,
+    store as documentStore,
+} from '@/routes/personnel/documents';
 
 export type StaffDocumentItem = {
     id: number;
@@ -19,10 +24,21 @@ export type StaffDocumentItem = {
     uploader: string | null;
 };
 
-const size = (bytes: number) => (bytes >= 1_000_000 ? `${(bytes / 1_000_000).toFixed(1).replace('.', ',')} Mo` : `${Math.max(1, Math.round(bytes / 1000))} Ko`);
+const size = (bytes: number) =>
+    bytes >= 1_000_000
+        ? `${(bytes / 1_000_000).toFixed(1).replace('.', ',')} Mo`
+        : `${Math.max(1, Math.round(bytes / 1000))} Ko`;
 
 /** Documents de la fiche : pièce d'identité, contrat, attestation… visibles par ceux qui gèrent ce membre. */
-export function StaffDocuments({ memberUuid, documents, types }: { memberUuid: string; documents: StaffDocumentItem[]; types: { value: string; label: string }[] }) {
+export function StaffDocuments({
+    memberUuid,
+    documents,
+    types,
+}: {
+    memberUuid: string;
+    documents: StaffDocumentItem[];
+    types: { value: string; label: string }[];
+}) {
     const input = useRef<HTMLInputElement>(null);
     const [type, setType] = useState(types[0]?.value ?? 'other');
     const [title, setTitle] = useState('');
@@ -33,31 +49,41 @@ export function StaffDocuments({ memberUuid, documents, types }: { memberUuid: s
 
         setSending(true);
         // Photo d'un papier prise au téléphone : réduite avant l'envoi ; un PDF part tel quel
-        const file = await compressImage(picked, { maxSide: 2000, quality: 0.85 });
-
-        router.post(documentStore({ personnel: memberUuid }).url, { type, title: title || null, file }, {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Document ajouté');
-                setTitle('');
-            },
-            onError: toastFormError,
-            onFinish: () => {
-                setSending(false);
-                if (input.current) input.current.value = '';
-            },
+        const file = await compressImage(picked, {
+            maxSide: 2000,
+            quality: 0.85,
         });
+
+        router.post(
+            documentStore({ personnel: memberUuid }).url,
+            { type, title: title || null, file },
+            {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Document ajouté');
+                    setTitle('');
+                },
+                onError: toastFormError,
+                onFinish: () => {
+                    setSending(false);
+                    if (input.current) input.current.value = '';
+                },
+            },
+        );
     };
 
-    const remove = (doc: StaffDocumentItem) => {
-        if (!confirm(`Retirer « ${doc.title} » ? Le fichier sera supprimé.`)) return;
-
-        router.delete(documentDestroy({ personnel: memberUuid, document: doc.uuid }).url, {
-            preserveScroll: true,
-            onSuccess: () => toast.success('Document retiré'),
+    // Retrait confirmé dans une fenêtre de l'application (pas le confirm() du navigateur)
+    const { ask: remove, dialog: removeDialog } =
+        useDeleteDialog<StaffDocumentItem>({
+            getUrl: (doc) =>
+                documentDestroy({ personnel: memberUuid, document: doc.uuid })
+                    .url,
+            getTitle: (doc) => `Retirer « ${doc.title} » ?`,
+            getDescription: () => 'Le fichier sera supprimé.',
+            getSuccessMessage: () => 'Document retiré',
+            confirmLabel: 'Retirer',
         });
-    };
 
     return (
         <div>
@@ -69,18 +95,43 @@ export function StaffDocuments({ memberUuid, documents, types }: { memberUuid: s
             ) : (
                 <ul className="divide-y divide-slate-100">
                     {documents.map((d) => (
-                        <li key={d.id} className="flex items-center gap-3 px-5 py-3">
+                        <li
+                            key={d.id}
+                            className="flex items-center gap-3 px-5 py-3"
+                        >
                             <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
-                                {d.is_pdf ? <FileText className="size-4" /> : <ImageIcon className="size-4" />}
+                                {d.is_pdf ? (
+                                    <FileText className="size-4" />
+                                ) : (
+                                    <ImageIcon className="size-4" />
+                                )}
                             </span>
-                            <a href={documentShow({ personnel: memberUuid, document: d.uuid }).url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:underline">
-                                <p className="truncate text-sm font-semibold text-ink">{d.title}</p>
+                            <a
+                                href={
+                                    documentShow({
+                                        personnel: memberUuid,
+                                        document: d.uuid,
+                                    }).url
+                                }
+                                target="_blank"
+                                rel="noreferrer"
+                                className="min-w-0 flex-1 hover:underline"
+                            >
+                                <p className="truncate text-sm font-semibold text-ink">
+                                    {d.title}
+                                </p>
                                 <p className="text-xs text-slate-500">
-                                    {d.type_label} · {size(d.size)} · ajouté le {d.uploaded_at}
+                                    {d.type_label} · {size(d.size)} · ajouté le{' '}
+                                    {d.uploaded_at}
                                     {d.uploader && ` par ${d.uploader}`}
                                 </p>
                             </a>
-                            <button type="button" onClick={() => remove(d)} className="flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-400 sm:size-8 hover:bg-red-50 hover:text-red-600" aria-label={`Retirer ${d.title}`}>
+                            <button
+                                type="button"
+                                onClick={() => remove(d)}
+                                className="flex size-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 sm:size-8"
+                                aria-label={`Retirer ${d.title}`}
+                            >
                                 <Trash2 className="size-4" />
                             </button>
                         </li>
@@ -90,20 +141,44 @@ export function StaffDocuments({ memberUuid, documents, types }: { memberUuid: s
 
             <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-5 py-4">
                 <div className="w-full sm:w-48">
-                    <SelectInput value={type} onChange={(e) => setType(e.target.value)} aria-label="Type de document">
+                    <SelectInput
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                        aria-label="Type de document"
+                    >
                         {types.map((t) => (
-                            <option key={t.value} value={t.value}>{t.label}</option>
+                            <option key={t.value} value={t.value}>
+                                {t.label}
+                            </option>
                         ))}
                     </SelectInput>
                 </div>
                 <div className="min-w-0 grow basis-full sm:basis-0">
-                    <TextInput value={title} onChange={(e) => setTitle(e.target.value)} maxLength={150} placeholder="Intitulé (facultatif)" aria-label="Intitulé du document" />
+                    <TextInput
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        maxLength={150}
+                        placeholder="Intitulé (facultatif)"
+                        aria-label="Intitulé du document"
+                    />
                 </div>
-                <input ref={input} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
-                <ActionButton icon={<Paperclip />} loading={sending} onClick={() => input.current?.click()} className="w-full sm:w-auto">
+                <input
+                    ref={input}
+                    type="file"
+                    accept="application/pdf,image/jpeg,image/png"
+                    className="hidden"
+                    onChange={(e) => upload(e.target.files?.[0])}
+                />
+                <ActionButton
+                    icon={<Paperclip />}
+                    loading={sending}
+                    onClick={() => input.current?.click()}
+                    className="w-full sm:w-auto"
+                >
                     {sending ? 'Envoi…' : 'Joindre un fichier'}
                 </ActionButton>
             </div>
+            {removeDialog}
         </div>
     );
 }

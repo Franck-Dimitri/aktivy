@@ -1,10 +1,19 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import {
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+    type ReactNode,
+} from 'react';
 import { Link } from '@inertiajs/react';
 import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
 import MotriksLogo from '@/components/motriks-logo';
 import MotriksMark from '@/components/motriks-mark';
-import { AuthMobileActions, AuthNavActions } from '@/components/landing/auth-actions';
+import {
+    AuthMobileActions,
+    AuthNavActions,
+} from '@/components/landing/auth-actions';
 import { CONTACT } from '@/lib/contact';
 import { isStandalone } from '@/lib/pwa';
 
@@ -20,7 +29,7 @@ const NAV_LINKS = [
 ];
 
 const STATS = [
-    { value: '< 2 min', label: 'pour saisir l\'activité du jour' },
+    { value: '< 2 min', label: "pour saisir l'activité du jour" },
     { value: '0', label: 'calcul manuel à faire' },
     { value: "Jusqu'à 5 h", label: 'de reporting en moins par semaine' },
     { value: 'Hors-ligne', label: 'saisie possible sans réseau' },
@@ -39,45 +48,136 @@ const SOLUTIONS = [
     'Totaux, montants et soldes calculés automatiquement',
     'Rapports consolidés et exportés en un clic',
     'Tableau de bord et alertes en temps réel',
-    'Pointage, historique et justificatifs d\'absence',
+    "Pointage, historique et justificatifs d'absence",
 ];
 
 const FEATURES = [
-    { icon: 'field', title: 'Suivi terrain', text: 'Prise de service, saisie rapide avec contrôles de cohérence, clôture journalière et mode hors-ligne.' },
-    { icon: 'clock', title: 'Présences et pointage', text: 'Plannings par site, échanges de poste, retards et absences enregistrés automatiquement.' },
-    { icon: 'box', title: 'Stocks et réassorts', text: 'Stock d\'ouverture repris de la veille, seuils critiques, bons de commande PDF en un clic.' },
-    { icon: 'file', title: 'Rapports et documents', text: 'Exports PDF et Excel aux couleurs de votre entreprise, attestations et relevés générés instantanément.' },
-    { icon: 'coin', title: 'Primes et commissions', text: 'Barèmes paramétrables, calcul automatique des primes, fiche de rémunération par hôtesse.' },
-    { icon: 'bell', title: 'Alertes configurables', text: 'Seuils par site, notifications prioritaires par application, e-mail, SMS ou WhatsApp.' },
-    { icon: 'camera', title: 'Preuves terrain', text: 'Photos du stand horodatées et géolocalisées, liste de contrôle de présentation.' },
-    { icon: 'chat', title: 'Communication', text: 'Annonces à toute l\'équipe, rappels automatiques et messagerie interne, fini les groupes WhatsApp.' },
+    {
+        icon: 'field',
+        title: 'Suivi terrain',
+        text: 'Prise de service, saisie rapide avec contrôles de cohérence, clôture journalière et mode hors-ligne.',
+    },
+    {
+        icon: 'clock',
+        title: 'Présences et pointage',
+        text: 'Plannings par site, échanges de poste, retards et absences enregistrés automatiquement.',
+    },
+    {
+        icon: 'box',
+        title: 'Stocks et réassorts',
+        text: "Stock d'ouverture repris de la veille, seuils critiques, bons de commande PDF en un clic.",
+    },
+    {
+        icon: 'file',
+        title: 'Rapports et documents',
+        text: 'Exports PDF et Excel aux couleurs de votre entreprise, attestations et relevés générés instantanément.',
+    },
+    {
+        icon: 'coin',
+        title: 'Primes et commissions',
+        text: 'Barèmes paramétrables, calcul automatique des primes, fiche de rémunération par hôtesse.',
+    },
+    {
+        icon: 'bell',
+        title: 'Alertes configurables',
+        text: 'Seuils par site, notifications prioritaires par application, e-mail, SMS ou WhatsApp.',
+    },
+    {
+        icon: 'camera',
+        title: 'Preuves terrain',
+        text: 'Photos du stand horodatées et géolocalisées, liste de contrôle de présentation.',
+    },
+    {
+        icon: 'chat',
+        title: 'Communication',
+        text: "Annonces à toute l'équipe, rappels automatiques et messagerie interne, fini les groupes WhatsApp.",
+    },
 ];
 
 const AI_FEATURES = [
-    { icon: 'spark', title: 'Synthèse automatique', text: 'Le résumé de votre semaine ou de votre mois, rédigé en langage clair, prêt à lire.' },
-    { icon: 'alert', title: 'Détection d\'anomalies', text: 'Ventes anormales, absences répétées, incohérences : vous êtes prévenu avant la perte.' },
-    { icon: 'trend', title: 'Prévisions', text: 'Anticipez les ventes, les besoins en personnel et les risques de rupture.' },
-    { icon: 'chat', title: 'Assistant conversationnel', text: 'Posez une question comme « quel site a le mieux vendu ce mois-ci ? » et obtenez la réponse chiffrée.' },
+    {
+        icon: 'spark',
+        title: 'Synthèse automatique',
+        text: 'Le résumé de votre semaine ou de votre mois, rédigé en langage clair, prêt à lire.',
+    },
+    {
+        icon: 'alert',
+        title: "Détection d'anomalies",
+        text: 'Ventes anormales, absences répétées, incohérences : vous êtes prévenu avant la perte.',
+    },
+    {
+        icon: 'trend',
+        title: 'Prévisions',
+        text: 'Anticipez les ventes, les besoins en personnel et les risques de rupture.',
+    },
+    {
+        icon: 'chat',
+        title: 'Assistant conversationnel',
+        text: 'Posez une question comme « quel site a le mieux vendu ce mois-ci ? » et obtenez la réponse chiffrée.',
+    },
 ];
 
 const STEPS = [
-    { icon: 'grid', tag: 'Quelques minutes', title: 'Créez votre espace', text: 'Ajoutez votre logo, vos couleurs, vos sites et votre équipe en quelques minutes.' },
-    { icon: 'file', tag: 'Sans ressaisie', title: 'Importez votre Excel', text: 'Reprenez votre personnel, vos sites et vos produits existants sans tout ressaisir.' },
-    { icon: 'trend', tag: 'En temps réel', title: 'Pilotez en direct', text: 'Vos équipes saisissent depuis leur téléphone, vous suivez tout en temps réel.' },
+    {
+        icon: 'grid',
+        tag: 'Quelques minutes',
+        title: 'Créez votre espace',
+        text: 'Ajoutez votre logo, vos couleurs, vos sites et votre équipe en quelques minutes.',
+    },
+    {
+        icon: 'file',
+        tag: 'Sans ressaisie',
+        title: 'Importez votre Excel',
+        text: 'Reprenez votre personnel, vos sites et vos produits existants sans tout ressaisir.',
+    },
+    {
+        icon: 'trend',
+        tag: 'En temps réel',
+        title: 'Pilotez en direct',
+        text: 'Vos équipes saisissent depuis leur téléphone, vous suivez tout en temps réel.',
+    },
 ];
 
 const PERSONAS = [
-    { title: 'Gérant de PME', text: 'Voyez la performance de votre entreprise en un coup d\'œil, sans rien compiler.' },
-    { title: 'Responsable commercial', text: 'Suivez l\'avancement du jour sur tous vos sites et anticipez les ruptures.' },
-    { title: 'Agence d\'hôtesses', text: 'Gérez plannings, présences et facturation par client, avec portail client en marque blanche.' },
-    { title: 'Comptable', text: 'Recevez des exports fiables, prêts pour la paie et la comptabilité, sans ressaisie.' },
+    {
+        title: 'Gérant de PME',
+        text: "Voyez la performance de votre entreprise en un coup d'œil, sans rien compiler.",
+    },
+    {
+        title: 'Responsable commercial',
+        text: "Suivez l'avancement du jour sur tous vos sites et anticipez les ruptures.",
+    },
+    {
+        title: "Agence d'hôtesses",
+        text: 'Gérez plannings, présences et facturation par client, avec portail client en marque blanche.',
+    },
+    {
+        title: 'Comptable',
+        text: 'Recevez des exports fiables, prêts pour la paie et la comptabilité, sans ressaisie.',
+    },
 ];
 
 const LOCAL = [
-    { icon: 'offline', title: 'Mode hors-ligne', text: 'Les saisies sont conservées et synchronisées dès le retour du réseau.' },
-    { icon: 'signal', title: 'Économie de données', text: 'Interface légère, pensée pour les connexions faibles et les forfaits limités.' },
-    { icon: 'wallet', title: 'Mobile Money', text: 'Payez votre abonnement par Mobile Money ou carte bancaire.' },
-    { icon: 'install', title: 'Installable', text: 'Application web installable sur Android, iOS et ordinateur, sans passer par une boutique.' },
+    {
+        icon: 'offline',
+        title: 'Mode hors-ligne',
+        text: 'Les saisies sont conservées et synchronisées dès le retour du réseau.',
+    },
+    {
+        icon: 'signal',
+        title: 'Économie de données',
+        text: 'Interface légère, pensée pour les connexions faibles et les forfaits limités.',
+    },
+    {
+        icon: 'wallet',
+        title: 'Mobile Money',
+        text: 'Payez votre abonnement par Mobile Money ou carte bancaire.',
+    },
+    {
+        icon: 'install',
+        title: 'Installable',
+        text: 'Application web installable sur Android, iOS et ordinateur, sans passer par une boutique.',
+    },
 ];
 
 /* Forfaits Motriks : mêmes prix et mêmes limites que l'application (App\Enums\Plan) */
@@ -87,7 +187,12 @@ const PLANS = [
         price: 'Gratuit',
         unit: '',
         description: 'Pour découvrir Motriks avec une hôtesse.',
-        features: ['1 hôtesse et 1 point de vente', 'Suivi terrain, même sans réseau', 'Rapports journaliers et chiffres du jour', 'Historique de 30 jours'],
+        features: [
+            '1 hôtesse et 1 point de vente',
+            'Suivi terrain, même sans réseau',
+            'Rapports journaliers et chiffres du jour',
+            'Historique de 30 jours',
+        ],
         cta: 'Commencer gratuitement',
         highlight: false,
     },
@@ -96,7 +201,13 @@ const PLANS = [
         price: '14 500',
         unit: 'FCFA / mois',
         description: 'Pour la PME qui pilote son réseau de vente.',
-        features: ['7 hôtesses, 7 points de vente et 2 superviseurs', 'Stocks, rappels et notifications push', 'Ventes et objectifs par hôtesse', 'PDF à vos couleurs et exports Excel', '1 événement et 3 packs par mois'],
+        features: [
+            '7 hôtesses, 7 points de vente et 2 superviseurs',
+            'Stocks, rappels et notifications push',
+            'Ventes et objectifs par hôtesse',
+            'PDF à vos couleurs et exports Excel',
+            '1 événement et 3 packs par mois',
+        ],
         cta: 'Essayer 7 jours',
         highlight: false,
     },
@@ -105,7 +216,13 @@ const PLANS = [
         price: '48 000',
         unit: 'FCFA / mois',
         description: 'Pour les agences et les marques en campagne.',
-        features: ['35 hôtesses, 35 points de vente et 6 superviseurs', '3 événements et 10 packs par mois', '6 photos par rapport', 'Historique illimité', 'Mise en service offerte'],
+        features: [
+            '35 hôtesses, 35 points de vente et 6 superviseurs',
+            '3 événements et 10 packs par mois',
+            '6 photos par rapport',
+            'Historique illimité',
+            'Mise en service offerte',
+        ],
         cta: 'Essayer 7 jours',
         highlight: true,
     },
@@ -114,19 +231,43 @@ const PLANS = [
         price: '88 000',
         unit: 'FCFA / mois',
         description: 'Pour les grands réseaux et les groupes.',
-        features: ['120 hôtesses et 120 points de vente', 'Superviseurs illimités', 'Événements et packs illimités', 'PDF et exports illimités', 'Interlocuteur dédié'],
+        features: [
+            '120 hôtesses et 120 points de vente',
+            'Superviseurs illimités',
+            'Événements et packs illimités',
+            'PDF et exports illimités',
+            'Interlocuteur dédié',
+        ],
         cta: 'Nous contacter',
         highlight: false,
     },
 ];
 
 const FAQS = [
-    { q: 'Mes données sont-elles protégées ?', a: 'Oui. Chaque entreprise dispose d\'un espace totalement isolé, les flux sont chiffrés (HTTPS), les sauvegardes sont quotidiennes et un journal d\'audit trace les actions sensibles.' },
-    { q: 'Mes hôtesses ont-elles besoin d\'un smartphone récent ?', a: 'Non. L\'interface est légère et fonctionne sur un téléphone d\'entrée de gamme, même avec un réseau instable grâce au mode hors-ligne.' },
-    { q: 'Puis-je essayer avant de payer ?', a: 'Oui. Motriks Starter est gratuit et sans engagement, et toute nouvelle entreprise essaie Motriks Business pendant 7 jours, sans carte bancaire.' },
-    { q: 'Que se passe-t-il si mon abonnement expire ?', a: 'Votre entreprise passe automatiquement en Motriks Starter, le forfait gratuit. Vos données sont conservées : vous retrouvez tout dès que vous reprenez un forfait.' },
-    { q: 'Puis-je récupérer mes données ?', a: 'Oui, à tout moment. Vous pouvez exporter l\'ensemble de vos données depuis la plateforme.' },
-    { q: 'Puis-je importer mes fichiers Excel ?', a: 'Oui. L\'import reprend votre personnel, vos sites et vos produits pour démarrer en quelques minutes.' },
+    {
+        q: 'Mes données sont-elles protégées ?',
+        a: "Oui. Chaque entreprise dispose d'un espace totalement isolé, les flux sont chiffrés (HTTPS), les sauvegardes sont quotidiennes et un journal d'audit trace les actions sensibles.",
+    },
+    {
+        q: "Mes hôtesses ont-elles besoin d'un smartphone récent ?",
+        a: "Non. L'interface est légère et fonctionne sur un téléphone d'entrée de gamme, même avec un réseau instable grâce au mode hors-ligne.",
+    },
+    {
+        q: 'Puis-je essayer avant de payer ?',
+        a: 'Oui. Motriks Starter est gratuit et sans engagement, et toute nouvelle entreprise essaie Motriks Business pendant 7 jours, sans carte bancaire.',
+    },
+    {
+        q: 'Que se passe-t-il si mon abonnement expire ?',
+        a: 'Votre entreprise passe automatiquement en Motriks Starter, le forfait gratuit. Vos données sont conservées : vous retrouvez tout dès que vous reprenez un forfait.',
+    },
+    {
+        q: 'Puis-je récupérer mes données ?',
+        a: "Oui, à tout moment. Vous pouvez exporter l'ensemble de vos données depuis la plateforme.",
+    },
+    {
+        q: 'Puis-je importer mes fichiers Excel ?',
+        a: "Oui. L'import reprend votre personnel, vos sites et vos produits pour démarrer en quelques minutes.",
+    },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -148,23 +289,53 @@ const ICON_PATHS = {
     alert: 'M12 9v4m0 4h.01M10.300 3.900L1.800 18a2 2 0 001.700 3h17a2 2 0 001.700-3L13.700 3.900a2 2 0 00-3.400 0z',
     trend: 'M3 17l6-6 4 4 8-8m0 0h-6m6 0v6',
     mail: 'M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1zm-1 1l9 6.500L21 7',
-    offline: 'M3 3l18 18M8.5 16.500a5 5 0 017 0M5 12.900a10 10 0 015.200-2.800M19 12.900a10 10 0 00-2.300-1.600M2 8.800a15 15 0 014.200-2.600M22 8.800A15 15 0 0010.700 5M12 20h.01',
+    offline:
+        'M3 3l18 18M8.5 16.500a5 5 0 017 0M5 12.900a10 10 0 015.200-2.800M19 12.900a10 10 0 00-2.300-1.600M2 8.800a15 15 0 014.200-2.600M22 8.800A15 15 0 0010.700 5M12 20h.01',
     signal: 'M5 20v-3M10 20v-7M15 20V9M20 20V4',
     wallet: 'M3 7a2 2 0 012-2h12v4M3 7v11a2 2 0 002 2h15V9H5a2 2 0 01-2-2zm13 7h.01',
-    install: 'M8 2h8a1 1 0 011 1v18a1 1 0 01-1 1H8a1 1 0 01-1-1V3a1 1 0 011-1zm4 4v7m-3-3l3 3 3-3m-3 6.500h.01',
+    install:
+        'M8 2h8a1 1 0 011 1v18a1 1 0 01-1 1H8a1 1 0 01-1-1V3a1 1 0 011-1zm4 4v7m-3-3l3 3 3-3m-3 6.500h.01',
 };
 
-function Icon({ name, className = 'h-6 w-6' }: { name: string; className?: string }) {
+function Icon({
+    name,
+    className = 'h-6 w-6',
+}: {
+    name: string;
+    className?: string;
+}) {
     return (
-        <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+            className={className}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+        >
             <path d={ICON_PATHS[name as keyof typeof ICON_PATHS]} />
         </svg>
     );
 }
 
-function Check({ className = 'h-5 w-5 text-green-600' }: { className?: string }) {
+function Check({
+    className = 'h-5 w-5 text-green-600',
+}: {
+    className?: string;
+}) {
     return (
-        <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+            className={className}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+        >
             <path d="M5 13l4 4L19 7" />
         </svg>
     );
@@ -172,7 +343,16 @@ function Check({ className = 'h-5 w-5 text-green-600' }: { className?: string })
 
 function Cross({ className = 'h-5 w-5 text-red-400' }: { className?: string }) {
     return (
-        <svg className={className} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+            className={className}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+        >
             <path d="M6 6l12 12M18 6L6 18" />
         </svg>
     );
@@ -181,34 +361,71 @@ function Cross({ className = 'h-5 w-5 text-red-400' }: { className?: string }) {
 /* Logo Motriks horizontal : vert sur fond clair, blanc sur fond sombre (light). */
 function Logo({ light = false }: { light?: boolean }) {
     return (
-        <Link href="/" aria-label="Motriks, accueil" className="flex items-center">
+        <Link
+            href="/"
+            aria-label="Motriks, accueil"
+            className="flex items-center"
+        >
             <MotriksLogo variant={light ? 'white' : 'color'} className="h-7" />
         </Link>
     );
 }
 
 /* Une seule taille pour tous les titres de section (h2) de la page, CTA final compris */
-const H2 = 'text-balance text-3xl font-bold tracking-[-0.03em] sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]';
+const H2 =
+    'text-balance text-3xl font-bold tracking-[-0.03em] sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]';
 
-function Eyebrow({ children, dark = false }: { children: ReactNode; dark?: boolean }) {
-    return <p className={`mb-4 text-sm font-medium ${dark ? 'text-green-400' : 'text-green-700'}`}>{children}</p>;
+function Eyebrow({
+    children,
+    dark = false,
+}: {
+    children: ReactNode;
+    dark?: boolean;
+}) {
+    return (
+        <p
+            className={`mb-4 text-sm font-medium ${dark ? 'text-green-400' : 'text-green-700'}`}
+        >
+            {children}
+        </p>
+    );
 }
 
 /* En-tête de section : titre à gauche, texte à droite sur ordinateur, l'un sous l'autre sur téléphone */
-function SectionTitle({ eyebrow, title, text, dark = false }: { eyebrow?: string; title: string; text?: string; dark?: boolean }) {
+function SectionTitle({
+    eyebrow,
+    title,
+    text,
+    dark = false,
+}: {
+    eyebrow?: string;
+    title: string;
+    text?: string;
+    dark?: boolean;
+}) {
     return (
-        <div data-reveal className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-10">
+        <div
+            data-reveal
+            className="grid gap-5 lg:grid-cols-12 lg:items-end lg:gap-10"
+        >
             <div className="lg:col-span-7">
                 {eyebrow && <Eyebrow dark={dark}>{eyebrow}</Eyebrow>}
-                <h2 className={`${H2} ${dark ? 'text-white' : 'text-slate-950'}`}>{title}</h2>
+                <h2
+                    className={`${H2} ${dark ? 'text-white' : 'text-slate-950'}`}
+                >
+                    {title}
+                </h2>
             </div>
             {text && (
-                <p className={`text-pretty text-base leading-relaxed sm:text-lg lg:col-span-5 lg:pb-1.5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{text}</p>
+                <p
+                    className={`text-base leading-relaxed text-pretty sm:text-lg lg:col-span-5 lg:pb-1.5 ${dark ? 'text-slate-500' : 'text-slate-500'}`}
+                >
+                    {text}
+                </p>
             )}
         </div>
     );
 }
-
 
 /* Animation au défilement : les éléments marqués data-reveal apparaissent à chaque passage à l'écran */
 const REVEAL_CSS = `
@@ -222,11 +439,16 @@ transition-delay:var(--rv-delay,0ms)}
 
 function useScrollReveal() {
     useLayoutEffect(() => {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+        if (
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+            !('IntersectionObserver' in window)
+        ) {
             return;
         }
 
-        const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+        const els = Array.from(
+            document.querySelectorAll<HTMLElement>('[data-reveal]'),
+        );
         const timers = new Map<HTMLElement, number>();
 
         // décalage progressif entre éléments frères (0, 90, 180, 270 ms)
@@ -249,7 +471,13 @@ function useScrollReveal() {
                         el.style.setProperty('--rv-delay', `${delay}ms`);
                         el.classList.add('rv-in');
                         // le délai est retiré ensuite pour ne pas ralentir les effets au survol
-                        timers.set(el, window.setTimeout(() => el.style.setProperty('--rv-delay', '0ms'), delay + 900));
+                        timers.set(
+                            el,
+                            window.setTimeout(
+                                () => el.style.setProperty('--rv-delay', '0ms'),
+                                delay + 900,
+                            ),
+                        );
                     } else {
                         el.style.setProperty('--rv-delay', '0ms');
                         el.classList.remove('rv-in');
@@ -309,13 +537,20 @@ function buildWavePath(points: TlPoint[], height: number) {
     return d;
 }
 
-function AiTimeline({ items }: { items: { icon: string; title: string; text: string }[] }) {
+function AiTimeline({
+    items,
+}: {
+    items: { icon: string; title: string; text: string }[];
+}) {
     const rootRef = useRef<HTMLDivElement>(null);
     const pathRef = useRef<SVGPathElement>(null);
     const anchorRefs = useRef<(HTMLElement | null)[]>([]);
     const stepRefs = useRef<(HTMLElement | null)[]>([]);
     const dotRefs = useRef<(HTMLElement | null)[]>([]);
-    const lengthsRef = useRef<{ total: number; at: number[] }>({ total: 0, at: [] });
+    const lengthsRef = useRef<{ total: number; at: number[] }>({
+        total: 0,
+        at: [],
+    });
     const refreshRef = useRef<() => void>(() => {});
     const [geo, setGeo] = useState<TlGeometry | null>(null);
 
@@ -335,11 +570,16 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
                     y += el.offsetTop;
                     el = el.offsetParent as HTMLElement | null;
                 }
-                return { x: TL_WAVE[i % 2], y: Math.round(y + (anchor?.offsetHeight ?? 0) / 2) };
+                return {
+                    x: TL_WAVE[i % 2],
+                    y: Math.round(y + (anchor?.offsetHeight ?? 0) / 2),
+                };
             });
             const height = root.offsetHeight;
             const d = buildWavePath(points, height);
-            setGeo((prev) => (prev && prev.d === d ? prev : { height, points, d }));
+            setGeo((prev) =>
+                prev && prev.d === d ? prev : { height, points, d },
+            );
         };
 
         measure();
@@ -380,7 +620,9 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
         if (!root) {
             return;
         }
-        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const reduce = window.matchMedia(
+            '(prefers-reduced-motion: reduce)',
+        ).matches;
         let frame = 0;
         let near = true;
 
@@ -397,7 +639,10 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
                 const r = root.getBoundingClientRect();
                 const vh = window.innerHeight;
                 // 0 quand le haut arrive à 80 % de l'écran, 1 quand le bas atteint 60 %
-                progress = Math.min(1, Math.max(0, (vh * 0.8 - r.top) / (r.height + vh * 0.2)));
+                progress = Math.min(
+                    1,
+                    Math.max(0, (vh * 0.8 - r.top) / (r.height + vh * 0.2)),
+                );
             }
 
             const drawn = progress * total;
@@ -412,7 +657,9 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
                 stepRefs.current[i]?.toggleAttribute('data-on', on);
                 dotRefs.current[i]?.toggleAttribute('data-on', on);
             });
-            dotRefs.current.forEach((dot, i) => dot?.toggleAttribute('data-active', i === last));
+            dotRefs.current.forEach((dot, i) =>
+                dot?.toggleAttribute('data-active', i === last),
+            );
         };
 
         const schedule = () => {
@@ -463,14 +710,19 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
                 style={{ paddingLeft: TL_GUTTER }}
             >
                 <svg
-                    className="pointer-events-none absolute left-0 top-0 overflow-visible"
+                    className="pointer-events-none absolute top-0 left-0 overflow-visible"
                     width={TL_GUTTER}
                     height={geo?.height ?? 0}
                     aria-hidden="true"
                 >
                     {geo && (
                         <>
-                            <path d={geo.d} fill="none" stroke="rgba(148,163,184,0.16)" strokeWidth="2" />
+                            <path
+                                d={geo.d}
+                                fill="none"
+                                stroke="rgba(148,163,184,0.16)"
+                                strokeWidth="2"
+                            />
                             <path
                                 ref={pathRef}
                                 className="tl-line"
@@ -513,8 +765,12 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
                             <Icon name={it.icon} className="h-5 w-5" />
                         </span>
                         <div className="min-w-0 pt-0.5">
-                            <h3 className="text-base font-semibold text-white">{it.title}</h3>
-                            <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-slate-400">{it.text}</p>
+                            <h3 className="text-base font-semibold text-white">
+                                {it.title}
+                            </h3>
+                            <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-slate-500">
+                                {it.text}
+                            </p>
                         </div>
                     </div>
                 ))}
@@ -529,13 +785,26 @@ function AiTimeline({ items }: { items: { icon: string; title: string; text: str
 
 function FeatureGrid() {
     return (
-        <div data-reveal className="mt-14 overflow-hidden rounded-2xl border border-slate-200">
+        <div
+            data-reveal
+            className="mt-14 overflow-hidden rounded-2xl border border-slate-200"
+        >
             <div className="grid gap-px bg-slate-200 sm:grid-cols-2 lg:grid-cols-4">
                 {FEATURES.map((f) => (
-                    <div key={f.title} className="bg-white p-7 transition-colors duration-200 hover:bg-slate-50/70 sm:p-8">
-                        <Icon name={f.icon} className="h-5 w-5 text-green-600" />
-                        <h3 className="mt-5 text-base font-semibold tracking-tight text-slate-900 sm:mt-8">{f.title}</h3>
-                        <p className="mt-2 text-sm leading-relaxed text-slate-500">{f.text}</p>
+                    <div
+                        key={f.title}
+                        className="bg-white p-7 transition-colors duration-200 hover:bg-slate-50/70 sm:p-8"
+                    >
+                        <Icon
+                            name={f.icon}
+                            className="h-5 w-5 text-green-600"
+                        />
+                        <h3 className="mt-5 text-base font-semibold tracking-tight text-slate-900 sm:mt-8">
+                            {f.title}
+                        </h3>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                            {f.text}
+                        </p>
                     </div>
                 ))}
             </div>
@@ -553,29 +822,75 @@ function HeroDashboard() {
         { icon: 'file', label: 'Rapports' },
     ];
     const rows = [
-        { icon: 'field', name: 'Carrefour Bastos', code: 'site_8f21c4', amount: '1 245 000', status: 'Ouvert', tone: 'bg-green-100 text-green-700' },
-        { icon: 'field', name: 'Mvog-Ada', code: 'site_3b09de', amount: '860 000', status: 'Ouvert', tone: 'bg-green-100 text-green-700' },
-        { icon: 'field', name: 'Mokolo', code: 'site_c71a55', amount: '0', status: 'Pas ouvert', tone: 'bg-amber-100 text-amber-700' },
-        { icon: 'field', name: 'Essos', code: 'site_5e4402', amount: '415 000', status: 'Ouvert', tone: 'bg-green-100 text-green-700' },
-        { icon: 'field', name: 'Bonamoussadi', code: 'site_a93f10', amount: '730 000', status: 'Ouvert', tone: 'bg-green-100 text-green-700' },
-        { icon: 'field', name: 'Biyem-Assi', code: 'site_2d7c68', amount: '392 000', status: 'Ouvert', tone: 'bg-green-100 text-green-700' },
+        {
+            icon: 'field',
+            name: 'Carrefour Bastos',
+            code: 'site_8f21c4',
+            amount: '1 245 000',
+            status: 'Ouvert',
+            tone: 'bg-green-100 text-green-700',
+        },
+        {
+            icon: 'field',
+            name: 'Mvog-Ada',
+            code: 'site_3b09de',
+            amount: '860 000',
+            status: 'Ouvert',
+            tone: 'bg-green-100 text-green-700',
+        },
+        {
+            icon: 'field',
+            name: 'Mokolo',
+            code: 'site_c71a55',
+            amount: '0',
+            status: 'Pas ouvert',
+            tone: 'bg-amber-100 text-amber-700',
+        },
+        {
+            icon: 'field',
+            name: 'Essos',
+            code: 'site_5e4402',
+            amount: '415 000',
+            status: 'Ouvert',
+            tone: 'bg-green-100 text-green-700',
+        },
+        {
+            icon: 'field',
+            name: 'Bonamoussadi',
+            code: 'site_a93f10',
+            amount: '730 000',
+            status: 'Ouvert',
+            tone: 'bg-green-100 text-green-700',
+        },
+        {
+            icon: 'field',
+            name: 'Biyem-Assi',
+            code: 'site_2d7c68',
+            amount: '392 000',
+            status: 'Ouvert',
+            tone: 'bg-green-100 text-green-700',
+        },
     ];
 
     return (
         <div
             className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white"
             style={{
-                WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 42%, rgba(0,0,0,0.55) 68%, transparent 96%)',
-                maskImage: 'linear-gradient(to bottom, #000 0%, #000 42%, rgba(0,0,0,0.55) 68%, transparent 96%)',
+                WebkitMaskImage:
+                    'linear-gradient(to bottom, #000 0%, #000 42%, rgba(0,0,0,0.55) 68%, transparent 96%)',
+                maskImage:
+                    'linear-gradient(to bottom, #000 0%, #000 42%, rgba(0,0,0,0.55) 68%, transparent 96%)',
             }}
         >
             <div className="flex">
                 <aside className="hidden w-56 shrink-0 border-r border-slate-100 bg-slate-50/80 p-5 sm:block">
                     <div className="flex items-center gap-3">
                         <MotriksMark className="size-9 rounded-full" />
-                        <p className="text-sm font-semibold leading-tight text-slate-900">
+                        <p className="text-sm leading-tight font-semibold text-slate-900">
                             Motriks
-                            <span className="block text-xs font-normal text-slate-500">Démo Distribution</span>
+                            <span className="block text-xs font-normal text-slate-500">
+                                Démo Distribution
+                            </span>
                         </p>
                     </div>
                     <nav className="mt-8 space-y-1">
@@ -583,7 +898,9 @@ function HeroDashboard() {
                             <div
                                 key={n.label}
                                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${
-                                    n.active ? 'bg-green-100/80 font-medium text-green-700' : 'text-slate-500'
+                                    n.active
+                                        ? 'bg-green-100/80 font-medium text-green-700'
+                                        : 'text-slate-500'
                                 }`}
                             >
                                 <Icon name={n.icon} className="h-4 w-4" />
@@ -601,30 +918,68 @@ function HeroDashboard() {
                     <div className="p-4 sm:p-6">
                         <div className="grid grid-cols-3 gap-2 sm:gap-3">
                             {[
-                                { label: 'Ventes du jour', value: '2 480 000', unit: 'FCFA' },
-                                { label: 'Hôtesses actives', value: '24 / 26', unit: '' },
-                                { label: 'Sites ouverts', value: '9 / 10', unit: '' },
+                                {
+                                    label: 'Ventes du jour',
+                                    value: '2 480 000',
+                                    unit: 'FCFA',
+                                },
+                                {
+                                    label: 'Hôtesses actives',
+                                    value: '24 / 26',
+                                    unit: '',
+                                },
+                                {
+                                    label: 'Sites ouverts',
+                                    value: '9 / 10',
+                                    unit: '',
+                                },
                             ].map((k) => (
-                                <div key={k.label} className="min-w-0 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm sm:p-4">
-                                    <p className="text-xs text-slate-500">{k.label}</p>
+                                <div
+                                    key={k.label}
+                                    className="min-w-0 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm sm:p-4"
+                                >
+                                    <p className="text-xs text-slate-500">
+                                        {k.label}
+                                    </p>
                                     <p className="mt-2 text-base font-semibold tracking-tight text-slate-900 sm:text-xl">
-                                        {k.value} <span className="text-xs font-medium text-slate-400">{k.unit}</span>
+                                        {k.value}{' '}
+                                        <span className="text-xs font-medium text-slate-500">
+                                            {k.unit}
+                                        </span>
                                     </p>
                                 </div>
                             ))}
                         </div>
 
                         <div className="mt-5 overflow-hidden rounded-2xl border border-slate-100">
-                            <p className="border-b border-slate-100 px-4 py-3.5 text-sm font-semibold text-slate-900 sm:px-5">Activité des sites</p>
+                            <p className="border-b border-slate-100 px-4 py-3.5 text-sm font-semibold text-slate-900 sm:px-5">
+                                Activité des sites
+                            </p>
                             {rows.map((r) => (
-                                <div key={r.code} className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 last:border-b-0 sm:gap-4 sm:px-5">
+                                <div
+                                    key={r.code}
+                                    className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 last:border-b-0 sm:gap-4 sm:px-5"
+                                >
                                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                                        <Icon name={r.icon} className="h-4 w-4" />
+                                        <Icon
+                                            name={r.icon}
+                                            className="h-4 w-4"
+                                        />
                                     </span>
-                                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900 sm:w-36 sm:flex-none sm:shrink-0">{r.name}</span>
-                                    <span className="hidden w-28 shrink-0 font-mono text-xs text-slate-400 md:block">{r.code}</span>
-                                    <span className="hidden flex-1 text-sm text-slate-600 sm:block">{r.amount} FCFA</span>
-                                    <span className={`ml-auto shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold ${r.tone}`}>{r.status}</span>
+                                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900 sm:w-36 sm:flex-none sm:shrink-0">
+                                        {r.name}
+                                    </span>
+                                    <span className="hidden w-28 shrink-0 font-mono text-xs text-slate-500 md:block">
+                                        {r.code}
+                                    </span>
+                                    <span className="hidden flex-1 text-sm text-slate-600 sm:block">
+                                        {r.amount} FCFA
+                                    </span>
+                                    <span
+                                        className={`ml-auto shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap ${r.tone}`}
+                                    >
+                                        {r.status}
+                                    </span>
                                 </div>
                             ))}
                         </div>
@@ -640,7 +995,12 @@ function HeroDashboard() {
 /* ------------------------------------------------------------------ */
 
 type DemoCard = 'sales' | 'absences' | 'pdf';
-type DemoStep = { role: 'user' | 'bot'; text: string; card?: DemoCard; source?: string };
+type DemoStep = {
+    role: 'user' | 'bot';
+    text: string;
+    card?: DemoCard;
+    source?: string;
+};
 type DemoMsg = DemoStep & { id: number; done: boolean };
 
 const DEMO_STEPS: DemoStep[] = [
@@ -651,10 +1011,13 @@ const DEMO_STEPS: DemoStep[] = [
         card: 'sales',
         source: 'Source : ventes validées du 1er au 30 du mois',
     },
-    { role: 'user', text: 'Quelles hôtesses ont été absentes plusieurs fois ?' },
+    {
+        role: 'user',
+        text: 'Quelles hôtesses ont été absentes plusieurs fois ?',
+    },
     {
         role: 'bot',
-        text: 'Deux hôtesses cumulent 3 absences ce mois-ci. Aucune n\'a de justificatif enregistré.',
+        text: "Deux hôtesses cumulent 3 absences ce mois-ci. Aucune n'a de justificatif enregistré.",
         card: 'absences',
         source: 'Source : pointages du 1er au 30 du mois',
     },
@@ -681,13 +1044,18 @@ function DemoCardView({ card }: { card: DemoCard }) {
                 {rows.map((r, i) => (
                     <div key={r.n}>
                         <div className="mb-1 flex items-center justify-between text-xs">
-                            <span className="font-medium text-slate-200">{r.n}</span>
-                            <span className="text-slate-400">{r.v} FCFA</span>
+                            <span className="font-medium text-slate-200">
+                                {r.n}
+                            </span>
+                            <span className="text-slate-500">{r.v} FCFA</span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-slate-700">
                             <div
                                 className="h-full rounded-full bg-green-500 transition-[width] duration-1000 ease-out"
-                                style={{ width: go ? `${r.p}%` : '0%', transitionDelay: `${i * 150}ms` }}
+                                style={{
+                                    width: go ? `${r.p}%` : '0%',
+                                    transitionDelay: `${i * 150}ms`,
+                                }}
                             />
                         </div>
                     </div>
@@ -704,13 +1072,24 @@ function DemoCardView({ card }: { card: DemoCard }) {
         return (
             <div className="mt-2 space-y-2 rounded-2xl bg-slate-900/60 p-3">
                 {rows.map((r) => (
-                    <div key={r.n} className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">{r.n[0]}</span>
+                    <div
+                        key={r.n}
+                        className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2"
+                    >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">
+                            {r.n[0]}
+                        </span>
                         <div className="flex-1">
-                            <p className="text-sm font-medium text-slate-100">{r.n}</p>
-                            <p className="text-[11px] text-slate-400">{r.site}</p>
+                            <p className="text-sm font-medium text-slate-100">
+                                {r.n}
+                            </p>
+                            <p className="text-[11px] text-slate-500">
+                                {r.site}
+                            </p>
                         </div>
-                        <span className="rounded-full bg-red-500/15 px-2.5 py-1 text-[11px] font-semibold text-red-300">3 absences</span>
+                        <span className="rounded-full bg-red-500/15 px-2.5 py-1 text-[11px] font-semibold text-red-300">
+                            3 absences
+                        </span>
                     </div>
                 ))}
             </div>
@@ -723,10 +1102,14 @@ function DemoCardView({ card }: { card: DemoCard }) {
                 <Icon name="file" />
             </span>
             <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-100">Rapport_absences_octobre.pdf</p>
-                <p className="text-[11px] text-slate-400">2 pages · 84 Ko</p>
+                <p className="truncate text-sm font-medium text-slate-100">
+                    Rapport_absences_octobre.pdf
+                </p>
+                <p className="text-[11px] text-slate-500">2 pages · 84 Ko</p>
             </div>
-            <span className="rounded-full bg-green-500 px-4 py-2 text-xs font-semibold text-white">Télécharger</span>
+            <span className="rounded-full bg-green-500 px-4 py-2 text-xs font-semibold text-white">
+                Télécharger
+            </span>
         </div>
     );
 }
@@ -745,7 +1128,10 @@ function AssistantDemo() {
         if (!el) {
             return;
         }
-        const io = new IntersectionObserver(([entry]) => setActive(entry.isIntersecting), { threshold: 0.4 });
+        const io = new IntersectionObserver(
+            ([entry]) => setActive(entry.isIntersecting),
+            { threshold: 0.4 },
+        );
         io.observe(el);
         return () => io.disconnect();
     }, []);
@@ -756,17 +1142,23 @@ function AssistantDemo() {
         }
 
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            setMessages(DEMO_STEPS.map((st, i) => ({ ...st, id: i, done: true })));
+            setMessages(
+                DEMO_STEPS.map((st, i) => ({ ...st, id: i, done: true })),
+            );
             return;
         }
 
         let cancelled = false;
         const wait = (ms: number) =>
             new Promise<void>((resolve, reject) => {
-                window.setTimeout(() => (cancelled ? reject(new Error('stop')) : resolve()), ms);
+                window.setTimeout(
+                    () => (cancelled ? reject(new Error('stop')) : resolve()),
+                    ms,
+                );
             });
 
-        (async () => {
+        // Boucle de démonstration : elle tourne seule, les erreurs (arrêt demandé) sont gérées à l'intérieur
+        void (async () => {
             try {
                 while (!cancelled) {
                     setMessages([]);
@@ -784,7 +1176,10 @@ function AssistantDemo() {
                             }
                             await wait(350);
                             setDraft('');
-                            setMessages((prev) => [...prev, { ...st, id: i, done: true }]);
+                            setMessages((prev) => [
+                                ...prev,
+                                { ...st, id: i, done: true },
+                            ]);
                             await wait(500);
                         } else {
                             setTyping(true);
@@ -792,13 +1187,24 @@ function AssistantDemo() {
                             setTyping(false);
 
                             const words = st.text.split(' ');
-                            setMessages((prev) => [...prev, { ...st, text: '', id: i, done: false }]);
+                            setMessages((prev) => [
+                                ...prev,
+                                { ...st, text: '', id: i, done: false },
+                            ]);
                             for (let w = 1; w <= words.length; w++) {
                                 const part = words.slice(0, w).join(' ');
-                                setMessages((prev) => prev.map((m) => (m.id === i ? { ...m, text: part } : m)));
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === i ? { ...m, text: part } : m,
+                                    ),
+                                );
                                 await wait(55);
                             }
-                            setMessages((prev) => prev.map((m) => (m.id === i ? { ...m, done: true } : m)));
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === i ? { ...m, done: true } : m,
+                                ),
+                            );
                             await wait(1300);
                         }
                     }
@@ -832,8 +1238,10 @@ function AssistantDemo() {
             <div className="flex items-center gap-3 border-b border-slate-700/80 px-5 py-4">
                 <MotriksMark className="size-10 rounded-full" />
                 <div className="leading-tight">
-                    <p className="text-sm font-semibold text-white">Assistant Motriks</p>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400">
+                    <p className="text-sm font-semibold text-white">
+                        Assistant Motriks
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
                         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
                         En ligne
                     </p>
@@ -843,26 +1251,41 @@ function AssistantDemo() {
             {/* conversation */}
             <div
                 ref={listRef}
-                className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="min-h-0 flex-1 [scrollbar-width:none] space-y-4 overflow-y-auto px-5 py-5 [&::-webkit-scrollbar]:hidden"
             >
                 {messages.length === 0 && !typing && (
-                    <p className="pt-16 text-center text-sm text-slate-500">Posez une question sur vos équipes, vos stocks ou vos ventes.</p>
+                    <p className="pt-16 text-center text-sm text-slate-500">
+                        Posez une question sur vos équipes, vos stocks ou vos
+                        ventes.
+                    </p>
                 )}
 
                 {messages.map((m) =>
                     m.role === 'user' ? (
-                        <div key={m.id} className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-green-600 px-4 py-2.5 text-sm text-white">
+                        <div
+                            key={m.id}
+                            className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-green-600 px-4 py-2.5 text-sm text-white"
+                        >
                             {m.text}
                         </div>
                     ) : (
-                        <div key={m.id} className="flex max-w-[92%] items-start gap-2.5">
+                        <div
+                            key={m.id}
+                            className="flex max-w-[92%] items-start gap-2.5"
+                        >
                             <MotriksMark className="mt-0.5 size-7 rounded-full" />
                             <div className="min-w-0 flex-1">
                                 <div className="w-fit rounded-2xl rounded-tl-md bg-slate-700/80 px-4 py-2.5 text-sm leading-relaxed text-slate-100">
                                     {m.text}
                                 </div>
-                                {m.done && m.card && <DemoCardView card={m.card} />}
-                                {m.done && m.source && <p className="mt-2 text-[11px] text-slate-500">{m.source}</p>}
+                                {m.done && m.card && (
+                                    <DemoCardView card={m.card} />
+                                )}
+                                {m.done && m.source && (
+                                    <p className="mt-2 text-[11px] text-slate-500">
+                                        {m.source}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     ),
@@ -886,7 +1309,7 @@ function AssistantDemo() {
 
             {/* zone de saisie */}
             <div className="p-4 pt-2">
-                <div className="flex items-center gap-3 rounded-full border border-white/10 bg-slate-900/70 py-2 pl-5 pr-2">
+                <div className="flex items-center gap-3 rounded-full border border-white/10 bg-slate-900/70 py-2 pr-2 pl-5">
                     <span className="flex-1 truncate text-sm">
                         {draft ? (
                             <span className="text-white">
@@ -894,11 +1317,24 @@ function AssistantDemo() {
                                 <span className="ml-0.5 inline-block h-4 w-px translate-y-0.5 animate-pulse bg-green-400" />
                             </span>
                         ) : (
-                            <span className="text-slate-500">Posez votre question...</span>
+                            <span className="text-slate-500">
+                                Posez votre question...
+                            </span>
                         )}
                     </span>
-                    <span className={`flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors ${draft ? 'bg-green-500' : 'bg-slate-700'}`}>
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                    <span
+                        className={`flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors ${draft ? 'bg-green-500' : 'bg-slate-700'}`}
+                    >
+                        <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
                             <path d="M12 19V5m-6 6l6-6 6 6" />
                         </svg>
                     </span>
@@ -925,13 +1361,19 @@ const FAQ_JSON_LD = [
     },
 ];
 
-export default function Landing({ paymentLogos }: { paymentLogos?: { name: string; url: string }[] }) {
+export default function Landing({
+    paymentLogos,
+}: {
+    paymentLogos?: { name: string; url: string }[];
+}) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [openFaq, setOpenFaq] = useState(0);
     useScrollReveal();
 
     // Application installée : jamais de page d'accueil (ex. après une déconnexion), comme une application mobile
-    const [inApp] = useState(() => typeof window !== 'undefined' && isStandalone());
+    const [inApp] = useState(
+        () => typeof window !== 'undefined' && isStandalone(),
+    );
     useEffect(() => {
         if (inApp) {
             window.location.replace('/app');
@@ -944,7 +1386,10 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
         if (!id) {
             return;
         }
-        const timer = window.setTimeout(() => document.getElementById(id)?.scrollIntoView(), 120);
+        const timer = window.setTimeout(
+            () => document.getElementById(id)?.scrollIntoView(),
+            120,
+        );
         return () => window.clearTimeout(timer);
     }, []);
     const [scrolled, setScrolled] = useState(false);
@@ -990,7 +1435,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 {/* ------------------------------ Navbar ------------------------------ */}
                 <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-6 sm:pt-4">
                     <div
-                        className={`relative mx-auto flex items-center justify-between max-w-6xl rounded-full border px-2.5 backdrop-blur-xl transition-[background-color,box-shadow,border-color,padding] duration-300 ${
+                        className={`relative mx-auto flex max-w-6xl items-center justify-between rounded-full border px-2.5 backdrop-blur-xl transition-[background-color,box-shadow,border-color,padding] duration-300 ${
                             scrolled
                                 ? 'border-slate-200/80 bg-white/90 py-1.5 shadow-xl shadow-slate-900/[0.08]'
                                 : 'border-white/70 bg-white/60 py-2 shadow-lg shadow-green-900/5'
@@ -1007,7 +1452,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     <a
                                         key={l.href}
                                         href={l.href}
-                                        className={`whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition ${
+                                        className={`rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap transition ${
                                             isActive
                                                 ? 'bg-green-50 text-green-700'
                                                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -1017,9 +1462,9 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     </a>
                                 );
                             })}
-                        <Link
+                            <Link
                                 href="/contact"
-                                className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+                                className="rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                             >
                                 Contact
                             </Link>
@@ -1033,8 +1478,19 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                             className="rounded-full bg-slate-100 p-2.5 text-slate-700 transition hover:bg-slate-200 xl:hidden"
                             aria-label="Ouvrir le menu"
                         >
-                            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
-                                {menuOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+                            <svg
+                                className="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                viewBox="0 0 24 24"
+                            >
+                                {menuOpen ? (
+                                    <path d="M6 6l12 12M18 6L6 18" />
+                                ) : (
+                                    <path d="M4 7h16M4 12h16M4 17h16" />
+                                )}
                             </svg>
                         </button>
 
@@ -1051,7 +1507,7 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                             {l.label}
                                         </a>
                                     ))}
-                                <Link
+                                    <Link
                                         href="/contact"
                                         className="rounded-2xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-green-50 hover:text-green-700"
                                     >
@@ -1067,35 +1523,73 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 {/* ------------------------------- Hero ------------------------------- */}
                 <section className="relative overflow-hidden bg-white">
                     {/* décor : grande courbe douce à gauche et disque vert en haut à droite */}
-                    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-                        <svg className="absolute left-0 top-0 h-[640px] w-[min(720px,100%)]" viewBox="0 0 720 640" preserveAspectRatio="none">
+                    <div
+                        className="pointer-events-none absolute inset-0"
+                        aria-hidden="true"
+                    >
+                        <svg
+                            className="absolute top-0 left-0 h-[640px] w-[min(720px,100%)]"
+                            viewBox="0 0 720 640"
+                            preserveAspectRatio="none"
+                        >
                             <defs>
-                                <linearGradient id="heroSweep" x1="0" y1="0" x2="1" y2="1">
+                                <linearGradient
+                                    id="heroSweep"
+                                    x1="0"
+                                    y1="0"
+                                    x2="1"
+                                    y2="1"
+                                >
                                     <stop offset="0" stopColor="#9fe0bd" />
                                     <stop offset="0.55" stopColor="#d6f1e3" />
                                     <stop offset="1" stopColor="#ffffff" />
                                 </linearGradient>
                             </defs>
-                            <path d="M0 0H640C580 240 340 490 0 640Z" fill="url(#heroSweep)" />
+                            <path
+                                d="M0 0H640C580 240 340 490 0 640Z"
+                                fill="url(#heroSweep)"
+                            />
                         </svg>
                     </div>
 
-                    <div className="relative mx-auto grid max-w-[90rem] items-start gap-12 px-4 pb-20 pt-28 sm:px-6 sm:pb-24 sm:pt-32 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-10 lg:px-10 lg:pt-36">
+                    <div className="relative mx-auto grid max-w-[90rem] items-start gap-12 px-4 pt-28 pb-20 sm:px-6 sm:pt-32 sm:pb-24 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-10 lg:px-10 lg:pt-36">
                         <div>
-                            <h1 data-reveal className="text-4xl font-extrabold leading-[1.05] tracking-tight text-slate-950 min-[390px]:text-5xl sm:text-6xl lg:text-[3.6rem]">
-                                Pilotez vos équipes terrain en temps réel, sans saisie manuelle
+                            <h1
+                                data-reveal
+                                className="text-4xl leading-[1.05] font-extrabold tracking-tight text-slate-950 min-[390px]:text-5xl sm:text-6xl lg:text-[3.6rem]"
+                            >
+                                Pilotez vos équipes terrain en temps réel, sans
+                                saisie manuelle
                             </h1>
-                            <p data-reveal className="mt-7 max-w-xl text-lg leading-relaxed text-slate-600">
-                                Motriks remplace les messages WhatsApp, les tableurs éparpillés et les rapports papier par un seul outil, et laisse l'intelligence artificielle vous dire où agir.
+                            <p
+                                data-reveal
+                                className="mt-7 max-w-xl text-lg leading-relaxed text-slate-600"
+                            >
+                                Motriks remplace les messages WhatsApp, les
+                                tableurs éparpillés et les rapports papier par
+                                un seul outil, et laisse l'intelligence
+                                artificielle vous dire où agir.
                             </p>
-                            <div data-reveal className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <div
+                                data-reveal
+                                className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+                            >
                                 <Link
                                     href="/register"
-                                    className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-green-600 pl-6 pr-1.5 text-sm font-semibold text-white shadow-lg shadow-green-600/30 ring-1 ring-inset ring-white/10 transition hover:bg-green-700"
+                                    className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-green-600 pr-1.5 pl-6 text-sm font-semibold text-white shadow-lg ring-1 shadow-green-600/30 ring-white/10 transition ring-inset hover:bg-green-700"
                                 >
                                     Commencer gratuitement
                                     <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-green-700 transition-transform group-hover:translate-x-0.5">
-                                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                                        <svg
+                                            className="h-4 w-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2.5"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            viewBox="0 0 24 24"
+                                            aria-hidden="true"
+                                        >
                                             <path d="M5 12h14m-6-6l6 6-6 6" />
                                         </svg>
                                     </span>
@@ -1107,24 +1601,43 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     Découvrir les fonctionnalités
                                 </a>
                             </div>
-                            <ul data-reveal className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500">
-                                <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-green-600" /> Sans carte bancaire</li>
-                                <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-green-600" /> Essai de 7 jours</li>
-                                <li className="flex items-center gap-1.5"><Check className="h-4 w-4 text-green-600" /> Fonctionne hors-ligne</li>
+                            <ul
+                                data-reveal
+                                className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500"
+                            >
+                                <li className="flex items-center gap-1.5">
+                                    <Check className="h-4 w-4 text-green-600" />{' '}
+                                    Sans carte bancaire
+                                </li>
+                                <li className="flex items-center gap-1.5">
+                                    <Check className="h-4 w-4 text-green-600" />{' '}
+                                    Essai de 7 jours
+                                </li>
+                                <li className="flex items-center gap-1.5">
+                                    <Check className="h-4 w-4 text-green-600" />{' '}
+                                    Fonctionne hors-ligne
+                                </li>
                             </ul>
 
-                            <dl data-reveal className="mt-8 grid max-w-md grid-cols-2 gap-x-6 gap-y-4 border-t border-slate-200/70 pt-5 sm:grid-cols-4">
+                            <dl
+                                data-reveal
+                                className="mt-8 grid max-w-md grid-cols-2 gap-x-6 gap-y-4 border-t border-slate-200/70 pt-5 sm:grid-cols-4"
+                            >
                                 {STATS.map((st) => (
                                     <div key={st.label}>
-                                        <dt className="text-base font-bold text-green-700/70">{st.value}</dt>
-                                        <dd className="mt-0.5 text-[11px] leading-tight text-slate-400">{st.label}</dd>
+                                        <dt className="text-base font-bold text-green-700/70">
+                                            {st.value}
+                                        </dt>
+                                        <dd className="mt-0.5 text-[11px] leading-tight text-slate-500">
+                                            {st.label}
+                                        </dd>
                                     </div>
                                 ))}
                             </dl>
                         </div>
 
                         {/* la fenêtre d'application est inclinée et déborde à droite de l'écran */}
-                        <div data-reveal className="lg:-mr-[30vw] lg:-mt-2">
+                        <div data-reveal className="lg:-mt-2 lg:-mr-[30vw]">
                             <div className="hero-tilt w-full lg:w-[920px]">
                                 <HeroDashboard />
                             </div>
@@ -1143,43 +1656,72 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
 
                         <div className="relative mt-14 grid gap-5 lg:grid-cols-2 lg:gap-8">
                             {/* avant */}
-                            <div data-reveal className="rounded-[1.75rem] border border-slate-200 bg-white/60 p-7 sm:p-9">
-                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-500">
+                            <div
+                                data-reveal
+                                className="rounded-[1.75rem] border border-slate-200 bg-white/60 p-7 sm:p-9"
+                            >
+                                <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold tracking-wider text-red-500 uppercase">
                                     <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
                                     Aujourd'hui
                                 </span>
-                                <h3 className="mt-4 text-xl font-bold text-slate-400">Sans Motriks</h3>
+                                <h3 className="mt-4 text-xl font-bold text-slate-500">
+                                    Sans Motriks
+                                </h3>
                                 <ul className="mt-7 space-y-3">
                                     {PROBLEMS.map((p) => (
-                                        <li key={p} className="flex min-h-[3.25rem] items-center gap-3.5 rounded-2xl px-1 text-slate-500">
+                                        <li
+                                            key={p}
+                                            className="flex min-h-[3.25rem] items-center gap-3.5 rounded-2xl px-1 text-slate-500"
+                                        >
                                             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-400">
                                                 <Cross className="h-3.5 w-3.5" />
                                             </span>
-                                            <span className="leading-snug">{p}</span>
+                                            <span className="leading-snug">
+                                                {p}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
 
                             {/* pastille centrale */}
-                            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 lg:block" aria-hidden="true">
+                            <div
+                                className="pointer-events-none absolute top-1/2 left-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 lg:block"
+                                aria-hidden="true"
+                            >
                                 <span className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-slate-50 bg-green-600 text-white shadow-xl shadow-green-600/30">
-                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <svg
+                                        className="h-5 w-5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        viewBox="0 0 24 24"
+                                    >
                                         <path d="M5 12h14m-6-6l6 6-6 6" />
                                     </svg>
                                 </span>
                             </div>
 
                             {/* après */}
-                            <div data-reveal className="rounded-[1.75rem] bg-gradient-to-br from-green-400 via-green-500 to-emerald-600 p-px shadow-2xl shadow-green-700/15">
+                            <div
+                                data-reveal
+                                className="rounded-[1.75rem] bg-gradient-to-br from-green-400 via-green-500 to-emerald-600 p-px shadow-2xl shadow-green-700/15"
+                            >
                                 <div className="relative h-full overflow-hidden rounded-[calc(1.75rem-1px)] bg-white p-7 sm:p-9">
-                                    <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-green-100/70 blur-3xl" aria-hidden="true" />
+                                    <div
+                                        className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-green-100/70 blur-3xl"
+                                        aria-hidden="true"
+                                    />
                                     <div className="relative">
-                                        <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-green-700">
+                                        <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold tracking-wider text-green-700 uppercase">
                                             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
                                             Avec Motriks
                                         </span>
-                                        <h3 className="mt-4 text-xl font-bold text-slate-900">Tout est automatique</h3>
+                                        <h3 className="mt-4 text-xl font-bold text-slate-900">
+                                            Tout est automatique
+                                        </h3>
                                         <ul className="mt-7 space-y-3">
                                             {SOLUTIONS.map((sol) => (
                                                 <li
@@ -1189,7 +1731,9 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-600 text-white shadow-md shadow-green-600/25">
                                                         <Check className="h-3.5 w-3.5 text-white" />
                                                     </span>
-                                                    <span className="leading-snug">{sol}</span>
+                                                    <span className="leading-snug">
+                                                        {sol}
+                                                    </span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -1213,7 +1757,10 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 </section>
 
                 {/* --------------------------------- IA -------------------------------- */}
-                <section id="ia" className="scroll-mt-24 bg-slate-900 py-20 text-white">
+                <section
+                    id="ia"
+                    className="scroll-mt-24 bg-slate-900 py-20 text-white"
+                >
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <SectionTitle
                             dark
@@ -1242,27 +1789,53 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                             text="Pensé pour les gérants, les responsables commerciaux, les agences d'hôtesses et leurs comptables."
                         />
                         {/* étapes : un filet en haut de chaque colonne, l'étape en cours marquée d'un trait vert */}
-                        <ol data-reveal className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
+                        <ol
+                            data-reveal
+                            className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8"
+                        >
                             {STEPS.map((st, i) => (
-                                <li key={st.title} className="relative border-t border-slate-200 pt-6">
-                                    <span className="absolute -top-px left-0 h-px w-12 bg-green-600" aria-hidden="true" />
+                                <li
+                                    key={st.title}
+                                    className="relative border-t border-slate-200 pt-6"
+                                >
+                                    <span
+                                        className="absolute -top-px left-0 h-px w-12 bg-green-600"
+                                        aria-hidden="true"
+                                    />
                                     <div className="flex items-baseline justify-between gap-4 text-xs">
-                                        <span className="font-semibold text-green-700">Étape {i + 1}</span>
-                                        <span className="text-slate-400">{st.tag}</span>
+                                        <span className="font-semibold text-green-700">
+                                            Étape {i + 1}
+                                        </span>
+                                        <span className="text-slate-500">
+                                            {st.tag}
+                                        </span>
                                     </div>
-                                    <h3 className="mt-5 text-lg font-semibold tracking-tight text-slate-900">{st.title}</h3>
-                                    <p className="mt-2 text-[15px] leading-relaxed text-slate-500">{st.text}</p>
+                                    <h3 className="mt-5 text-lg font-semibold tracking-tight text-slate-900">
+                                        {st.title}
+                                    </h3>
+                                    <p className="mt-2 text-[15px] leading-relaxed text-slate-500">
+                                        {st.text}
+                                    </p>
                                 </li>
                             ))}
                         </ol>
 
-                        <div data-reveal className="mt-16 rounded-2xl bg-slate-50 p-7 sm:p-10">
-                            <p className="text-sm font-medium text-slate-500">Conçu pour</p>
+                        <div
+                            data-reveal
+                            className="mt-16 rounded-2xl bg-slate-50 p-7 sm:p-10"
+                        >
+                            <p className="text-sm font-medium text-slate-500">
+                                Conçu pour
+                            </p>
                             <div className="mt-6 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-4">
                                 {PERSONAS.map((p) => (
                                     <div key={p.title}>
-                                        <h3 className="text-[15px] font-semibold text-slate-900">{p.title}</h3>
-                                        <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{p.text}</p>
+                                        <h3 className="text-[15px] font-semibold text-slate-900">
+                                            {p.title}
+                                        </h3>
+                                        <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+                                            {p.text}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
@@ -1279,12 +1852,25 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                             text="Connexion variable, téléphones d'entrée de gamme, paiement mobile : Motriks a été conçu avec ces contraintes."
                         />
                         {/* quatre colonnes séparées par des filets verticaux, sans cartes */}
-                        <div data-reveal className="mt-14 grid gap-y-10 border-t border-slate-200 pt-10 sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-4 lg:gap-x-0 lg:divide-x lg:divide-slate-200">
+                        <div
+                            data-reveal
+                            className="mt-14 grid gap-y-10 border-t border-slate-200 pt-10 sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-4 lg:gap-x-0 lg:divide-x lg:divide-slate-200"
+                        >
                             {LOCAL.map((l) => (
-                                <div key={l.title} className="lg:px-8 lg:first:pl-0 lg:last:pr-0">
-                                    <Icon name={l.icon} className="h-5 w-5 text-green-600" />
-                                    <h3 className="mt-6 text-base font-semibold tracking-tight text-slate-900">{l.title}</h3>
-                                    <p className="mt-2 text-sm leading-relaxed text-slate-500">{l.text}</p>
+                                <div
+                                    key={l.title}
+                                    className="lg:px-8 lg:first:pl-0 lg:last:pr-0"
+                                >
+                                    <Icon
+                                        name={l.icon}
+                                        className="h-5 w-5 text-green-600"
+                                    />
+                                    <h3 className="mt-6 text-base font-semibold tracking-tight text-slate-900">
+                                        {l.title}
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                                        {l.text}
+                                    </p>
                                 </div>
                             ))}
                         </div>
@@ -1316,10 +1902,16 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                             Recommandé
                                         </span>
                                     )}
-                                    <h3 className="text-xl font-bold text-slate-900">{p.name}</h3>
-                                    <p className="mt-2 text-sm text-slate-600">{p.description}</p>
+                                    <h3 className="text-xl font-bold text-slate-900">
+                                        {p.name}
+                                    </h3>
+                                    <p className="mt-2 text-sm text-slate-600">
+                                        {p.description}
+                                    </p>
                                     <p className="mt-6">
-                                        <span className="text-4xl font-extrabold text-slate-900">{p.price}</span>
+                                        <span className="text-4xl font-extrabold text-slate-900">
+                                            {p.price}
+                                        </span>
                                         {p.unit && (
                                             <span className="ml-2 text-sm text-slate-500">
                                                 {p.unit}
@@ -1328,7 +1920,10 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                     </p>
                                     <ul className="mt-6 flex-1 space-y-3">
                                         {p.features.map((f) => (
-                                            <li key={f} className="flex items-start gap-3 text-sm text-slate-700">
+                                            <li
+                                                key={f}
+                                                className="flex items-start gap-3 text-sm text-slate-700"
+                                            >
                                                 <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
                                                 {f}
                                             </li>
@@ -1349,7 +1944,10 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         </div>
 
                         <p className="mt-8 text-center text-sm text-slate-500">
-                            Packs d’extension : +5 hôtesses et +5 points de vente pour 11 500 FCFA par mois, +1 superviseur pour 1 500 FCFA par mois. Paiement à l’année : 10 mois payés pour 12.
+                            Packs d’extension : +5 hôtesses et +5 points de
+                            vente pour 11 500 FCFA par mois, +1 superviseur pour
+                            1 500 FCFA par mois. Paiement à l’année : 10 mois
+                            payés pour 12.
                         </p>
                     </div>
                 </section>
@@ -1361,16 +1959,26 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         <div className="lg:sticky lg:top-28 lg:col-span-5 lg:self-start">
                             <div data-reveal>
                                 <Eyebrow>FAQ</Eyebrow>
-                                <h2 className={`${H2} text-slate-950`}>Les réponses à vos questions</h2>
-                                <p className="mt-5 max-w-md text-pretty text-base leading-relaxed text-slate-500 sm:text-lg">
-                                    Sécurité, essai, abonnement, données : l'essentiel pour démarrer sereinement avec Motriks.
+                                <h2 className={`${H2} text-slate-950`}>
+                                    Les réponses à vos questions
+                                </h2>
+                                <p className="mt-5 max-w-md text-base leading-relaxed text-pretty text-slate-500 sm:text-lg">
+                                    Sécurité, essai, abonnement, données :
+                                    l'essentiel pour démarrer sereinement avec
+                                    Motriks.
                                 </p>
                             </div>
 
-                            <div data-reveal className="mt-10 max-w-md border-t border-slate-200 pt-8">
-                                <p className="text-[15px] font-semibold text-slate-900">Vous ne trouvez pas votre réponse ?</p>
+                            <div
+                                data-reveal
+                                className="mt-10 max-w-md border-t border-slate-200 pt-8"
+                            >
+                                <p className="text-[15px] font-semibold text-slate-900">
+                                    Vous ne trouvez pas votre réponse ?
+                                </p>
                                 <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-                                    Notre équipe vous répond directement, en général dans la journée.
+                                    Notre équipe vous répond directement, en
+                                    général dans la journée.
                                 </p>
                                 <div className="mt-5 flex flex-wrap gap-2.5">
                                     <a
@@ -1390,7 +1998,10 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                         </div>
 
                         {/* colonne droite : accordéon */}
-                        <div data-reveal className="divide-y divide-slate-200 border-y border-slate-200 lg:col-span-7">
+                        <div
+                            data-reveal
+                            className="divide-y divide-slate-200 border-y border-slate-200 lg:col-span-7"
+                        >
                             {FAQS.map((f, i) => {
                                 const open = openFaq === i;
                                 return (
@@ -1398,16 +2009,20 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                         <button
                                             type="button"
                                             id={`faq-q-${i}`}
-                                            onClick={() => setOpenFaq(open ? -1 : i)}
+                                            onClick={() =>
+                                                setOpenFaq(open ? -1 : i)
+                                            }
                                             aria-expanded={open}
                                             aria-controls={`faq-a-${i}`}
                                             className="group flex w-full items-center gap-6 py-6 text-left"
                                         >
-                                            <span className={`flex-1 text-base font-medium transition-colors sm:text-[17px] ${open ? 'text-slate-950' : 'text-slate-700 group-hover:text-slate-950'}`}>
+                                            <span
+                                                className={`flex-1 text-base font-medium transition-colors sm:text-[17px] ${open ? 'text-slate-950' : 'text-slate-700 group-hover:text-slate-950'}`}
+                                            >
                                                 {f.q}
                                             </span>
                                             <svg
-                                                className={`h-4 w-4 shrink-0 transition-transform duration-300 ${open ? 'rotate-45 text-slate-900' : 'text-slate-400 group-hover:text-slate-700'}`}
+                                                className={`h-4 w-4 shrink-0 transition-transform duration-300 ${open ? 'rotate-45 text-slate-900' : 'text-slate-500 group-hover:text-slate-700'}`}
                                                 fill="none"
                                                 stroke="currentColor"
                                                 strokeWidth="2"
@@ -1424,11 +2039,15 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                                             role="region"
                                             aria-labelledby={`faq-q-${i}`}
                                             className={`grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(.22,1,.36,1)] ${
-                                                open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                                                open
+                                                    ? 'grid-rows-[1fr] opacity-100'
+                                                    : 'grid-rows-[0fr] opacity-0'
                                             }`}
                                         >
                                             <div className="overflow-hidden">
-                                                <p className="max-w-2xl pb-6 pr-10 text-[15px] leading-relaxed text-slate-500">{f.a}</p>
+                                                <p className="max-w-2xl pr-10 pb-6 text-[15px] leading-relaxed text-slate-500">
+                                                    {f.a}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -1442,13 +2061,22 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                 {/* Encadré clair aligné sur la grille de la page : titre à gauche, boutons à droite */}
                 <section id="contact" className="scroll-mt-24 pb-20 lg:pb-28">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div data-reveal className="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-12 sm:px-10 sm:py-14 lg:px-14">
+                        <div
+                            data-reveal
+                            className="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-12 sm:px-10 sm:py-14 lg:px-14"
+                        >
                             <div className="grid gap-10 lg:grid-cols-12 lg:items-end">
                                 <div className="lg:col-span-7">
                                     <Eyebrow>Démarrer</Eyebrow>
-                                    <h2 className={`${H2} text-slate-950`}>Essayez Motriks avec votre équipe</h2>
-                                    <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-slate-500 sm:text-lg">
-                                        Votre espace est prêt en quelques minutes, sans carte bancaire. Vous préférez en parler d'abord ? Écrivez-nous, on vous répond dans la journée.
+                                    <h2 className={`${H2} text-slate-950`}>
+                                        Essayez Motriks avec votre équipe
+                                    </h2>
+                                    <p className="mt-5 max-w-xl text-base leading-relaxed text-pretty text-slate-500 sm:text-lg">
+                                        Votre espace est prêt en quelques
+                                        minutes, sans carte bancaire. Vous
+                                        préférez en parler d'abord ?
+                                        Écrivez-nous, on vous répond dans la
+                                        journée.
                                     </p>
                                 </div>
                                 <div className="flex flex-col gap-3 sm:flex-row lg:col-span-5 lg:justify-end">
@@ -1468,7 +2096,12 @@ export default function Landing({ paymentLogos }: { paymentLogos?: { name: strin
                             </div>
 
                             <p className="mt-10 border-t border-slate-200 pt-6 text-sm leading-relaxed text-slate-500">
-                                <span className="font-medium text-slate-700">Entreprises pilotes :</span> nous configurons votre espace et formons vos équipes gratuitement, en échange de vos retours sur le produit.
+                                <span className="font-medium text-slate-700">
+                                    Entreprises pilotes :
+                                </span>{' '}
+                                nous configurons votre espace et formons vos
+                                équipes gratuitement, en échange de vos retours
+                                sur le produit.
                             </p>
                         </div>
                     </div>

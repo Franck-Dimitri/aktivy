@@ -3,7 +3,10 @@ import { CheckCircle2, Trash2, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { ActionButton } from '@/components/page/buttons';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
-import { activate as eventActivate, destroy as eventDestroy } from '@/routes/events';
+import {
+    activate as eventActivate,
+    destroy as eventDestroy,
+} from '@/routes/events';
 import type { EventData } from './types';
 
 type Pending = 'activate' | 'complete' | 'delete' | null;
@@ -20,12 +23,21 @@ export function EventActionBar({ event }: { event: EventData }) {
     };
 
     const run = () => {
-        const options = { preserveScroll: true, onStart: () => setProcessing(true), onFinish: () => setProcessing(false), onSuccess: () => setPending(null) };
+        const options = {
+            preserveScroll: true,
+            onStart: () => setProcessing(true),
+            onFinish: () => setProcessing(false),
+            onSuccess: () => setPending(null),
+        };
 
         if (shown === 'delete') {
             router.delete(eventDestroy({ event: event.uuid }).url, options);
         } else {
-            router.post(eventActivate({ event: event.uuid }).url, { action: shown }, options);
+            router.post(
+                eventActivate({ event: event.uuid }).url,
+                { action: shown },
+                options,
+            );
         }
     };
 
@@ -33,7 +45,8 @@ export function EventActionBar({ event }: { event: EventData }) {
     const warnings = [
         event.sites.length === 0 && 'aucun point de vente',
         event.hostesses.length === 0 && 'aucune hôtesse',
-        unassigned > 0 && `${unassigned} hôtesse${unassigned > 1 ? 's' : ''} sans point de vente`,
+        unassigned > 0 &&
+            `${unassigned} hôtesse${unassigned > 1 ? 's' : ''} sans point de vente`,
     ].filter(Boolean) as string[];
 
     const dialogs = {
@@ -48,14 +61,16 @@ export function EventActionBar({ event }: { event: EventData }) {
         },
         complete: {
             title: `Clôturer « ${event.name} » ?`,
-            description: 'L’événement passe en « Terminé ». Les hôtesses recrutées pour l’occasion sont archivées ; les ventes restent consultables.',
+            description:
+                'L’événement passe en « Terminé ». Les hôtesses recrutées pour l’occasion sont archivées ; les ventes restent consultables.',
             confirm: 'Clôturer',
             tone: 'primary' as const,
             icon: CheckCircle2,
         },
         delete: {
             title: `Supprimer « ${event.name} » ?`,
-            description: 'L’événement disparaît de votre liste, avec ses points de vente, ses packs et ses hôtesses.',
+            description:
+                'L’événement disparaît de votre liste, avec ses points de vente, ses packs et ses hôtesses.',
             confirm: 'Supprimer',
             tone: 'danger' as const,
             icon: Trash2,
@@ -66,15 +81,30 @@ export function EventActionBar({ event }: { event: EventData }) {
         <>
             <div className="flex flex-wrap items-center gap-2">
                 {event.status !== 'active' && (
-                    <ActionButton variant="icon-danger" size="icon" icon={<Trash2 />} onClick={() => ask('delete')} aria-label="Supprimer l’événement" title="Supprimer" className="size-10 rounded-xl sm:size-10" />
+                    <ActionButton
+                        variant="icon-danger"
+                        size="icon"
+                        icon={<Trash2 />}
+                        onClick={() => ask('delete')}
+                        aria-label="Supprimer l’événement"
+                        title="Supprimer"
+                        className="size-10 rounded-xl sm:size-10"
+                    />
                 )}
                 {event.status === 'draft' && (
-                    <ActionButton icon={<Zap />} onClick={() => ask('activate')}>
+                    <ActionButton
+                        icon={<Zap />}
+                        onClick={() => ask('activate')}
+                    >
                         Lancer l’événement
                     </ActionButton>
                 )}
                 {event.status === 'active' && (
-                    <ActionButton variant="secondary" icon={<CheckCircle2 />} onClick={() => ask('complete')}>
+                    <ActionButton
+                        variant="secondary"
+                        icon={<CheckCircle2 />}
+                        onClick={() => ask('complete')}
+                    >
                         Clôturer
                     </ActionButton>
                 )}

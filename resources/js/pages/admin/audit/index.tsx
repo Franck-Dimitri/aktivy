@@ -62,32 +62,76 @@ type Props = {
 
 /** Icône et couleur de chaque famille d'action. */
 const FAMILY: Record<AuditFamily, { icon: LucideIcon; tone: string }> = {
-    login: { icon: LogIn, tone: 'bg-green-50 text-green-700 ring-green-600/15' },
-    failed: { icon: ShieldAlert, tone: 'bg-red-50 text-red-600 ring-red-600/15' },
-    company: { icon: Building2, tone: 'bg-violet-50 text-violet-700 ring-violet-600/15' },
-    billing: { icon: CreditCard, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-600/15' },
-    admin: { icon: UserCog, tone: 'bg-amber-50 text-amber-700 ring-amber-600/20' },
-    support: { icon: LifeBuoy, tone: 'bg-teal-50 text-teal-700 ring-teal-600/15' },
+    login: {
+        icon: LogIn,
+        tone: 'bg-green-50 text-green-700 ring-green-600/15',
+    },
+    failed: {
+        icon: ShieldAlert,
+        tone: 'bg-red-50 text-red-600 ring-red-600/15',
+    },
+    company: {
+        icon: Building2,
+        tone: 'bg-violet-50 text-violet-700 ring-violet-600/15',
+    },
+    billing: {
+        icon: CreditCard,
+        tone: 'bg-emerald-50 text-emerald-700 ring-emerald-600/15',
+    },
+    admin: {
+        icon: UserCog,
+        tone: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+    },
+    support: {
+        icon: LifeBuoy,
+        tone: 'bg-teal-50 text-teal-700 ring-teal-600/15',
+    },
     data: { icon: FileDown, tone: 'bg-sky-50 text-sky-700 ring-sky-600/15' },
-    account: { icon: KeyRound, tone: 'bg-slate-100 text-slate-600 ring-slate-500/15' },
-    field: { icon: Users, tone: 'bg-slate-100 text-slate-600 ring-slate-500/15' },
+    account: {
+        icon: KeyRound,
+        tone: 'bg-slate-100 text-slate-600 ring-slate-500/15',
+    },
+    field: {
+        icon: Users,
+        tone: 'bg-slate-100 text-slate-600 ring-slate-500/15',
+    },
 };
 
 const EMPTY: Filters = { company: null, group: null, q: '', from: '', to: '' };
 
 /** Journal d'audit : chaque action de la plateforme, jour par jour, avec qui, où et depuis quelle adresse. */
-export default function AdminAudit({ logs, filters, groups, companies, last_24h }: Props) {
+export default function AdminAudit({
+    logs,
+    filters,
+    groups,
+    companies,
+    last_24h,
+}: Props) {
     const [form, setForm] = useState(filters);
-    const active = Boolean(filters.company || filters.group || filters.q || filters.from || filters.to);
+    const active = Boolean(
+        filters.company ||
+        filters.group ||
+        filters.q ||
+        filters.from ||
+        filters.to,
+    );
 
     const apply = (next: Partial<Filters> = {}) => {
         const merged = { ...form, ...next };
         setForm(merged);
-        router.get(auditIndex().url, Object.fromEntries(Object.entries(merged).filter(([, v]) => v !== null && v !== '')), {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true,
-        });
+        router.get(
+            auditIndex().url,
+            Object.fromEntries(
+                Object.entries(merged).filter(
+                    ([, v]) => v !== null && v !== '',
+                ),
+            ),
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            },
+        );
     };
 
     // Recherche par personne, 350 ms après la dernière frappe
@@ -98,7 +142,10 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
             return;
         }
 
-        const timer = setTimeout(() => form.q !== filters.q && apply({ q: form.q }), 350);
+        const timer = setTimeout(
+            () => form.q !== filters.q && apply({ q: form.q }),
+            350,
+        );
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [form.q]);
@@ -109,34 +156,59 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
         <>
             <Head title="Journal d’audit" />
 
-            <Page title="Journal d’audit" description="Connexions, forfaits, paiements, exports et actions de l’administration, au fil de l’eau.">
+            <Page
+                title="Journal d’audit"
+                description="Connexions, forfaits, paiements, exports et actions de l’administration, au fil de l’eau."
+            >
                 <div className="flex flex-col gap-5">
                     <div>
                         <AuditTabs current="activity" />
                     </div>
 
                     {/* Dernières 24 heures */}
-                    <dl className="grid grid-cols-2 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] sm:grid-cols-4 dark:border-sidebar-border dark:bg-card">
-                        <Stat label="Événements" hint="sur 24 h" value={last_24h.total} />
-                        <Stat label="Connexions" hint="sur 24 h" value={last_24h.logins} icon={ShieldCheck} />
+                    <dl className="grid grid-cols-2 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] sm:grid-cols-4">
+                        <Stat
+                            label="Événements"
+                            hint="sur 24 h"
+                            value={last_24h.total}
+                        />
+                        <Stat
+                            label="Connexions"
+                            hint="sur 24 h"
+                            value={last_24h.logins}
+                            icon={ShieldCheck}
+                        />
                         <Stat
                             label="Échecs de connexion"
-                            hint={last_24h.failed > 0 ? 'Voir les échecs' : 'aucun sur 24 h'}
+                            hint={
+                                last_24h.failed > 0
+                                    ? 'Voir les échecs'
+                                    : 'aucun sur 24 h'
+                            }
                             value={last_24h.failed}
                             icon={ShieldAlert}
                             alert={last_24h.failed > 0}
-                            onClick={last_24h.failed > 0 ? showFailed : undefined}
+                            onClick={
+                                last_24h.failed > 0 ? showFailed : undefined
+                            }
                         />
-                        <Stat label="Actions de l’administration" hint="sur 24 h" value={last_24h.admin} icon={UserCog} />
+                        <Stat
+                            label="Actions de l’administration"
+                            hint="sur 24 h"
+                            value={last_24h.admin}
+                            icon={UserCog}
+                        />
                     </dl>
 
                     {/* Filtres */}
-                    <div className="flex flex-col gap-2.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm shadow-slate-900/[0.03] lg:flex-row lg:items-center dark:border-sidebar-border dark:bg-card">
+                    <div className="flex flex-col gap-2.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm shadow-slate-900/[0.03] lg:flex-row lg:items-center">
                         <div className="lg:w-64">
                             <TextInput
                                 icon={Search}
                                 value={form.q}
-                                onChange={(e) => setForm({ ...form, q: e.target.value })}
+                                onChange={(e) =>
+                                    setForm({ ...form, q: e.target.value })
+                                }
                                 placeholder="Personne (nom ou e-mail)"
                                 aria-label="Personne"
                                 className="h-9"
@@ -146,11 +218,19 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
                             <div className="col-span-2 sm:col-span-1">
                                 <SelectInput
                                     value={form.company ?? ''}
-                                    onChange={(e) => apply({ company: e.target.value ? Number(e.target.value) : null })}
+                                    onChange={(e) =>
+                                        apply({
+                                            company: e.target.value
+                                                ? Number(e.target.value)
+                                                : null,
+                                        })
+                                    }
                                     aria-label="Entreprise"
                                     className="h-9 lg:w-52"
                                 >
-                                    <option value="">Toutes les entreprises</option>
+                                    <option value="">
+                                        Toutes les entreprises
+                                    </option>
                                     {companies.map((c) => (
                                         <option key={c.id} value={c.id}>
                                             {c.name}
@@ -161,7 +241,9 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
                             <div className="col-span-2 sm:col-span-1">
                                 <SelectInput
                                     value={form.group ?? ''}
-                                    onChange={(e) => apply({ group: e.target.value || null })}
+                                    onChange={(e) =>
+                                        apply({ group: e.target.value || null })
+                                    }
                                     aria-label="Type d’action"
                                     className="h-9 lg:w-52"
                                 >
@@ -179,7 +261,9 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
                                     type="date"
                                     value={form.from}
                                     max={form.to || undefined}
-                                    onChange={(e) => apply({ from: e.target.value })}
+                                    onChange={(e) =>
+                                        apply({ from: e.target.value })
+                                    }
                                     aria-label="Depuis le"
                                     className="h-9 w-full min-w-0"
                                 />
@@ -190,7 +274,9 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
                                     type="date"
                                     value={form.to}
                                     min={form.from || undefined}
-                                    onChange={(e) => apply({ to: e.target.value })}
+                                    onChange={(e) =>
+                                        apply({ to: e.target.value })
+                                    }
                                     aria-label="Jusqu’au"
                                     className="h-9 w-full min-w-0"
                                 />
@@ -209,7 +295,7 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
                     </div>
 
                     {/* Événements, jour par jour */}
-                    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] dark:border-sidebar-border dark:bg-card">
+                    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03]">
                         {logs.data.length === 0 ? (
                             <QuietEmpty icon={Search} title="Aucun événement">
                                 Aucun événement ne correspond à ces filtres.
@@ -217,12 +303,14 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
                         ) : (
                             <ol>
                                 {logs.data.map((log, i) => {
-                                    const newDay = i === 0 || logs.data[i - 1].day !== log.day;
+                                    const newDay =
+                                        i === 0 ||
+                                        logs.data[i - 1].day !== log.day;
 
                                     return (
                                         <Fragment key={log.id}>
                                             {newDay && (
-                                                <li className="sticky top-0 z-[1] border-b border-slate-100 bg-slate-50/95 px-5 py-2 text-[11px] font-semibold tracking-wider text-slate-500 uppercase backdrop-blur first:border-t-0 dark:border-sidebar-border dark:bg-white/[0.03]">
+                                                <li className="sticky top-0 z-[1] border-b border-slate-100 bg-slate-50/95 px-5 py-2 text-[11px] font-semibold tracking-wider text-slate-500 uppercase backdrop-blur first:border-t-0">
                                                     {log.day_label}
                                                 </li>
                                             )}
@@ -232,7 +320,10 @@ export default function AdminAudit({ logs, filters, groups, companies, last_24h 
                                 })}
                             </ol>
                         )}
-                        <Pagination page={logs} className="border-t border-slate-100 dark:border-sidebar-border" />
+                        <Pagination
+                            page={logs}
+                            className="border-t border-slate-100"
+                        />
                     </section>
                 </div>
             </Page>
@@ -257,22 +348,48 @@ function Stat({
 }) {
     const body = (
         <>
-            <dt className={cn('flex items-center gap-1.5 text-xs font-medium', alert ? 'text-red-600' : 'text-slate-500')}>
+            <dt
+                className={cn(
+                    'flex items-center gap-1.5 text-xs font-medium',
+                    alert ? 'text-red-600' : 'text-slate-500',
+                )}
+            >
                 {Icon && <Icon className="size-3.5" />}
                 {label}
             </dt>
-            <dd className={cn('mt-1.5 text-2xl font-bold tracking-tight tabular-nums', alert ? 'text-red-600' : 'text-ink')}>{value}</dd>
-            <dd className={cn('mt-0.5 text-xs', alert ? 'font-medium text-red-600 underline-offset-2 group-hover:underline' : 'text-slate-400')}>
+            <dd
+                className={cn(
+                    'mt-1.5 text-2xl font-bold tracking-tight tabular-nums',
+                    alert ? 'text-red-600' : 'text-ink',
+                )}
+            >
+                {value}
+            </dd>
+            <dd
+                className={cn(
+                    'mt-0.5 text-xs',
+                    alert
+                        ? 'font-medium text-red-600 underline-offset-2 group-hover:underline'
+                        : 'text-slate-500',
+                )}
+            >
                 {hint}
             </dd>
         </>
     );
 
     const cell =
-        'border-slate-100 px-5 py-4 text-left [&:nth-child(odd)]:border-r sm:border-r sm:last:border-r-0 [&:nth-child(-n+2)]:border-b sm:[&:nth-child(-n+2)]:border-b-0 dark:border-sidebar-border';
+        'border-slate-100 px-5 py-4 text-left [&:nth-child(odd)]:border-r sm:border-r sm:last:border-r-0 [&:nth-child(-n+2)]:border-b sm:[&:nth-child(-n+2)]:border-b-0';
 
     return onClick ? (
-        <button type="button" onClick={onClick} className={cn(cell, 'group bg-red-50/40 transition-colors hover:bg-red-50')}>
+        <button
+            type="button"
+            onClick={onClick}
+            className={cn(
+                cell,
+                'group bg-red-50/40 transition-colors hover:bg-red-50',
+            )}
+        >
             {body}
         </button>
     ) : (
@@ -288,27 +405,47 @@ function LogRow({ log }: { log: Log }) {
     return (
         <li
             className={cn(
-                'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 border-b border-slate-100 px-4 py-3.5 last:border-b-0 sm:px-5 lg:grid-cols-[auto_minmax(0,1fr)_15rem_13rem_3.5rem] lg:items-center dark:border-sidebar-border',
-                failed && 'bg-red-50/40 dark:bg-red-500/5',
+                'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 border-b border-slate-100 px-4 py-3.5 last:border-b-0 sm:px-5 lg:grid-cols-[auto_minmax(0,1fr)_15rem_13rem_3.5rem] lg:items-center',
+                failed && 'bg-red-50/40',
             )}
         >
-            <span className={cn('flex size-9 items-center justify-center rounded-xl ring-1 ring-inset', tone)}>
+            <span
+                className={cn(
+                    'flex size-9 items-center justify-center rounded-xl ring-1 ring-inset',
+                    tone,
+                )}
+            >
                 <Icon className="size-4" />
             </span>
 
             <div className="min-w-0">
-                <p className={cn('truncate text-sm font-semibold', failed ? 'text-red-700 dark:text-red-300' : 'text-ink')}>
+                <p
+                    className={cn(
+                        'truncate text-sm font-semibold',
+                        failed ? 'text-red-700' : 'text-ink',
+                    )}
+                >
                     {auditLabel(log.action)}
                 </p>
                 {log.details && (
-                    <p className="truncate text-xs text-slate-500" title={log.details}>
+                    <p
+                        className="truncate text-xs text-slate-500"
+                        title={log.details}
+                    >
                         {log.details}
                     </p>
                 )}
-                <p className="mt-0.5 truncate text-xs text-slate-400 lg:hidden">{[log.user ?? 'Système', log.company].filter(Boolean).join(' · ')}</p>
+                <p className="mt-0.5 truncate text-xs text-slate-500 lg:hidden">
+                    {[log.user ?? 'Système', log.company]
+                        .filter(Boolean)
+                        .join(' · ')}
+                </p>
             </div>
 
-            <time title={log.at ?? undefined} className="text-xs text-slate-400 tabular-nums lg:order-last lg:text-right">
+            <time
+                title={log.at ?? undefined}
+                className="text-xs text-slate-500 tabular-nums lg:order-last lg:text-right"
+            >
                 {log.time}
             </time>
 
@@ -316,16 +453,22 @@ function LogRow({ log }: { log: Log }) {
             <div className="hidden min-w-0 items-center gap-2.5 lg:flex">
                 {log.user ? (
                     <>
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 dark:bg-white/10 dark:text-slate-200">
+                        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">
                             {initials(log.user)}
                         </span>
                         <span className="min-w-0 text-xs">
-                            <span className="block truncate font-medium text-slate-700 dark:text-slate-200">{log.user}</span>
-                            {log.user_email && <span className="block truncate text-slate-400">{log.user_email}</span>}
+                            <span className="block truncate font-medium text-slate-700">
+                                {log.user}
+                            </span>
+                            {log.user_email && (
+                                <span className="block truncate text-slate-500">
+                                    {log.user_email}
+                                </span>
+                            )}
                         </span>
                     </>
                 ) : (
-                    <span className="text-xs text-slate-400">Système</span>
+                    <span className="text-xs text-slate-500">Système</span>
                 )}
             </div>
 
@@ -334,15 +477,21 @@ function LogRow({ log }: { log: Log }) {
                 {log.company_uuid ? (
                     <Link
                         href={companyShow(log.company_uuid).url}
-                        className="flex min-w-0 items-center gap-1.5 font-medium text-slate-700 hover:text-motriks-deep dark:text-slate-200"
+                        className="flex min-w-0 items-center gap-1.5 font-medium text-slate-700 hover:text-motriks-deep"
                     >
                         <Building2 className="size-3.5 shrink-0 text-slate-400" />
-                        <span className="truncate">{log.company ?? `Entreprise n° ${log.company_id}`}</span>
+                        <span className="truncate">
+                            {log.company ?? `Entreprise n° ${log.company_id}`}
+                        </span>
                     </Link>
                 ) : (
-                    <span className="text-slate-400">Plateforme</span>
+                    <span className="text-slate-500">Plateforme</span>
                 )}
-                {log.ip && <span className="mt-0.5 block truncate font-mono text-[11px] text-slate-400">{log.ip}</span>}
+                {log.ip && (
+                    <span className="mt-0.5 block truncate font-mono text-[11px] text-slate-500">
+                        {log.ip}
+                    </span>
+                )}
             </div>
         </li>
     );

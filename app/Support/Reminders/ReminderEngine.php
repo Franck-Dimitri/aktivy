@@ -20,6 +20,7 @@ use App\Notifications\HostessesNotCheckedIn;
 use App\Notifications\ReminderNotification;
 use App\Support\Notifications\Notify;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 
 /**
  * Rappels automatiques, évalués chaque minute (commande reminders:run).
@@ -32,10 +33,14 @@ class ReminderEngine
     /** @var array<string, int> rappels envoyés par type, pour le compte rendu de la commande */
     private array $sent = [];
 
+    /** @var array<string, Collection<int, User>> responsables par site, le temps d'un passage */
+    private array $managers = [];
+
     /** @return array<string, int> */
     public function run(?CarbonImmutable $at = null): array
     {
         $this->sent = [];
+        $this->managers = [];
 
         Company::where('status', AccountStatus::Active)->each(function (Company $company) use ($at) {
             $tz = $company->timezone ?: config('app.timezone');
@@ -64,6 +69,17 @@ class ReminderEngine
         $this->platformAdmins(($at ?? CarbonImmutable::now())->setTimezone(config('app.timezone')));
 
         return $this->sent;
+    }
+
+    /**
+     * Responsables d'un site, cherchés une seule fois par passage : la tâche tourne chaque minute et
+     * reprenait la même requête pour chaque produit en alerte et chaque hôtesse sans rapport.
+     *
+     * @return Collection<int, User>
+     */
+    private function managersOfSite(int $companyId, int $siteId): Collection
+    {
+        return $this->managers["{$companyId}:{$siteId}"] ??= Notify::siteManagers($companyId, [$siteId]);
     }
 
     /** Envoie si ce cas n'a jamais été rappelé. */
@@ -116,7 +132,7 @@ class ReminderEngine
                 if ($s->enabled('shift_late') && $now->gte($start->addMinutes($s->int('shift_late_minutes'))) && $now->lt($end)
                     && $this->once('shift_late', "shift-late:{$a->id}:{$date}", $company->id, $a->agent, ReminderNotification::shiftLate($site, $start->format('H:i')))) {
                     $label = "{$a->agent->name} ({$site}, attendue à {$start->format('H:i')})";
-                    foreach (Notify::siteManagers($company->id, [$a->site_id]) as $manager) {
+                    foreach ($this->managersOfSite($company->id, $a->site_id) as $manager) {
                         $lateByManager[$manager->id]['user'] = $manager;
                         $lateByManager[$manager->id]['hostesses'][] = $label;
                     }
@@ -164,7 +180,7 @@ class ReminderEngine
 
             $byManager = [];
             foreach ($missing as $a) {
-                foreach (Notify::siteManagers($company->id, [$a->site_id]) as $manager) {
+                foreach ($this->managersOfSite($company->id, $a->site_id) as $manager) {
                     $byManager[$manager->id]['user'] = $manager;
                     $byManager[$manager->id]['names'][] = $a->agent->name;
                 }
@@ -191,7 +207,7 @@ class ReminderEngine
         $date = $now->toDateString();
         $byManager = [];
         foreach ($low as $stock) {
-            foreach (Notify::siteManagers($company->id, [$stock->site_id]) as $manager) {
+            foreach ($this->managersOfSite($company->id, $stock->site_id) as $manager) {
                 $byManager[$manager->id]['user'] = $manager;
                 $byManager[$manager->id]['items'][] = $stock;
             }

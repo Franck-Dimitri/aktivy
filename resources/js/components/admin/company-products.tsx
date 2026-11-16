@@ -4,7 +4,7 @@ import { TextInput } from '@/components/page/form-fields';
 import { QuietEmpty } from '@/components/page/list-kit';
 import { ProductImage } from '@/components/page/product-image';
 import { cn } from '@/lib/utils';
-import { number } from '@/pages/reports/format';
+import { number } from '@/lib/format';
 
 /** Produit d'une entreprise vu par l'administration (App\Http\Controllers\Admin\CompanyController::show). */
 export type CompanyProduct = {
@@ -46,8 +46,8 @@ export function CompanyProducts({
     const low = products.filter((p) => p.low_count > 0).length;
 
     return (
-        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03] dark:border-sidebar-border dark:bg-card">
-            <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-sidebar-border">
+        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm shadow-slate-900/[0.03]">
+            <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                     <h2 className="text-[15px] font-semibold text-ink">
                         Produits
@@ -84,7 +84,7 @@ export function CompanyProducts({
             ) : shown.length === 0 ? (
                 <QuietEmpty icon={Search} title="Aucun produit ne correspond" />
             ) : (
-                <ul className="divide-y divide-slate-100 dark:divide-sidebar-border">
+                <ul className="divide-y divide-slate-100">
                     {shown.map((p) => (
                         <li
                             key={p.id}
@@ -140,7 +140,7 @@ export function CompanyProducts({
                                         ? number.format(p.price)
                                         : '—'}
                                 </p>
-                                <p className="text-[11px] text-slate-400">
+                                <p className="text-[11px] text-slate-500">
                                     {currency} / {p.unit}
                                 </p>
                             </div>

@@ -14,9 +14,22 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { CheckinPlaceLine, isElsewhere, type CheckinPlace } from '@/components/checkin-place';
-import { ExternalSalesList, externalTotal, type ExternalShopSales } from '@/components/external-sales';
-import { ActionButton, ActionLink, buttonClass } from '@/components/page/buttons';
+import {
+    CheckinPlaceLine,
+    isElsewhere,
+    type CheckinPlace,
+} from '@/components/checkin-place';
+import {
+    ExternalSalesList,
+    externalTotal,
+    type ExternalShopSales,
+} from '@/components/external-sales';
+import {
+    ActionButton,
+    ActionLink,
+    buttonClass,
+} from '@/components/page/buttons';
+import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { TextInput } from '@/components/page/form-fields';
 import { Page, Panel } from '@/components/page/page';
 import { StatusBadge } from '@/components/page/status-badge';
@@ -29,7 +42,7 @@ import {
     validate as dailyReportValidate,
     pdf as dailyReportPdf,
 } from '@/routes/daily-reports';
-import { money, number } from '../reports/format';
+import { formatDuration, money, number } from '@/lib/format';
 
 type Line = {
     id: number;
@@ -86,12 +99,6 @@ type Report = {
     photos: ReportPhoto[];
 };
 
-function duration(minutes: number | null): string {
-    if (minutes === null) return '—';
-
-    return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')}`;
-}
-
 function distance(meters: number): string {
     return meters >= 1000
         ? `${number.format(Math.round(meters / 100) / 10)} km`
@@ -112,7 +119,9 @@ function CheckinPosition({ report }: { report: Report }) {
 
     return isElsewhere(place) ? (
         <StatusBadge tone="danger">
-            {place.state === 'other_site' ? `Pointage au point de vente « ${place.other_site} »` : `Pointage à ${distance(place.distance_m ?? 0)} du site`}
+            {place.state === 'other_site'
+                ? `Pointage au point de vente « ${place.other_site} »`
+                : `Pointage à ${distance(place.distance_m ?? 0)} du site`}
         </StatusBadge>
     ) : (
         <StatusBadge tone="success">Pointage sur le site</StatusBadge>
@@ -193,16 +202,20 @@ export default function DailyReportShow({
         );
     };
 
+    // Validation définitive : confirmée dans une fenêtre de l'application, pas par confirm() du navigateur
+    const [confirmingValidation, setConfirmingValidation] = useState(false);
+
     const validate = () => {
-        if (!confirm('Valider ce rapport ? Il ne pourra plus être corrigé.'))
-            return;
         router.post(
             dailyReportValidate({ dailyReport: report.uuid }).url,
             {},
             {
                 preserveScroll: true,
                 onStart: () => setBusy('validate'),
-                onSuccess: () => toast.success('Rapport validé'),
+                onSuccess: () => {
+                    toast.success('Rapport validé');
+                    setConfirmingValidation(false);
+                },
                 onError: toastFormError,
                 onFinish: () => setBusy(null),
             },
@@ -232,10 +245,17 @@ export default function DailyReportShow({
                             Rapports du jour
                         </ActionLink>
                         {usePage().props.auth.modules.includes('reporting') && (
-                        <a href={dailyReportPdf({ dailyReport: report.uuid }).url} download className={buttonClass('secondary', 'md')}>
-                            <FileDown className="size-4" />
-                            PDF
-                        </a>
+                            <a
+                                href={
+                                    dailyReportPdf({ dailyReport: report.uuid })
+                                        .url
+                                }
+                                download
+                                className={buttonClass('secondary', 'md')}
+                            >
+                                <FileDown className="size-4" />
+                                PDF
+                            </a>
                         )}
                         {can_correct && !editing && (
                             <>
@@ -248,8 +268,9 @@ export default function DailyReportShow({
                                 </ActionButton>
                                 <ActionButton
                                     icon={<BadgeCheck />}
-                                    loading={busy === 'validate'}
-                                    onClick={validate}
+                                    onClick={() =>
+                                        setConfirmingValidation(true)
+                                    }
                                 >
                                     Valider
                                 </ActionButton>
@@ -318,38 +339,68 @@ export default function DailyReportShow({
                             },
                             {
                                 label: 'Durée',
-                                value: duration(report.duration_minutes),
+                                value: formatDuration(report.duration_minutes),
                                 sub: 'sur le point de vente',
                             },
                         ]}
                     />
 
-                    {report.checkin_place && isElsewhere(report.checkin_place) ? (
+                    {report.checkin_place &&
+                    isElsewhere(report.checkin_place) ? (
                         <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
                             <MapPin className="mt-0.5 size-5 shrink-0 text-amber-700" />
                             <div className="min-w-0 text-sm text-amber-900">
                                 <p>
-                                    {report.checkin_place.state === 'other_site' ? (
+                                    {report.checkin_place.state ===
+                                    'other_site' ? (
                                         <>
-                                            L’hôtesse a pris son service au point de vente{' '}
-                                            <strong>« {report.checkin_place.other_site} »</strong>, à{' '}
-                                            <strong>{distance(report.checkin_place.distance_m ?? 0)}</strong> du sien.
+                                            L’hôtesse a pris son service au
+                                            point de vente{' '}
+                                            <strong>
+                                                «{' '}
+                                                {
+                                                    report.checkin_place
+                                                        .other_site
+                                                }{' '}
+                                                »
+                                            </strong>
+                                            , à{' '}
+                                            <strong>
+                                                {distance(
+                                                    report.checkin_place
+                                                        .distance_m ?? 0,
+                                                )}
+                                            </strong>{' '}
+                                            du sien.
                                         </>
                                     ) : (
                                         <>
                                             L’hôtesse a pris son service à{' '}
-                                            <strong>{distance(report.checkin_place.distance_m ?? 0)}</strong> de son point de vente.
+                                            <strong>
+                                                {distance(
+                                                    report.checkin_place
+                                                        .distance_m ?? 0,
+                                                )}
+                                            </strong>{' '}
+                                            de son point de vente.
                                         </>
                                     )}{' '}
-                                    Vérifiez avec elle qu’elle était bien sur place.
+                                    Vérifiez avec elle qu’elle était bien sur
+                                    place.
                                 </p>
-                                <CheckinPlaceLine place={report.checkin_place} className="mt-1.5 text-xs" />
+                                <CheckinPlaceLine
+                                    place={report.checkin_place}
+                                    className="mt-1.5 text-xs"
+                                />
                             </div>
                         </div>
                     ) : (
                         report.checkin_place && (
                             <p className="-mt-2 px-1 text-xs text-slate-500">
-                                Prise de service : <CheckinPlaceLine place={report.checkin_place} />
+                                Prise de service :{' '}
+                                <CheckinPlaceLine
+                                    place={report.checkin_place}
+                                />
                             </p>
                         )
                     )}
@@ -358,15 +409,24 @@ export default function DailyReportShow({
                         <div className="flex gap-3 rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4">
                             <WifiOff className="mt-0.5 size-5 shrink-0 text-sky-700" />
                             <div className="min-w-0 text-sm text-sky-900">
-                                <p className="font-semibold">Journée saisie sans réseau</p>
+                                <p className="font-semibold">
+                                    Journée saisie sans réseau
+                                </p>
                                 <p className="mt-0.5 text-xs text-sky-800/80">
-                                    Heures relevées sur le téléphone de l’hôtesse, envoyées au retour du réseau.
+                                    Heures relevées sur le téléphone de
+                                    l’hôtesse, envoyées au retour du réseau.
                                 </p>
                                 <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs">
                                     {report.offline_trace.map((entry) => (
                                         <li key={entry.label}>
-                                            {entry.label} <strong className="tabular-nums">{entry.at}</strong>
-                                            <span className="text-sky-800/70"> · reçue {entry.received}</span>
+                                            {entry.label}{' '}
+                                            <strong className="tabular-nums">
+                                                {entry.at}
+                                            </strong>
+                                            <span className="text-sky-800/70">
+                                                {' '}
+                                                · reçue {entry.received}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
@@ -403,7 +463,10 @@ export default function DailyReportShow({
                     )}
 
                     {report.photos.length > 0 && (
-                        <Panel title="Photos" description="Prises par l’hôtesse sur le point de vente.">
+                        <Panel
+                            title="Photos"
+                            description="Prises par l’hôtesse sur le point de vente."
+                        >
                             <div className="p-5">
                                 <ReportPhotos photos={report.photos} />
                             </div>
@@ -460,7 +523,12 @@ export default function DailyReportShow({
                                                 )}
                                                 {l.stock_gap !== 0 && (
                                                     <p className="mt-0.5 text-xs font-medium text-amber-700">
-                                                        Écart de clôture {l.stock_gap > 0 ? '+' : ''}{l.stock_gap} : {l.gap_reason}
+                                                        Écart de clôture{' '}
+                                                        {l.stock_gap > 0
+                                                            ? '+'
+                                                            : ''}
+                                                        {l.stock_gap} :{' '}
+                                                        {l.gap_reason}
                                                     </p>
                                                 )}
                                             </td>
@@ -496,7 +564,7 @@ export default function DailyReportShow({
                                                         )}
                                                         {l.units_sold >
                                                             l.single_units && (
-                                                            <span className="block text-xs font-normal text-slate-400">
+                                                            <span className="block text-xs font-normal text-slate-500">
                                                                 dont{' '}
                                                                 {number.format(
                                                                     l.units_sold -
@@ -556,7 +624,7 @@ export default function DailyReportShow({
                                             >
                                                 <span className="text-ink">
                                                     {p.name}{' '}
-                                                    <span className="text-slate-400">
+                                                    <span className="text-slate-500">
                                                         ·{' '}
                                                         {money(
                                                             p.value,
@@ -615,7 +683,7 @@ export default function DailyReportShow({
                                     <span className="font-semibold text-ink tabular-nums">
                                         {money(previewRevenue, currency)}
                                     </span>
-                                    <span className="text-slate-400">
+                                    <span className="text-slate-500">
                                         {' '}
                                         (avant :{' '}
                                         {money(report.total_revenue, currency)})
@@ -648,12 +716,27 @@ export default function DailyReportShow({
                             description={`Mêmes produits et mêmes prix, vendus hors du point de vente : ${money(externalTotal(report.external_sales), currency)} compris dans le CA déclaré, sans effet sur le stock du site.`}
                         >
                             <div className="p-5">
-                                <ExternalSalesList sales={report.external_sales} className="sm:grid sm:grid-cols-2 sm:items-start" />
+                                <ExternalSalesList
+                                    sales={report.external_sales}
+                                    className="sm:grid sm:grid-cols-2 sm:items-start"
+                                />
                             </div>
                         </Panel>
                     )}
                 </div>
             </Page>
+
+            <ConfirmDialog
+                open={confirmingValidation}
+                onOpenChange={setConfirmingValidation}
+                title="Valider ce rapport ?"
+                description="Il ne pourra plus être corrigé."
+                confirmLabel="Valider"
+                tone="primary"
+                icon={BadgeCheck}
+                loading={busy === 'validate'}
+                onConfirm={validate}
+            />
         </>
     );
 }

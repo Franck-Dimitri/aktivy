@@ -1,6 +1,15 @@
 import { router } from '@inertiajs/react';
 import { useReducedMotion } from 'motion/react';
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ComponentProps, type MouseEvent } from 'react';
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+    type ComponentProps,
+    type MouseEvent,
+} from 'react';
 import type { Phase } from './auth-card';
 
 /** Durées de la séquence (≈ 1,5 s au total quand la page suivante est préchargée). */
@@ -10,7 +19,10 @@ const REVEAL_MS = 650;
 
 type Ctx = { phase: Phase; go: (href: string) => void };
 
-const AuthTransitionContext = createContext<Ctx>({ phase: 'idle', go: (href) => router.visit(href) });
+const AuthTransitionContext = createContext<Ctx>({
+    phase: 'idle',
+    go: (href) => router.visit(href),
+});
 
 export const useAuthTransition = () => useContext(AuthTransitionContext);
 export const AuthTransitionProvider = AuthTransitionContext.Provider;
@@ -22,8 +34,12 @@ export function useAuthTransitionController(): Ctx {
     const timers = useRef<number[]>([]);
     const busy = useRef(false);
 
-    const later = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms));
-    useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
+    const later = (fn: () => void, ms: number) =>
+        timers.current.push(window.setTimeout(fn, ms));
+    useEffect(
+        () => () => timers.current.forEach((t) => window.clearTimeout(t)),
+        [],
+    );
 
     const go = useCallback(
         (href: string) => {
@@ -76,13 +92,23 @@ export function useAuthTransitionController(): Ctx {
 }
 
 /** Lien entre pages de connexion : joue la transition (sauf Ctrl / clic molette) et précharge sa cible. */
-export function TransitionLink({ href, onClick, ...props }: ComponentProps<'a'> & { href: string }) {
+export function TransitionLink({
+    href,
+    onClick,
+    ...props
+}: ComponentProps<'a'> & { href: string }) {
     const { go } = useAuthTransition();
-    const prefetch = useCallback(() => router.prefetch(href, { method: 'get' }, { cacheFor: '1m' }), [href]);
+    const prefetch = useCallback(
+        () => router.prefetch(href, { method: 'get' }, { cacheFor: '1m' }),
+        [href],
+    );
 
     // Préchargement dès que le navigateur souffle ; avec les animations en continu il ne l'est presque jamais : 2 s au plus
     useEffect(() => {
-        const schedule = window.requestIdleCallback ? (cb: () => void) => window.requestIdleCallback(cb, { timeout: 2000 }) : (cb: () => void) => window.setTimeout(cb, 1500);
+        const schedule = window.requestIdleCallback
+            ? (cb: () => void) =>
+                  window.requestIdleCallback(cb, { timeout: 2000 })
+            : (cb: () => void) => window.setTimeout(cb, 1500);
         const cancel = window.cancelIdleCallback ?? window.clearTimeout;
         const id = schedule(prefetch);
         return () => cancel(id);
@@ -96,7 +122,15 @@ export function TransitionLink({ href, onClick, ...props }: ComponentProps<'a'> 
             onFocus={prefetch}
             onClick={(e: MouseEvent<HTMLAnchorElement>) => {
                 onClick?.(e);
-                if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                if (
+                    e.defaultPrevented ||
+                    e.button !== 0 ||
+                    e.metaKey ||
+                    e.ctrlKey ||
+                    e.shiftKey ||
+                    e.altKey
+                )
+                    return;
                 e.preventDefault();
                 go(href);
             }}

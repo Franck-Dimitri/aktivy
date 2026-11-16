@@ -9,9 +9,24 @@ const ICON_PATHS = {
     lock: 'M7 11V8a5 5 0 0110 0v3m-9 0h8a1 1 0 011 1v7a1 1 0 01-1 1H8a1 1 0 01-1-1v-7a1 1 0 011-1z',
 };
 
-function Icon({ name, className = 'h-4 w-4' }: { name: keyof typeof ICON_PATHS; className?: string }) {
+function Icon({
+    name,
+    className = 'h-4 w-4',
+}: {
+    name: keyof typeof ICON_PATHS;
+    className?: string;
+}) {
     return (
-        <svg className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+            className={className}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+        >
             <path d={ICON_PATHS[name]} />
         </svg>
     );
@@ -19,7 +34,11 @@ function Icon({ name, className = 'h-4 w-4' }: { name: keyof typeof ICON_PATHS; 
 
 function Logo({ light = false }: { light?: boolean }) {
     return (
-        <Link href="/" aria-label="Motriks, accueil" className="flex items-center">
+        <Link
+            href="/"
+            aria-label="Motriks, accueil"
+            className="flex items-center"
+        >
             <MotriksLogo variant={light ? 'white' : 'color'} className="h-7" />
         </Link>
     );
@@ -37,9 +56,7 @@ const NAV_COLS = [
     },
     {
         title: 'Entreprise',
-        links: [
-            { label: 'Nous contacter', href: '/contact' },
-        ],
+        links: [{ label: 'Nous contacter', href: '/contact' }],
     },
     {
         title: 'Légal',
@@ -50,11 +67,15 @@ const NAV_COLS = [
     },
 ];
 
-export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name: string; url: string }[] }) {
+export default function LandingFooter({
+    paymentLogos,
+}: {
+    paymentLogos?: { name: string; url: string }[];
+}) {
     // Connexion / inscription pour un visiteur, « Mon espace » pour un utilisateur connecté
     const accountLinks = useAccountLinks();
     return (
-        <footer className="relative overflow-hidden bg-slate-950 text-slate-400">
+        <footer className="relative overflow-hidden bg-slate-950 text-slate-500">
             <div
                 className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[48rem] max-w-full -translate-x-1/2 rounded-full bg-green-500/10 blur-3xl"
                 aria-hidden="true"
@@ -65,8 +86,10 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
                     {/* marque */}
                     <div>
                         <Logo light />
-                        <p className="mt-5 max-w-sm text-sm leading-relaxed text-slate-400">
-                            La plateforme qui aide les entreprises à piloter leurs équipes terrain en temps réel, avec l'appui de l'intelligence artificielle.
+                        <p className="mt-5 max-w-sm text-sm leading-relaxed text-slate-500">
+                            La plateforme qui aide les entreprises à piloter
+                            leurs équipes terrain en temps réel, avec l'appui de
+                            l'intelligence artificielle.
                         </p>
                         <div className="mt-6 flex items-center gap-2.5">
                             <a
@@ -91,9 +114,17 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
                     </div>
 
                     {/* colonnes de liens */}
-                    {NAV_COLS.map((col) => ({ ...col, links: col.title === 'Entreprise' ? [...col.links, ...accountLinks] : col.links })).map((col) => (
+                    {NAV_COLS.map((col) => ({
+                        ...col,
+                        links:
+                            col.title === 'Entreprise'
+                                ? [...col.links, ...accountLinks]
+                                : col.links,
+                    })).map((col) => (
                         <div key={col.title}>
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">{col.title}</h4>
+                            <h4 className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                                {col.title}
+                            </h4>
                             <ul className="mt-5 space-y-3 text-sm">
                                 {col.links.map((l) => (
                                     <li key={l.label}>
@@ -102,7 +133,16 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
                                             className="group inline-flex items-center gap-1.5 text-slate-300 transition hover:text-white"
                                         >
                                             {l.label}
-                                            <svg className="h-3 w-3 -translate-x-1 opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                                            <svg
+                                                className="h-3 w-3 -translate-x-1 opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2.5"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                viewBox="0 0 24 24"
+                                                aria-hidden="true"
+                                            >
                                                 <path d="M7 17L17 7M9 7h8v8" />
                                             </svg>
                                         </Link>
@@ -121,14 +161,25 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
                                 <Icon name="lock" />
                             </span>
                             <div>
-                                <p className="text-sm font-semibold text-white">Paiements sécurisés</p>
-                                <p className="text-xs text-slate-500">Mobile Money et carte bancaire</p>
+                                <p className="text-sm font-semibold text-white">
+                                    Paiements sécurisés
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                    Mobile Money et carte bancaire
+                                </p>
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2.5">
                             {paymentLogos.map((l) => (
-                                <span key={l.url} className="flex h-10 items-center rounded-xl bg-white px-3 transition hover:-translate-y-0.5">
-                                    <img src={l.url} alt={l.name} className="h-6 w-auto max-w-[80px] object-contain" />
+                                <span
+                                    key={l.url}
+                                    className="flex h-10 items-center rounded-xl bg-white px-3 transition hover:-translate-y-0.5"
+                                >
+                                    <img
+                                        src={l.url}
+                                        alt={l.name}
+                                        className="h-6 w-auto max-w-[80px] object-contain"
+                                    />
                                 </span>
                             ))}
                         </div>
@@ -137,7 +188,10 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
 
                 {/* barre du bas */}
                 <div className="mt-10 flex flex-col-reverse items-center justify-between gap-4 border-t border-white/10 py-7 text-xs text-slate-500 sm:flex-row">
-                    <p>© {new Date().getFullYear()} Motriks. Tous droits réservés.</p>
+                    <p>
+                        © {new Date().getFullYear()} Motriks. Tous droits
+                        réservés.
+                    </p>
                     <a
                         href="#"
                         onClick={(e) => {
@@ -147,7 +201,16 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
                         className="group inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 font-medium text-slate-300 transition hover:border-white/20 hover:text-white"
                     >
                         Retour en haut
-                        <svg className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                        <svg
+                            className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
                             <path d="M12 19V5m-6 6l6-6 6 6" />
                         </svg>
                     </a>
@@ -155,8 +218,11 @@ export default function LandingFooter({ paymentLogos }: { paymentLogos?: { name:
             </div>
 
             {/* grand nom de marque en filigrane */}
-            <div className="pointer-events-none relative -mb-[0.22em] select-none text-center" aria-hidden="true">
-                <span className="block bg-gradient-to-b from-white/[0.09] to-transparent bg-clip-text text-[26vw] font-extrabold leading-none tracking-tighter text-transparent lg:text-[19rem]">
+            <div
+                className="pointer-events-none relative -mb-[0.22em] text-center select-none"
+                aria-hidden="true"
+            >
+                <span className="block bg-gradient-to-b from-white/[0.09] to-transparent bg-clip-text text-[26vw] leading-none font-extrabold tracking-tighter text-transparent lg:text-[19rem]">
                     Motriks
                 </span>
             </div>

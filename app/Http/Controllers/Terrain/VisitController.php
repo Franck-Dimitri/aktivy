@@ -30,13 +30,13 @@ class VisitController extends Controller
 
         $validated = $request->validate([
             'affectation_id' => ['required', 'integer'],
-            'latitude'       => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude'      => ['nullable', 'numeric', 'between:-180,180'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             // Rayon de précision annoncé par le téléphone, en mètres
-            'accuracy'       => ['nullable', 'numeric', 'min:0', 'max:1000000'],
+            'accuracy' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             // Prise de service faite hors ligne
-            'uuid'           => ['nullable', 'uuid'],
-            'checked_in_at'  => ['nullable', 'date'],
+            'uuid' => ['nullable', 'uuid'],
+            'checked_in_at' => ['nullable', 'date'],
         ]);
 
         $uuid = isset($validated['uuid']) ? strtolower($validated['uuid']) : null;
@@ -85,33 +85,33 @@ class VisitController extends Controller
             ->firstOrFail();
 
         $visit = $user->company->visits()->make([
-            'site_id'            => $affectation->site_id,
-            'user_id'            => $user->id,
-            'affectation_id'     => $affectation->id,
-            'checked_in_at'      => $at,
-            'checkin_synced_at'  => $offline ? now() : null,
-            'checkin_latitude'   => $validated['latitude'] ?? null,
-            'checkin_longitude'  => $validated['longitude'] ?? null,
+            'site_id' => $affectation->site_id,
+            'user_id' => $user->id,
+            'affectation_id' => $affectation->id,
+            'checked_in_at' => $at,
+            'checkin_synced_at' => $offline ? now() : null,
+            'checkin_latitude' => $validated['latitude'] ?? null,
+            'checkin_longitude' => $validated['longitude'] ?? null,
             // Distance au site, pour signaler au responsable un pointage fait ailleurs
             'checkin_distance_m' => isset($validated['latitude'], $validated['longitude'])
                 ? $affectation->site->distanceTo((float) $validated['latitude'], (float) $validated['longitude'])
                 : null,
             'checkin_accuracy_m' => isset($validated['latitude'], $validated['accuracy']) ? (int) round((float) $validated['accuracy']) : null,
-            'status'             => 'in_progress',
+            'status' => 'in_progress',
         ]);
         $visit->uuid = $uuid;
         $visit->save();
 
         // Créer le rapport journalier en brouillon + snapshot des stocks d'ouverture
         $report = DailyReport::create([
-            'company_id'  => $user->company_id,
-            'site_id'     => $affectation->site_id,
-            'user_id'     => $user->id,
-            'visit_id'    => $visit->id,
+            'company_id' => $user->company_id,
+            'site_id' => $affectation->site_id,
+            'user_id' => $user->id,
+            'visit_id' => $visit->id,
             // Les ventes d'un événement sont retrouvées par ce lien
-            'event_id'    => $affectation->event_id,
+            'event_id' => $affectation->event_id,
             'report_date' => $day,
-            'status'      => 'draft',
+            'status' => 'draft',
         ]);
 
         // Snapshot : une ligne par produit du site avec son stock actuel
@@ -123,13 +123,13 @@ class VisitController extends Controller
             DailyReportLine::create([
                 'daily_report_id' => $report->id,
                 'site_product_id' => $sp->id,
-                'product_name'    => $sp->product->name,
-                'unit'            => $sp->product->unit,
-                'unit_price'      => $sp->product->price ?? 0,
-                'opening_stock'   => $sp->current_stock,
-                'units_sold'      => 0,
-                'closing_stock'   => $sp->current_stock,
-                'revenue'         => 0,
+                'product_name' => $sp->product->name,
+                'unit' => $sp->product->unit,
+                'unit_price' => $sp->product->price ?? 0,
+                'opening_stock' => $sp->current_stock,
+                'units_sold' => 0,
+                'closing_stock' => $sp->current_stock,
+                'revenue' => 0,
             ]);
         }
 
@@ -145,8 +145,8 @@ class VisitController extends Controller
         abort_if($visit->user_id !== $request->user()->id, 403);
 
         $validated = $request->validate([
-            'latitude'       => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude'      => ['nullable', 'numeric', 'between:-180,180'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'checked_out_at' => ['nullable', 'date'],
         ]);
 

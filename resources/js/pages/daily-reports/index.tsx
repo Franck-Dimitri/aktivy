@@ -19,7 +19,7 @@ import {
     index as dailyReportsIndex,
     show as dailyReportShow,
 } from '@/routes/daily-reports';
-import { money, number } from '../reports/format';
+import { localISODate, money, number } from '@/lib/format';
 
 type ReportRow = {
     id: number;
@@ -64,7 +64,7 @@ function shiftDate(iso: string, days: number): string {
     const d = new Date(`${iso}T12:00:00`);
     d.setDate(d.getDate() + days);
 
-    return d.toISOString().slice(0, 10);
+    return localISODate(d);
 }
 
 export default function DailyReportsIndex({
@@ -295,7 +295,7 @@ export default function DailyReportsIndex({
                                                                     currency,
                                                                 )}
                                                             </span>
-                                                            <span className="block text-xs text-slate-400">
+                                                            <span className="block text-xs text-slate-500">
                                                                 {number.format(
                                                                     r.units_sold,
                                                                 )}{' '}

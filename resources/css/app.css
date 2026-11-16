@@ -267,11 +267,20 @@
 
 /* ───────── Pages de connexion : reflet qui glisse sur la bordure de la carte ───────── */
 @keyframes auth-thread {
-    from { stroke-dashoffset: 1; }
-    to { stroke-dashoffset: 0; }
+    from {
+        stroke-dashoffset: 1;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
 }
-.auth-thread { animation: auth-thread var(--auth-thread-duration, 9s) linear infinite; animation-delay: var(--auth-thread-delay, 0s); }
+.auth-thread {
+    animation: auth-thread var(--auth-thread-duration, 9s) linear infinite;
+    animation-delay: var(--auth-thread-delay, 0s);
+}
 
 @media (prefers-reduced-motion: reduce) {
-    .auth-thread { animation: none; }
+    .auth-thread {
+        animation: none;
+    }
 }

@@ -1,0 +1,4489 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Cannot cast array\|bool\|float\|int\|string to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: app/Console/Commands/InstallFeaturesCommand.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Site\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Console/Commands/NotifyAttendanceCommand.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\User\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Console/Commands/NotifyAttendanceCommand.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Console/Commands/NotifyModuleExpiryCommand.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Console/Commands/NotifyModuleExpiryCommand.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Visit\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/NotifyReportRemindersCommand.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Console/Commands/NotifyReportRemindersCommand.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: app/Console/Commands/NotifyReportRemindersCommand.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: app/Console/Commands/NotifyReportRemindersCommand.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/PurgeOldDataCommand.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$photos\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Call to an undefined method BackedEnum\:\:label\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Method App\\Exports\\CompanyDataExport\:\:readme\(\) has parameter \$missing with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Method App\\Exports\\CompanyDataExport\:\:sitePhotos\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Method App\\Exports\\CompanyDataExport\:\:write\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Parameter \#2 \$columns of method App\\Support\\Excel\\Workbook\:\:sheet\(\) expects array\<string, array\{0\: string, 1\?\: float\}\>, non\-empty\-array\<non\-falsy\-string, array\{''date''\|''int'', 10\|12\}\|array\{''money'', 14\|16\}\|array\{''text'', 9\|24\|30\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Parameter \#2 \$columns of method App\\Support\\Excel\\Workbook\:\:sheet\(\) expects array\<string, array\{0\: string, 1\?\: float\}\>, non\-empty\-array\<non\-falsy\-string, array\{''datetime'', 16\}\|array\{''int''\|''money''\|''text'', 8\|10\|14\|26\|34\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Parameter \#2 \$columns of method App\\Support\\Excel\\Workbook\:\:sheet\(\) expects array\<string, array\{0\: string, 1\?\: float\}\>, non\-empty\-array\<non\-falsy\-string, array\{''int''\|''text'', 10\|24\}\|array\{''money'', 14\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Parameter \#2 \$columns of method App\\Support\\Excel\\Workbook\:\:sheet\(\) expects array\<string, array\{0\: string, 1\?\: float\}\>, non\-empty\-array\<non\-falsy\-string, array\{''int''\|''text'', 8\|18\|24\|30\}\|array\{''money'', 12\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Enums\\AccountStatus\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Exports/CompanyDataExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$closing_stock\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$event_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$external_shop\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$hostess_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$hostess_phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$notes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$opening_stock\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$product_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$report_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$report_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$revenue\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$site_city\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$site_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$site_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$submitted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$unit_price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$units_sold\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Cannot call method isoFormat\(\) on Carbon\\CarbonImmutable\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Method App\\Exports\\SalesExport\:\:write\(\) has parameter \$filterLabels with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\LazyCollection\<int,object\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Parameter \#2 \$columns of method App\\Support\\Excel\\Workbook\:\:sheet\(\) expects array\<string, array\{0\: string, 1\?\: float\}\>, non\-empty\-array\<non\-falsy\-string, array\{''date''\|''int'', 10\|12\}\|array\{''datetime''\|''text'', 9\|11\|14\|16\|20\|22\|24\|30\}\|array\{''money'', 15\|17\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Parameter \#2 \$columns of method App\\Support\\Excel\\Workbook\:\:sheet\(\) expects array\<string, array\{0\: string, 1\?\: float\}\>, non\-empty\-array\<non\-falsy\-string, array\{''int'', 10\|14\}\|array\{''money'', 18\}\|array\{''percent'', 22\}\|array\{''text'', 16\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Parameter \#2 \$columns of method App\\Support\\Excel\\Workbook\:\:sheet\(\) expects array\<string, array\{0\: string, 1\?\: float\}\>, non\-empty\-array\<string, array\{''date''\|''money''\|''text'', 18\|26\}\|array\{''int'', 10\|14\}\> given\.$#'
+			identifier: argument.type
+			count: 4
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\LazyCollection\<int,object\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Exports/SalesExport.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/AuditLogController.php
+
+		-
+			message: '#^Cannot call method isToday\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/AuditLogController.php
+
+		-
+			message: '#^Cannot call method isYesterday\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/AuditLogController.php
+
+		-
+			message: '#^Cannot call method isoFormat\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/AuditLogController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\AuditLog\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/AuditLogController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\AuditLog\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/AuditLogController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$daily_reports_max_report_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$image\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$low_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sites_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$total_stock\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Company\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\User\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Parameter \#1 \$payments of static method App\\Http\\Controllers\\Admin\\SubscriptionController\:\:payments\(\) expects Illuminate\\Support\\Collection\<int, App\\Models\\SubscriptionPayment\>, Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Company\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\User\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\Plan\:\:Starter will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyPlanController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyPlanController.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyPlanController.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Http/Controllers/Admin/CompanyPlanController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\CompanyPlanController\:\:notifyManagers\(\) has parameter \$notification with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyPlanController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type string\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyPlanController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/CompanyRequestController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Company\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyRequestController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Company\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/CompanyRequestController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$hostesses_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Cannot call method isoFormat\(\) on Carbon\\CarbonImmutable\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Company\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 3
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\User\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Company\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 3
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\User\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 2
+			path: app/Http/Controllers/Admin/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/ImpersonationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/ImpersonationController.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Illuminate\\Auth\\SessionGuard\:\:login\(\) expects Illuminate\\Contracts\\Auth\\Authenticatable, App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/ImpersonationController.php
+
+		-
+			message: '#^Parameter \$actor of static method App\\Models\\AuditLog\:\:record\(\) expects App\\Models\\User\|null, App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/ImpersonationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/InvoiceController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubscriptionPayment\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/InvoiceController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\SubscriptionPayment\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/InvoiceController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\SubscriptionPayment\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/InvoiceController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubscriptionPayment\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Cannot access property \$value on string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Cannot call method label\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\SubscriptionController\:\:payments\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: int, uuid\: mixed, invoice_number\: string, company_id\: int, company_uuid\: mixed, company\: string\|null, amount\: int, currency\: string, \.\.\.\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\SubscriptionPayment\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Parameter \#2 \$timestamp of function date expects int\|null, int\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,App\\Models\\SubscriptionPayment\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between string and App\\Enums\\Plan\:\:Starter will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between string and App\\Enums\\Plan\:\:Starter will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/Admin/SubscriptionController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SupportRequest\:\:\$first_reply_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SupportRequest\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Cannot call method diffForHumans\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Cannot call method format\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Cannot call method gt\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Cannot call method isCurrentYear\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Cannot call method isToday\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Cannot call method isYesterday\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Cannot call method isoFormat\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int\<0, max\>, body\: string, author\: mixed, emailed\: bool, at\: non\-falsy\-string\|null, ago\: string\|null\}, Closure\(App\\Models\\SupportReply\)\: array\{id\: int\<0, max\>, body\: string, author\: mixed, emailed\: bool, at\: non\-falsy\-string\|null, ago\: string\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\SupportRequest\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Pagination\\AbstractPaginator\<int,App\\Models\\SupportRequest\>\:\:through\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Admin/SupportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$day\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$origin\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$views\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$visits\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:breakdown\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:breakdown\(\) should return Illuminate\\Support\\Collection\<int, array\{label\: string\|null, visits\: int, views\: int\}\> but returns Illuminate\\Support\\Collection\<int, array\{label\: mixed, visits\: int, views\: int\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:daily\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:daily\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:hours\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:hours\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:share\(\) has parameter \$rows with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:share\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:sources\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\TrafficController\:\:totals\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Admin/TrafficController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\:\:onlyTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Admin\\UserController\:\:clients\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Unable to resolve the template type TWhenReturnType in call to method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:when\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Admin/UserController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$lines_sum_revenue\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$lines_sum_units_sold\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Call to method format\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\ActivityController\:\:state\(\) has parameter \$now with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Affectation\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Affectation\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\|int\|string\>\>\:\:sortBy\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:sortBy\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),App\\Models\\Visit\>\:\:contains\(\) expects App\\Models\\Visit\|\(callable\(App\\Models\\Visit, int\|string\)\: bool\)\|int\|string, Closure\(App\\Models\\Visit\)\: \(bool\|null\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Affectation\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Affectation\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\|int\|string\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>lines_sum_revenue" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>lines_sum_units_sold" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Site\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\User\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Company/ActivityController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Affectation\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Site\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:hasRole\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\AffectationController\:\:sites\(\) should return Illuminate\\Database\\Eloquent\\Relations\\HasMany\<App\\Models\\Site, App\\Models\\Company\> but returns Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\Site\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Affectation\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Affectation\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/AffectationController.php
+
+		-
+			message: '#^Call to function is_bool\(\) with float\|int\|numeric\-string will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: app/Http/Controllers/Company/CompanySettingsController.php
+
+		-
+			message: '#^Offset ''closing''\|''closing_minutes''\|''default_end''\|''default_start''\|''event_tomorrow''\|''event_tomorrow_time''\|''low_stock''\|''low_stock_time''\|''missing_reports''\|''missing_reports_time''\|''quiet_end''\|''quiet_start''\|''report''\|''report_time''\|''shift_late''\|''shift_late_minutes''\|''shift_upcoming''\|''shift_upcoming_minutes''\|''tickets''\|''tickets_hours'' might not exist on array\{shift_upcoming_minutes\: array\{5, 180\}, shift_late_minutes\: array\{5, 240\}, closing_minutes\: array\{0, 180\}, tickets_hours\: array\{1, 72\}\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 2
+			path: app/Http/Controllers/Company/CompanySettingsController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/CompanySettingsController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/CompanySettingsController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$external_revenue\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$has_gap\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$lines_sum_revenue\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$lines_sum_units_sold\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$event_pack_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_product_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$unit_value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:toView\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Call to method format\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 4
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$source of method Illuminate\\Support\\Collection\<int,array\<string, int\|string\>\>\:\:concat\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, int\|string\>\>\:\:concat\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Unable to resolve the template type TNewKey in call to method Illuminate\\Support\\Collection\<int,App\\Models\\DailyReportLine\>\:\:keyBy\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 2
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Models\\Carbon\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Models\\Visit\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>quantity" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Site\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\User\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 6
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Visit\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 7
+			path: app/Http/Controllers/Company/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Site\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DataExport\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DataExportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/DataExportController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Company/DataExportController.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Company/DataExportController.php
+
+		-
+			message: '#^Cannot call method toIso8601String\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Company/DataExportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$eventSite\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventActivateController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/Events/EventActivateController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array, Closure\(App\\Models\\Event\)\: array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:users\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventHostessController.php
+
+		-
+			message: '#^Parameter \#1 \$users of static method App\\Support\\Notifications\\Notify\:\:send\(\) expects App\\Models\\User\|iterable\<App\\Models\\User\>, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventHostessController.php
+
+		-
+			message: '#^Parameter \#2 \$hostess of method App\\Http\\Controllers\\Company\\Events\\EventHostessController\:\:notifyAssigned\(\) expects App\\Models\\EventHostess, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/Company/Events/EventHostessController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:lines\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventPackController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\Events\\EventPackController\:\:validatePack\(\) has parameter \$extraRules with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventPackController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\Events\\EventPackController\:\:validatePack\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventPackController.php
+
+		-
+			message: '#^Parameter \#2 \$pack of method App\\Http\\Controllers\\Company\\Events\\EventPackController\:\:notifyHostesses\(\) expects App\\Models\\EventPack, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventPackController.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventPackController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventPackController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/Events/EventPackController.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: app/Http/Controllers/Company/ImportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubscriptionPayment\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/InvoiceController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$currency\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/InvoiceController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$paid_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/InvoiceController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\InvoiceController\:\:present\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Company/InvoiceController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array, Closure\(App\\Models\\SubscriptionPayment\)\: array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/InvoiceController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:filter\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\SubscriptionPayment\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/InvoiceController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>currency" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Company/InvoiceController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Affectation\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Site\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\StaffDocument\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Call to method format\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Affectation\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\User\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Visit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, uuid\: mixed, type_label\: string, title\: string, size\: int, is_pdf\: bool, uploaded_at\: non\-falsy\-string, uploader\: mixed\}, Closure\(App\\Models\\StaffDocument\)\: array\{id\: int, uuid\: mixed, type_label\: string, title\: string, size\: int, is_pdf\: bool, uploaded_at\: non\-falsy\-string, uploader\: mixed\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Affectation\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\User\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Visit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/PersonnelController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Product\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/ProductController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/ProductController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, uuid\: mixed, name\: string, sku\: string\|null, description\: string\|null, unit\: string, price\: float\|null, image_url\: string\|null, is_active\: bool, sites_count\: int\<0, max\>\}, Closure\(App\\Models\\Product\)\: array\{id\: int, uuid\: mixed, name\: string, sku\: string\|null, description\: string\|null, unit\: string, price\: float\|null, image_url\: string\|null, is_active\: bool, sites_count\: int\<0, max\>\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/ProductController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/ProductController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/ProductController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\ReportController\:\:filterLabels\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Company/ReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\ReportController\:\:filters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Company/ReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\ReportController\:\:options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Company/ReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Company\\ReportController\:\:targets\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Http/Controllers/Company/ReportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<string,App\\Models\\SalesTarget\>\:\:filter\(\) expects \(callable\(App\\Models\\SalesTarget, string\)\: bool\)\|null, Closure\(App\\Models\\SalesTarget\)\: \(int\|null\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/ReportController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>amount" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Company/ReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Site\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$agent\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$alert_threshold\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$checked_in_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$checked_out_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$critical_threshold\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$current_stock\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$duration_minutes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$ends_on\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 7
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sku\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slot_end\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slot_start\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$starts_on\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$unit\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isCurrentlyActive\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:stockStatus\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Cannot call method isoFormat\(\) on Carbon\\CarbonImmutable\|string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^PHPDoc tag @return with type Illuminate\\Support\\Collection\<string, int\> is incompatible with native type void\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Site\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\StockMovement\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 4
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Site\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\StockMovement\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 4
+			path: app/Http/Controllers/Company/SiteController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Site\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/StockAlertController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SiteProduct\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/StockAlertController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\SiteProduct\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/StockAlertController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:sortBy\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/StockAlertController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\SiteProduct\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/StockAlertController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/StockAlertController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array, Closure\(App\\Models\\SubscriptionPayment\)\: array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Company/SubscriptionController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Ticket\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Company/TicketController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:ongoing\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Company/TicketController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\Relation\<\*, \*, \*\>\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Company/TicketController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Ticket\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Company/TicketController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Ticket\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Company/TicketController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\User\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 3
+			path: app/Http/Controllers/Company/TicketController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\Relation\<\*, \*, \*\>\:\:ongoing\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Company/WeeklyTargetController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/WeeklyTargetController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Http/Controllers/Company/WeeklyTargetController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>amount" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Company/WeeklyTargetController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SupportRequest\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Binary operation "\-" between float\|int\|string and int results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 2
+			path: app/Http/Controllers/ContactController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SupportRequest\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/HelpController.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type App\\Enums\\Role\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/HelpController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\NotificationController\:\:latest\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{id\: string, kind\: mixed, title\: mixed, body\: mixed, read\: bool, date\: string, at\: string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/NotificationController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$company_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReportPhotoController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReportPhotoController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReportPhotoController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReportPhotoController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ReportPhotoController\:\:ownReport\(\) should return App\\Models\\DailyReport but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/ReportPhotoController.php
+
+		-
+			message: '#^Parameter \#1 \$haystack of function str_contains expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/TelegramWebhookController.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fclose expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/TelegramWebhookController.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function feof expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/TelegramWebhookController.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fgets expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/TelegramWebhookController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/TelegramWebhookController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Visit\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$company\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$company_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$corrected_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$current_stock\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$incident_notes\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lines\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$notes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$report_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$submitted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isSubmitted\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isValidated\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:lines\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:photos\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:totalRevenue\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:totalUnitsSold\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Call to method format\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\Terrain\\DailyReportController\:\:resolveLines\(\) should return list\<array\<string, mixed\>\> but returns array\<int, non\-empty\-array\<string, mixed\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\EventPack\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of method App\\Http\\Controllers\\Terrain\\DailyReportController\:\:applySales\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of method App\\Http\\Controllers\\Terrain\\DailyReportController\:\:notifyIncident\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of method App\\Http\\Controllers\\Terrain\\DailyReportController\:\:packs\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of method App\\Http\\Controllers\\Terrain\\DailyReportController\:\:recordClosingCount\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of static method App\\Notifications\\LiveNotification\:\:reportSubmitted\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of static method App\\Support\\Reports\\ExternalSales\:\:present\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of static method App\\Support\\Reports\\ExternalSales\:\:products\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of static method App\\Support\\Reports\\ReportSales\:\:restocked\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#1 \$report of static method App\\Support\\Targets\\TargetReachedCheck\:\:afterSubmit\(\) expects App\\Models\\DailyReport, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#2 \$delta of static method App\\Support\\Stock\\StockLedger\:\:move\(\) expects int, float\|int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#3 \$notBefore of static method App\\Support\\Terrain\\OfflineTime\:\:resolve\(\) expects Carbon\\CarbonInterface\|null, App\\Models\\Carbon given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \#3 \$report of method App\\Http\\Controllers\\Terrain\\DailyReportController\:\:validateSales\(\) expects App\\Models\\DailyReport\|null, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Parameter \$report of method App\\Http\\Controllers\\Terrain\\DailyReportController\:\:validateSales\(\) expects App\\Models\\DailyReport\|null, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,App\\Models\\EventPack\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\|int\|string\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\|int\|string\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 3
+			path: app/Http/Controllers/Terrain/DailyReportController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReportLine\:\:\$report_date\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReportLine\:\:\$report_status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReportLine\:\:\$site_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReportLine\:\:\$visit_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReportLine\:\:\$visit_uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Cannot call method isoFormat\(\) on Carbon\\CarbonImmutable\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DailyReportLine\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DailyReportLine\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/ExternalShopController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/HomeController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Visit\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/HomeController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/HomeController.php
+
+		-
+			message: '#^Call to method format\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/HomeController.php
+
+		-
+			message: '#^Call to method toDateString\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/HomeController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\DailyReport\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/HomeController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\DailyReport\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/HomeController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Site\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Terrain/HomeController.php
+
+		-
+			message: '#^Call to method format\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/PlanningController.php
+
+		-
+			message: '#^Call to method toDateString\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/PlanningController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Visit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/PlanningController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Visit\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/PlanningController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/ReportHistoryController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Visit\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/ReportHistoryController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/ReportHistoryController.php
+
+		-
+			message: '#^Cannot call method isoFormat\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Http/Controllers/Terrain/ReportHistoryController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\DailyReport\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/ReportHistoryController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\DailyReport\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/ReportHistoryController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Visit\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Cannot call method isoFormat\(\) on Illuminate\\Support\\Carbon\|string\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DailyReport\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\DailyReport\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\DailyReport\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\DailyReport\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, float\|Illuminate\\Support\\Collection\<int, array\<string, float\|int\|string\|null\>\>\|Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\|int\|string\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>image" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Terrain/SalesController.php
+
+		-
+			message: '#^Call to method toDateString\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/StatsController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between App\\Models\\Product and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Terrain/StockController.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Site\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Http/Controllers/Terrain/StockController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Ticket\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/TicketController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Ticket\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Terrain/TicketController.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Ticket\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Http/Controllers/Terrain/TicketController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Visit\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Terrain/VisitController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$current_stock\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/VisitController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/VisitController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Terrain/VisitController.php
+
+		-
+			message: '#^Call to method toDateString\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Http/Controllers/Terrain/VisitController.php
+
+		-
+			message: '#^Parameter \#3 \$notBefore of static method App\\Support\\Terrain\\OfflineTime\:\:resolve\(\) expects Carbon\\CarbonInterface\|null, App\\Models\\Carbon given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Terrain/VisitController.php
+
+		-
+			message: '#^Property App\\Models\\Visit\:\:\$checkout_synced_at \(App\\Models\\Carbon\|null\) does not accept Carbon\\CarbonImmutable\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Http/Controllers/Terrain/VisitController.php
+
+		-
+			message: '#^PHPDoc tag @return with type array\<string, mixed\> is incompatible with native type bool\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: app/Http/Middleware/HandleInertiaRequests.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Enums\\AccountStatus\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Middleware/HandleInertiaRequests.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Jobs/BuildCompanyDataExport.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:notify\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Jobs/BuildCompanyDataExport.php
+
+		-
+			message: '#^Parameter \#1 \$company of class App\\Exports\\CompanyDataExport constructor expects App\\Models\\Company, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/BuildCompanyDataExport.php
+
+		-
+			message: '#^Parameter \$actor of static method App\\Models\\AuditLog\:\:record\(\) expects App\\Models\\User\|null, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Jobs/BuildCompanyDataExport.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\:\:ongoing\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Class App\\Models\\Affectation uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:agent\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:assigner\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:scopeCurrent\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:scopeOngoing\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:site\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:slotEnd\(\) return type with generic class Illuminate\\Database\\Eloquent\\Casts\\Attribute does not specify its types\: TGet, TSet$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:slotStart\(\) return type with generic class Illuminate\\Database\\Eloquent\\Casts\\Attribute does not specify its types\: TGet, TSet$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Method App\\Models\\Affectation\:\:visits\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Affectation.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/AuditLog.php
+
+		-
+			message: '#^Cannot call method lt\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: '#^Method App\\Models\\Company\:\:currentPlan\(\) should return App\\Enums\\Plan but returns App\\Enums\\Plan\:\:Starter\|string\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: '#^Method App\\Models\\Company\:\:dailyReports\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: '#^Method App\\Models\\Company\:\:events\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: '#^Method App\\Models\\Company\:\:modules\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: '#^Method App\\Models\\Company\:\:products\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: '#^Method App\\Models\\Company\:\:subscriptionPayments\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: '#^Method App\\Models\\Company\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Company.php
+
+		-
+			message: '#^Method App\\Models\\CompanyModule\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CompanyModule.php
+
+		-
+			message: '#^Method App\\Models\\CompanyModule\:\:scopeActive\(\) has parameter \$query with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/CompanyModule.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:agent\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:allLines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:corrector\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:event\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:externalLines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:packs\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:photos\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:site\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:validator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReport\:\:visit\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReport.php
+
+		-
+			message: '#^Method App\\Models\\DailyReportLine\:\:product\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReportLine.php
+
+		-
+			message: '#^Method App\\Models\\DailyReportLine\:\:report\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReportLine.php
+
+		-
+			message: '#^Method App\\Models\\DailyReportLine\:\:siteProduct\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReportLine.php
+
+		-
+			message: '#^Method App\\Models\\DailyReportPack\:\:eventPack\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReportPack.php
+
+		-
+			message: '#^Method App\\Models\\DailyReportPack\:\:report\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReportPack.php
+
+		-
+			message: '#^Method App\\Models\\DailyReportPhoto\:\:report\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DailyReportPhoto.php
+
+		-
+			message: '#^Method App\\Models\\DailyReportPhoto\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/DailyReportPhoto.php
+
+		-
+			message: '#^Cannot call method isFuture\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Models/DataExport.php
+
+		-
+			message: '#^Method App\\Models\\DataExport\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DataExport.php
+
+		-
+			message: '#^Method App\\Models\\DataExport\:\:prunable\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DataExport.php
+
+		-
+			message: '#^Method App\\Models\\DataExport\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/DataExport.php
+
+		-
+			message: '#^Method App\\Models\\DataExport\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/DataExport.php
+
+		-
+			message: '#^Method App\\Models\\Event\:\:affectations\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^Method App\\Models\\Event\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^Method App\\Models\\Event\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^Method App\\Models\\Event\:\:hostesses\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^Method App\\Models\\Event\:\:packs\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^Method App\\Models\\Event\:\:reports\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^Method App\\Models\\Event\:\:sites\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^Method App\\Models\\Event\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Event.php
+
+		-
+			message: '#^Method App\\Models\\EventHostess\:\:event\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventHostess.php
+
+		-
+			message: '#^Method App\\Models\\EventHostess\:\:eventSite\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventHostess.php
+
+		-
+			message: '#^Method App\\Models\\EventHostess\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/EventHostess.php
+
+		-
+			message: '#^Method App\\Models\\EventHostess\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventHostess.php
+
+		-
+			message: '#^Method App\\Models\\EventPack\:\:event\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventPack.php
+
+		-
+			message: '#^Method App\\Models\\EventPack\:\:lines\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventPack.php
+
+		-
+			message: '#^Method App\\Models\\EventPack\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/EventPack.php
+
+		-
+			message: '#^Method App\\Models\\EventPackLine\:\:pack\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventPackLine.php
+
+		-
+			message: '#^Method App\\Models\\EventPackLine\:\:product\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventPackLine.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/EventSite.php
+
+		-
+			message: '#^Method App\\Models\\EventSite\:\:event\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventSite.php
+
+		-
+			message: '#^Method App\\Models\\EventSite\:\:hostesses\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventSite.php
+
+		-
+			message: '#^Method App\\Models\\EventSite\:\:site\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/EventSite.php
+
+		-
+			message: '#^Method App\\Models\\EventSite\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/EventSite.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Models/EventSite.php
+
+		-
+			message: '#^Class App\\Models\\PageView uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PageView.php
+
+		-
+			message: '#^Method App\\Models\\PageView\:\:prunable\(\) return type with generic class Illuminate\\Database\\Eloquent\\Builder does not specify its types\: TModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/PageView.php
+
+		-
+			message: '#^Class App\\Models\\Product uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Product.php
+
+		-
+			message: '#^Method App\\Models\\Product\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Product.php
+
+		-
+			message: '#^Method App\\Models\\Product\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Product.php
+
+		-
+			message: '#^Method App\\Models\\Product\:\:siteProducts\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Product.php
+
+		-
+			message: '#^Method App\\Models\\Product\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Product.php
+
+		-
+			message: '#^Method App\\Models\\SalesTarget\:\:hostess\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SalesTarget.php
+
+		-
+			message: '#^Method App\\Models\\SalesTarget\:\:month\(\) return type with generic class Illuminate\\Database\\Eloquent\\Casts\\Attribute does not specify its types\: TGet, TSet$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SalesTarget.php
+
+		-
+			message: '#^Method App\\Models\\SalesTarget\:\:site\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SalesTarget.php
+
+		-
+			message: '#^Class App\\Models\\Site uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Site.php
+
+		-
+			message: '#^Method App\\Models\\Site\:\:affectations\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Site.php
+
+		-
+			message: '#^Method App\\Models\\Site\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Site.php
+
+		-
+			message: '#^Method App\\Models\\Site\:\:creator\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Site.php
+
+		-
+			message: '#^Method App\\Models\\Site\:\:siteProducts\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Site.php
+
+		-
+			message: '#^Method App\\Models\\Site\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Site.php
+
+		-
+			message: '#^Method App\\Models\\Site\:\:visits\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Site.php
+
+		-
+			message: '#^Method App\\Models\\SiteProduct\:\:product\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SiteProduct.php
+
+		-
+			message: '#^Method App\\Models\\SiteProduct\:\:site\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SiteProduct.php
+
+		-
+			message: '#^Method App\\Models\\SiteProduct\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/SiteProduct.php
+
+		-
+			message: '#^Method App\\Models\\SiteProduct\:\:updater\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SiteProduct.php
+
+		-
+			message: '#^Method App\\Models\\StaffDocument\:\:member\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StaffDocument.php
+
+		-
+			message: '#^Method App\\Models\\StaffDocument\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/StaffDocument.php
+
+		-
+			message: '#^Method App\\Models\\StaffDocument\:\:uploader\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StaffDocument.php
+
+		-
+			message: '#^Method App\\Models\\StockMovement\:\:author\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StockMovement.php
+
+		-
+			message: '#^Method App\\Models\\StockMovement\:\:dailyReport\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StockMovement.php
+
+		-
+			message: '#^Method App\\Models\\StockMovement\:\:siteProduct\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/StockMovement.php
+
+		-
+			message: '#^Method App\\Models\\SubscriptionPayment\:\:recorder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SubscriptionPayment.php
+
+		-
+			message: '#^Method App\\Models\\SubscriptionPayment\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/SubscriptionPayment.php
+
+		-
+			message: '#^Property App\\Models\\SubscriptionPayment\:\:\$company_id \(int\<0, max\>\) does not accept int\|null\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Models/SubscriptionPayment.php
+
+		-
+			message: '#^Method App\\Models\\SupportReply\:\:request\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportReply.php
+
+		-
+			message: '#^Method App\\Models\\SupportReply\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportReply.php
+
+		-
+			message: '#^Method App\\Models\\SupportRequest\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportRequest.php
+
+		-
+			message: '#^Method App\\Models\\SupportRequest\:\:replies\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportRequest.php
+
+		-
+			message: '#^Method App\\Models\\SupportRequest\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/SupportRequest.php
+
+		-
+			message: '#^Method App\\Models\\SupportRequest\:\:user\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/SupportRequest.php
+
+		-
+			message: '#^Method App\\Models\\Ticket\:\:agent\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: '#^Method App\\Models\\Ticket\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: '#^Method App\\Models\\Ticket\:\:responder\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: '#^Method App\\Models\\Ticket\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Ticket.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:documents\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasMany does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Method App\\Models\\User\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Property App\\Models\\User\:\:\$managedSiteIdsCache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Call to method diffInMinutes\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Class App\\Models\\Visit uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Method App\\Models\\Visit\:\:affectation\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Method App\\Models\\Visit\:\:agent\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Method App\\Models\\Visit\:\:company\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Method App\\Models\\Visit\:\:dailyReport\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\HasOne does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Method App\\Models\\Visit\:\:site\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Method App\\Models\\Visit\:\:uniqueIds\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^PHPDoc tag @property for property App\\Models\\Visit\:\:\$checked_in_at contains unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^PHPDoc tag @property for property App\\Models\\Visit\:\:\$checked_out_at contains unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^PHPDoc tag @property for property App\\Models\\Visit\:\:\$checkin_synced_at contains unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^PHPDoc tag @property for property App\\Models\\Visit\:\:\$checkout_synced_at contains unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^PHPDoc tag @property for property App\\Models\\Visit\:\:\$created_at contains unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^PHPDoc tag @property for property App\\Models\\Visit\:\:\$updated_at contains unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Property App\\Models\\Visit\:\:\$checked_out_at \(App\\Models\\Carbon\|null\) does not accept Carbon\\CarbonInterface\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Models/Visit.php
+
+		-
+			message: '#^Method App\\Models\\WeeklyTarget\:\:hostess\(\) return type with generic class Illuminate\\Database\\Eloquent\\Relations\\BelongsTo does not specify its types\: TRelatedModel, TDeclaringModel$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/WeeklyTarget.php
+
+		-
+			message: '#^Method App\\Models\\WeeklyTarget\:\:latestFor\(\) should return Illuminate\\Support\\Collection\<int, App\\Models\\WeeklyTarget\> but returns Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), static\(App\\Models\\WeeklyTarget\)\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/WeeklyTarget.php
+
+		-
+			message: '#^Method App\\Models\\WeeklyTarget\:\:weekStart\(\) return type with generic class Illuminate\\Database\\Eloquent\\Casts\\Attribute does not specify its types\: TGet, TSet$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Models/WeeklyTarget.php
+
+		-
+			message: '#^Method App\\Notifications\\AppNotification\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/AppNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\AppNotification\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/AppNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\AppNotification\:\:via\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/AppNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\CompanyApproved\:\:via\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/CompanyApproved.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getRouteKey\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Notifications/CompanyInvitation.php
+
+		-
+			message: '#^Method App\\Notifications\\CompanyInvitation\:\:via\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/CompanyInvitation.php
+
+		-
+			message: '#^Parameter \#1 \$user of static method App\\Http\\Controllers\\Auth\\InvitationController\:\:emailKey\(\) expects App\\Models\\User, object given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Notifications/CompanyInvitation.php
+
+		-
+			message: '#^Method App\\Notifications\\CompanyRejected\:\:via\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/CompanyRejected.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Company\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Notifications/CompanySubmitted.php
+
+		-
+			message: '#^Method App\\Notifications\\CompanySubmitted\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/CompanySubmitted.php
+
+		-
+			message: '#^Method App\\Notifications\\HostessesNotCheckedIn\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/HostessesNotCheckedIn.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Notifications/IncidentReported.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: app/Notifications/IncidentReported.php
+
+		-
+			message: '#^Method App\\Notifications\\IncidentReported\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/IncidentReported.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DailyReport\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Notifications/LiveNotification.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:displayName\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Notifications/LiveNotification.php
+
+		-
+			message: '#^Call to method diffInMinutes\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 2
+			path: app/Notifications/LiveNotification.php
+
+		-
+			message: '#^Call to method format\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 3
+			path: app/Notifications/LiveNotification.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Product\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: app/Notifications/LiveNotification.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Site\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 8
+			path: app/Notifications/LiveNotification.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\User\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Notifications/LiveNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\ModuleExpiring\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/ModuleExpiring.php
+
+		-
+			message: '#^Method App\\Notifications\\PlanExpiring\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/PlanExpiring.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Notifications/ReminderNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\ReminderNotification\:\:lowStock\(\) has parameter \$sites with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/ReminderNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\ReminderNotification\:\:names\(\) has parameter \$names with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/ReminderNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\ReportReminder\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/ReportReminder.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 3
+			path: app/Notifications/StockCritical.php
+
+		-
+			message: '#^Method App\\Notifications\\StockCritical\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/StockCritical.php
+
+		-
+			message: '#^Method App\\Notifications\\SupportReplied\:\:via\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/SupportReplied.php
+
+		-
+			message: '#^Method App\\Notifications\\TextNotification\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/TextNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\TextNotification\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/TextNotification.php
+
+		-
+			message: '#^Method App\\Notifications\\TicketAnswered\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/TicketAnswered.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Notifications/TicketCreated.php
+
+		-
+			message: '#^Method App\\Notifications\\TicketCreated\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/TicketCreated.php
+
+		-
+			message: '#^Cannot call method translatedFormat\(\) on Carbon\\CarbonImmutable\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Notifications/WeeklyTargetSet.php
+
+		-
+			message: '#^Method App\\Notifications\\WeeklyTargetSet\:\:route\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Notifications/WeeklyTargetSet.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Event\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$eventSite\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$event_site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$hostesses\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$lines\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$recruited_for_event\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$uuid\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:displayName\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Method App\\Presenters\\EventPresenter\:\:detail\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Method App\\Presenters\\EventPresenter\:\:summary\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 3
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 3
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 3
+			path: app/Presenters/EventPresenter.php
+
+		-
+			message: '#^Method App\\Services\\TelegramService\:\:deleteWebhook\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/TelegramService.php
+
+		-
+			message: '#^Method App\\Services\\TelegramService\:\:setWebhook\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Services/TelegramService.php
+
+		-
+			message: '#^Parameter \#2 \$contents of method Illuminate\\Http\\Client\\PendingRequest\<false\>\:\:attach\(\) expects resource\|string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/TelegramService.php
+
+		-
+			message: '#^Parameter \#2 \$resource of method Illuminate\\Filesystem\\FilesystemAdapter\:\:writeStream\(\) expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Backup/Offsite.php
+
+		-
+			message: '#^Cannot call method translatedFormat\(\) on Carbon\\CarbonImmutable\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Support/Billing/InvoiceDocument.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>timestamp" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Support/Billing/InvoiceDocument.php
+
+		-
+			message: '#^Method App\\Support\\CheckinPlace\:\:companySites\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/CheckinPlace.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{array\{type\: ''id_card_front'', label\: ''CNI du gérant ·…'', uploaded\: bool, kind\: ''image''\|''pdf''\|null, updated_at\: non\-falsy\-string\|null, url\: string\|null\}, array\{type\: ''id_card_back'', label\: ''CNI du gérant ·…'', uploaded\: bool, kind\: ''image''\|''pdf''\|null, updated_at\: non\-falsy\-string\|null, url\: string\|null\}, array\{type\: ''registration_doc'', label\: ''Registre de commerce'', uploaded\: bool, kind\: ''image''\|''pdf''\|null, updated_at\: non\-falsy\-string\|null, url\: string\|null\}\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Support/Company/CompanyDocuments.php
+
+		-
+			message: '#^Method App\\Support\\Excel\\Workbook\:\:sheet\(\) has parameter \$intro with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Excel/Workbook.php
+
+		-
+			message: '#^Parameter \#3 \$toColumnIndex of class OpenSpout\\Writer\\AutoFilter constructor expects int\<0, max\>, int\<\-1, max\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Excel/Workbook.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: mixed$#'
+			identifier: match.unhandled
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:check\(\) has parameter \$row with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:check\(\) has parameter \$rules with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:createMember\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:map\(\) has parameter \$raw with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:member\(\) has parameter \$row with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:member\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:persist\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:product\(\) has parameter \$row with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:product\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:site\(\) has parameter \$row with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Method App\\Support\\Import\\CompanyImport\:\:site\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Import/CompanyImport.php
+
+		-
+			message: '#^Parameter \#1 \$stream of function fgets expects resource, resource\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Import/Spreadsheet.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<App\\Models\\User\>\|Illuminate\\Database\\Query\\Builder\:\:whereHas\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Support/Notifications/Notify.php
+
+		-
+			message: '#^Offset 8\|int\<min, 6\>\|int\<10, max\> might not exist on array\{2\: ''vingt'', 3\: ''trente'', 4\: ''quarante'', 5\: ''cinquante'', 6\: ''soixante'', 8\: ''quatre\-vingt''\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: app/Support/Pdf/FrenchNumber.php
+
+		-
+			message: '#^Method App\\Support\\Pdf\\PdfDocument\:\:download\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Pdf/PdfDocument.php
+
+		-
+			message: '#^Method App\\Support\\Pdf\\PdfDocument\:\:render\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Pdf/PdfDocument.php
+
+		-
+			message: '#^Method App\\Support\\Pdf\\PdfDocument\:\:render\(\) has parameter \$numberPages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Pdf/PdfDocument.php
+
+		-
+			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Pdf/PdfDocument.php
+
+		-
+			message: '#^Cannot access property \$value on App\\Enums\\Plan\:\:Starter\|string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Support/Plans/PlanPresenter.php
+
+		-
+			message: '#^Cannot call method format\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Support/Plans/PlanPresenter.php
+
+		-
+			message: '#^Cannot call method label\(\) on App\\Enums\\Plan\:\:Starter\|string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Support/Plans/PlanPresenter.php
+
+		-
+			message: '#^Cannot call method toDateString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Support/Plans/PlanPresenter.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: app/Support/Reminders/ReminderEngine.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: app/Support/Reminders/ReminderEngine.php
+
+		-
+			message: '#^Method App\\Support\\Reminders\\ReminderEngine\:\:once\(\) has parameter \$to with no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reminders/ReminderEngine.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: app/Support/Reminders/ReminderEngine.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$caption\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:filter\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Site\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Support/Reports/DailyReportPdf.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Support/Reports/ExternalSales.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\ExternalSales\:\:present\(\) should return list\<array\{shop\: string, revenue\: float, units\: int, lines\: list\<array\<string, mixed\>\>\}\> but returns array\<int, array\{shop\: string, revenue\: float, units\: int, lines\: array\<int, array\{id\: int, product_id\: int\|null, product_name\: string, unit\: string, unit_price\: float, units\: int, revenue\: float\}\>\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Support/Reports/ExternalSales.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\ExternalSales\:\:shopsUsedBy\(\) should return list\<string\> but returns array\<mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Support/Reports/ExternalSales.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\{id\: int, product_id\: int\|null, product_name\: string, unit\: string, unit_price\: float, units\: int, revenue\: float\}, Closure\(App\\Models\\DailyReportLine\)\: array\{id\: int, product_id\: int\|null, product_name\: string, unit\: string, unit_price\: float, units\: int, revenue\: float\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Reports/ExternalSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$notes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$opening_stock\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$single_units\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$stock_gap\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$unit_price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\ReportSales\:\:linesByProduct\(\) should return Illuminate\\Support\\Collection\<int, App\\Models\\DailyReportLine\> but returns Illuminate\\Database\\Eloquent\\Collection\<TNewKey of \(int\|string\), Illuminate\\Database\\Eloquent\\Model\>\|Illuminate\\Support\\Collection\<TNewKey of \(int\|string\), App\\Models\\DailyReportLine\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\ReportSales\:\:packValue\(\) has parameter \$linesByProduct with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\ReportSales\:\:revenueShares\(\) has parameter \$byProduct with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Parameter \#2 \$lines of static method App\\Support\\Reports\\ReportSales\:\:linesByProduct\(\) expects Illuminate\\Support\\Collection\<int, App\\Models\\DailyReportLine\>\|null, Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), Illuminate\\Database\\Eloquent\\Model\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Parameter \#2 \$lines of static method App\\Support\\Reports\\ReportSales\:\:restocked\(\) expects Illuminate\\Support\\Collection\<int, App\\Models\\DailyReportLine\>\|null, Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), Illuminate\\Database\\Eloquent\\Model\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>unit_price" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\Visit\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Support/Reports/ReportSales.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:__construct\(\) has parameter \$allowedSiteIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:aggregate\(\) has parameter \$groupBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:aggregate\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:byDay\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:byHostess\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:byProduct\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:bySite\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:fromFilters\(\) has parameter \$allowedSiteIds with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:fromFilters\(\) has parameter \$filters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:lines\(\) return type with generic class Illuminate\\Support\\Collection does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:linesCursor\(\) should return Illuminate\\Support\\LazyCollection\<int, object\> but returns Illuminate\\Support\\LazyCollection\<int, stdClass\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:monthly\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:revenueByHostess\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:timeline\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Method App\\Support\\Reports\\SalesReport\:\:totals\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Query\\Builder\:\:selectRaw\(\) expects literal\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Reports/SalesReport.php
+
+		-
+			message: '#^Parameter \#1 \$array \(array\{''landing'', ''auth/register'', ''contact'', ''legal/conditions'', ''legal…''\}\) of array_values is already a list, call has no effect\.$#'
+			identifier: arrayValues.list
+			count: 1
+			path: app/Support/Seo/PublicPages.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>id" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Support/Stock/StockLedger.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\Relation\<\*, \*, \*\>\:\:ongoing\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Support/Targets/TargetOverview.php
+
+		-
+			message: '#^Cannot access offset ''target'' on array\{user_id\: int, name\: string, sites\: Illuminate\\Support\\Collection\<int, mixed\>, target\: int\|null, source\: string\|null, actual\: float, projection\: float\|int, status\: string, \.\.\.\}\|int\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: app/Support/Targets/TargetOverview.php
+
+		-
+			message: '#^Cannot call method translatedFormat\(\) on Carbon\\CarbonImmutable\|string\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: app/Support/Targets/TargetOverview.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Support/Targets/TargetReachedCheck.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$current_stock\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$product_id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$quantity\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Method App\\Support\\Terrain\\OfflineKit\:\:packs\(\) should return list\<array\<string, mixed\>\> but returns array\<int, array\{id\: int, name\: string, value\: int, quantity\: 0, items\: Illuminate\\Support\\Collection\<int, array\{line_id\: int\|null, name\: string, quantity\: mixed, free\: bool\}\>\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\EventPack\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Property App\\Models\\DailyReportLine\:\:\$id \(int\) does not accept float\|int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\EventPack\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\|int\|string\>\>\:\:all\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\|int\|string\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Return type of call to method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:values\(\) contains unresolvable type\.$#'
+			identifier: method.unresolvableReturnType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Unable to resolve the template type TNewKey in call to method Illuminate\\Support\\Collection\<int,App\\Models\\DailyReportLine\>\:\:keyBy\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>product_name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Support/Terrain/OfflineKit.php
+
+		-
+			message: '#^Method App\\Support\\Terrain\\OfflineTime\:\:resolve\(\) should return array\{Illuminate\\Support\\Carbon, bool\} but returns array\{Carbon\\CarbonImmutable, false\}\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Support/Terrain/OfflineTime.php
+
+		-
+			message: '#^Call to method format\(\) on an unknown class App\\Models\\Carbon\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Support/Terrain/OfflineTrace.php
+
+		-
+			message: '#^Method App\\Support\\Terrain\\OfflineTrace\:\:of\(\) should return list\<array\{label\: string, at\: string, received\: string\}\> but returns array\<int, array\{label\: string, at\: string, received\: string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Support/Terrain/OfflineTrace.php
+
+		-
+			message: '#^Parameter \#1 \$at of static method App\\Support\\Terrain\\OfflineTrace\:\:received\(\) expects Carbon\\CarbonInterface, App\\Models\\Carbon\|Illuminate\\Support\\Carbon given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Terrain/OfflineTrace.php
+
+		-
+			message: '#^Parameter \#2 \$received of static method App\\Support\\Terrain\\OfflineTrace\:\:received\(\) expects Carbon\\CarbonInterface, App\\Models\\Carbon\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Support/Terrain/OfflineTrace.php
+
+		-
+			message: '#^Method Database\\Factories\\CompanyFactory\:\:definitionPlan\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: database/factories/CompanyFactory.php
+
+		-
+			message: '#^Method Illuminate\\Database\\Migrations\\Migration@anonymous/database/migrations/2026_11_17_100000_add_missing_performance_indexes\.php\:15\:\:name\(\) has parameter \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: database/migrations/2026_11_17_100000_add_missing_performance_indexes.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: database/seeders/DemoDataSeeder.php

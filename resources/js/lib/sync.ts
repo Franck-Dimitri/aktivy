@@ -69,7 +69,9 @@ export function setOnline(online: boolean) {
 }
 
 /** Relit la file sur le téléphone (après un ajout ou un envoi). */
-export async function refreshPending(userId: number | undefined): Promise<OutboxOperation[]> {
+export async function refreshPending(
+    userId: number | undefined,
+): Promise<OutboxOperation[]> {
     if (!userId || !outboxAvailable()) return [];
 
     const pending = await operations(userId).catch(() => []);
@@ -95,14 +97,23 @@ function xsrf(): string {
 
 /** Jeton anti-falsification périmé (page restée ouverte longtemps) : n'importe quelle page en donne un neuf. */
 async function refreshToken() {
-    await fetch('/app', { credentials: 'same-origin', redirect: 'manual', cache: 'no-store' }).catch(() => undefined);
+    await fetch('/app', {
+        credentials: 'same-origin',
+        redirect: 'manual',
+        cache: 'no-store',
+    }).catch(() => undefined);
 }
 
 function messageOf(json: unknown, fallback: string): string {
-    const data = json as { message?: string; errors?: Record<string, string[] | string> } | null;
+    const data = json as {
+        message?: string;
+        errors?: Record<string, string[] | string>;
+    } | null;
     const first = data?.errors ? Object.values(data.errors)[0] : undefined;
 
-    return (Array.isArray(first) ? first[0] : first) ?? data?.message ?? fallback;
+    return (
+        (Array.isArray(first) ? first[0] : first) ?? data?.message ?? fallback
+    );
 }
 
 async function send(op: OutboxOperation, retried = false): Promise<Outcome> {
@@ -118,9 +129,21 @@ async function send(op: OutboxOperation, retried = false): Promise<Outcome> {
     if (op.blob) {
         const form = new FormData();
         Object.entries(op.body).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) form.append(key, String(value));
+            // Un objet (liste, détail) part en JSON, jamais en « [object Object] »
+            if (value !== null && value !== undefined)
+                form.append(
+                    key,
+                    typeof value === 'object'
+                        ? JSON.stringify(value)
+                        : String(value as string | number | boolean),
+                );
         });
-        form.append('photo', new File([op.blob], op.fileName ?? 'photo.jpg', { type: op.blob.type || 'image/jpeg' }));
+        form.append(
+            'photo',
+            new File([op.blob], op.fileName ?? 'photo.jpg', {
+                type: op.blob.type || 'image/jpeg',
+            }),
+        );
         if (method !== 'POST') {
             form.append('_method', method);
             method = 'POST';
@@ -133,16 +156,29 @@ async function send(op: OutboxOperation, retried = false): Promise<Outcome> {
 
     // Réseau très faible : on abandonne l'essai plutôt que d'attendre indéfiniment
     const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), op.blob ? 120_000 : 30_000);
+    const timer = window.setTimeout(
+        () => controller.abort(),
+        op.blob ? 120_000 : 30_000,
+    );
 
     try {
-        const response = await fetch(op.url, { method, headers, body, credentials: 'same-origin', redirect: 'manual', signal: controller.signal });
+        const response = await fetch(op.url, {
+            method,
+            headers,
+            body,
+            credentials: 'same-origin',
+            redirect: 'manual',
+            signal: controller.signal,
+        });
 
         if (response.type === 'opaqueredirect') return { type: 'action' };
 
         const json = await response.json().catch(() => null);
 
-        if (response.status === 200) return json?.ok ? { type: 'done', visit: json.visit } : { type: 'action' };
+        if (response.status === 200)
+            return json?.ok
+                ? { type: 'done', visit: json.visit }
+                : { type: 'action' };
         if (response.status === 401) return { type: 'auth' };
         if (response.status === 419) {
             if (retried) return { type: 'auth' };
@@ -151,9 +187,21 @@ async function send(op: OutboxOperation, retried = false): Promise<Outcome> {
             return send(op, true);
         }
         if (response.status === 428) return { type: 'action' };
-        if (response.status === 413) return { type: 'rejected', message: 'Fichier trop lourd pour être envoyé.' };
+        if (response.status === 413)
+            return {
+                type: 'rejected',
+                message: 'Fichier trop lourd pour être envoyé.',
+            };
         if ([403, 404, 409, 410, 422].includes(response.status)) {
-            return { type: 'rejected', message: messageOf(json, response.status === 404 ? 'Élément introuvable sur le serveur.' : 'Refusé par le serveur.') };
+            return {
+                type: 'rejected',
+                message: messageOf(
+                    json,
+                    response.status === 404
+                        ? 'Élément introuvable sur le serveur.'
+                        : 'Refusé par le serveur.',
+                ),
+            };
         }
 
         return { type: 'network' };
@@ -167,19 +215,29 @@ async function send(op: OutboxOperation, retried = false): Promise<Outcome> {
 let running = false;
 let failures = 0;
 
-export type FlushResult = { sent: OutboxOperation[]; rejected: Rejection[]; remaining: number };
+export type FlushResult = {
+    sent: OutboxOperation[];
+    rejected: Rejection[];
+    remaining: number;
+};
 
 /**
  * Envoie tout ce qui peut l'être. Un seul envoi à la fois, même avec plusieurs onglets ouverts.
  */
-export async function flush(userId: number | undefined): Promise<FlushResult | null> {
+export async function flush(
+    userId: number | undefined,
+): Promise<FlushResult | null> {
     if (!userId || running || !outboxAvailable()) return null;
     if (state.retryAt !== null && Date.now() < state.retryAt) return null;
 
     const work = () => drain(userId);
     const locks = (navigator as Navigator & { locks?: LockManager }).locks;
 
-    return locks ? (locks.request('motriks-envois', { ifAvailable: true }, (lock) => (lock ? work() : null)) as Promise<FlushResult | null>) : work();
+    return locks
+        ? (locks.request('motriks-envois', { ifAvailable: true }, (lock) =>
+              lock ? work() : null,
+          ) as Promise<FlushResult | null>)
+        : work();
 }
 
 async function drain(userId: number): Promise<FlushResult> {
@@ -199,13 +257,19 @@ async function drain(userId: number): Promise<FlushResult> {
 
             if (outcome.type === 'done') {
                 await removeOperation(op.id);
-                if (op.kind === 'checkin' && outcome.visit && outcome.visit !== op.visit) {
+                if (
+                    op.kind === 'checkin' &&
+                    outcome.visit &&
+                    outcome.visit !== op.visit
+                ) {
                     await moveVisit(userId, op.visit, outcome.visit);
                 }
                 if (op.kind === 'submit') {
                     // Rapport reçu : la saisie gardée sur le téléphone n'a plus d'usage
                     try {
-                        window.localStorage.removeItem(`motriks:rapport:${op.visit}`);
+                        window.localStorage.removeItem(
+                            `motriks:rapport:${op.visit}`,
+                        );
                     } catch {
                         // stockage indisponible : rien à effacer
                     }
@@ -217,15 +281,34 @@ async function drain(userId: number): Promise<FlushResult> {
 
             if (outcome.type === 'rejected') {
                 await removeOperation(op.id);
-                rejected.push({ kind: op.kind, siteName: op.siteName, message: outcome.message });
+                let message = outcome.message;
 
                 if (op.kind === 'checkin') {
                     // Sans prise de service, rien de cette journée ne peut être reçu
+                    const dropped: string[] = [];
                     for (const other of await operations(userId)) {
-                        if (other.visit === op.visit && other.id !== undefined) await removeOperation(other.id);
+                        if (
+                            other.visit === op.visit &&
+                            other.id !== undefined
+                        ) {
+                            await removeOperation(other.id);
+                            dropped.push(KIND_LABEL[other.kind].toLowerCase());
+                        }
                     }
                     await deleteLocalVisit(op.visit);
-                } else if (op.kind === 'submit') {
+                    // L'hôtesse doit savoir ce qui est perdu avec elle, pour prévenir son responsable
+                    if (dropped.length > 0) {
+                        message += ` Le reste de la journée (${[...new Set(dropped)].join(', ')}) n’a pas pu être envoyé : prévenez votre responsable.`;
+                    }
+                }
+
+                rejected.push({
+                    kind: op.kind,
+                    siteName: op.siteName,
+                    message,
+                });
+
+                if (op.kind === 'submit') {
                     // Le rapport redevient modifiable pour être corrigé
                     await updateLocalVisit(op.visit, { reportStatus: 'draft' });
                 }
@@ -239,13 +322,23 @@ async function drain(userId: number): Promise<FlushResult> {
 
             // Réseau absent ou trop faible : nouvel essai de plus en plus espacé (15 s → 5 min)
             failures += 1;
-            setState({ retryAt: Date.now() + Math.min(300_000, 15_000 * 2 ** (failures - 1)) });
+            setState({
+                retryAt:
+                    Date.now() +
+                    Math.min(300_000, 15_000 * 2 ** (failures - 1)),
+            });
             break;
         }
     } finally {
         running = false;
         const pending = await operations(userId).catch(() => state.pending);
-        setState({ syncing: false, pending, ...(pending.length === 0 || failures === 0 ? { retryAt: null } : {}) });
+        setState({
+            syncing: false,
+            pending,
+            ...(pending.length === 0 || failures === 0
+                ? { retryAt: null }
+                : {}),
+        });
     }
 
     return { sent, rejected, remaining: state.pending.length };
@@ -261,13 +354,17 @@ export function retryNow() {
  * Visites locales devenues inutiles : plus rien en attente, et soit le serveur les connaît
  * (l'accueil reçu à l'instant les affiche), soit elles ont plus de deux jours.
  */
-export async function pruneLocalVisits(userId: number, serverKnows: (uuid: string) => boolean = () => false): Promise<void> {
+export async function pruneLocalVisits(
+    userId: number,
+    serverKnows: (uuid: string) => boolean = () => false,
+): Promise<void> {
     const pending = await operations(userId);
     const limit = Date.now() - 2 * 24 * 3600 * 1000;
 
     for (const visit of await localVisits(userId)) {
         const waiting = pending.some((op) => op.visit === visit.uuid);
-        if (!waiting && (visit.updatedAt < limit || serverKnows(visit.uuid))) await deleteLocalVisit(visit.uuid);
+        if (!waiting && (visit.updatedAt < limit || serverKnows(visit.uuid)))
+            await deleteLocalVisit(visit.uuid);
     }
 }
 

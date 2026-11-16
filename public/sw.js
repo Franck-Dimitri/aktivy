@@ -21,7 +21,9 @@ self.addEventListener('install', (event) => {
         caches
             .open(ASSETS)
             // Toujours la dernière version de la page « hors ligne » (pas celle du cache HTTP du navigateur)
-            .then((cache) => cache.add(new Request(OFFLINE_PAGE, { cache: 'reload' })))
+            .then((cache) =>
+                cache.add(new Request(OFFLINE_PAGE, { cache: 'reload' })),
+            )
             .then(() => self.skipWaiting()),
     );
 });
@@ -30,7 +32,13 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches
             .keys()
-            .then((keys) => Promise.all(keys.filter((key) => !KNOWN.includes(key)).map((key) => caches.delete(key))))
+            .then((keys) =>
+                Promise.all(
+                    keys
+                        .filter((key) => !KNOWN.includes(key))
+                        .map((key) => caches.delete(key)),
+                ),
+            )
             .then(() => self.clients.claim()),
     );
 });
@@ -72,7 +80,13 @@ self.addEventListener('push', (event) => {
                 data: { url: payload.data?.url || '/app' },
             }),
             // Fenêtres Motriks ouvertes : elles mettent leurs données à jour (cf. resources/js/lib/live-refresh.ts)
-            self.clients.matchAll({ type: 'window' }).then((windows) => windows.forEach((w) => w.postMessage({ type: 'push-received' }))),
+            self.clients
+                .matchAll({ type: 'window' })
+                .then((windows) =>
+                    windows.forEach((w) =>
+                        w.postMessage({ type: 'push-received' }),
+                    ),
+                ),
             updateBadge(),
         ]),
     );
@@ -88,11 +102,21 @@ self.addEventListener('pushsubscriptionchange', (event) => {
     event.waitUntil(
         (async () => {
             const key = event.oldSubscription?.options?.applicationServerKey;
-            if (key && !(await self.registration.pushManager.getSubscription())) {
-                await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }).catch(() => {});
+            if (
+                key &&
+                !(await self.registration.pushManager.getSubscription())
+            ) {
+                await self.registration.pushManager
+                    .subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: key,
+                    })
+                    .catch(() => {});
             }
             const windows = await self.clients.matchAll({ type: 'window' });
-            windows.forEach((w) => w.postMessage({ type: 'push-resubscribed' }));
+            windows.forEach((w) =>
+                w.postMessage({ type: 'push-resubscribed' }),
+            );
         })(),
     );
 });
@@ -110,12 +134,18 @@ async function updateBadge() {
     await new Promise((resolve) => setTimeout(resolve, 2500));
 
     try {
-        const response = await fetch('/notifications/pouls', { credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' } });
+        const response = await fetch('/notifications/pouls', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { Accept: 'application/json' },
+        });
         if (!response.ok || response.redirected) {
             throw new Error(String(response.status));
         }
         const { unread } = await response.json();
-        await (unread > 0 ? self.navigator.setAppBadge(unread) : self.navigator.clearAppBadge());
+        await (unread > 0
+            ? self.navigator.setAppBadge(unread)
+            : self.navigator.clearAppBadge());
     } catch {
         await self.navigator.setAppBadge().catch(() => {});
     }
@@ -124,17 +154,33 @@ async function updateBadge() {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     // Jamais vers un autre site : une adresse d'un autre domaine ouvre l'application
-    const asked = new URL(event.notification.data?.url || '/app', self.location.origin);
-    const target = asked.origin === self.location.origin ? asked.href : new URL('/app', self.location.origin).href;
+    const asked = new URL(
+        event.notification.data?.url || '/app',
+        self.location.origin,
+    );
+    const target =
+        asked.origin === self.location.origin
+            ? asked.href
+            : new URL('/app', self.location.origin).href;
 
     event.waitUntil(
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
-            const open = windows.find((w) => new URL(w.url).origin === self.location.origin);
-            if (open) {
-                return open.focus().then((w) => (w && 'navigate' in w ? w.navigate(target) : undefined));
-            }
-            return self.clients.openWindow(target);
-        }),
+        self.clients
+            .matchAll({ type: 'window', includeUncontrolled: true })
+            .then((windows) => {
+                const open = windows.find(
+                    (w) => new URL(w.url).origin === self.location.origin,
+                );
+                if (open) {
+                    return open
+                        .focus()
+                        .then((w) =>
+                            w && 'navigate' in w
+                                ? w.navigate(target)
+                                : undefined,
+                        );
+                }
+                return self.clients.openWindow(target);
+            }),
     );
 });
 
@@ -153,24 +199,34 @@ self.addEventListener('fetch', (event) => {
     }
 
     const isInertia = request.headers.has('X-Inertia');
-    const isTerrain = url.pathname === '/terrain' || url.pathname.startsWith('/terrain/');
+    const isTerrain =
+        url.pathname === '/terrain' || url.pathname.startsWith('/terrain/');
 
     // Rechargement partiel : réponse incomplète, à ne pas garder comme page
-    if (isTerrain && (request.mode === 'navigate' || (isInertia && !request.headers.has('X-Inertia-Partial-Component')))) {
+    if (
+        isTerrain &&
+        (request.mode === 'navigate' ||
+            (isInertia && !request.headers.has('X-Inertia-Partial-Component')))
+    ) {
         event.respondWith(networkFirst(request, url, isInertia));
 
         return;
     }
 
     // Ouverture de l'application installée (/app, ou / pour les anciennes installations)
-    if (request.mode === 'navigate' && (url.pathname === '/app' || url.pathname === '/')) {
+    if (
+        request.mode === 'navigate' &&
+        (url.pathname === '/app' || url.pathname === '/')
+    ) {
         event.respondWith(launch(request));
 
         return;
     }
 
     if (request.mode === 'navigate') {
-        event.respondWith(fetch(request).catch(() => caches.match(OFFLINE_PAGE)));
+        event.respondWith(
+            fetch(request).catch(() => caches.match(OFFLINE_PAGE)),
+        );
     }
 });
 
@@ -189,7 +245,12 @@ async function launch(request) {
     network.catch(() => {});
 
     try {
-        const first = await Promise.race([network, new Promise((resolve) => setTimeout(resolve, NETWORK_TIMEOUT_MS, 'timeout'))]);
+        const first = await Promise.race([
+            network,
+            new Promise((resolve) =>
+                setTimeout(resolve, NETWORK_TIMEOUT_MS, 'timeout'),
+            ),
+        ]);
 
         return first === 'timeout' ? kept : first;
     } catch {
@@ -214,7 +275,10 @@ function forgetIfSignedOut(response) {
  * or c'est la page complète qu'il faut pour rouvrir l'application sans réseau.
  */
 async function cachePage(path) {
-    const response = await fetch(path, { credentials: 'same-origin', headers: { Accept: 'text/html' } });
+    const response = await fetch(path, {
+        credentials: 'same-origin',
+        headers: { Accept: 'text/html' },
+    });
 
     if (response.ok && !response.redirected) {
         const cache = await caches.open(PAGES);
@@ -242,19 +306,35 @@ async function cacheFirst(request) {
 async function networkFirst(request, url, isInertia) {
     const cache = await caches.open(PAGES);
     // Une même adresse existe en page complète et en réponse Inertia : deux entrées distinctes
-    const key = isInertia ? `${url.pathname}${url.search}#inertia`.replace('#', url.search ? '&_i=' : '?_i=') : `${url.pathname}${url.search}`;
+    const key = isInertia
+        ? `${url.pathname}${url.search}#inertia`.replace(
+              '#',
+              url.search ? '&_i=' : '?_i=',
+          )
+        : `${url.pathname}${url.search}`;
 
-    const network = fetch(request).then(forgetIfSignedOut).then((response) => {
-        // Une redirection (session expirée vers la connexion) n'est pas la page demandée
-        if (response.ok && !response.redirected && response.type === 'basic') {
-            cache.put(key, response.clone());
-        }
+    const network = fetch(request)
+        .then(forgetIfSignedOut)
+        .then((response) => {
+            // Une redirection (session expirée vers la connexion) n'est pas la page demandée
+            if (
+                response.ok &&
+                !response.redirected &&
+                response.type === 'basic'
+            ) {
+                cache.put(key, response.clone());
+            }
 
-        return response;
-    });
+            return response;
+        });
 
     try {
-        const first = await Promise.race([network, new Promise((resolve) => setTimeout(resolve, NETWORK_TIMEOUT_MS, 'timeout'))]);
+        const first = await Promise.race([
+            network,
+            new Promise((resolve) =>
+                setTimeout(resolve, NETWORK_TIMEOUT_MS, 'timeout'),
+            ),
+        ]);
 
         if (first !== 'timeout') {
             return first;
@@ -273,7 +353,9 @@ async function networkFirst(request, url, isInertia) {
         if (request.mode === 'navigate') {
             // Page jamais ouverte avec du réseau (ex. rapport d'une prise de service faite hors ligne) :
             // l'accueil de l'hôtesse, qui reprend la journée gardée sur le téléphone
-            return (await cache.match('/terrain')) ?? caches.match(OFFLINE_PAGE);
+            return (
+                (await cache.match('/terrain')) ?? caches.match(OFFLINE_PAGE)
+            );
         }
 
         throw error;
@@ -307,17 +389,25 @@ async function syncAssets() {
     };
 
     Object.keys(manifest)
-        .filter((key) => manifest[key].isEntry || key.includes('/pages/terrain/'))
+        .filter(
+            (key) => manifest[key].isEntry || key.includes('/pages/terrain/'),
+        )
         .forEach(collect);
 
     const cache = await caches.open(ASSETS);
-    await Promise.allSettled([...wanted].map(async (path) => {
-        if (!(await cache.match(path))) {
-            await cache.add(path);
-        }
-    }));
+    await Promise.allSettled(
+        [...wanted].map(async (path) => {
+            if (!(await cache.match(path))) {
+                await cache.add(path);
+            }
+        }),
+    );
 
-    const current = new Set(Object.values(manifest).flatMap((e) => [e.file, ...(e.css ?? []), ...(e.assets ?? [])]).map((file) => `/build/${file}`));
+    const current = new Set(
+        Object.values(manifest)
+            .flatMap((e) => [e.file, ...(e.css ?? []), ...(e.assets ?? [])])
+            .map((file) => `/build/${file}`),
+    );
 
     for (const request of await cache.keys()) {
         const path = new URL(request.url).pathname;

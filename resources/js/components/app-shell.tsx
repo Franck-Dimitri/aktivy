@@ -19,7 +19,10 @@ export function AppShell({ children, variant = 'sidebar' }: Props) {
 
     // Ordinateur : la page fait la hauteur de l’écran, sans défilement global (seul le panneau défile)
     return (
-        <SidebarProvider defaultOpen={isOpen} className="md:h-svh md:overflow-hidden">
+        <SidebarProvider
+            defaultOpen={isOpen}
+            className="md:h-svh md:overflow-hidden"
+        >
             {children}
         </SidebarProvider>
     );

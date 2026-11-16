@@ -12,20 +12,20 @@ enum EventStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft     => 'Brouillon',
-            self::Active    => 'En cours',
+            self::Draft => 'Brouillon',
+            self::Active => 'En cours',
             self::Completed => 'Terminé',
-            self::Archived  => 'Archivé',
+            self::Archived => 'Archivé',
         };
     }
 
     public function color(): string
     {
         return match ($this) {
-            self::Draft     => 'warning',
-            self::Active    => 'success',
+            self::Draft => 'warning',
+            self::Active => 'success',
             self::Completed => 'info',
-            self::Archived  => 'neutral',
+            self::Archived => 'neutral',
         };
     }
 }

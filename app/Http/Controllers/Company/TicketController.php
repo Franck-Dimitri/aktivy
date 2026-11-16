@@ -31,19 +31,19 @@ class TicketController extends Controller
             ->latest()
             ->get()
             ->map(fn (Ticket $t) => [
-                'id'           => $t->id,
-                'uuid'         => $t->uuid,
-                'subject'      => $t->subject,
-                'body'         => $t->body,
-                'priority'     => $t->priority,
-                'status'       => $t->status,
-                'response'     => $t->response,
-                'responder'    => $t->responder?->name,
+                'id' => $t->id,
+                'uuid' => $t->uuid,
+                'subject' => $t->subject,
+                'body' => $t->body,
+                'priority' => $t->priority,
+                'status' => $t->status,
+                'response' => $t->response,
+                'responder' => $t->responder?->name,
                 'responded_at' => $t->responded_at?->diffForHumans(),
-                'created_at'   => $t->created_at->diffForHumans(),
+                'created_at' => $t->created_at->diffForHumans(),
                 'created_date' => $t->created_at->format('d/m/Y H:i'),
-                'agent_name'   => $t->agent?->name,
-                'agent_phone'  => $t->agent?->phone,
+                'agent_name' => $t->agent?->name,
+                'agent_phone' => $t->agent?->phone,
             ]);
 
         return Inertia::render('tickets/index', [
@@ -56,7 +56,7 @@ class TicketController extends Controller
         abort_unless($this->visibleTickets($request)->whereKey($ticket->id)->exists(), 403);
 
         $validated = $request->validate([
-            'status'   => ['required', 'string', 'in:'.implode(',', self::STATUSES)],
+            'status' => ['required', 'string', 'in:'.implode(',', self::STATUSES)],
             'response' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -68,7 +68,7 @@ class TicketController extends Controller
         $newResponse = $response !== null && $response !== $ticket->response;
         if ($response !== $ticket->response) {
             $ticket->fill([
-                'response'     => $response,
+                'response' => $response,
                 'responded_by' => $response ? $request->user()->id : null,
                 'responded_at' => $response ? now() : null,
             ]);

@@ -118,7 +118,8 @@ class AdminOperationsTest extends TestCase
     public function test_the_invoices_page_lists_every_invoice_and_the_subscription_page_only_the_last()
     {
         $this->pay();
-        $this->pay(['paid_at' => today()->toDateString()]);
+        // Second vrai paiement : sa propre référence de transaction
+        $this->pay(['paid_at' => today()->toDateString(), 'reference' => 'OM-654321']);
         $last = SubscriptionPayment::latest('paid_at')->latest('id')->firstOrFail();
 
         $this->actingAs($this->manager)->get(route('company.invoices.index'))
@@ -129,6 +130,14 @@ class AdminOperationsTest extends TestCase
 
         $this->actingAs($this->manager)->get(route('company.subscription'))
             ->assertInertia(fn ($page) => $page->has('payments', 1)->where('paymentsCount', 2));
+    }
+
+    public function test_a_form_sent_twice_does_not_create_a_second_invoice()
+    {
+        $this->pay()->assertSessionHas('success');
+        $this->pay()->assertSessionHas('error');
+
+        $this->assertSame(1, SubscriptionPayment::count());
     }
 
     public function test_a_payment_needs_a_paid_plan_and_an_end_date()

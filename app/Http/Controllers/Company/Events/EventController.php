@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Company\Events;
 
-use App\Support\Plans\PlanUsage;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Presenters\EventPresenter;
+use App\Support\Plans\PlanUsage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,12 +36,12 @@ class EventController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'location'    => 'nullable|string|max:255',
-            'city'        => 'nullable|string|max:100',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'location' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
         ]);
 
         if ($message = PlanUsage::exceeded($request->user()->company, 'events_per_month')) {
@@ -100,12 +100,12 @@ class EventController extends Controller
             ->get();
 
         return Inertia::render('events/show', [
-            'event'              => EventPresenter::detail($event),
-            'companySites'       => $request->user()->company->sites()
+            'event' => EventPresenter::detail($event),
+            'companySites' => $request->user()->company->sites()
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(['id', 'name', 'city', 'address']),
-            'companyProducts'    => $request->user()->company->products()
+            'companyProducts' => $request->user()->company->products()
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'image']),
@@ -115,21 +115,21 @@ class EventController extends Controller
                 ->whereNotIn('id', $existingHostessIds)
                 ->orderBy('name')
                 ->get(['id', 'name', 'phone']),
-            'eventSales'         => [
-                'revenue'        => (float) $salesGlobal->revenue,
-                'units_sold'     => (int)   $salesGlobal->units_sold,
-                'reports_count'  => (int)   $salesGlobal->reports_count,
-                'by_pdv'         => $salesByPdv->map(fn ($r) => [
-                    'id'            => $r->id,
-                    'name'          => $r->name,
-                    'revenue'       => (float) $r->revenue,
-                    'units_sold'    => (int)   $r->units_sold,
-                    'reports_count' => (int)   $r->reports_count,
+            'eventSales' => [
+                'revenue' => (float) $salesGlobal->revenue,
+                'units_sold' => (int) $salesGlobal->units_sold,
+                'reports_count' => (int) $salesGlobal->reports_count,
+                'by_pdv' => $salesByPdv->map(fn ($r) => [
+                    'id' => $r->id,
+                    'name' => $r->name,
+                    'revenue' => (float) $r->revenue,
+                    'units_sold' => (int) $r->units_sold,
+                    'reports_count' => (int) $r->reports_count,
                 ])->all(),
-                'by_product'     => $salesByProduct->map(fn ($r) => [
-                    'name'       => $r->product_name,
-                    'revenue'    => (float) $r->revenue,
-                    'units_sold' => (int)   $r->units_sold,
+                'by_product' => $salesByProduct->map(fn ($r) => [
+                    'name' => $r->product_name,
+                    'revenue' => (float) $r->revenue,
+                    'units_sold' => (int) $r->units_sold,
                 ])->all(),
             ],
         ]);
@@ -141,12 +141,12 @@ class EventController extends Controller
         abort_if($event->isFinished(), 403, 'Événement terminé.');
 
         $data = $request->validate([
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'location'    => 'nullable|string|max:255',
-            'city'        => 'nullable|string|max:100',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'location' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
         ]);
 
         $event->update($data);

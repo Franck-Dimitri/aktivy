@@ -39,7 +39,7 @@ class HomeController extends Controller
             ->with('dailyReport.lines')
             ->where(function ($q) use ($today) {
                 $q->where('status', 'in_progress')
-                  ->orWhereDate('checked_in_at', $today);
+                    ->orWhereDate('checked_in_at', $today);
             })
             ->latest('checked_in_at')
             ->first();
@@ -50,22 +50,22 @@ class HomeController extends Controller
             ->where('daily_reports.user_id', $user->id)
             ->where('daily_reports.status', 'submitted');
 
-        $thisMonthStart  = now()->startOfMonth()->toDateString();
-        $lastMonthStart  = now()->subMonth()->startOfMonth();
-        $lastMonthEnd    = now()->subMonth()->endOfMonth();
+        $thisMonthStart = now()->startOfMonth()->toDateString();
+        $lastMonthStart = now()->subMonth()->startOfMonth();
+        $lastMonthEnd = now()->subMonth()->endOfMonth();
         $lastMonthStartS = $lastMonthStart->toDateString();
-        $lastMonthEndS   = $lastMonthEnd->toDateString();
+        $lastMonthEndS = $lastMonthEnd->toDateString();
 
         $myStats = [
-            'total_visits'          => $user->visits()->count(),
-            'visits_this_month'     => $user->visits()->where('checked_in_at', '>=', now()->startOfMonth())->count(),
-            'visits_last_month'     => $user->visits()->whereBetween('checked_in_at', [$lastMonthStart, $lastMonthEnd])->count(),
-            'revenue_this_month'    => (float) $statsBase()->where('daily_reports.report_date', '>=', $thisMonthStart)->sum('daily_report_lines.revenue'),
-            'revenue_last_month'    => (float) $statsBase()->whereBetween('daily_reports.report_date', [$lastMonthStartS, $lastMonthEndS])->sum('daily_report_lines.revenue'),
-            'units_sold_this_month' => (int)   $statsBase()->where('daily_reports.report_date', '>=', $thisMonthStart)->sum('daily_report_lines.units_sold'),
-            'units_last_month'      => (int)   $statsBase()->whereBetween('daily_reports.report_date', [$lastMonthStartS, $lastMonthEndS])->sum('daily_report_lines.units_sold'),
-            'reports_submitted'     => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->count(),
-            'reports_this_month'    => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->where('report_date', '>=', $thisMonthStart)->count(),
+            'total_visits' => $user->visits()->count(),
+            'visits_this_month' => $user->visits()->where('checked_in_at', '>=', now()->startOfMonth())->count(),
+            'visits_last_month' => $user->visits()->whereBetween('checked_in_at', [$lastMonthStart, $lastMonthEnd])->count(),
+            'revenue_this_month' => (float) $statsBase()->where('daily_reports.report_date', '>=', $thisMonthStart)->sum('daily_report_lines.revenue'),
+            'revenue_last_month' => (float) $statsBase()->whereBetween('daily_reports.report_date', [$lastMonthStartS, $lastMonthEndS])->sum('daily_report_lines.revenue'),
+            'units_sold_this_month' => (int) $statsBase()->where('daily_reports.report_date', '>=', $thisMonthStart)->sum('daily_report_lines.units_sold'),
+            'units_last_month' => (int) $statsBase()->whereBetween('daily_reports.report_date', [$lastMonthStartS, $lastMonthEndS])->sum('daily_report_lines.units_sold'),
+            'reports_submitted' => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->count(),
+            'reports_this_month' => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->where('report_date', '>=', $thisMonthStart)->count(),
         ];
 
         // Objectif de CA du mois fixé par le responsable (reconduit d'un mois sur l'autre), s'il y en a un
@@ -78,11 +78,11 @@ class HomeController extends Controller
         $weekStart = WeeklyTarget::weekOf(now());
         $weekAmount = WeeklyTarget::effective([$user->id], $weekStart)->get($user->id)?->amount;
         $myWeekTarget = $weekAmount === null ? null : [
-            'target'      => (int) $weekAmount,
-            'actual'      => (float) $statsBase()->whereBetween('daily_reports.report_date', [$weekStart->toDateString(), $weekStart->addDays(6)->toDateString()])->sum('daily_report_lines.revenue'),
-            'day'         => now()->dayOfWeekIso,
-            'days_left'   => 7 - now()->dayOfWeekIso,
-            'week_end'    => $weekStart->addDays(6)->toDateString(),
+            'target' => (int) $weekAmount,
+            'actual' => (float) $statsBase()->whereBetween('daily_reports.report_date', [$weekStart->toDateString(), $weekStart->addDays(6)->toDateString()])->sum('daily_report_lines.revenue'),
+            'day' => now()->dayOfWeekIso,
+            'days_left' => 7 - now()->dayOfWeekIso,
+            'week_end' => $weekStart->addDays(6)->toDateString(),
         ];
 
         // Tendance 7 derniers jours (2 requêtes)
@@ -102,11 +102,12 @@ class HomeController extends Controller
             ->pluck('revenue', 'date');
 
         $weeklyTrend = collect(range(6, 0))->map(function ($daysAgo) use ($visitsByDate, $revenueByDate) {
-            $date    = now()->subDays($daysAgo);
+            $date = now()->subDays($daysAgo);
             $dateStr = $date->toDateString();
+
             return [
-                'label'   => $date->format('d/m'),
-                'visits'  => (int)   ($visitsByDate[$dateStr]  ?? 0),
+                'label' => $date->format('d/m'),
+                'visits' => (int) ($visitsByDate[$dateStr] ?? 0),
                 'revenue' => (float) ($revenueByDate[$dateStr] ?? 0),
             ];
         })->values()->toArray();
@@ -120,50 +121,50 @@ class HomeController extends Controller
             ->limit(5)
             ->get()
             ->map(fn ($r) => [
-                'id'           => $r->id,
-                'uuid'         => $r->uuid,
-                'visit_id'     => $r->visit_id,
-                'visit_uuid'   => $r->visit->uuid,
-                'site_name'    => $r->site->name,
-                'report_date'  => $r->report_date->translatedFormat('d MMM Y'),
+                'id' => $r->id,
+                'uuid' => $r->uuid,
+                'visit_id' => $r->visit_id,
+                'visit_uuid' => $r->visit->uuid,
+                'site_name' => $r->site->name,
+                'report_date' => $r->report_date->translatedFormat('d MMM Y'),
                 'report_date_iso' => $r->report_date->toDateString(),
                 'submitted_at' => $r->submitted_at?->format('H:i'),
             ]);
 
         return Inertia::render('terrain/home', [
-            'weekly_trend'   => $weeklyTrend,
+            'weekly_trend' => $weeklyTrend,
             'affectation' => $affectation ? [
-                'id'           => $affectation->id,
-                'site_id'      => $affectation->site_id,
-                'site_name'    => $affectation->site->name,
-                'site_city'    => $affectation->site->city,
-                'site_type'    => $affectation->site->type->label(),
+                'id' => $affectation->id,
+                'site_id' => $affectation->site_id,
+                'site_name' => $affectation->site->name,
+                'site_city' => $affectation->site->city,
+                'site_type' => $affectation->site->type->label(),
                 'site_address' => $affectation->site->address,
-                'slot_start'   => $affectation->slot_start,
-                'slot_end'     => $affectation->slot_end,
+                'slot_start' => $affectation->slot_start,
+                'slot_end' => $affectation->slot_end,
             ] : null,
             'next_affectation' => $nextAffectation ? [
                 'site_name' => $nextAffectation->site?->name,
                 'starts_on' => $nextAffectation->starts_on->translatedFormat('l j F'),
             ] : null,
             'visit' => $visit ? [
-                'id'               => $visit->id,
-                'uuid'             => $visit->uuid,
-                'status'           => $visit->status->value,
-                'checked_in_at'    => $visit->checked_in_at->format('H:i'),
+                'id' => $visit->id,
+                'uuid' => $visit->uuid,
+                'status' => $visit->status->value,
+                'checked_in_at' => $visit->checked_in_at->format('H:i'),
                 // Jour du pointage : hors ligne, l'accueil gardé de la veille ne doit pas bloquer celui du jour
-                'date'             => $visit->checked_in_at->toDateString(),
-                'checked_out_at'   => $visit->checked_out_at?->format('H:i'),
+                'date' => $visit->checked_in_at->toDateString(),
+                'checked_out_at' => $visit->checked_out_at?->format('H:i'),
                 'duration_minutes' => $visit->duration_minutes,
-                'has_report'       => $visit->dailyReport !== null,
-                'report_status'    => $visit->dailyReport?->status,
+                'has_report' => $visit->dailyReport !== null,
+                'report_status' => $visit->dailyReport?->status,
             ] : null,
-            'my_stats'       => $myStats,
-            'my_target'      => $myTarget,
+            'my_stats' => $myStats,
+            'my_target' => $myTarget,
             'my_week_target' => $myWeekTarget,
             'recent_reports' => $recentReports,
             // Pour prendre son service et remplir son rapport sans réseau (cf. OfflineKit)
-            'offline_kit'    => $affectation ? OfflineKit::for($affectation, $user) : null,
+            'offline_kit' => $affectation ? OfflineKit::for($affectation, $user) : null,
         ]);
     }
 }

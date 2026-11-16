@@ -82,7 +82,7 @@ class PdfDocument
      */
     /**
      * @param  array{font?: string, margin?: float, bottom?: float, size?: float, color?: array<int, float>, format?: string}  $style
-     *                                                                                                                             réglages d'un gabarit autre que pdf/layout (ex. la facture)
+     *                                                                                                                                 réglages d'un gabarit autre que pdf/layout (ex. la facture)
      */
     private static function numberPages(Dompdf $dompdf, array $style = []): void
     {

@@ -64,7 +64,12 @@ export default function PasskeyVerify({
                         : (label ?? 'Se connecter avec une clé d’accès')}
                 </AuthSecondaryButton>
                 {error && (
-                    <p role="alert" className="text-center text-[13px] leading-snug text-red-600">{passkeyErrorMessage(error)}</p>
+                    <p
+                        role="alert"
+                        className="text-center text-[13px] leading-snug text-red-600"
+                    >
+                        {passkeyErrorMessage(error)}
+                    </p>
                 )}
             </div>
 

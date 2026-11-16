@@ -6,7 +6,6 @@ use App\Enums\AffectationStatus;
 use App\Enums\Plan;
 use App\Models\Affectation;
 use App\Models\DailyReport;
-use App\Models\Product;
 use App\Models\Site;
 use App\Models\SiteProduct;
 use App\Models\User;

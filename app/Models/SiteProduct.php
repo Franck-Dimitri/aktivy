@@ -3,19 +3,18 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPublicUuid;
-
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int      $id
- * @property int      $company_id
- * @property int      $site_id
- * @property int      $product_id
- * @property int      $current_stock
- * @property int      $alert_threshold
- * @property int      $critical_threshold
+ * @property int $id
+ * @property int $company_id
+ * @property int $site_id
+ * @property int $product_id
+ * @property int $current_stock
+ * @property int $alert_threshold
+ * @property int $critical_threshold
  * @property int|null $updated_by
  * @property-read Site    $site
  * @property-read Product $product

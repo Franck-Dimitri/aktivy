@@ -8,16 +8,16 @@ use App\Models\DailyReport;
 use App\Models\DailyReportLine;
 use App\Models\DailyReportPhoto;
 use App\Models\StockMovement;
+use App\Models\Visit;
 use App\Notifications\IncidentReported;
 use App\Notifications\LiveNotification;
 use App\Support\Incident;
-use App\Support\Targets\TargetReachedCheck;
 use App\Support\Notifications\Notify;
 use App\Support\Reports\ExternalSales;
 use App\Support\Reports\ReportSales;
 use App\Support\Stock\StockLedger;
+use App\Support\Targets\TargetReachedCheck;
 use App\Support\Terrain\OfflineTime;
-use App\Models\Visit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,13 +45,13 @@ class DailyReportController extends Controller
                 DailyReportLine::create([
                     'daily_report_id' => $report->id,
                     'site_product_id' => $sp->id,
-                    'product_name'    => $sp->product->name,
-                    'unit'            => $sp->product->unit,
-                    'unit_price'      => $sp->product->price ?? 0,
-                    'opening_stock'   => $sp->current_stock,
-                    'units_sold'      => 0,
-                    'closing_stock'   => $sp->current_stock,
-                    'revenue'         => 0,
+                    'product_name' => $sp->product->name,
+                    'unit' => $sp->product->unit,
+                    'unit_price' => $sp->product->price ?? 0,
+                    'opening_stock' => $sp->current_stock,
+                    'units_sold' => 0,
+                    'closing_stock' => $sp->current_stock,
+                    'revenue' => 0,
                 ]);
             }
 
@@ -63,51 +63,51 @@ class DailyReportController extends Controller
 
         return Inertia::render('terrain/report', [
             'visit' => [
-                'id'             => $visit->id,
-                'uuid'           => $visit->uuid,
-                'checked_in_at'  => $visit->checked_in_at->format('H:i'),
+                'id' => $visit->id,
+                'uuid' => $visit->uuid,
+                'checked_in_at' => $visit->checked_in_at->format('H:i'),
                 'checked_out_at' => $visit->checked_out_at?->format('H:i'),
-                'status'         => $visit->status->value,
+                'status' => $visit->status->value,
             ],
             'report' => [
-                'id'               => $report->id,
-                'status'           => $report->status,
-                'report_date'      => $report->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
-                'site_name'        => $visit->site->name,
-                'notes'            => $report->notes,
-                'incident_notes'   => $report->incident_notes,
-                'submitted_at'     => $report->submitted_at?->format('H:i'),
-                'total_revenue'    => $report->totalRevenue(),
+                'id' => $report->id,
+                'status' => $report->status,
+                'report_date' => $report->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
+                'site_name' => $visit->site->name,
+                'notes' => $report->notes,
+                'incident_notes' => $report->incident_notes,
+                'submitted_at' => $report->submitted_at?->format('H:i'),
+                'total_revenue' => $report->totalRevenue(),
                 'total_units_sold' => $report->totalUnitsSold(),
-                'validated'        => $report->isValidated(),
-                'corrected'        => $report->corrected_at !== null,
-                'packs'            => $this->packs($report),
+                'validated' => $report->isValidated(),
+                'corrected' => $report->corrected_at !== null,
+                'packs' => $this->packs($report),
                 // Ventes en boutique extérieure : produits du point de vente, sans effet sur son stock
-                'external_sales'    => ExternalSales::present($report),
+                'external_sales' => ExternalSales::present($report),
                 'external_products' => ExternalSales::products($report),
-                'external_shops'    => ExternalSales::shopsUsedBy($request->user()),
+                'external_shops' => ExternalSales::shopsUsedBy($request->user()),
                 // Identifiant public de la photo : adresse de retrait
-                'photos'           => $report->photos()->oldest()->get()->map(fn ($p) => $p->toView() + ['uuid' => $p->uuid]),
-                'max_photos'       => DailyReportPhoto::maxFor($report->company),
+                'photos' => $report->photos()->oldest()->get()->map(fn ($p) => $p->toView() + ['uuid' => $p->uuid]),
+                'max_photos' => DailyReportPhoto::maxFor($report->company),
                 'lines' => $report->lines->map(fn ($l) => [
-                    'restocked'     => $restocked[$l->id] ?? 0,
-                    'stock_gap'     => $l->stock_gap,
-                    'gap_reason'    => $l->gap_reason,
-                    'id'            => $l->id,
+                    'restocked' => $restocked[$l->id] ?? 0,
+                    'stock_gap' => $l->stock_gap,
+                    'gap_reason' => $l->gap_reason,
+                    'id' => $l->id,
                     // Repère stable de la ligne : la saisie faite hors ligne la retrouve par lui
                     'site_product_id' => $l->site_product_id,
-                    'product_name'  => $l->product_name,
-                    'unit'          => $l->unit,
-                    'unit_price'    => $l->unit_price,
+                    'product_name' => $l->product_name,
+                    'unit' => $l->unit,
+                    'unit_price' => $l->unit_price,
                     'opening_stock' => $l->opening_stock,
                     // Saisie de l'hôtesse : la part vendue à l'unité ; les packs s'y ajoutent
-                    'units_sold'    => $l->single_units,
-                    'pack_units'    => $l->units_sold - $l->single_units,
+                    'units_sold' => $l->single_units,
+                    'pack_units' => $l->units_sold - $l->single_units,
                     'closing_stock' => $l->closing_stock,
-                    'revenue'       => $l->revenue,
-                    'notes'         => $l->notes,
-                    'image_url'     => $l->siteProduct?->product?->image
-                        ? asset('storage/' . $l->siteProduct->product->image)
+                    'revenue' => $l->revenue,
+                    'notes' => $l->notes,
+                    'image_url' => $l->siteProduct?->product?->image
+                        ? asset('storage/'.$l->siteProduct->product->image)
                         : null,
                 ]),
             ],
@@ -126,16 +126,16 @@ class DailyReportController extends Controller
         $prices = $report->lines->mapWithKeys(fn ($l) => [$l->siteProduct?->product_id => $l]);
 
         return ReportSales::availablePacks($report)->map(fn ($pack) => [
-            'id'       => $pack->id,
-            'name'     => $pack->name,
-            'value'    => ReportSales::packValue($pack, $prices),
+            'id' => $pack->id,
+            'name' => $pack->name,
+            'value' => ReportSales::packValue($pack, $prices),
             'quantity' => (int) ($sold[$pack->id] ?? 0),
             // Lignes du rapport consommées par un pack : pour plafonner la saisie au stock
-            'items'    => $pack->lines->map(fn ($l) => [
-                'line_id'  => $prices[$l->product_id]?->id,
-                'name'     => $names[$l->product_id] ?? '',
+            'items' => $pack->lines->map(fn ($l) => [
+                'line_id' => $prices[$l->product_id]?->id,
+                'name' => $names[$l->product_id] ?? '',
                 'quantity' => $l->quantity,
-                'free'     => $l->role === 'free',
+                'free' => $l->role === 'free',
             ])->values(),
         ])->values()->all();
     }
@@ -187,7 +187,7 @@ class DailyReportController extends Controller
         $validated = $this->validateSales($request, [
             'incident_notes' => ['nullable', 'string', 'max:2000'],
             // Rapport soumis hors ligne : heure du téléphone
-            'submitted_at'   => ['nullable', 'date'],
+            'submitted_at' => ['nullable', 'date'],
         ], $report);
 
         [$submittedAt, $offline] = OfflineTime::resolve($validated['submitted_at'] ?? null, 'submitted_at', $visit->checked_in_at);
@@ -200,7 +200,7 @@ class DailyReportController extends Controller
             }
 
             $report->update([
-                'notes'          => $validated['notes'] ?? null,
+                'notes' => $validated['notes'] ?? null,
                 'incident_notes' => $validated['incident_notes'] ?? null,
             ]);
 
@@ -215,8 +215,8 @@ class DailyReportController extends Controller
             }
 
             $report->update([
-                'status'           => 'submitted',
-                'submitted_at'     => $submittedAt,
+                'status' => 'submitted',
+                'submitted_at' => $submittedAt,
                 'submit_synced_at' => $offline ? now() : null,
             ]);
 
@@ -297,18 +297,18 @@ class DailyReportController extends Controller
     private function validateSales(Request $request, array $extraRules = [], ?DailyReport $report = null): array
     {
         $validated = $request->validate([
-            'notes'               => ['nullable', 'string', 'max:2000'],
-            'lines'               => ['required', 'array'],
-            'lines.*.id'          => ['required', 'integer'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+            'lines' => ['required', 'array'],
+            'lines.*.id' => ['required', 'integer'],
             // Saisie faite hors ligne : la ligne n'avait pas encore de numéro, on la retrouve par son produit
             'lines.*.site_product_id' => ['nullable', 'integer'],
-            'lines.*.units_sold'  => ['required', 'integer', 'min:0'],
-            'lines.*.notes'       => ['nullable', 'string', 'max:500'],
+            'lines.*.units_sold' => ['required', 'integer', 'min:0'],
+            'lines.*.notes' => ['nullable', 'string', 'max:500'],
             'lines.*.counted_stock' => ['nullable', 'integer', 'min:0', 'max:1000000'],
-            'lines.*.gap_reason'  => ['nullable', 'string', 'max:300'],
-            'packs'               => ['nullable', 'array'],
-            'packs.*.id'          => ['required', 'integer'],
-            'packs.*.quantity'    => ['required', 'integer', 'min:0'],
+            'lines.*.gap_reason' => ['nullable', 'string', 'max:300'],
+            'packs' => ['nullable', 'array'],
+            'packs.*.id' => ['required', 'integer'],
+            'packs.*.quantity' => ['required', 'integer', 'min:0'],
             ...ExternalSales::RULES,
             ...$extraRules,
         ]);

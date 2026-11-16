@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\EventStatus;
+use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,15 +42,15 @@ class Event extends Model
 
     protected $attributes = [
         'status' => 'draft',
-        'city'   => 'Yaoundé',
+        'city' => 'Yaoundé',
     ];
 
     protected function casts(): array
     {
         return [
-            'status'       => EventStatus::class,
-            'start_date'   => 'date',
-            'end_date'     => 'date',
+            'status' => EventStatus::class,
+            'start_date' => 'date',
+            'end_date' => 'date',
             'activated_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
@@ -92,7 +91,18 @@ class Event extends Model
         return $this->hasMany(DailyReport::class);
     }
 
-    public function isDraft(): bool    { return $this->status === EventStatus::Draft; }
-    public function isActive(): bool   { return $this->status === EventStatus::Active; }
-    public function isFinished(): bool { return in_array($this->status, [EventStatus::Completed, EventStatus::Archived]); }
+    public function isDraft(): bool
+    {
+        return $this->status === EventStatus::Draft;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === EventStatus::Active;
+    }
+
+    public function isFinished(): bool
+    {
+        return in_array($this->status, [EventStatus::Completed, EventStatus::Archived]);
+    }
 }

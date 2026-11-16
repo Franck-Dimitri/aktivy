@@ -14,7 +14,13 @@ import {
     Navigation,
     TriangleAlert,
 } from 'lucide-react';
-import { useCallback, useEffect, useId, useState, type MouseEvent } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useId,
+    useState,
+    type MouseEvent,
+} from 'react';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { EmptyState } from '@/components/page/empty-state';
@@ -22,15 +28,32 @@ import { Page } from '@/components/page/page';
 import { SurfaceCard, MetricStrip } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
 import { haptic } from '@/lib/haptics';
-import { localDay, localVisits, outboxAvailable, type LocalVisit } from '@/lib/outbox';
+import {
+    localDay,
+    localVisits,
+    outboxAvailable,
+    type LocalVisit,
+} from '@/lib/outbox';
 import { pruneLocalVisits, useSyncState } from '@/lib/sync';
-import { checkinOffline, checkoutOffline, kitUsableToday, openLocalReport, type Coords, type OfflineKit } from '@/lib/terrain-offline';
+import {
+    checkinOffline,
+    checkoutOffline,
+    kitUsableToday,
+    offlineSaveFailed,
+    openLocalReport,
+    type Coords,
+    type OfflineKit,
+} from '@/lib/terrain-offline';
 import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
 import { index as terrainReports } from '@/routes/terrain/reports';
 import { show as reportShow } from '@/routes/terrain/report';
-import { store as visitStore, checkout as visitCheckout } from '@/routes/terrain/visit';
+import {
+    store as visitStore,
+    checkout as visitCheckout,
+} from '@/routes/terrain/visit';
 import { WeekTargetCard, type WeekTarget } from './week-target-card';
+import { formatAmount, formatDuration } from '@/lib/format';
 
 /* ─────────────────────── Types ─────────────────────── */
 
@@ -100,18 +123,6 @@ type Props = {
     offline_kit: OfflineKit | null;
 };
 
-/* ─────────────────────── Helpers ─────────────────────── */
-
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-}
-
-function formatDuration(minutes: number): string {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return h > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${m} min`;
-}
-
 /* ─────────────────────── LiveDot ─────────────────────── */
 
 function LiveDot({ className }: { className?: string }) {
@@ -141,8 +152,19 @@ function RingGauge({
     return (
         <div className="flex flex-col items-center text-center">
             <div className="relative size-24">
-                <svg viewBox="0 0 100 100" className="size-full -rotate-90" aria-hidden="true">
-                    <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="9" className="stroke-slate-100" />
+                <svg
+                    viewBox="0 0 100 100"
+                    className="size-full -rotate-90"
+                    aria-hidden="true"
+                >
+                    <circle
+                        cx="50"
+                        cy="50"
+                        r={radius}
+                        fill="none"
+                        strokeWidth="9"
+                        className="stroke-slate-100"
+                    />
                     <circle
                         cx="50"
                         cy="50"
@@ -181,7 +203,10 @@ function Compare({
     unit?: string;
 }) {
     const max = Math.max(current, previous, 1);
-    const delta = previous > 0 ? Math.round(((current - previous) / previous) * 100) : null;
+    const delta =
+        previous > 0
+            ? Math.round(((current - previous) / previous) * 100)
+            : null;
 
     return (
         <div className="rounded-2xl bg-slate-50/70 p-4 ring-1 ring-slate-100">
@@ -191,7 +216,9 @@ function Compare({
                     <span
                         className={cn(
                             'rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
-                            delta >= 0 ? 'bg-green-100 text-motriks-deep' : 'bg-red-100 text-red-700',
+                            delta >= 0
+                                ? 'bg-green-100 text-motriks-deep'
+                                : 'bg-red-100 text-red-700',
                         )}
                     >
                         {delta > 0 ? '+' : ''}
@@ -201,7 +228,11 @@ function Compare({
             </div>
             <p className="mt-2 text-2xl font-semibold tracking-tight text-ink tabular-nums">
                 {format(current)}
-                {unit && <span className="ml-1 text-sm font-medium text-slate-400">{unit}</span>}
+                {unit && (
+                    <span className="ml-1 text-sm font-medium text-slate-500">
+                        {unit}
+                    </span>
+                )}
             </p>
             <div
                 className="relative mt-4 h-1.5 rounded-full bg-slate-200/70"
@@ -219,7 +250,7 @@ function Compare({
             </div>
             <p className="mt-2 text-xs text-slate-500">
                 Mois dernier{' '}
-                <span className="font-medium tabular-nums text-slate-700">
+                <span className="font-medium text-slate-700 tabular-nums">
                     {format(previous)}
                     {unit ? ` ${unit}` : ''}
                 </span>
@@ -236,7 +267,9 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
     const [metric, setMetric] = useState<'visits' | 'revenue'>('visits');
     const [active, setActive] = useState<number | null>(null);
 
-    const values = data.map((d) => (metric === 'revenue' ? d.revenue : d.visits));
+    const values = data.map((d) =>
+        metric === 'revenue' ? d.revenue : d.visits,
+    );
     const max = Math.max(...values, 1);
 
     const safeLen = Math.max(data.length - 1, 1);
@@ -256,12 +289,19 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
     const area = `${line} L 100 90 L 0 90 Z`;
 
     const fmt = (v: number) =>
-        metric === 'revenue' ? `${formatCurrency(v)} FCFA` : `${v} visite${v > 1 ? 's' : ''}`;
+        metric === 'revenue'
+            ? `${formatAmount(v)} FCFA`
+            : `${v} visite${v > 1 ? 's' : ''}`;
 
     const onMove = (e: MouseEvent<HTMLDivElement>) => {
         const r = e.currentTarget.getBoundingClientRect();
         const ratio = (e.clientX - r.left) / r.width;
-        setActive(Math.min(data.length - 1, Math.max(0, Math.round(ratio * (data.length - 1)))));
+        setActive(
+            Math.min(
+                data.length - 1,
+                Math.max(0, Math.round(ratio * (data.length - 1))),
+            ),
+        );
     };
 
     const activePoint = active !== null ? points[active] : null;
@@ -270,7 +310,11 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
         <div>
             {hasRevenue && (
                 <div className="mb-3 flex justify-end">
-                    <div role="group" aria-label="Indicateur" className="inline-flex rounded-xl bg-slate-100 p-1">
+                    <div
+                        role="group"
+                        aria-label="Indicateur"
+                        className="inline-flex rounded-xl bg-slate-100 p-1"
+                    >
                         {(['visits', 'revenue'] as const).map((m) => (
                             <button
                                 key={m}
@@ -279,17 +323,25 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                                 aria-pressed={metric === m}
                                 className={cn(
                                     'h-7 rounded-lg px-3 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none',
-                                    metric === m ? 'bg-white text-ink shadow-sm' : 'text-slate-500 hover:text-slate-800',
+                                    metric === m
+                                        ? 'bg-white text-ink shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-800',
                                 )}
                             >
-                                {m === 'visits' ? 'Visites' : "Chiffre d'affaires"}
+                                {m === 'visits'
+                                    ? 'Visites'
+                                    : "Chiffre d'affaires"}
                             </button>
                         ))}
                     </div>
                 </div>
             )}
 
-            <div className="relative h-44" onMouseMove={onMove} onMouseLeave={() => setActive(null)}>
+            <div
+                className="relative h-44"
+                onMouseMove={onMove}
+                onMouseLeave={() => setActive(null)}
+            >
                 <svg
                     className="absolute inset-0 size-full overflow-visible"
                     viewBox="0 0 100 100"
@@ -297,9 +349,23 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                     aria-hidden="true"
                 >
                     <defs>
-                        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#12b76a" stopOpacity="0.22" />
-                            <stop offset="100%" stopColor="#12b76a" stopOpacity="0" />
+                        <linearGradient
+                            id={gradientId}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                        >
+                            <stop
+                                offset="0%"
+                                stopColor="#12b76a"
+                                stopOpacity="0.22"
+                            />
+                            <stop
+                                offset="100%"
+                                stopColor="#12b76a"
+                                stopOpacity="0"
+                            />
                         </linearGradient>
                     </defs>
                     {[14, 52, 90].map((y) => (
@@ -330,7 +396,10 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                     <>
                         <span
                             className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white ring-2 ring-motriks"
-                            style={{ left: `${activePoint.x}%`, top: `${activePoint.y}%` }}
+                            style={{
+                                left: `${activePoint.x}%`,
+                                top: `${activePoint.y}%`,
+                            }}
                         />
                         <div
                             className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-xl bg-slate-900 px-3 py-2 text-center shadow-lg"
@@ -339,7 +408,9 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                                 top: `calc(${activePoint.y}% - 14px)`,
                             }}
                         >
-                            <p className="text-[11px] text-slate-400">{data[active].label}</p>
+                            <p className="text-[11px] text-slate-500">
+                                {data[active].label}
+                            </p>
                             <p className="text-xs font-semibold whitespace-nowrap text-white tabular-nums">
                                 {fmt(values[active])}
                             </p>
@@ -348,9 +419,11 @@ function TrendChart({ data }: { data: TrendPoint[] }) {
                 )}
             </div>
 
-            <div className="mt-3 flex justify-between gap-1 text-[11px] text-slate-400 tabular-nums sm:text-xs">
+            <div className="mt-3 flex justify-between gap-1 text-[11px] text-slate-500 tabular-nums sm:text-xs">
                 {data.map((d) => (
-                    <span key={d.label} className="whitespace-nowrap">{d.label}</span>
+                    <span key={d.label} className="whitespace-nowrap">
+                        {d.label}
+                    </span>
                 ))}
             </div>
         </div>
@@ -374,20 +447,28 @@ function TargetProgress({ target }: { target: MonthTarget }) {
     return (
         <div className="mt-5 border-t border-slate-100 pt-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-                <p className="text-sm font-semibold text-ink">Objectif du mois</p>
-                <p className="text-xs whitespace-nowrap tabular-nums text-slate-500">
-                    <span className="font-semibold text-ink">{formatCurrency(target.actual)}</span> / {formatCurrency(target.target)} FCFA
+                <p className="text-sm font-semibold text-ink">
+                    Objectif du mois
+                </p>
+                <p className="text-xs whitespace-nowrap text-slate-500 tabular-nums">
+                    <span className="font-semibold text-ink">
+                        {formatAmount(target.actual)}
+                    </span>{' '}
+                    / {formatAmount(target.target)} FCFA
                 </p>
             </div>
             <div className="mt-2 h-2 rounded-full bg-slate-100">
-                <div className="h-full rounded-full bg-motriks" style={{ width: `${percent}%` }} />
+                <div
+                    className="h-full rounded-full bg-motriks"
+                    style={{ width: `${percent}%` }}
+                />
             </div>
             <p className="mt-2 text-xs text-slate-500">
                 {reached
                     ? 'Objectif atteint, bravo !'
                     : onTrack
                       ? 'En bonne voie pour l’atteindre à ce rythme.'
-                      : `Il reste ${formatCurrency(target.target - target.actual)} FCFA à réaliser.`}
+                      : `Il reste ${formatAmount(target.target - target.actual)} FCFA à réaliser.`}
             </p>
         </div>
     );
@@ -454,7 +535,10 @@ function DayBar({
                 <LiveDot />
                 <div className="min-w-0 flex-1 sm:flex-none">
                     <p className="text-sm font-semibold text-ink">
-                        En service depuis <span className="tabular-nums">{visit.checked_in_at}</span>
+                        En service depuis{' '}
+                        <span className="tabular-nums">
+                            {visit.checked_in_at}
+                        </span>
                     </p>
                     <p className="max-w-56 truncate text-xs text-slate-500">
                         {affectation?.site_name ?? 'Site du jour'}
@@ -462,14 +546,20 @@ function DayBar({
                     {visit.pending && <PendingChip />}
                 </div>
                 <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
-                    <Link href={reportShow({ visit: visit.uuid }).url} onClick={openWith(onOpenReport)} className={cn(primaryBtn, 'flex-1 sm:flex-none')}>
+                    <Link
+                        href={reportShow({ visit: visit.uuid }).url}
+                        onClick={openWith(onOpenReport)}
+                        className={cn(primaryBtn, 'flex-1 sm:flex-none')}
+                    >
                         <ClipboardList className="size-4" />
-                        {visit.report_status === 'submitted' ? 'Voir mon rapport' : 'Saisir mes ventes'}
+                        {visit.report_status === 'submitted'
+                            ? 'Voir mon rapport'
+                            : 'Saisir mes ventes'}
                     </Link>
                     <button
                         type="button"
                         onClick={onCheckout}
-                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-200 sm:flex-none bg-white px-3.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none"
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-white px-3.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:outline-none sm:flex-none"
                     >
                         <Flag className="size-4" />
                         Terminer
@@ -487,20 +577,35 @@ function DayBar({
                 <span
                     className={cn(
                         'flex size-9 shrink-0 items-center justify-center rounded-xl',
-                        submitted ? 'bg-motriks-soft text-motriks' : 'bg-amber-50 text-amber-500',
+                        submitted
+                            ? 'bg-motriks-soft text-motriks'
+                            : 'bg-amber-50 text-amber-500',
                     )}
                 >
-                    {submitted ? <CheckCircle2 className="size-5" /> : <TriangleAlert className="size-5" />}
+                    {submitted ? (
+                        <CheckCircle2 className="size-5" />
+                    ) : (
+                        <TriangleAlert className="size-5" />
+                    )}
                 </span>
                 <div className="min-w-0 flex-1 sm:flex-none">
                     <p className="text-sm font-semibold text-ink tabular-nums">
                         {visit.checked_in_at} → {visit.checked_out_at ?? '–'}
                         {visit.duration_minutes ? (
-                            <span className="ml-2 font-medium text-slate-400">{formatDuration(visit.duration_minutes)}</span>
+                            <span className="ml-2 font-medium text-slate-500">
+                                {formatDuration(visit.duration_minutes)}
+                            </span>
                         ) : null}
                     </p>
-                    <p className={cn('text-xs', submitted ? 'text-slate-500' : 'text-amber-600')}>
-                        {submitted ? 'Rapport soumis, bonne journée !' : 'Rapport non soumis'}
+                    <p
+                        className={cn(
+                            'text-xs',
+                            submitted ? 'text-slate-500' : 'text-amber-600',
+                        )}
+                    >
+                        {submitted
+                            ? 'Rapport soumis, bonne journée !'
+                            : 'Rapport non soumis'}
                     </p>
                     {visit.pending && <PendingChip />}
                 </div>
@@ -515,7 +620,9 @@ function DayBar({
                                 : 'bg-motriks text-white shadow-sm shadow-green-600/25 hover:bg-motriks-deep',
                         )}
                     >
-                        {submitted ? 'Voir mon rapport' : 'Compléter mon rapport'}
+                        {submitted
+                            ? 'Voir mon rapport'
+                            : 'Compléter mon rapport'}
                         <ChevronRight className="size-4" />
                     </Link>
                 )}
@@ -535,7 +642,9 @@ function DayBar({
                 <MapPin className="size-5" />
             </span>
             <div className="min-w-0 flex-1 sm:max-w-60 sm:flex-none">
-                <p className="truncate text-sm font-semibold text-ink">{affectation?.site_name}</p>
+                <p className="truncate text-sm font-semibold text-ink">
+                    {affectation?.site_name}
+                </p>
                 {gpsStatus === 'capturing' ? (
                     <p className="flex items-center gap-1 text-xs text-motriks-deep">
                         <Navigation className="size-3 animate-pulse" />
@@ -556,8 +665,17 @@ function DayBar({
                     </p>
                 )}
             </div>
-            <button type="button" onClick={onCheckin} disabled={loading} className={cn(primaryBtn, 'w-full sm:w-auto')}>
-                {loading ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
+            <button
+                type="button"
+                onClick={onCheckin}
+                disabled={loading}
+                className={cn(primaryBtn, 'w-full sm:w-auto')}
+            >
+                {loading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                ) : (
+                    <LogIn className="size-4" />
+                )}
                 {loading ? 'Pointage…' : 'Prendre mon service'}
             </button>
         </div>
@@ -597,18 +715,39 @@ function useDayVisit(userId: number, server: VisitInfo | null) {
     }, [userId, server?.uuid, sync.pending.length, load]);
 
     const today = localDay();
-    const current = server && (server.status === 'in_progress' || !server.date || server.date === today) ? server : null;
-    const local = locals.find((v) => v.uuid === current?.uuid) ?? locals.find((v) => v.date === today) ?? null;
-    const pending = sync.pending.filter((op) => op.visit === local?.uuid || op.visit === current?.uuid);
+    const current =
+        server &&
+        (server.status === 'in_progress' ||
+            !server.date ||
+            server.date === today)
+            ? server
+            : null;
+    const local =
+        locals.find((v) => v.uuid === current?.uuid) ??
+        locals.find((v) => v.date === today) ??
+        null;
+    const pending = sync.pending.filter(
+        (op) => op.visit === local?.uuid || op.visit === current?.uuid,
+    );
 
     // Une visite en cours côté serveur, différente : c'est elle qui compte
-    if (!local || (current && current.uuid !== local.uuid && current.status === 'in_progress')) {
-        return { visit: current ? { ...current, pending: pending.length > 0 } : null, local: null, pending };
+    if (
+        !local ||
+        (current &&
+            current.uuid !== local.uuid &&
+            current.status === 'in_progress')
+    ) {
+        return {
+            visit: current ? { ...current, pending: pending.length > 0 } : null,
+            local: null,
+            pending,
+        };
     }
 
     const merged: VisitInfo = {
         id: current?.uuid === local.uuid ? current.id : 0,
-        duration_minutes: current?.uuid === local.uuid ? current.duration_minutes : null,
+        duration_minutes:
+            current?.uuid === local.uuid ? current.duration_minutes : null,
         uuid: local.uuid,
         status: local.checkedOut ? 'completed' : 'in_progress',
         checked_in_at: local.checkedIn,
@@ -627,7 +766,12 @@ function capturePosition(options: PositionOptions): Promise<Coords | null> {
     return new Promise((resolve) => {
         if (!('geolocation' in navigator)) return resolve(null);
         navigator.geolocation.getCurrentPosition(
-            (pos) => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+            (pos) =>
+                resolve({
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy,
+                }),
             () => resolve(null),
             options,
         );
@@ -645,7 +789,12 @@ export default function TerrainHome({
     weekly_trend,
     offline_kit,
 }: Props) {
-    const { auth } = usePage().props as { auth: { user: { id: number; name: string }; company?: { name: string } } };
+    const { auth } = usePage().props as {
+        auth: {
+            user: { id: number; name: string };
+            company?: { name: string };
+        };
+    };
     const userId = auth.user.id;
     const { visit: dayVisit, local, pending } = useDayVisit(userId, visit);
     const firstName = auth?.user?.name?.split(' ')[0] ?? '';
@@ -657,33 +806,64 @@ export default function TerrainHome({
     });
     const today = todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1);
 
-    const description = [firstName ? `Bonjour ${firstName}` : 'Bonjour', companyName, today]
+    const description = [
+        firstName ? `Bonjour ${firstName}` : 'Bonjour',
+        companyName,
+        today,
+    ]
         .filter(Boolean)
         .join(' · ');
 
     const [loading, setLoading] = useState(false);
-    const [gpsStatus, setGpsStatus] = useState<'idle' | 'capturing' | 'denied'>('idle');
+    const [gpsStatus, setGpsStatus] = useState<'idle' | 'capturing' | 'denied'>(
+        'idle',
+    );
     const [confirmCheckout, setConfirmCheckout] = useState(false);
     const [checkingOut, setCheckingOut] = useState(false);
 
     // Indicateurs pour les jauges
     const reportsRate =
         my_stats.visits_this_month > 0
-            ? Math.round((my_stats.reports_this_month / my_stats.visits_this_month) * 100)
+            ? Math.round(
+                  (my_stats.reports_this_month / my_stats.visits_this_month) *
+                      100,
+              )
             : 0;
     const monthProgress =
         my_stats.visits_last_month > 0
-            ? Math.min(100, Math.round((my_stats.visits_this_month / my_stats.visits_last_month) * 100))
+            ? Math.min(
+                  100,
+                  Math.round(
+                      (my_stats.visits_this_month /
+                          my_stats.visits_last_month) *
+                          100,
+                  ),
+              )
             : my_stats.visits_this_month > 0
               ? 100
               : 0;
 
-    const canWorkOffline = outboxAvailable() && kitUsableToday(offline_kit, affectation?.id);
+    const canWorkOffline =
+        outboxAvailable() && kitUsableToday(offline_kit, affectation?.id);
 
     /** Prise de service gardée sur le téléphone : le rapport s'ouvre tout de suite. */
     async function checkinWithoutNetwork(coords: Coords | null) {
         if (!offline_kit) return;
-        const created = await checkinOffline(userId, offline_kit, coords ?? { latitude: null, longitude: null });
+        let created: LocalVisit;
+        try {
+            created = await checkinOffline(
+                userId,
+                offline_kit,
+                coords ?? { latitude: null, longitude: null },
+            );
+        } catch {
+            // Rien n'est gardé : le bouton redevient utilisable, la prise de service peut être retentée
+            offlineSaveFailed('La prise de service');
+            setLoading(false);
+            setGpsStatus('idle');
+
+            return;
+        }
         haptic('success');
         toast.success('Service pris hors ligne', {
             description: `${created.checkedIn} · ${created.siteName}. Il sera envoyé dès le retour du réseau.`,
@@ -698,7 +878,8 @@ export default function TerrainHome({
         // Sans réseau, il faut la trousse hors ligne reçue avec l'accueil (produits, stock du point de vente)
         if (!navigator.onLine && !canWorkOffline) {
             toast.error('Pas de réseau', {
-                description: 'Ouvrez l’application une fois avec du réseau aujourd’hui : vous pourrez ensuite pointer sans réseau.',
+                description:
+                    'Ouvrez l’application une fois avec du réseau aujourd’hui : vous pourrez ensuite pointer sans réseau.',
             });
 
             return;
@@ -708,7 +889,11 @@ export default function TerrainHome({
 
         // Position fraîche et précise (GPS du téléphone, pas seulement le réseau) : le responsable
         // voit exactement où le service a été pris
-        const coords = await capturePosition({ enableHighAccuracy: true, maximumAge: 0, timeout: 12000 });
+        const coords = await capturePosition({
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 12000,
+        });
         if (!coords) {
             setGpsStatus('denied');
             toast.warning('GPS indisponible');
@@ -724,7 +909,12 @@ export default function TerrainHome({
 
         router.post(
             visitStore().url,
-            { affectation_id: affectation.id, latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null, accuracy: coords?.accuracy ?? null },
+            {
+                affectation_id: affectation.id,
+                latitude: coords?.latitude ?? null,
+                longitude: coords?.longitude ?? null,
+                accuracy: coords?.accuracy ?? null,
+            },
             {
                 onSuccess: () => {
                     haptic('success');
@@ -753,12 +943,31 @@ export default function TerrainHome({
         setCheckingOut(true);
 
         const coords = await capturePosition({ timeout: 8000 });
-        const ref = { userId, visitUuid: dayVisit.uuid, siteName: affectation?.site_name ?? local?.siteName ?? 'Site du jour', checkedIn: dayVisit.checked_in_at };
+        const ref = {
+            userId,
+            visitUuid: dayVisit.uuid,
+            siteName:
+                affectation?.site_name ?? local?.siteName ?? 'Site du jour',
+            checkedIn: dayVisit.checked_in_at,
+        };
 
         const withoutNetwork = async () => {
-            await checkoutOffline(ref, coords ?? { latitude: null, longitude: null });
+            try {
+                await checkoutOffline(
+                    ref,
+                    coords ?? { latitude: null, longitude: null },
+                );
+            } catch {
+                offlineSaveFailed('La fin de service');
+                setCheckingOut(false);
+
+                return;
+            }
             haptic('success');
-            toast.success('Service terminé', { description: 'Enregistré sur ce téléphone, envoyé dès le retour du réseau.' });
+            toast.success('Service terminé', {
+                description:
+                    'Enregistré sur ce téléphone, envoyé dès le retour du réseau.',
+            });
             setConfirmCheckout(false);
             setCheckingOut(false);
         };
@@ -772,11 +981,16 @@ export default function TerrainHome({
 
         router.patch(
             visitCheckout({ visit: dayVisit.uuid }).url,
-            { latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null },
+            {
+                latitude: coords?.latitude ?? null,
+                longitude: coords?.longitude ?? null,
+            },
             {
                 onSuccess: () => {
                     haptic('success');
-                    toast.success('Service terminé', { description: 'Merci pour votre journée !' });
+                    toast.success('Service terminé', {
+                        description: 'Merci pour votre journée !',
+                    });
                     setConfirmCheckout(false);
                 },
                 onError: toastFormError,
@@ -793,7 +1007,9 @@ export default function TerrainHome({
     // Rapport pas encore reçu par le serveur (ou pas de réseau) : il s'ouvre avec les données du téléphone
     const openReport = local?.report
         ? () => {
-              const checkinWaiting = pending.some((op) => op.kind === 'checkin');
+              const checkinWaiting = pending.some(
+                  (op) => op.kind === 'checkin',
+              );
               if (checkinWaiting || !navigator.onLine) openLocalReport(local);
               else router.visit(reportShow({ visit: local.uuid }).url);
           }
@@ -801,7 +1017,11 @@ export default function TerrainHome({
 
     const revenueDelta =
         my_stats.revenue_last_month > 0
-            ? Math.round(((my_stats.revenue_this_month - my_stats.revenue_last_month) / my_stats.revenue_last_month) * 100)
+            ? Math.round(
+                  ((my_stats.revenue_this_month - my_stats.revenue_last_month) /
+                      my_stats.revenue_last_month) *
+                      100,
+              )
             : null;
 
     return (
@@ -832,8 +1052,14 @@ export default function TerrainHome({
                                 label: "Chiffre d'affaires",
                                 value: (
                                     <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-                                        <span className="whitespace-nowrap">{formatCurrency(my_stats.revenue_this_month)}</span>
-                                        <span className="text-sm font-medium text-slate-400">FCFA</span>
+                                        <span className="whitespace-nowrap">
+                                            {formatAmount(
+                                                my_stats.revenue_this_month,
+                                            )}
+                                        </span>
+                                        <span className="text-sm font-medium text-slate-500">
+                                            FCFA
+                                        </span>
                                     </span>
                                 ),
                                 sub:
@@ -866,10 +1092,17 @@ export default function TerrainHome({
                     {/* ── Analyse + suivi ── */}
                     <div className="grid gap-6 lg:grid-cols-3">
                         {/* Tendance + comparaison */}
-                        <SurfaceCard className="lg:col-span-2" contentClassName="flex flex-col p-6">
+                        <SurfaceCard
+                            className="lg:col-span-2"
+                            contentClassName="flex flex-col p-6"
+                        >
                             <div>
-                                <h3 className="text-base font-semibold text-ink">Activité des 7 derniers jours</h3>
-                                <p className="mt-0.5 text-sm text-slate-500">Visites et chiffre d'affaires jour par jour.</p>
+                                <h3 className="text-base font-semibold text-ink">
+                                    Activité des 7 derniers jours
+                                </h3>
+                                <p className="mt-0.5 text-sm text-slate-500">
+                                    Visites et chiffre d'affaires jour par jour.
+                                </p>
                             </div>
 
                             <div className="mt-6">
@@ -881,7 +1114,7 @@ export default function TerrainHome({
                                     label="Chiffre d'affaires"
                                     current={my_stats.revenue_this_month}
                                     previous={my_stats.revenue_last_month}
-                                    format={formatCurrency}
+                                    format={formatAmount}
                                     unit="FCFA"
                                 />
                                 <Compare
@@ -895,12 +1128,18 @@ export default function TerrainHome({
 
                         {/* Colonne droite : jauges + rapports */}
                         <div className="flex flex-col gap-6">
-                            {my_week_target && <WeekTargetCard target={my_week_target} />}
+                            {my_week_target && (
+                                <WeekTargetCard target={my_week_target} />
+                            )}
 
                             <SurfaceCard contentClassName="flex flex-col p-6">
                                 <div>
-                                    <h3 className="text-base font-semibold text-ink">Performance du mois</h3>
-                                    <p className="mt-0.5 text-sm text-slate-500">Comparée au mois précédent.</p>
+                                    <h3 className="text-base font-semibold text-ink">
+                                        Performance du mois
+                                    </h3>
+                                    <p className="mt-0.5 text-sm text-slate-500">
+                                        Comparée au mois précédent.
+                                    </p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4 pt-6">
                                     <RingGauge
@@ -914,14 +1153,20 @@ export default function TerrainHome({
                                         caption={`${my_stats.visits_this_month} visites`}
                                     />
                                 </div>
-                                {my_target && <TargetProgress target={my_target} />}
+                                {my_target && (
+                                    <TargetProgress target={my_target} />
+                                )}
                             </SurfaceCard>
 
                             <SurfaceCard contentClassName="flex flex-col p-0">
                                 <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
                                     <div>
-                                        <h3 className="text-base font-semibold text-ink">Mes rapports</h3>
-                                        <p className="mt-0.5 text-sm text-slate-500">Derniers soumis.</p>
+                                        <h3 className="text-base font-semibold text-ink">
+                                            Mes rapports
+                                        </h3>
+                                        <p className="mt-0.5 text-sm text-slate-500">
+                                            Derniers soumis.
+                                        </p>
                                     </div>
                                     <Link
                                         href={terrainReports().url}
@@ -935,19 +1180,37 @@ export default function TerrainHome({
                                 {recent_reports.length > 0 ? (
                                     <ul className="divide-y divide-slate-100">
                                         {recent_reports.map((r) => {
-                                            const d = new Date(r.report_date_iso + 'T00:00:00');
+                                            const d = new Date(
+                                                r.report_date_iso + 'T00:00:00',
+                                            );
                                             return (
                                                 <li key={r.id}>
                                                     <Link
-                                                        href={reportShow({ visit: r.visit_uuid }).url}
+                                                        href={
+                                                            reportShow({
+                                                                visit: r.visit_uuid,
+                                                            }).url
+                                                        }
                                                         className="group flex items-center gap-3 px-5 py-3 transition-colors hover:bg-green-50/40 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none focus-visible:ring-inset"
                                                     >
                                                         <div className="flex size-10 shrink-0 flex-col items-center justify-center rounded-xl bg-green-50 text-center ring-1 ring-green-600/10 transition-colors ring-inset group-hover:bg-motriks group-hover:ring-0">
                                                             <p className="text-sm leading-none font-bold text-motriks-deep transition-colors group-hover:text-white">
-                                                                {d.getDate().toString().padStart(2, '0')}
+                                                                {d
+                                                                    .getDate()
+                                                                    .toString()
+                                                                    .padStart(
+                                                                        2,
+                                                                        '0',
+                                                                    )}
                                                             </p>
                                                             <p className="mt-0.5 text-[10px] text-slate-500 capitalize transition-colors group-hover:text-green-100">
-                                                                {d.toLocaleDateString('fr-FR', { weekday: 'short' })}
+                                                                {d.toLocaleDateString(
+                                                                    'fr-FR',
+                                                                    {
+                                                                        weekday:
+                                                                            'short',
+                                                                    },
+                                                                )}
                                                             </p>
                                                         </div>
                                                         <div className="min-w-0 flex-1">
@@ -955,9 +1218,12 @@ export default function TerrainHome({
                                                                 {r.site_name}
                                                             </p>
                                                             {r.submitted_at && (
-                                                                <p className="flex items-center gap-1 text-xs text-slate-400">
+                                                                <p className="flex items-center gap-1 text-xs text-slate-500">
                                                                     <ClipboardCheck className="size-3" />
-                                                                    Soumis à {r.submitted_at}
+                                                                    Soumis à{' '}
+                                                                    {
+                                                                        r.submitted_at
+                                                                    }
                                                                 </p>
                                                             )}
                                                         </div>

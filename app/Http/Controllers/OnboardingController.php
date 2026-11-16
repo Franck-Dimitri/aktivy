@@ -32,25 +32,25 @@ class OnboardingController extends Controller
     public function show(Request $request): Response
     {
         $company = $this->company($request);
-        $user    = $request->user();
+        $user = $request->user();
 
         return Inertia::render('onboarding/index', [
             'company' => [
-                'id'                       => $company->id,
-                'name'                     => $company->name,
-                'email'                    => $company->email,
-                'phone'                    => $company->phone,
-                'sector'                   => $company->sector,
-                'city'                     => $company->city,
-                'address'                  => $company->address,
-                'status'                   => $company->status->value,
-                'logo_url'                 => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
-                'onboarding_completed'     => $company->onboardingCompleted(),
-                'onboarding_completed_at'  => $company->onboarding_completed_at?->format('d/m/Y à H:i'),
-                'rejection_reason'         => $company->rejection_reason,
+                'id' => $company->id,
+                'name' => $company->name,
+                'email' => $company->email,
+                'phone' => $company->phone,
+                'sector' => $company->sector,
+                'city' => $company->city,
+                'address' => $company->address,
+                'status' => $company->status->value,
+                'logo_url' => $company->logo_path ? asset('storage/'.$company->logo_path) : null,
+                'onboarding_completed' => $company->onboardingCompleted(),
+                'onboarding_completed_at' => $company->onboarding_completed_at?->format('d/m/Y à H:i'),
+                'rejection_reason' => $company->rejection_reason,
             ],
             'user' => [
-                'name'  => $user->name,
+                'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
             ],
@@ -64,44 +64,44 @@ class OnboardingController extends Controller
         abort_if($company->isActive(), 403, 'Votre entreprise est déjà validée.');
 
         $validated = $request->validate([
-            'sector'           => ['required', 'string', 'max:100'],
-            'city'             => ['required', 'string', 'max:100'],
-            'address'          => ['nullable', 'string', 'max:255'],
-            'phone'            => ['nullable', 'string', 'max:20'],
-            'logo'             => ['nullable', 'image', 'max:3072', 'dimensions:max_width=8000,max_height=8000'],           // 3 Mo
-            'id_card_front'    => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'id_card_back'     => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'sector' => ['required', 'string', 'max:100'],
+            'city' => ['required', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'logo' => ['nullable', 'image', 'max:3072', 'dimensions:max_width=8000,max_height=8000'],           // 3 Mo
+            'id_card_front' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'id_card_back' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'registration_doc' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
         ], [
-            'required'   => ':attribute est obligatoire.',
-            'uploaded'   => ':attribute n’a pas pu être envoyé (fichier trop lourd ou connexion coupée). Choisissez-le à nouveau.',
-            'logo.max'             => 'Le logo dépasse 3 Mo.',
-            'id_card_front.max'    => 'La pièce d’identité (recto) dépasse 5 Mo.',
-            'id_card_back.max'     => 'La pièce d’identité (verso) dépasse 5 Mo.',
+            'required' => ':attribute est obligatoire.',
+            'uploaded' => ':attribute n’a pas pu être envoyé (fichier trop lourd ou connexion coupée). Choisissez-le à nouveau.',
+            'logo.max' => 'Le logo dépasse 3 Mo.',
+            'id_card_front.max' => 'La pièce d’identité (recto) dépasse 5 Mo.',
+            'id_card_back.max' => 'La pièce d’identité (verso) dépasse 5 Mo.',
             'registration_doc.max' => 'Le document légal dépasse 10 Mo.',
-            'mimes'      => ':attribute doit être une image JPG ou PNG, ou un PDF.',
+            'mimes' => ':attribute doit être une image JPG ou PNG, ou un PDF.',
             'logo.image' => 'Le logo doit être une image (JPG, PNG ou WebP).',
         ], [
-            'sector'           => 'Le secteur',
-            'city'             => 'La ville',
-            'address'          => 'L’adresse',
-            'phone'            => 'Le téléphone',
-            'logo'             => 'Le logo',
-            'id_card_front'    => 'La pièce d’identité (recto)',
-            'id_card_back'     => 'La pièce d’identité (verso)',
+            'sector' => 'Le secteur',
+            'city' => 'La ville',
+            'address' => 'L’adresse',
+            'phone' => 'Le téléphone',
+            'logo' => 'Le logo',
+            'id_card_front' => 'La pièce d’identité (recto)',
+            'id_card_back' => 'La pièce d’identité (verso)',
             'registration_doc' => 'Le document légal',
         ]);
 
-        $dir     = 'onboarding/' . $company->id;
+        $dir = 'onboarding/'.$company->id;
 
         $updates = [
-            'sector'  => $validated['sector'],
-            'city'    => $validated['city'],
+            'sector' => $validated['sector'],
+            'city' => $validated['city'],
             'address' => $validated['address'] ?? null,
-            'phone'   => $validated['phone'] ?? $company->phone,
+            'phone' => $validated['phone'] ?? $company->phone,
             'onboarding_completed_at' => now(),
             // Un dossier rejeté puis renvoyé repart en validation
-            'status'  => AccountStatus::Pending,
+            'status' => AccountStatus::Pending,
         ];
 
         // Logo → public storage
@@ -109,15 +109,17 @@ class OnboardingController extends Controller
             if ($company->logo_path) {
                 Storage::disk('public')->delete($company->logo_path);
             }
-            $updates['logo_path'] = $request->file('logo')->store('logos/' . $company->id, 'public');
+            $updates['logo_path'] = $request->file('logo')->store('logos/'.$company->id, 'public');
         }
 
         // Documents privés
         foreach (['id_card_front', 'id_card_back', 'registration_doc'] as $field) {
             if ($request->hasFile($field)) {
-                $old = $company->{$field . '_path'};
-                if ($old) Storage::disk('local')->delete($old);
-                $updates[$field . '_path'] = $request->file($field)->store($dir, 'local');
+                $old = $company->{$field.'_path'};
+                if ($old) {
+                    Storage::disk('local')->delete($old);
+                }
+                $updates[$field.'_path'] = $request->file($field)->store($dir, 'local');
             }
         }
 

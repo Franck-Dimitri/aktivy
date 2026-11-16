@@ -28,15 +28,46 @@ import { StatusBadge } from '@/components/page/status-badge';
 import { SurfaceCard } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
 import { haptic } from '@/lib/haptics';
+import {
+    canAddPack as packFits,
+    countedStock,
+    filledLinesCount,
+    hasStockGap,
+    missingGapReason,
+    packUnitsByLine,
+    remainingStock as sumRemainingStock,
+    stockGap,
+    theoreticalStock,
+    totalRevenue as reportRevenue,
+    totalUnitsSold,
+} from '@/lib/report-math';
 import { cn } from '@/lib/utils';
 import { home as terrainHome } from '@/routes/terrain';
-import { update as reportUpdate, submit as reportSubmit, flag as reportFlag } from '@/routes/terrain/report';
+import {
+    update as reportUpdate,
+    submit as reportSubmit,
+    flag as reportFlag,
+} from '@/routes/terrain/report';
 import { checkout as visitCheckout } from '@/routes/terrain/visit';
-import { store as photoStore, destroy as photoDestroy } from '@/routes/terrain/report/photos';
+import {
+    store as photoStore,
+    destroy as photoDestroy,
+} from '@/routes/terrain/report/photos';
 import { ReportPhotos, type ReportPhoto } from '@/components/report-photos';
 import { useSyncState } from '@/lib/sync';
-import { addPhotoOffline, cancelQueuedSubmit, checkoutOffline, saveReportOffline, submitReportOffline } from '@/lib/terrain-offline';
-import { ExternalSalesList, externalTotal, type ExternalShopSales } from '@/components/external-sales';
+import {
+    addPhotoOffline,
+    cancelQueuedSubmit,
+    checkoutOffline,
+    offlineSaveFailed,
+    saveReportOffline,
+    submitReportOffline,
+} from '@/lib/terrain-offline';
+import {
+    ExternalSalesList,
+    externalTotal,
+    type ExternalShopSales,
+} from '@/components/external-sales';
 import {
     ExternalSalesEditor,
     externalIncomplete,
@@ -77,7 +108,12 @@ type PackOffer = {
     name: string;
     value: number;
     quantity: number;
-    items: { line_id: number | null; name: string; quantity: number; free: boolean }[];
+    items: {
+        line_id: number | null;
+        name: string;
+        quantity: number;
+        free: boolean;
+    }[];
 };
 
 type Report = {
@@ -121,12 +157,19 @@ const twoCol =
 /* ─── Formatters ─── */
 
 function formatMoney(amount: number): string {
-    return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+    return new Intl.NumberFormat('fr-FR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(amount);
 }
 
 /* ─── Notice ─── */
 
-function Notice({ tone, icon: Icon, children }: {
+function Notice({
+    tone,
+    icon: Icon,
+    children,
+}: {
     tone: 'warning' | 'success' | 'danger';
     icon: typeof TriangleAlert;
     children: ReactNode;
@@ -137,7 +180,12 @@ function Notice({ tone, icon: Icon, children }: {
         danger: 'border-red-200 bg-red-50 text-red-800',
     };
     return (
-        <div className={cn('flex items-start gap-3 rounded-2xl border p-4 text-sm', styles[tone])}>
+        <div
+            className={cn(
+                'flex items-start gap-3 rounded-2xl border p-4 text-sm',
+                styles[tone],
+            )}
+        >
             <Icon className="mt-0.5 size-4 shrink-0" />
             <p>{children}</p>
         </div>
@@ -149,11 +197,17 @@ function Notice({ tone, icon: Icon, children }: {
 function Steps({ current }: { current: 1 | 2 | 3 }) {
     const labels = ['Saisie', 'Révision', 'Envoyé'];
     return (
-        <ol className="grid grid-cols-3 gap-2" aria-label="Progression du rapport">
+        <ol
+            className="grid grid-cols-3 gap-2"
+            aria-label="Progression du rapport"
+        >
             {labels.map((label, i) => {
                 const n = i + 1;
                 return (
-                    <li key={label} aria-current={n === current ? 'step' : undefined}>
+                    <li
+                        key={label}
+                        aria-current={n === current ? 'step' : undefined}
+                    >
                         <div
                             className={cn(
                                 'h-1 rounded-full transition-colors duration-500',
@@ -163,7 +217,11 @@ function Steps({ current }: { current: 1 | 2 | 3 }) {
                         <p
                             className={cn(
                                 'mt-2 text-xs font-medium transition-colors',
-                                n === current ? 'text-motriks-deep' : n < current ? 'text-slate-500' : 'text-slate-400',
+                                n === current
+                                    ? 'text-motriks-deep'
+                                    : n < current
+                                      ? 'text-slate-600'
+                                      : 'text-slate-500',
                             )}
                         >
                             {label}
@@ -180,18 +238,35 @@ function Steps({ current }: { current: 1 | 2 | 3 }) {
 function StockBar({ used, total }: { used: number; total: number }) {
     const pct = total > 0 ? Math.min(100, Math.round((used / total) * 100)) : 0;
     const remaining = total - used;
-    const tone = remaining === 0 ? 'bg-red-400' : remaining <= total * 0.2 ? 'bg-amber-400' : 'bg-motriks';
+    const tone =
+        remaining === 0
+            ? 'bg-red-400'
+            : remaining <= total * 0.2
+              ? 'bg-amber-400'
+              : 'bg-motriks';
 
     return (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div className={cn('h-full rounded-full transition-[width] duration-300', tone)} style={{ width: `${pct}%` }} />
+            <div
+                className={cn(
+                    'h-full rounded-full transition-[width] duration-300',
+                    tone,
+                )}
+                style={{ width: `${pct}%` }}
+            />
         </div>
     );
 }
 
 /* ─── Ligne produit (pleine largeur) ─── */
 
-function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
+function ProductRow({
+    line,
+    reserved,
+    onChange,
+    onNoteChange,
+    disabled,
+}: {
     line: ReportLine;
     /** Unités déjà prises par les packs saisis. */
     reserved: number;
@@ -206,11 +281,19 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
     const max = Math.max(0, available - reserved);
     const remaining = Math.max(0, max - line.units_sold);
     const soldOut = line.opening_stock + line.restocked > 0 && remaining === 0;
-    const lowStock = !soldOut && line.opening_stock > 0 && remaining <= (line.opening_stock + line.restocked) * 0.2;
+    const lowStock =
+        !soldOut &&
+        line.opening_stock > 0 &&
+        remaining <= (line.opening_stock + line.restocked) * 0.2;
     const amount = line.units_sold * line.unit_price;
 
     return (
-        <li className={cn('p-4 transition-colors sm:p-5', active && 'bg-motriks-soft/40')}>
+        <li
+            className={cn(
+                'p-4 transition-colors sm:p-5',
+                active && 'bg-motriks-soft/40',
+            )}
+        >
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
                 {/* Identité */}
                 <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -227,7 +310,9 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                     )}
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                            <p className="line-clamp-2 font-semibold break-words text-ink">{line.product_name}</p>
+                            <p className="line-clamp-2 font-semibold break-words text-ink">
+                                {line.product_name}
+                            </p>
                             {soldOut && (
                                 <span className="shrink-0 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-red-600/15 ring-inset">
                                     Épuisé
@@ -235,17 +320,30 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                             )}
                         </div>
                         <p className="mt-0.5 text-xs text-slate-500">
-                            {line.unit_price > 0 && <>{formatMoney(line.unit_price)} FCFA / {line.unit} · </>}
+                            {line.unit_price > 0 && (
+                                <>
+                                    {formatMoney(line.unit_price)} FCFA /{' '}
+                                    {line.unit} ·{' '}
+                                </>
+                            )}
                             stock {line.opening_stock}
-                            {line.restocked > 0 && ` + ${line.restocked} livrés`}
+                            {line.restocked > 0 &&
+                                ` + ${line.restocked} livrés`}
                         </p>
                         {line.opening_stock > 0 && (
                             <div className="mt-2.5 flex items-center gap-3">
-                                <StockBar used={line.units_sold + reserved} total={available} />
+                                <StockBar
+                                    used={line.units_sold + reserved}
+                                    total={available}
+                                />
                                 <span
                                     className={cn(
                                         'shrink-0 text-[11px] font-medium tabular-nums',
-                                        soldOut ? 'text-red-600' : lowStock ? 'text-amber-600' : 'text-slate-400',
+                                        soldOut
+                                            ? 'text-red-600'
+                                            : lowStock
+                                              ? 'text-amber-600'
+                                              : 'text-slate-500',
                                     )}
                                 >
                                     Reste {remaining}
@@ -262,7 +360,9 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                         <button
                             type="button"
                             disabled={disabled || line.units_sold <= 0}
-                            onClick={() => onChange(Math.max(0, line.units_sold - 1))}
+                            onClick={() =>
+                                onChange(Math.max(0, line.units_sold - 1))
+                            }
                             className="flex size-11 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm transition-all hover:text-ink focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none active:scale-90 disabled:opacity-40 disabled:shadow-none"
                             aria-label="Retirer une unité"
                         >
@@ -277,15 +377,25 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                             disabled={disabled}
                             onFocus={(e) => e.target.select()}
                             onChange={(e) =>
-                                onChange(Math.max(0, Math.min(max, Number(e.target.value) || 0)))
+                                onChange(
+                                    Math.max(
+                                        0,
+                                        Math.min(
+                                            max,
+                                            Number(e.target.value) || 0,
+                                        ),
+                                    ),
+                                )
                             }
                             aria-label={`Unités vendues — ${line.product_name}`}
-                            className="h-11 w-16 bg-transparent text-center text-lg font-bold text-ink tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            className="h-11 w-16 [appearance:textfield] bg-transparent text-center text-lg font-bold text-ink tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                         <button
                             type="button"
                             disabled={disabled || line.units_sold >= max}
-                            onClick={() => onChange(Math.min(max, line.units_sold + 1))}
+                            onClick={() =>
+                                onChange(Math.min(max, line.units_sold + 1))
+                            }
                             className="flex size-11 items-center justify-center rounded-xl bg-motriks text-white shadow-sm shadow-green-600/25 transition-all hover:bg-motriks-deep focus-visible:ring-2 focus-visible:ring-motriks focus-visible:ring-offset-2 focus-visible:outline-none active:scale-90 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
                             aria-label="Ajouter une unité"
                         >
@@ -299,8 +409,12 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                             amount > 0 ? 'text-motriks-deep' : 'text-slate-300',
                         )}
                     >
-                        <span className="whitespace-nowrap">{amount > 0 ? formatMoney(amount) : '—'}</span>
-                        <span className="text-xs font-medium text-slate-400">FCFA</span>
+                        <span className="whitespace-nowrap">
+                            {amount > 0 ? formatMoney(amount) : '—'}
+                        </span>
+                        <span className="text-xs font-medium text-slate-500">
+                            FCFA
+                        </span>
                     </p>
                 </div>
             </div>
@@ -322,7 +436,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                         type="button"
                         disabled={disabled}
                         onClick={() => onChange(0)}
-                        className="inline-flex min-h-9 items-center font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
+                        className="inline-flex min-h-9 items-center font-medium text-slate-500 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none disabled:opacity-40"
                     >
                         Remettre à 0
                     </button>
@@ -330,7 +444,7 @@ function ProductRow({ line, reserved, onChange, onNoteChange, disabled }: {
                 <button
                     type="button"
                     onClick={() => setNoteOpen((o) => !o)}
-                    className="inline-flex min-h-9 items-center gap-1 font-medium text-slate-400 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
+                    className="inline-flex min-h-9 items-center gap-1 font-medium text-slate-500 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-motriks focus-visible:outline-none"
                 >
                     <Pencil className="size-3" />
                     Note
@@ -377,21 +491,30 @@ function SummaryPanel({
     onSave: () => void;
     onReview: () => void;
 }) {
-    const pct = totalLines > 0 ? Math.round((filledCount / totalLines) * 100) : 0;
+    const pct =
+        totalLines > 0 ? Math.round((filledCount / totalLines) * 100) : 0;
 
     return (
         <SurfaceCard contentClassName="flex flex-col gap-5 p-5 sm:p-6">
             <div>
-                <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Total de la journée</p>
+                <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                    Total de la journée
+                </p>
                 <p className="mt-1.5 flex flex-wrap items-baseline gap-x-1.5 text-4xl font-extrabold tracking-tight text-ink tabular-nums">
-                    <span className="whitespace-nowrap">{formatMoney(totalRevenue)}</span>
-                    <span className="text-base font-medium text-slate-400">FCFA</span>
+                    <span className="whitespace-nowrap">
+                        {formatMoney(totalRevenue)}
+                    </span>
+                    <span className="text-base font-medium text-slate-500">
+                        FCFA
+                    </span>
                 </p>
             </div>
 
             <div>
                 <div className="mb-2 flex items-center justify-between text-xs">
-                    <span className="font-medium text-slate-500">Produits saisis</span>
+                    <span className="font-medium text-slate-500">
+                        Produits saisis
+                    </span>
                     <span className="font-semibold text-ink tabular-nums">
                         {filledCount}/{totalLines}
                     </span>
@@ -407,17 +530,27 @@ function SummaryPanel({
             <dl className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                     <dt className="text-xs text-slate-500">Unités vendues</dt>
-                    <dd className="mt-1 text-xl font-bold text-ink tabular-nums">{totalSold}</dd>
+                    <dd className="mt-1 text-xl font-bold text-ink tabular-nums">
+                        {totalSold}
+                    </dd>
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
                     <dt className="text-xs text-slate-500">Stock restant</dt>
-                    <dd className="mt-1 text-xl font-bold text-ink tabular-nums">{remainingStock}</dd>
+                    <dd className="mt-1 text-xl font-bold text-ink tabular-nums">
+                        {remainingStock}
+                    </dd>
                 </div>
             </dl>
 
             <div className="border-t border-slate-100 pt-5">
-                <label htmlFor="day-notes" className="text-sm font-semibold text-ink">
-                    Notes du jour <span className="font-normal text-slate-400">(facultatif)</span>
+                <label
+                    htmlFor="day-notes"
+                    className="text-sm font-semibold text-ink"
+                >
+                    Notes du jour{' '}
+                    <span className="font-normal text-slate-500">
+                        (facultatif)
+                    </span>
                 </label>
                 <TextArea
                     id="day-notes"
@@ -446,7 +579,9 @@ function SummaryPanel({
                     icon={<Save />}
                     className="h-11 w-full rounded-2xl"
                 >
-                    {busy === 'draft' ? 'Sauvegarde…' : 'Enregistrer le brouillon'}
+                    {busy === 'draft'
+                        ? 'Sauvegarde…'
+                        : 'Enregistrer le brouillon'}
                 </ActionButton>
             </div>
         </SurfaceCard>
@@ -498,7 +633,9 @@ function clearDraft(key: string | number) {
 
 /** En ligne ou non, d'après le navigateur. */
 function useOnline(): boolean {
-    const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+    const [online, setOnline] = useState(() =>
+        typeof navigator === 'undefined' ? true : navigator.onLine,
+    );
 
     useEffect(() => {
         const update = () => setOnline(navigator.onLine);
@@ -516,7 +653,13 @@ function useOnline(): boolean {
 
 /* ─── Page ─── */
 
-export default function TerrainReport({ visit, report }: { visit: VisitInfo; report: Report }) {
+export default function TerrainReport({
+    visit,
+    report,
+}: {
+    visit: VisitInfo;
+    report: Report;
+}) {
     const isSubmitted = report.status === 'submitted';
     const online = useOnline();
     const { auth } = usePage().props;
@@ -524,7 +667,12 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     // Actions de cette journée encore sur le téléphone (prise de service, saisie, photos…), dans l'ordre
     const sync = useSyncState();
     const waiting = sync.pending.filter((op) => op.visit === visit.uuid);
-    const visitRef = { userId: auth.user.id, visitUuid: visit.uuid, siteName: report.site_name, checkedIn: visit.checked_in_at };
+    const visitRef = {
+        userId: auth.user.id,
+        visitUuid: visit.uuid,
+        siteName: report.site_name,
+        checkedIn: visit.checked_in_at,
+    };
     // Soumis sans réseau : le rapport attend la connexion pour partir tout seul
     const [queuedNow, setQueuedNow] = useState(false);
     const queued = queuedNow || waiting.some((op) => op.kind === 'submit');
@@ -535,7 +683,9 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
 
     // Saisie restée sur le téléphone (réseau coupé, page fermée) : elle reprend là où elle en était
     const [restored] = useState<LocalDraft | null>(() =>
-        isSubmitted || typeof window === 'undefined' ? null : (readDraft(visit.uuid) ?? readDraft(report.id)),
+        isSubmitted || typeof window === 'undefined'
+            ? null
+            : (readDraft(visit.uuid) ?? readDraft(report.id)),
     );
     const [unsynced, setUnsynced] = useState(restored !== null);
     const [lines, setLines] = useState<ReportLine[]>(() =>
@@ -543,20 +693,36 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             ? report.lines.map((l) => {
                   const saved = restored.lines.find((d) => d.id === l.id);
 
-                  return saved ? { ...l, units_sold: saved.units_sold, notes: saved.notes } : l;
+                  return saved
+                      ? {
+                            ...l,
+                            units_sold: saved.units_sold,
+                            notes: saved.notes,
+                        }
+                      : l;
               })
             : report.lines,
     );
     const [notes, setNotes] = useState(restored?.notes ?? report.notes ?? '');
-    const [incidentNotes, setIncidentNotes] = useState(restored?.incident ?? report.incident_notes ?? '');
+    const [incidentNotes, setIncidentNotes] = useState(
+        restored?.incident ?? report.incident_notes ?? '',
+    );
     const [packCounts, setPackCounts] = useState<Record<number, number>>(
-        () => restored?.packs ?? Object.fromEntries(report.packs.map((p) => [p.id, p.quantity])),
+        () =>
+            restored?.packs ??
+            Object.fromEntries(report.packs.map((p) => [p.id, p.quantity])),
     );
     // Clôture : stock compté (par défaut le stock théorique) et motif d'écart
-    const [counted, setCounted] = useState<Record<number, string>>(restored?.counted ?? {});
-    const [reasons, setReasons] = useState<Record<number, string>>(restored?.reasons ?? {});
+    const [counted, setCounted] = useState<Record<number, string>>(
+        restored?.counted ?? {},
+    );
+    const [reasons, setReasons] = useState<Record<number, string>>(
+        restored?.reasons ?? {},
+    );
     // Ventes en boutique extérieure : par boutique, ses produits et leurs quantités
-    const [externalShops, setExternalShops] = useState<ExternalShop[]>(() => restored?.external ?? shopsFromSales(report.external_sales));
+    const [externalShops, setExternalShops] = useState<ExternalShop[]>(
+        () => restored?.external ?? shopsFromSales(report.external_sales),
+    );
     const [busy, setBusy] = useState<Busy>(null);
     const [step, setStep] = useState<Step>('edit');
     const [confirmCheckout, setConfirmCheckout] = useState(false);
@@ -572,7 +738,11 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         if (isSubmitted) return;
 
         writeDraft(visit.uuid, {
-            lines: lines.map((l) => ({ id: l.id, units_sold: l.units_sold, notes: l.notes })),
+            lines: lines.map((l) => ({
+                id: l.id,
+                units_sold: l.units_sold,
+                notes: l.notes,
+            })),
             packs: packCounts,
             notes,
             incident: incidentNotes,
@@ -581,67 +751,98 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             external: externalShops,
         });
         setUnsynced(true);
-    }, [lines, packCounts, notes, incidentNotes, counted, reasons, externalShops, isSubmitted, visit.uuid]);
+    }, [
+        lines,
+        packCounts,
+        notes,
+        incidentNotes,
+        counted,
+        reasons,
+        externalShops,
+        isSubmitted,
+        visit.uuid,
+    ]);
 
-    // Unités de chaque produit consommées par les packs saisis
-    const packUnits: Record<number, number> = {};
-    for (const pack of report.packs) {
-        for (const item of pack.items) {
-            if (item.line_id !== null) {
-                packUnits[item.line_id] = (packUnits[item.line_id] ?? 0) + (packCounts[pack.id] ?? 0) * item.quantity;
-            }
-        }
-    }
+    // Unités de chaque produit consommées par les packs saisis (calculs : lib/report-math.ts)
+    const packUnits = packUnitsByLine(report.packs, packCounts);
 
     // Boutiques extérieures : comptées dans la journée, sans toucher au stock du point de vente
     const external = externalTotals(externalShops, report.external_products);
     const externalBlocking = externalIncomplete(externalShops);
-    const totalSold = lines.reduce((s, l) => s + l.units_sold + (packUnits[l.id] ?? 0), 0) + external.units;
-    const totalRevenue =
-        lines.reduce((s, l) => s + l.units_sold * l.unit_price, 0) +
-        report.packs.reduce((s, p) => s + (packCounts[p.id] ?? 0) * p.value, 0) +
-        external.revenue;
-    const filledCount = lines.filter((l) => l.units_sold + (packUnits[l.id] ?? 0) > 0).length;
-    const theoretical = (l: ReportLine) => Math.max(0, l.opening_stock + l.restocked - l.units_sold - (packUnits[l.id] ?? 0));
-    const countOf = (l: ReportLine) => (counted[l.id] === undefined || counted[l.id] === '' ? theoretical(l) : Number(counted[l.id]));
-    const hasGap = (l: ReportLine) => countOf(l) !== theoretical(l);
-    const missingReason = lines.some((l) => hasGap(l) && !reasons[l.id]?.trim());
-    const remainingStock = lines.reduce((s, l) => s + theoretical(l), 0);
-    const payloadPacks = () => report.packs.map((p) => ({ id: p.id, quantity: packCounts[p.id] ?? 0 }));
+    const totalSold = totalUnitsSold(lines, packUnits, external.units);
+    const totalRevenue = reportRevenue(
+        lines,
+        report.packs,
+        packCounts,
+        external.revenue,
+    );
+    const filledCount = filledLinesCount(lines, packUnits);
+    const theoretical = (l: ReportLine) => theoreticalStock(l, packUnits);
+    const countOf = (l: ReportLine) => countedStock(l, counted, packUnits);
+    const hasGap = (l: ReportLine) => hasStockGap(l, counted, packUnits);
+    const gapOf = (l: ReportLine) => stockGap(l, counted, packUnits);
+    const missingReason = missingGapReason(lines, counted, reasons, packUnits);
+    const remainingStock = sumRemainingStock(lines, packUnits);
+    const payloadPacks = () =>
+        report.packs.map((p) => ({
+            id: p.id,
+            quantity: packCounts[p.id] ?? 0,
+        }));
 
     /** Un pack de plus est possible si chacun de ses produits a encore assez de stock. */
-    const canAddPack = (pack: PackOffer) =>
-        pack.items.every((item) => {
-            const line = lines.find((l) => l.id === item.line_id);
-
-            return line !== undefined && line.opening_stock + line.restocked - line.units_sold - (packUnits[line.id] ?? 0) >= item.quantity;
-        });
+    const canAddPack = (pack: PackOffer) => packFits(pack, lines, packUnits);
     const soldLines = lines.filter((l) => l.units_sold > 0);
-    const payloadLines = () => lines.map((l) => ({ id: l.id, site_product_id: l.site_product_id ?? null, units_sold: l.units_sold, notes: l.notes }));
+    const payloadLines = () =>
+        lines.map((l) => ({
+            id: l.id,
+            site_product_id: l.site_product_id ?? null,
+            units_sold: l.units_sold,
+            notes: l.notes,
+        }));
     const forgetDraft = () => {
         clearDraft(visit.uuid);
         clearDraft(report.id);
     };
 
     function updateLine(id: number, sold: number) {
-        setLines((prev) => prev.map((l) =>
-            l.id === id
-                ? { ...l, units_sold: sold, closing_stock: Math.max(0, l.opening_stock - sold), revenue: sold * l.unit_price }
-                : l,
-        ));
+        setLines((prev) =>
+            prev.map((l) =>
+                l.id === id
+                    ? {
+                          ...l,
+                          units_sold: sold,
+                          closing_stock: Math.max(0, l.opening_stock - sold),
+                          revenue: sold * l.unit_price,
+                      }
+                    : l,
+            ),
+        );
     }
 
     function updateLineNote(id: number, note: string) {
-        setLines((prev) => prev.map((l) => (l.id === id ? { ...l, notes: note } : l)));
+        setLines((prev) =>
+            prev.map((l) => (l.id === id ? { ...l, notes: note } : l)),
+        );
     }
 
     function saveDraft({ silent = false } = {}) {
-        const draft = { notes, lines: payloadLines(), packs: payloadPacks(), external_sales: externalPayload(externalShops) };
+        const draft = {
+            notes,
+            lines: payloadLines(),
+            packs: payloadPacks(),
+            external_sales: externalPayload(externalShops),
+        };
 
         if (mustQueue()) {
-            void saveReportOffline(visitRef, draft).then(() => {
-                if (!silent) toast.info('Saisie gardée sur ce téléphone', { description: 'Elle sera envoyée toute seule au retour du réseau.' });
-            });
+            saveReportOffline(visitRef, draft)
+                .then(() => {
+                    if (!silent)
+                        toast.info('Saisie gardée sur ce téléphone', {
+                            description:
+                                'Elle sera envoyée toute seule au retour du réseau.',
+                        });
+                })
+                .catch(() => offlineSaveFailed('Votre saisie'));
 
             return;
         }
@@ -654,13 +855,24 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             onSuccess: () => {
                 forgetDraft();
                 setUnsynced(false);
-                toast.success(silent ? 'Saisie envoyée au retour du réseau' : 'Brouillon enregistré');
+                toast.success(
+                    silent
+                        ? 'Saisie envoyée au retour du réseau'
+                        : 'Brouillon enregistré',
+                );
             },
             onError: toastFormError,
             // Réseau faible : la saisie part dans la file et repartira toute seule
             onNetworkError: () => {
-                void saveReportOffline(visitRef, draft);
-                if (!silent) toast.info('Réseau instable', { description: 'Votre saisie est gardée sur ce téléphone et repartira toute seule.' });
+                saveReportOffline(visitRef, draft)
+                    .then(() => {
+                        if (!silent)
+                            toast.info('Réseau instable', {
+                                description:
+                                    'Votre saisie est gardée sur ce téléphone et repartira toute seule.',
+                            });
+                    })
+                    .catch(() => offlineSaveFailed('Votre saisie'));
 
                 return false;
             },
@@ -670,7 +882,13 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
 
     // Retour du réseau : la saisie gardée sur le téléphone part toute seule
     useEffect(() => {
-        if (online && unsynced && !isSubmitted && !queued && waiting.length === 0) {
+        if (
+            online &&
+            unsynced &&
+            !isSubmitted &&
+            !queued &&
+            waiting.length === 0
+        ) {
             saveDraft({ silent: true });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -686,19 +904,31 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                 units_sold: l.units_sold,
                 notes: l.notes,
                 // Hors ligne, seul un comptage saisi fait foi : le stock du serveur a pu bouger depuis
-                counted_stock: provisional && (counted[l.id] === undefined || counted[l.id] === '') ? null : countOf(l),
+                counted_stock:
+                    provisional &&
+                    (counted[l.id] === undefined || counted[l.id] === '')
+                        ? null
+                        : countOf(l),
                 gap_reason: hasGap(l) ? reasons[l.id] : null,
             })),
             packs: payloadPacks(),
             external_sales: externalPayload(externalShops),
         };
 
+        // « Rapport prêt » seulement une fois le rapport réellement gardé sur le téléphone
         const queueForLater = () => {
-            setQueuedNow(true);
-            void submitReportOffline(visitRef, payload).then(() => {
-                haptic('success');
-                toast.success('Rapport prêt', { description: 'Il partira tout seul dès que le réseau revient.' });
-            });
+            setBusy('submit');
+            submitReportOffline(visitRef, payload)
+                .then(() => {
+                    setQueuedNow(true);
+                    haptic('success');
+                    toast.success('Rapport prêt', {
+                        description:
+                            'Il partira tout seul dès que le réseau revient.',
+                    });
+                })
+                .catch(() => offlineSaveFailed('Le rapport'))
+                .finally(() => setBusy(null));
         };
 
         if (mustQueue()) {
@@ -717,7 +947,9 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
             onSuccess: () => {
                 forgetDraft();
                 haptic('success');
-                toast.success('Rapport soumis !', { description: `${formatMoney(totalRevenue)} FCFA enregistrés.` });
+                toast.success('Rapport soumis !', {
+                    description: `${formatMoney(totalRevenue)} FCFA enregistrés.`,
+                });
             },
             onError: toastFormError,
             onFinish: () => setBusy(null),
@@ -725,13 +957,20 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     }
 
     function submitFlag() {
-        router.post(reportFlag({ visit: visit.uuid }).url, { incident_notes: incidentNotes }, {
-            preserveScroll: true,
-            onStart: () => setBusy('flag'),
-            onSuccess: () => { toast.success('Signalement envoyé'); setStep('edit'); },
-            onError: toastFormError,
-            onFinish: () => setBusy(null),
-        });
+        router.post(
+            reportFlag({ visit: visit.uuid }).url,
+            { incident_notes: incidentNotes },
+            {
+                preserveScroll: true,
+                onStart: () => setBusy('flag'),
+                onSuccess: () => {
+                    toast.success('Signalement envoyé');
+                    setStep('edit');
+                },
+                onError: toastFormError,
+                onFinish: () => setBusy(null),
+            },
+        );
     }
 
     function checkoutAndGo() {
@@ -740,13 +979,22 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
         const doCheckout = (lat?: number, lng?: number) => {
             // Sans réseau : fin de service gardée sur le téléphone, avec l'heure et la position du moment
             const withoutNetwork = () => {
-                void checkoutOffline(visitRef, { latitude: lat ?? null, longitude: lng ?? null }).then(() => {
-                    haptic('success');
-                    toast.success('Service terminé !', { description: 'Enregistré sur ce téléphone, envoyé dès le retour du réseau.' });
-                    setConfirmCheckout(false);
-                    setBusy(null);
-                    router.visit(terrainHome().url);
-                });
+                checkoutOffline(visitRef, {
+                    latitude: lat ?? null,
+                    longitude: lng ?? null,
+                })
+                    .then(() => {
+                        haptic('success');
+                        toast.success('Service terminé !', {
+                            description:
+                                'Enregistré sur ce téléphone, envoyé dès le retour du réseau.',
+                        });
+                        setConfirmCheckout(false);
+                        router.visit(terrainHome().url);
+                    })
+                    // Le bouton ne tourne plus sans fin : la fin de service peut être retentée
+                    .catch(() => offlineSaveFailed('La fin de service'))
+                    .finally(() => setBusy(null));
             };
 
             if (mustQueue()) {
@@ -755,16 +1003,24 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                 return;
             }
 
-            router.patch(visitCheckout({ visit: visit.uuid }).url, { latitude: lat ?? null, longitude: lng ?? null }, {
-                onSuccess: () => { haptic('success'); toast.success('Service terminé !'); setConfirmCheckout(false); },
-                onError: toastFormError,
-                onNetworkError: () => {
-                    withoutNetwork();
+            router.patch(
+                visitCheckout({ visit: visit.uuid }).url,
+                { latitude: lat ?? null, longitude: lng ?? null },
+                {
+                    onSuccess: () => {
+                        haptic('success');
+                        toast.success('Service terminé !');
+                        setConfirmCheckout(false);
+                    },
+                    onError: toastFormError,
+                    onNetworkError: () => {
+                        withoutNetwork();
 
-                    return false;
+                        return false;
+                    },
+                    onFinish: () => setBusy(null),
                 },
-                onFinish: () => setBusy(null),
-            });
+            );
         };
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
@@ -781,15 +1037,25 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
     const pendingPhotos = useMemo(
         () =>
             sync.pending
-                .filter((op) => op.visit === visit.uuid && op.kind === 'photo' && op.blob)
-                .map((op) => ({ key: String(op.id), blob: op.blob as Blob, caption: (op.body.caption as string | null) ?? null })),
+                .filter(
+                    (op) =>
+                        op.visit === visit.uuid &&
+                        op.kind === 'photo' &&
+                        op.blob,
+                )
+                .map((op) => ({
+                    key: String(op.id),
+                    blob: op.blob as Blob,
+                    caption: (op.body.caption as string | null) ?? null,
+                })),
         [sync.pending, visit.uuid],
     );
     const photosOffline = {
         // Mêmes vignettes d'un affichage à l'autre : recalculées seulement quand la file change
         pending: pendingPhotos,
         mustQueue,
-        queue: (photo: Blob, fileName: string, caption: string | null) => addPhotoOffline(visitRef, photo, fileName, caption),
+        queue: (photo: Blob, fileName: string, caption: string | null) =>
+            addPhotoOffline(visitRef, photo, fileName, caption),
     };
 
     const isEditing = !isSubmitted && step === 'edit';
@@ -803,13 +1069,16 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                 title={report.site_name}
                 description={`Rapport du ${report.report_date}`}
                 actions={
-                    <ActionLink href={terrainHome().url} variant="secondary" icon={<ArrowLeft />}>
+                    <ActionLink
+                        href={terrainHome().url}
+                        variant="secondary"
+                        icon={<ArrowLeft />}
+                    >
                         Tableau de bord
                     </ActionLink>
                 }
             >
                 <div className="flex w-full flex-col gap-6">
-
                     {/* ── Méta + progression ── */}
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8">
                         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-500">
@@ -824,9 +1093,13 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 </span>
                             )}
                             {isSubmitted ? (
-                                <StatusBadge tone="success">Soumis à {report.submitted_at}</StatusBadge>
+                                <StatusBadge tone="success">
+                                    Soumis à {report.submitted_at}
+                                </StatusBadge>
                             ) : (
-                                <StatusBadge tone="warning">Brouillon</StatusBadge>
+                                <StatusBadge tone="warning">
+                                    Brouillon
+                                </StatusBadge>
                             )}
                         </div>
                         <div className="w-full md:w-96">
@@ -837,14 +1110,19 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {!isSubmitted && queued && (
                         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
                             <p className="min-w-0 flex-1">
-                                <strong>Rapport prêt.</strong> Il partira tout seul au retour du réseau, même si vous fermez cette page.
+                                <strong>Rapport prêt.</strong> Il partira tout
+                                seul au retour du réseau, même si vous fermez
+                                cette page.
                             </p>
                             <ActionButton
                                 variant="secondary"
                                 size="sm"
                                 onClick={() => {
                                     setQueuedNow(false);
-                                    void cancelQueuedSubmit(auth.user.id, visit.uuid);
+                                    void cancelQueuedSubmit(
+                                        auth.user.id,
+                                        visit.uuid,
+                                    );
                                 }}
                             >
                                 Modifier
@@ -853,12 +1131,15 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     )}
                     {!isSubmitted && !online && !queued && (
                         <Notice tone="warning" icon={WifiOff}>
-                            <strong>Pas de réseau.</strong> Continuez votre saisie : elle est gardée sur ce téléphone et sera envoyée au retour du réseau.
+                            <strong>Pas de réseau.</strong> Continuez votre
+                            saisie : elle est gardée sur ce téléphone et sera
+                            envoyée au retour du réseau.
                         </Notice>
                     )}
                     {!isSubmitted && online && restored && unsynced && (
                         <Notice tone="warning" icon={CloudUpload}>
-                            Votre dernière saisie, restée sur ce téléphone, a été reprise. Pensez à l’enregistrer.
+                            Votre dernière saisie, restée sur ce téléphone, a
+                            été reprise. Pensez à l’enregistrer.
                         </Notice>
                     )}
 
@@ -867,132 +1148,243 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                         <>
                             <div className={twoCol}>
                                 <div className="flex min-w-0 flex-col gap-6">
-                                <SurfaceCard contentClassName="p-0">
-                                    <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
-                                        <div>
-                                            <h3 className="text-base font-semibold text-ink">Ventes par produit</h3>
-                                            <p className="mt-0.5 text-sm text-slate-500">
-                                                Saisissez les unités vendues pour chaque produit.
-                                            </p>
-                                        </div>
-                                        {lines.length > 0 && (
-                                            <span className="shrink-0 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold text-motriks-deep ring-1 ring-green-200/60">
-                                                {filledCount}/{lines.length}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {lines.length === 0 ? (
-                                        <div className="flex flex-col items-center gap-2 px-5 py-14 text-center">
-                                            <Package className="size-10 text-slate-200" />
-                                            <p className="text-sm font-medium text-slate-500">Aucun produit configuré</p>
-                                            <p className="text-xs text-slate-400">
-                                                Votre responsable doit d'abord ajouter des produits à ce site.
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <ul className="divide-y divide-slate-100">
-                                            {lines.map((line) => (
-                                                <ProductRow
-                                                    key={line.id}
-                                                    line={line}
-                                                    reserved={packUnits[line.id] ?? 0}
-                                                    onChange={(sold) => updateLine(line.id, sold)}
-                                                    onNoteChange={(note) => updateLineNote(line.id, note)}
-                                                    disabled={busy !== null}
-                                                />
-                                            ))}
-                                        </ul>
-                                    )}
-                                </SurfaceCard>
-
-                                {report.packs.length > 0 && (
-                                    <SurfaceCard contentClassName="p-5">
-                                        <h3 className="text-base font-semibold text-ink">Packs de l'événement</h3>
-                                        <p className="mt-0.5 mb-4 text-sm text-slate-500">
-                                            Comptez ici les packs vendus : leurs produits sont retirés du stock automatiquement.
-                                        </p>
-                                        <div className="flex flex-col gap-3">
-                                            {report.packs.map((pack) => {
-                                                const count = packCounts[pack.id] ?? 0;
-
-                                                return (
-                                                    <div key={pack.id} className={cn('flex flex-wrap items-center gap-3 rounded-2xl p-4 ring-1', count > 0 ? 'bg-motriks-soft ring-green-200' : 'bg-white ring-slate-100')}>
-                                                        <div className="min-w-0 flex-1">
-                                                            <p className="font-semibold text-ink">{pack.name}</p>
-                                                            <p className="text-xs text-slate-500">
-                                                                {pack.items.map((i) => `${i.quantity} × ${i.name}${i.free ? ' (offert)' : ''}`).join(' + ')}
-                                                            </p>
-                                                            <p className="text-xs text-slate-400">{formatMoney(pack.value)} FCFA le pack</p>
-                                                        </div>
-                                                        <div className="inline-flex items-center rounded-2xl bg-slate-100 p-1">
-                                                            <button
-                                                                type="button"
-                                                                disabled={busy !== null || count <= 0}
-                                                                onClick={() => setPackCounts({ ...packCounts, [pack.id]: count - 1 })}
-                                                                className="flex size-11 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm active:scale-90 disabled:opacity-40"
-                                                                aria-label={`Retirer un pack ${pack.name}`}
-                                                            >
-                                                                <Minus className="size-4" />
-                                                            </button>
-                                                            <span className="w-12 text-center text-lg font-bold text-ink tabular-nums">{count}</span>
-                                                            <button
-                                                                type="button"
-                                                                disabled={busy !== null || !canAddPack(pack)}
-                                                                onClick={() => setPackCounts({ ...packCounts, [pack.id]: count + 1 })}
-                                                                className="flex size-11 items-center justify-center rounded-xl bg-motriks text-white shadow-sm active:scale-90 disabled:bg-slate-200 disabled:text-slate-400"
-                                                                aria-label={`Ajouter un pack ${pack.name}`}
-                                                            >
-                                                                <Plus className="size-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </SurfaceCard>
-                                )}
-
-                                {report.external_products.length > 0 && (
-                                    <SurfaceCard contentClassName="p-5">
-                                        <div className="mb-4 flex items-start justify-between gap-3">
+                                    <SurfaceCard contentClassName="p-0">
+                                        <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
                                             <div>
-                                                <h3 className="text-base font-semibold text-ink">Boutiques extérieures</h3>
+                                                <h3 className="text-base font-semibold text-ink">
+                                                    Ventes par produit
+                                                </h3>
                                                 <p className="mt-0.5 text-sm text-slate-500">
-                                                    Ventes faites ailleurs que sur votre point de vente, avec les mêmes produits et aux mêmes prix. Elles comptent dans votre journée mais ne sortent pas de votre stock.
+                                                    Saisissez les unités vendues
+                                                    pour chaque produit.
                                                 </p>
                                             </div>
-                                            {external.revenue > 0 && (
-                                                <span className="shrink-0 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold whitespace-nowrap text-motriks-deep ring-1 ring-green-200/60 tabular-nums">
-                                                    {formatMoney(external.revenue)} FCFA
+                                            {lines.length > 0 && (
+                                                <span className="shrink-0 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold text-motriks-deep ring-1 ring-green-200/60">
+                                                    {filledCount}/{lines.length}
                                                 </span>
                                             )}
                                         </div>
-                                        <ExternalSalesEditor
-                                            shops={externalShops}
-                                            products={report.external_products}
-                                            suggestions={report.external_shops}
-                                            onChange={setExternalShops}
-                                            disabled={busy !== null}
-                                        />
-                                    </SurfaceCard>
-                                )}
 
-                                {hasPhotos && (
-                                <SurfaceCard contentClassName="p-5">
-                                    <h3 className="text-base font-semibold text-ink">Photos</h3>
-                                    <p className="mt-0.5 mb-4 text-sm text-slate-500">
-                                        Stand, rayon, rupture de stock… elles accompagnent votre rapport.
-                                    </p>
-                                    <ReportPhotos
-                                        photos={report.photos}
-                                        max={report.max_photos}
-                                        uploadUrl={photoStore({ visit: visit.uuid }).url}
-                                        deleteUrl={(photo) => photoDestroy({ visit: visit.uuid, photo }).url}
-                                        offline={photosOffline}
-                                    />
-                                </SurfaceCard>
-                                )}
+                                        {lines.length === 0 ? (
+                                            <div className="flex flex-col items-center gap-2 px-5 py-14 text-center">
+                                                <Package className="size-10 text-slate-200" />
+                                                <p className="text-sm font-medium text-slate-500">
+                                                    Aucun produit configuré
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    Votre responsable doit
+                                                    d'abord ajouter des produits
+                                                    à ce site.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <ul className="divide-y divide-slate-100">
+                                                {lines.map((line) => (
+                                                    <ProductRow
+                                                        key={line.id}
+                                                        line={line}
+                                                        reserved={
+                                                            packUnits[
+                                                                line.id
+                                                            ] ?? 0
+                                                        }
+                                                        onChange={(sold) =>
+                                                            updateLine(
+                                                                line.id,
+                                                                sold,
+                                                            )
+                                                        }
+                                                        onNoteChange={(note) =>
+                                                            updateLineNote(
+                                                                line.id,
+                                                                note,
+                                                            )
+                                                        }
+                                                        disabled={busy !== null}
+                                                    />
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </SurfaceCard>
+
+                                    {report.packs.length > 0 && (
+                                        <SurfaceCard contentClassName="p-5">
+                                            <h3 className="text-base font-semibold text-ink">
+                                                Packs de l'événement
+                                            </h3>
+                                            <p className="mt-0.5 mb-4 text-sm text-slate-500">
+                                                Comptez ici les packs vendus :
+                                                leurs produits sont retirés du
+                                                stock automatiquement.
+                                            </p>
+                                            <div className="flex flex-col gap-3">
+                                                {report.packs.map((pack) => {
+                                                    const count =
+                                                        packCounts[pack.id] ??
+                                                        0;
+
+                                                    return (
+                                                        <div
+                                                            key={pack.id}
+                                                            className={cn(
+                                                                'flex flex-wrap items-center gap-3 rounded-2xl p-4 ring-1',
+                                                                count > 0
+                                                                    ? 'bg-motriks-soft ring-green-200'
+                                                                    : 'bg-white ring-slate-100',
+                                                            )}
+                                                        >
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="font-semibold text-ink">
+                                                                    {pack.name}
+                                                                </p>
+                                                                <p className="text-xs text-slate-500">
+                                                                    {pack.items
+                                                                        .map(
+                                                                            (
+                                                                                i,
+                                                                            ) =>
+                                                                                `${i.quantity} × ${i.name}${i.free ? ' (offert)' : ''}`,
+                                                                        )
+                                                                        .join(
+                                                                            ' + ',
+                                                                        )}
+                                                                </p>
+                                                                <p className="text-xs text-slate-500">
+                                                                    {formatMoney(
+                                                                        pack.value,
+                                                                    )}{' '}
+                                                                    FCFA le pack
+                                                                </p>
+                                                            </div>
+                                                            <div className="inline-flex items-center rounded-2xl bg-slate-100 p-1">
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={
+                                                                        busy !==
+                                                                            null ||
+                                                                        count <=
+                                                                            0
+                                                                    }
+                                                                    onClick={() =>
+                                                                        setPackCounts(
+                                                                            {
+                                                                                ...packCounts,
+                                                                                [pack.id]:
+                                                                                    count -
+                                                                                    1,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                    className="flex size-11 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm active:scale-90 disabled:opacity-40"
+                                                                    aria-label={`Retirer un pack ${pack.name}`}
+                                                                >
+                                                                    <Minus className="size-4" />
+                                                                </button>
+                                                                <span className="w-12 text-center text-lg font-bold text-ink tabular-nums">
+                                                                    {count}
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={
+                                                                        busy !==
+                                                                            null ||
+                                                                        !canAddPack(
+                                                                            pack,
+                                                                        )
+                                                                    }
+                                                                    onClick={() =>
+                                                                        setPackCounts(
+                                                                            {
+                                                                                ...packCounts,
+                                                                                [pack.id]:
+                                                                                    count +
+                                                                                    1,
+                                                                            },
+                                                                        )
+                                                                    }
+                                                                    className="flex size-11 items-center justify-center rounded-xl bg-motriks text-white shadow-sm active:scale-90 disabled:bg-slate-200 disabled:text-slate-400"
+                                                                    aria-label={`Ajouter un pack ${pack.name}`}
+                                                                >
+                                                                    <Plus className="size-4" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </SurfaceCard>
+                                    )}
+
+                                    {report.external_products.length > 0 && (
+                                        <SurfaceCard contentClassName="p-5">
+                                            <div className="mb-4 flex items-start justify-between gap-3">
+                                                <div>
+                                                    <h3 className="text-base font-semibold text-ink">
+                                                        Boutiques extérieures
+                                                    </h3>
+                                                    <p className="mt-0.5 text-sm text-slate-500">
+                                                        Ventes faites ailleurs
+                                                        que sur votre point de
+                                                        vente, avec les mêmes
+                                                        produits et aux mêmes
+                                                        prix. Elles comptent
+                                                        dans votre journée mais
+                                                        ne sortent pas de votre
+                                                        stock.
+                                                    </p>
+                                                </div>
+                                                {external.revenue > 0 && (
+                                                    <span className="shrink-0 rounded-full bg-motriks-soft px-3 py-1 text-xs font-semibold whitespace-nowrap text-motriks-deep tabular-nums ring-1 ring-green-200/60">
+                                                        {formatMoney(
+                                                            external.revenue,
+                                                        )}{' '}
+                                                        FCFA
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <ExternalSalesEditor
+                                                shops={externalShops}
+                                                products={
+                                                    report.external_products
+                                                }
+                                                suggestions={
+                                                    report.external_shops
+                                                }
+                                                onChange={setExternalShops}
+                                                disabled={busy !== null}
+                                            />
+                                        </SurfaceCard>
+                                    )}
+
+                                    {hasPhotos && (
+                                        <SurfaceCard contentClassName="p-5">
+                                            <h3 className="text-base font-semibold text-ink">
+                                                Photos
+                                            </h3>
+                                            <p className="mt-0.5 mb-4 text-sm text-slate-500">
+                                                Stand, rayon, rupture de stock…
+                                                elles accompagnent votre
+                                                rapport.
+                                            </p>
+                                            <ReportPhotos
+                                                photos={report.photos}
+                                                max={report.max_photos}
+                                                uploadUrl={
+                                                    photoStore({
+                                                        visit: visit.uuid,
+                                                    }).url
+                                                }
+                                                deleteUrl={(photo) =>
+                                                    photoDestroy({
+                                                        visit: visit.uuid,
+                                                        photo,
+                                                    }).url
+                                                }
+                                                offline={photosOffline}
+                                            />
+                                        </SurfaceCard>
+                                    )}
                                 </div>
 
                                 <div className="lg:sticky lg:top-6">
@@ -1013,23 +1405,28 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
 
                             {/* Barre fixe — mobile uniquement */}
                             <div className="sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 lg:hidden">
-                                <div className="flex items-center gap-3 rounded-2xl bg-white/90 p-2.5 pl-5 shadow-xl shadow-slate-900/10 ring-1 ring-slate-200 backdrop-blur-md">
+                                <div className="flex items-center gap-3 rounded-2xl bg-white/90 p-2.5 pl-5 shadow-xl ring-1 shadow-slate-900/10 ring-slate-200 backdrop-blur-md">
                                     <div className="min-w-0 flex-1">
                                         <p className="truncate text-xs text-slate-500">
-                                            {totalSold} unité{totalSold > 1 ? 's' : ''}
+                                            {totalSold} unité
+                                            {totalSold > 1 ? 's' : ''}
                                             {external.units > 0
                                                 ? ` · dont ${external.units} en boutique${external.units > 1 ? 's' : ''}`
                                                 : ` · ${filledCount} produit${filledCount > 1 ? 's' : ''}`}
                                         </p>
                                         <p className="truncate text-xl font-bold text-ink tabular-nums">
                                             {formatMoney(totalRevenue)}
-                                            <span className="ml-1.5 text-sm font-medium text-slate-400">FCFA</span>
+                                            <span className="ml-1.5 text-sm font-medium text-slate-500">
+                                                FCFA
+                                            </span>
                                         </p>
                                     </div>
                                     <ActionButton
                                         onClick={() => setStep('review')}
                                         disabled={busy !== null}
-                                        icon={<ArrowRight className="order-last" />}
+                                        icon={
+                                            <ArrowRight className="order-last" />
+                                        }
                                         className="h-12 shrink-0 rounded-xl px-5 text-sm"
                                     >
                                         Réviser
@@ -1043,178 +1440,307 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {!isSubmitted && step === 'review' && (
                         <div className={twoCol}>
                             <div className="flex min-w-0 flex-col gap-6">
-                            {/* Ticket */}
-                            <SurfaceCard contentClassName="p-0">
-                                <div className="border-b border-dashed border-slate-200 px-5 py-4 sm:px-6">
-                                    <h3 className="text-base font-semibold text-ink">Récapitulatif</h3>
-                                    <p className="mt-0.5 text-sm text-slate-500">
-                                        {report.site_name} · {report.report_date}
-                                    </p>
-                                </div>
+                                {/* Ticket */}
+                                <SurfaceCard contentClassName="p-0">
+                                    <div className="border-b border-dashed border-slate-200 px-5 py-4 sm:px-6">
+                                        <h3 className="text-base font-semibold text-ink">
+                                            Récapitulatif
+                                        </h3>
+                                        <p className="mt-0.5 text-sm text-slate-500">
+                                            {report.site_name} ·{' '}
+                                            {report.report_date}
+                                        </p>
+                                    </div>
 
-                                {soldLines.length === 0 && external.units === 0 ? (
-                                    <p className="px-5 py-10 text-center text-sm text-slate-400">Aucune vente saisie.</p>
-                                ) : (
-                                    <ul className="divide-y divide-dashed divide-slate-200">
-                                        {soldLines.map((l) => (
-                                            <li key={l.id} className="flex items-center gap-4 px-5 py-3.5 sm:px-6">
-                                                {l.image_url ? (
-                                                    <img src={l.image_url} alt={l.product_name} className="size-11 shrink-0 rounded-xl object-cover" />
-                                                ) : (
-                                                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                                                        <Package className="size-4 text-slate-300" />
-                                                    </span>
-                                                )}
+                                    {soldLines.length === 0 &&
+                                    external.units === 0 ? (
+                                        <p className="px-5 py-10 text-center text-sm text-slate-500">
+                                            Aucune vente saisie.
+                                        </p>
+                                    ) : (
+                                        <ul className="divide-y divide-dashed divide-slate-200">
+                                            {soldLines.map((l) => (
+                                                <li
+                                                    key={l.id}
+                                                    className="flex items-center gap-4 px-5 py-3.5 sm:px-6"
+                                                >
+                                                    {l.image_url ? (
+                                                        <img
+                                                            src={l.image_url}
+                                                            alt={l.product_name}
+                                                            className="size-11 shrink-0 rounded-xl object-cover"
+                                                        />
+                                                    ) : (
+                                                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                                                            <Package className="size-4 text-slate-300" />
+                                                        </span>
+                                                    )}
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="truncate text-sm font-medium text-ink">
+                                                            {l.product_name}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500">
+                                                            {l.units_sold} ×{' '}
+                                                            {formatMoney(
+                                                                l.unit_price,
+                                                            )}{' '}
+                                                            FCFA
+                                                        </p>
+                                                    </div>
+                                                    <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">
+                                                        {formatMoney(
+                                                            l.units_sold *
+                                                                l.unit_price,
+                                                        )}
+                                                    </p>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+
+                                    {report.packs
+                                        .filter(
+                                            (p) => (packCounts[p.id] ?? 0) > 0,
+                                        )
+                                        .map((p) => (
+                                            <div
+                                                key={`pack-${p.id}`}
+                                                className="flex items-center gap-4 border-t border-dashed border-slate-200 px-5 py-3.5 sm:px-6"
+                                            >
+                                                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-motriks-soft">
+                                                    <Package className="size-4 text-motriks-deep" />
+                                                </span>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-sm font-medium text-ink">{l.product_name}</p>
-                                                    <p className="text-xs text-slate-400">
-                                                        {l.units_sold} × {formatMoney(l.unit_price)} FCFA
+                                                    <p className="truncate text-sm font-medium text-ink">
+                                                        {p.name}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">
+                                                        {packCounts[p.id]} pack
+                                                        {(packCounts[p.id] ??
+                                                            0) > 1
+                                                            ? 's'
+                                                            : ''}{' '}
+                                                        × {formatMoney(p.value)}{' '}
+                                                        FCFA
                                                     </p>
                                                 </div>
                                                 <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">
-                                                    {formatMoney(l.units_sold * l.unit_price)}
+                                                    {formatMoney(
+                                                        (packCounts[p.id] ??
+                                                            0) * p.value,
+                                                    )}
                                                 </p>
-                                            </li>
+                                            </div>
                                         ))}
-                                    </ul>
-                                )}
 
-                                {report.packs.filter((p) => (packCounts[p.id] ?? 0) > 0).map((p) => (
-                                    <div key={`pack-${p.id}`} className="flex items-center gap-4 border-t border-dashed border-slate-200 px-5 py-3.5 sm:px-6">
-                                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-motriks-soft">
-                                            <Package className="size-4 text-motriks-deep" />
-                                        </span>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-medium text-ink">{p.name}</p>
-                                            <p className="text-xs text-slate-400">
-                                                {packCounts[p.id]} pack{(packCounts[p.id] ?? 0) > 1 ? 's' : ''} × {formatMoney(p.value)} FCFA
-                                            </p>
-                                        </div>
-                                        <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">
-                                            {formatMoney((packCounts[p.id] ?? 0) * p.value)}
-                                        </p>
-                                    </div>
-                                ))}
+                                    {/* Ventes en boutique extérieure : une ligne par boutique */}
+                                    {externalShops
+                                        .filter(
+                                            (s) =>
+                                                s.name.trim() !== '' &&
+                                                s.items.some(
+                                                    (i) =>
+                                                        i.product_id !== null,
+                                                ),
+                                        )
+                                        .map((s) => {
+                                            const sold = externalTotals(
+                                                [s],
+                                                report.external_products,
+                                            );
 
-                                {/* Ventes en boutique extérieure : une ligne par boutique */}
-                                {externalShops
-                                    .filter((s) => s.name.trim() !== '' && s.items.some((i) => i.product_id !== null))
-                                    .map((s) => {
-                                        const sold = externalTotals([s], report.external_products);
-
-                                        return (
-                                            <div key={`ext-${s.key}`} className="flex items-center gap-4 border-t border-dashed border-slate-200 px-5 py-3.5 sm:px-6">
-                                                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100">
-                                                    <Store className="size-4 text-slate-500" />
-                                                </span>
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="truncate text-sm font-medium text-ink">{s.name.trim()}</p>
-                                                    <p className="text-xs text-slate-400">
-                                                        Boutique extérieure · {sold.units} unité{sold.units > 1 ? 's' : ''}
+                                            return (
+                                                <div
+                                                    key={`ext-${s.key}`}
+                                                    className="flex items-center gap-4 border-t border-dashed border-slate-200 px-5 py-3.5 sm:px-6"
+                                                >
+                                                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100">
+                                                        <Store className="size-4 text-slate-500" />
+                                                    </span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="truncate text-sm font-medium text-ink">
+                                                            {s.name.trim()}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500">
+                                                            Boutique extérieure
+                                                            · {sold.units} unité
+                                                            {sold.units > 1
+                                                                ? 's'
+                                                                : ''}
+                                                        </p>
+                                                    </div>
+                                                    <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">
+                                                        {formatMoney(
+                                                            sold.revenue,
+                                                        )}
                                                     </p>
                                                 </div>
-                                                <p className="shrink-0 text-sm font-bold text-motriks-deep tabular-nums">{formatMoney(sold.revenue)}</p>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
 
-                                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-dashed border-slate-200 px-5 py-5 sm:px-6">
-                                    <div>
-                                        <p className="text-sm font-bold text-ink">Total journée</p>
-                                        <p className="text-xs text-slate-500">
-                                            {totalSold} unité{totalSold > 1 ? 's' : ''} vendues
+                                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-dashed border-slate-200 px-5 py-5 sm:px-6">
+                                        <div>
+                                            <p className="text-sm font-bold text-ink">
+                                                Total journée
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                {totalSold} unité
+                                                {totalSold > 1 ? 's' : ''}{' '}
+                                                vendues
+                                            </p>
+                                        </div>
+                                        <p className="text-3xl font-extrabold whitespace-nowrap text-motriks-deep tabular-nums">
+                                            {formatMoney(totalRevenue)}
+                                            <span className="ml-1 text-sm font-medium text-slate-500">
+                                                FCFA
+                                            </span>
                                         </p>
                                     </div>
-                                    <p className="text-3xl font-extrabold whitespace-nowrap text-motriks-deep tabular-nums">
-                                        {formatMoney(totalRevenue)}
-                                        <span className="ml-1 text-sm font-medium text-slate-400">FCFA</span>
-                                    </p>
-                                </div>
-                            </SurfaceCard>
-
-                            {lines.length > 0 && (
-                                <SurfaceCard contentClassName="p-0">
-                                    <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
-                                        <h3 className="text-base font-semibold text-ink">Contrôle du stock</h3>
-                                        <p className="mt-0.5 text-sm text-slate-500">
-                                            Comptez ce qu’il reste. Si le chiffre diffère, indiquez pourquoi.
-                                        </p>
-                                    </div>
-                                    <ul className="divide-y divide-slate-100">
-                                        {lines.map((l) => (
-                                            <li key={l.id} className="px-5 py-3.5 sm:px-6">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="min-w-0">
-                                                        <p className="line-clamp-2 text-sm font-medium break-words text-ink">{l.product_name}</p>
-                                                        <p className="text-xs text-slate-400">Attendu : {theoretical(l)} {l.unit}</p>
-                                                    </div>
-                                                    <input
-                                                        type="number"
-                                                        inputMode="numeric"
-                                                        min={0}
-                                                        value={counted[l.id] ?? theoretical(l)}
-                                                        onFocus={(e) => e.target.select()}
-                                                        onChange={(e) => setCounted({ ...counted, [l.id]: e.target.value })}
-                                                        aria-label={`Stock compté — ${l.product_name}`}
-                                                        className={cn('h-12 w-20 shrink-0 rounded-xl border bg-white text-center text-lg font-bold tabular-nums outline-none', hasGap(l) ? 'border-amber-400' : 'border-slate-200')}
-                                                    />
-                                                </div>
-                                                {hasGap(l) && (
-                                                    <TextInput
-                                                        value={reasons[l.id] ?? ''}
-                                                        onChange={(e) => setReasons({ ...reasons, [l.id]: e.target.value })}
-                                                        maxLength={300}
-                                                        placeholder={`Motif de l’écart (${countOf(l) - theoretical(l) > 0 ? '+' : ''}${countOf(l) - theoretical(l)}) : casse, vol, erreur…`}
-                                                        aria-label={`Motif de l’écart — ${l.product_name}`}
-                                                        className="mt-2.5 h-10 bg-white"
-                                                    />
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
                                 </SurfaceCard>
-                            )}
+
+                                {lines.length > 0 && (
+                                    <SurfaceCard contentClassName="p-0">
+                                        <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
+                                            <h3 className="text-base font-semibold text-ink">
+                                                Contrôle du stock
+                                            </h3>
+                                            <p className="mt-0.5 text-sm text-slate-500">
+                                                Comptez ce qu’il reste. Si le
+                                                chiffre diffère, indiquez
+                                                pourquoi.
+                                            </p>
+                                        </div>
+                                        <ul className="divide-y divide-slate-100">
+                                            {lines.map((l) => (
+                                                <li
+                                                    key={l.id}
+                                                    className="px-5 py-3.5 sm:px-6"
+                                                >
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <p className="line-clamp-2 text-sm font-medium break-words text-ink">
+                                                                {l.product_name}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500">
+                                                                Attendu :{' '}
+                                                                {theoretical(l)}{' '}
+                                                                {l.unit}
+                                                            </p>
+                                                        </div>
+                                                        <input
+                                                            type="number"
+                                                            inputMode="numeric"
+                                                            min={0}
+                                                            value={
+                                                                counted[l.id] ??
+                                                                theoretical(l)
+                                                            }
+                                                            onFocus={(e) =>
+                                                                e.target.select()
+                                                            }
+                                                            onChange={(e) =>
+                                                                setCounted({
+                                                                    ...counted,
+                                                                    [l.id]: e
+                                                                        .target
+                                                                        .value,
+                                                                })
+                                                            }
+                                                            aria-label={`Stock compté — ${l.product_name}`}
+                                                            className={cn(
+                                                                'h-12 w-20 shrink-0 rounded-xl border bg-white text-center text-lg font-bold tabular-nums outline-none',
+                                                                hasGap(l)
+                                                                    ? 'border-amber-400'
+                                                                    : 'border-slate-200',
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    {hasGap(l) && (
+                                                        <TextInput
+                                                            value={
+                                                                reasons[l.id] ??
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                setReasons({
+                                                                    ...reasons,
+                                                                    [l.id]: e
+                                                                        .target
+                                                                        .value,
+                                                                })
+                                                            }
+                                                            maxLength={300}
+                                                            placeholder={`Motif de l’écart (${gapOf(l) > 0 ? '+' : ''}${gapOf(l)}) : casse, vol, erreur…`}
+                                                            aria-label={`Motif de l’écart — ${l.product_name}`}
+                                                            className="mt-2.5 h-10 bg-white"
+                                                        />
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </SurfaceCard>
+                                )}
                             </div>
 
                             <div className="flex flex-col gap-6 lg:sticky lg:top-6">
                                 <Notice tone="warning" icon={TriangleAlert}>
                                     Vérifiez vos données avant de soumettre.{' '}
-                                    <strong>Le rapport ne pourra plus être modifié.</strong>
+                                    <strong>
+                                        Le rapport ne pourra plus être modifié.
+                                    </strong>
                                 </Notice>
 
                                 <SurfaceCard contentClassName="p-5">
-                                    <label htmlFor="incident" className="text-base font-semibold text-ink">
+                                    <label
+                                        htmlFor="incident"
+                                        className="text-base font-semibold text-ink"
+                                    >
                                         Signaler un incident
                                     </label>
                                     <p className="mt-0.5 mb-3 text-sm text-slate-500">
-                                        Optionnel : rupture de stock, problème client, matériel manquant…
+                                        Optionnel : rupture de stock, problème
+                                        client, matériel manquant…
                                     </p>
                                     <TextArea
                                         id="incident"
                                         rows={4}
                                         value={incidentNotes}
-                                        onChange={(e) => setIncidentNotes(e.target.value)}
+                                        onChange={(e) =>
+                                            setIncidentNotes(e.target.value)
+                                        }
                                         placeholder="Décrivez l'incident…"
                                     />
                                 </SurfaceCard>
 
                                 <div className="flex flex-col gap-2.5">
                                     {missingReason && (
-                                        <p className="text-sm font-medium text-amber-700">Indiquez le motif de chaque écart de stock pour soumettre.</p>
+                                        <p className="text-sm font-medium text-amber-700">
+                                            Indiquez le motif de chaque écart de
+                                            stock pour soumettre.
+                                        </p>
                                     )}
                                     {externalBlocking && (
                                         <p className="text-sm font-medium text-amber-700">
-                                            Boutiques extérieures : donnez un nom à chaque boutique et choisissez chaque produit.
+                                            Boutiques extérieures : donnez un
+                                            nom à chaque boutique et choisissez
+                                            chaque produit.
                                         </p>
                                     )}
                                     <ActionButton
                                         onClick={submitReport}
                                         loading={busy === 'submit'}
-                                        disabled={busy !== null || missingReason || externalBlocking || queued}
+                                        disabled={
+                                            busy !== null ||
+                                            missingReason ||
+                                            externalBlocking ||
+                                            queued
+                                        }
                                         icon={<Send />}
                                         className="h-12 w-full rounded-2xl text-base"
                                     >
-                                        {busy === 'submit' ? 'Soumission…' : 'Soumettre le rapport'}
+                                        {busy === 'submit'
+                                            ? 'Soumission…'
+                                            : 'Soumettre le rapport'}
                                     </ActionButton>
                                     <ActionButton
                                         variant="secondary"
@@ -1234,56 +1760,93 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {isSubmitted && step !== 'incident' && (
                         <div className={twoCol}>
                             <div className="flex min-w-0 flex-col gap-6">
-                            <SurfaceCard contentClassName="p-0">
-                                <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
-                                    <h3 className="text-base font-semibold text-ink">Détail par produit</h3>
-                                </div>
-                                <ul className="divide-y divide-slate-100">
-                                    {report.lines.map((l) => (
-                                        <li key={l.id} className="flex items-center gap-3 px-5 py-4 sm:gap-4 sm:px-6">
-                                            {l.image_url ? (
-                                                <img src={l.image_url} alt={l.product_name} className="size-12 shrink-0 rounded-xl object-cover" />
-                                            ) : (
-                                                <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-slate-50">
-                                                    <Package className="size-4 text-slate-300" />
-                                                </span>
-                                            )}
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate font-medium text-ink">{l.product_name}</p>
-                                                <p className="text-xs text-slate-500">
-                                                    Stock {l.opening_stock} → {l.closing_stock} {l.unit}
-                                                    {l.units_sold + l.pack_units > 0 && ` · ${l.units_sold + l.pack_units} vendus`}
-                                                    {l.pack_units > 0 && ` (dont ${l.pack_units} en packs)`}
-                                                </p>
-                                                {l.notes && <p className="mt-0.5 text-xs text-slate-400 italic">{l.notes}</p>}
-                                                {l.stock_gap !== 0 && (
-                                                    <p className="mt-0.5 text-xs font-medium text-amber-700">
-                                                        Écart {l.stock_gap > 0 ? '+' : ''}{l.stock_gap} : {l.gap_reason}
+                                <SurfaceCard contentClassName="p-0">
+                                    <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
+                                        <h3 className="text-base font-semibold text-ink">
+                                            Détail par produit
+                                        </h3>
+                                    </div>
+                                    <ul className="divide-y divide-slate-100">
+                                        {report.lines.map((l) => (
+                                            <li
+                                                key={l.id}
+                                                className="flex items-center gap-3 px-5 py-4 sm:gap-4 sm:px-6"
+                                            >
+                                                {l.image_url ? (
+                                                    <img
+                                                        src={l.image_url}
+                                                        alt={l.product_name}
+                                                        className="size-12 shrink-0 rounded-xl object-cover"
+                                                    />
+                                                ) : (
+                                                    <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-slate-50">
+                                                        <Package className="size-4 text-slate-300" />
+                                                    </span>
+                                                )}
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="truncate font-medium text-ink">
+                                                        {l.product_name}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500">
+                                                        Stock {l.opening_stock}{' '}
+                                                        → {l.closing_stock}{' '}
+                                                        {l.unit}
+                                                        {l.units_sold +
+                                                            l.pack_units >
+                                                            0 &&
+                                                            ` · ${l.units_sold + l.pack_units} vendus`}
+                                                        {l.pack_units > 0 &&
+                                                            ` (dont ${l.pack_units} en packs)`}
+                                                    </p>
+                                                    {l.notes && (
+                                                        <p className="mt-0.5 text-xs text-slate-500 italic">
+                                                            {l.notes}
+                                                        </p>
+                                                    )}
+                                                    {l.stock_gap !== 0 && (
+                                                        <p className="mt-0.5 text-xs font-medium text-amber-700">
+                                                            Écart{' '}
+                                                            {l.stock_gap > 0
+                                                                ? '+'
+                                                                : ''}
+                                                            {l.stock_gap} :{' '}
+                                                            {l.gap_reason}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {l.revenue > 0 && (
+                                                    <p className="shrink-0 font-semibold whitespace-nowrap text-motriks-deep tabular-nums">
+                                                        {formatMoney(l.revenue)}
+                                                        <span className="ml-1 text-xs font-medium text-slate-500">
+                                                            FCFA
+                                                        </span>
                                                     </p>
                                                 )}
-                                            </div>
-                                            {l.revenue > 0 && (
-                                                <p className="shrink-0 font-semibold whitespace-nowrap text-motriks-deep tabular-nums">
-                                                    {formatMoney(l.revenue)}
-                                                    <span className="ml-1 text-xs font-medium text-slate-400">FCFA</span>
-                                                </p>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </SurfaceCard>
-
-                            {report.external_sales.length > 0 && (
-                                <SurfaceCard contentClassName="p-5">
-                                    <div className="mb-4 flex items-baseline justify-between gap-3">
-                                        <h3 className="text-base font-semibold text-ink">Boutiques extérieures</h3>
-                                        <span className="text-sm font-semibold text-motriks-deep tabular-nums">
-                                            {formatMoney(externalTotal(report.external_sales))} FCFA
-                                        </span>
-                                    </div>
-                                    <ExternalSalesList sales={report.external_sales} />
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </SurfaceCard>
-                            )}
+
+                                {report.external_sales.length > 0 && (
+                                    <SurfaceCard contentClassName="p-5">
+                                        <div className="mb-4 flex items-baseline justify-between gap-3">
+                                            <h3 className="text-base font-semibold text-ink">
+                                                Boutiques extérieures
+                                            </h3>
+                                            <span className="text-sm font-semibold text-motriks-deep tabular-nums">
+                                                {formatMoney(
+                                                    externalTotal(
+                                                        report.external_sales,
+                                                    ),
+                                                )}{' '}
+                                                FCFA
+                                            </span>
+                                        </div>
+                                        <ExternalSalesList
+                                            sales={report.external_sales}
+                                        />
+                                    </SurfaceCard>
+                                )}
                             </div>
 
                             <div className="flex flex-col gap-6 lg:sticky lg:top-6">
@@ -1293,28 +1856,48 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                     </span>
                                     <div className="min-w-0">
                                         <p className="font-semibold text-green-900">
-                                            {report.validated ? 'Validé par votre responsable' : `Soumis à ${report.submitted_at}`}
+                                            {report.validated
+                                                ? 'Validé par votre responsable'
+                                                : `Soumis à ${report.submitted_at}`}
                                         </p>
                                         {report.corrected && (
-                                            <p className="text-xs text-green-700">Quantités corrigées par votre responsable.</p>
+                                            <p className="text-xs text-green-700">
+                                                Quantités corrigées par votre
+                                                responsable.
+                                            </p>
                                         )}
                                         <p className="text-2xl font-extrabold text-motriks-deep tabular-nums">
                                             {formatMoney(report.total_revenue)}
-                                            <span className="ml-1 text-sm font-medium text-green-700/70">FCFA</span>
+                                            <span className="ml-1 text-sm font-medium text-green-700/70">
+                                                FCFA
+                                            </span>
                                         </p>
                                         <p className="text-xs text-green-700">
-                                            {report.total_units_sold} unité{report.total_units_sold > 1 ? 's' : ''} vendues
+                                            {report.total_units_sold} unité
+                                            {report.total_units_sold > 1
+                                                ? 's'
+                                                : ''}{' '}
+                                            vendues
                                         </p>
                                     </div>
                                 </div>
 
-                                {(report.photos.length > 0 || (!report.validated && hasPhotos)) && (
+                                {(report.photos.length > 0 ||
+                                    (!report.validated && hasPhotos)) && (
                                     <SurfaceCard contentClassName="p-5">
-                                        <h3 className="mb-3 text-sm font-semibold text-slate-500">Photos</h3>
+                                        <h3 className="mb-3 text-sm font-semibold text-slate-500">
+                                            Photos
+                                        </h3>
                                         <ReportPhotos
                                             photos={report.photos}
                                             max={report.max_photos}
-                                            uploadUrl={report.validated || !hasPhotos ? undefined : photoStore({ visit: visit.uuid }).url}
+                                            uploadUrl={
+                                                report.validated || !hasPhotos
+                                                    ? undefined
+                                                    : photoStore({
+                                                          visit: visit.uuid,
+                                                      }).url
+                                            }
                                             offline={photosOffline}
                                         />
                                     </SurfaceCard>
@@ -1322,15 +1905,23 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
 
                                 {report.notes && (
                                     <SurfaceCard contentClassName="p-5">
-                                        <h3 className="mb-1.5 text-sm font-semibold text-slate-500">Notes du jour</h3>
-                                        <p className="text-sm leading-relaxed text-ink">{report.notes}</p>
+                                        <h3 className="mb-1.5 text-sm font-semibold text-slate-500">
+                                            Notes du jour
+                                        </h3>
+                                        <p className="text-sm leading-relaxed text-ink">
+                                            {report.notes}
+                                        </p>
                                     </SurfaceCard>
                                 )}
 
                                 {report.incident_notes && (
                                     <SurfaceCard contentClassName="p-5">
-                                        <h3 className="mb-1.5 text-sm font-semibold text-amber-600">Incident signalé</h3>
-                                        <p className="text-sm leading-relaxed text-amber-800">{report.incident_notes}</p>
+                                        <h3 className="mb-1.5 text-sm font-semibold text-amber-600">
+                                            Incident signalé
+                                        </h3>
+                                        <p className="text-sm leading-relaxed text-amber-800">
+                                            {report.incident_notes}
+                                        </p>
                                     </SurfaceCard>
                                 )}
 
@@ -1339,7 +1930,9 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                         <ActionButton
                                             variant="secondary"
                                             icon={<Flag />}
-                                            onClick={() => setConfirmCheckout(true)}
+                                            onClick={() =>
+                                                setConfirmCheckout(true)
+                                            }
                                             className="h-12 w-full rounded-2xl border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50"
                                         >
                                             Terminer mon service
@@ -1362,17 +1955,23 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                     {isSubmitted && step === 'incident' && (
                         <div className={twoCol}>
                             <SurfaceCard contentClassName="p-5 sm:p-6">
-                                <label htmlFor="flag" className="text-base font-semibold text-ink">
+                                <label
+                                    htmlFor="flag"
+                                    className="text-base font-semibold text-ink"
+                                >
                                     Signalement / Correction
                                 </label>
                                 <p className="mt-0.5 mb-3 text-sm text-slate-500">
-                                    Décrivez le problème. Votre responsable en sera informé.
+                                    Décrivez le problème. Votre responsable en
+                                    sera informé.
                                 </p>
                                 <TextArea
                                     id="flag"
                                     rows={7}
                                     value={incidentNotes}
-                                    onChange={(e) => setIncidentNotes(e.target.value)}
+                                    onChange={(e) =>
+                                        setIncidentNotes(e.target.value)
+                                    }
                                     placeholder="Erreur de saisie, rupture non signalée, problème client…"
                                 />
                             </SurfaceCard>
@@ -1380,11 +1979,15 @@ export default function TerrainReport({ visit, report }: { visit: VisitInfo; rep
                                 <ActionButton
                                     onClick={submitFlag}
                                     loading={busy === 'flag'}
-                                    disabled={busy !== null || !incidentNotes.trim()}
+                                    disabled={
+                                        busy !== null || !incidentNotes.trim()
+                                    }
                                     icon={<Megaphone />}
                                     className="h-12 w-full rounded-2xl bg-amber-500 text-base shadow-amber-400/30 hover:bg-amber-600"
                                 >
-                                    {busy === 'flag' ? 'Envoi…' : 'Envoyer le signalement'}
+                                    {busy === 'flag'
+                                        ? 'Envoi…'
+                                        : 'Envoyer le signalement'}
                                 </ActionButton>
                                 <ActionButton
                                     variant="secondary"

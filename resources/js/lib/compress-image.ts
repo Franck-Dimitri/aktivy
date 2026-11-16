@@ -6,9 +6,18 @@
  */
 export async function compressImage(
     file: File,
-    { maxSide = 2000, quality = 0.85, keepPng = false, minBytes = 800_000 } = {},
+    {
+        maxSide = 2000,
+        quality = 0.85,
+        keepPng = false,
+        minBytes = 800_000,
+    } = {},
 ): Promise<File> {
-    if (!file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.type === 'image/gif') {
+    if (
+        !file.type.startsWith('image/') ||
+        file.type === 'image/svg+xml' ||
+        file.type === 'image/gif'
+    ) {
         return file;
     }
 
@@ -16,7 +25,9 @@ export async function compressImage(
 
     try {
         // imageOrientation : applique la rotation EXIF des photos prises au téléphone
-        bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        bitmap = await createImageBitmap(file, {
+            imageOrientation: 'from-image',
+        });
     } catch {
         return file;
     }
@@ -52,7 +63,9 @@ export async function compressImage(
     bitmap.close();
 
     const type = png ? 'image/png' : 'image/jpeg';
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
+    const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, type, quality),
+    );
 
     if (!blob || blob.size >= file.size) {
         return file;

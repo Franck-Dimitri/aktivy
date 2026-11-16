@@ -3,11 +3,18 @@ import { Camera, CloudUpload, ImageOff, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionButton } from '@/components/page/buttons';
+import { ConfirmDialog } from '@/components/page/confirm-dialog';
 import { TextInput } from '@/components/page/form-fields';
 import { compressImage } from '@/lib/compress-image';
 import { toastFormError } from '@/lib/form-toast';
+import { offlineSaveFailed } from '@/lib/terrain-offline';
 
-export type ReportPhoto = { id: number; uuid: string; url: string; caption: string | null };
+export type ReportPhoto = {
+    id: number;
+    uuid: string;
+    url: string;
+    caption: string | null;
+};
 
 /** Mode hors ligne de l'hôtesse : photos gardées sur le téléphone jusqu'au retour du réseau. */
 export type OfflinePhotos = {
@@ -15,7 +22,11 @@ export type OfflinePhotos = {
     pending: { key: string; blob: Blob; caption: string | null }[];
     /** La photo doit-elle passer par la file (pas de réseau, ou journée encore en attente) ? */
     mustQueue: () => boolean;
-    queue: (photo: Blob, fileName: string, caption: string | null) => Promise<void>;
+    queue: (
+        photo: Blob,
+        fileName: string,
+        caption: string | null,
+    ) => Promise<void>;
 };
 
 type Props = {
@@ -32,7 +43,13 @@ type Props = {
  * Photos d'un rapport : vignettes, ajout depuis l'appareil photo ou la galerie
  * (réduites sur le téléphone avant l'envoi), et retrait.
  */
-export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6, offline }: Props) {
+export function ReportPhotos({
+    photos,
+    uploadUrl,
+    deleteUrl,
+    max = 6,
+    offline,
+}: Props) {
     const input = useRef<HTMLInputElement>(null);
     const [caption, setCaption] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -41,13 +58,33 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6, offline }:
     const canAdd = uploadUrl !== undefined && total < max;
 
     // Vignettes des photos en attente : adresses locales, libérées quand elles ne servent plus
-    const previews = useMemo(() => waiting.map((p) => ({ ...p, url: URL.createObjectURL(p.blob) })), [waiting]);
-    useEffect(() => () => previews.forEach((p) => URL.revokeObjectURL(p.url)), [previews]);
+    const previews = useMemo(
+        () => waiting.map((p) => ({ ...p, url: URL.createObjectURL(p.blob) })),
+        [waiting],
+    );
+    useEffect(
+        () => () => previews.forEach((p) => URL.revokeObjectURL(p.url)),
+        [previews],
+    );
 
     const keepForLater = async (photo: File) => {
         if (!offline) return;
-        await offline.queue(photo, photo.name || 'photo.jpg', caption || null);
-        toast.success('Photo gardée sur le téléphone', { description: 'Elle partira toute seule au retour du réseau.' });
+        try {
+            await offline.queue(
+                photo,
+                photo.name || 'photo.jpg',
+                caption || null,
+            );
+        } catch {
+            // Mémoire pleine ou stockage bloqué : la photo n'est pas gardée, on le dit
+            offlineSaveFailed('La photo');
+            setUploading(false);
+
+            return;
+        }
+        toast.success('Photo gardée sur le téléphone', {
+            description: 'Elle partira toute seule au retour du réseau.',
+        });
         setCaption('');
         setUploading(false);
         if (input.current) input.current.value = '';
@@ -98,13 +135,20 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6, offline }:
         );
     };
 
-    const remove = (photo: ReportPhoto) => {
-        if (!deleteUrl || !confirm('Retirer cette photo ?')) return;
+    // Photo dont le retrait attend la confirmation (fenêtre de l'application, pas le confirm() du navigateur)
+    const [toRemove, setToRemove] = useState<ReportPhoto | null>(null);
+    const [removing, setRemoving] = useState(false);
 
-        router.delete(deleteUrl(photo.uuid), {
+    const remove = () => {
+        if (!deleteUrl || !toRemove) return;
+
+        router.delete(deleteUrl(toRemove.uuid), {
             preserveState: true,
             preserveScroll: true,
+            onStart: () => setRemoving(true),
+            onSuccess: () => setToRemove(null),
             onError: toastFormError,
+            onFinish: () => setRemoving(false),
         });
     };
 
@@ -137,8 +181,8 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6, offline }:
                             {deleteUrl && (
                                 <button
                                     type="button"
-                                    onClick={() => remove(photo)}
-                                    className="absolute top-1.5 right-1.5 flex size-8 items-center justify-center rounded-lg bg-white/90 text-red-600 shadow-sm hover:bg-white"
+                                    onClick={() => setToRemove(photo)}
+                                    className="absolute top-1.5 right-1.5 flex size-11 items-center justify-center rounded-lg bg-white/90 text-red-600 shadow-sm hover:bg-white sm:size-8"
                                     aria-label="Retirer la photo"
                                 >
                                     <Trash2 className="size-4" />
@@ -147,13 +191,24 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6, offline }:
                         </li>
                     ))}
                     {previews.map((photo) => (
-                        <li key={photo.key} className="relative overflow-hidden rounded-xl bg-slate-100 ring-1 ring-sky-200">
-                            <img src={photo.url} alt={photo.caption ?? 'Photo en attente'} className="aspect-square w-full object-cover opacity-80" />
+                        <li
+                            key={photo.key}
+                            className="relative overflow-hidden rounded-xl bg-slate-100 ring-1 ring-sky-200"
+                        >
+                            <img
+                                src={photo.url}
+                                alt={photo.caption ?? 'Photo en attente'}
+                                className="aspect-square w-full object-cover opacity-80"
+                            />
                             <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 rounded-lg bg-white/95 px-2 py-1 text-[11px] font-semibold text-sky-700 shadow-sm">
                                 <CloudUpload className="size-3" />
                                 En attente
                             </span>
-                            {photo.caption && <p className="truncate px-2 py-1.5 text-xs text-slate-600">{photo.caption}</p>}
+                            {photo.caption && (
+                                <p className="truncate px-2 py-1.5 text-xs text-slate-600">
+                                    {photo.caption}
+                                </p>
+                            )}
                         </li>
                     ))}
                 </ul>
@@ -167,7 +222,7 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6, offline }:
             {canAdd && (
                 <div className="flex flex-wrap items-center gap-2">
                     {/* Le conteneur porte la largeur : pleine ligne sur téléphone, le reste de la ligne au-delà */}
-                    <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
+                    <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                         <TextInput
                             value={caption}
                             onChange={(e) => setCaption(e.target.value)}
@@ -194,10 +249,19 @@ export function ReportPhotos({ photos, uploadUrl, deleteUrl, max = 6, offline }:
                 </div>
             )}
             {uploadUrl !== undefined && total >= max && (
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                     Maximum {max} photos par rapport.
                 </p>
             )}
+            <ConfirmDialog
+                open={toRemove !== null}
+                onOpenChange={(open) => !open && setToRemove(null)}
+                title="Retirer cette photo ?"
+                description="Elle sera supprimée du rapport."
+                confirmLabel="Retirer"
+                loading={removing}
+                onConfirm={remove}
+            />
         </div>
     );
 }

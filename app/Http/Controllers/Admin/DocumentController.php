@@ -11,8 +11,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class DocumentController extends Controller
 {
     private const ALLOWED_TYPES = [
-        'id_card_front'    => 'id_card_front_path',
-        'id_card_back'     => 'id_card_back_path',
+        'id_card_front' => 'id_card_front_path',
+        'id_card_back' => 'id_card_back_path',
         'registration_doc' => 'registration_doc_path',
     ];
 
@@ -21,7 +21,7 @@ class DocumentController extends Controller
         abort_unless(isset(self::ALLOWED_TYPES[$type]), 404);
 
         $field = self::ALLOWED_TYPES[$type];
-        $path  = $company->{$field};
+        $path = $company->{$field};
 
         abort_if(! $path || ! Storage::disk('local')->exists($path), 404);
 

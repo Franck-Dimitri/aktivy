@@ -18,17 +18,20 @@ class TelegramSetWebhookCommand extends Command
             if ($result['ok'] ?? false) {
                 $this->info('Webhook supprimé.');
             } else {
-                $this->error('Échec : ' . ($result['description'] ?? 'Erreur inconnue'));
+                $this->error('Échec : '.($result['description'] ?? 'Erreur inconnue'));
+
                 return self::FAILURE;
             }
+
             return self::SUCCESS;
         }
 
-        $url    = rtrim(config('app.url'), '/') . '/telegram/webhook';
+        $url = rtrim(config('app.url'), '/').'/telegram/webhook';
         $secret = config('services.telegram.webhook_secret');
 
         if (empty($secret)) {
             $this->error('TELEGRAM_WEBHOOK_SECRET n\'est pas défini dans .env');
+
             return self::FAILURE;
         }
 
@@ -37,7 +40,8 @@ class TelegramSetWebhookCommand extends Command
         if ($result['ok'] ?? false) {
             $this->info("Webhook configuré : {$url}");
         } else {
-            $this->error('Échec : ' . ($result['description'] ?? 'Erreur inconnue'));
+            $this->error('Échec : '.($result['description'] ?? 'Erreur inconnue'));
+
             return self::FAILURE;
         }
 

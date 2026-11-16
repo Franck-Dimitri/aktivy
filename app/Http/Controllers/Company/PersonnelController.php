@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Company;
 
-use App\Support\Plans\PlanUsage;
-use App\Http\Controllers\Controller;
-
 use App\Enums\AccountStatus;
 use App\Enums\AffectationStatus;
 use App\Enums\Role;
+use App\Http\Controllers\Controller;
 use App\Models\StaffDocument;
 use App\Models\User;
 use App\Support\PhoneNumber;
+use App\Support\Plans\PlanUsage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -37,16 +36,16 @@ class PersonnelController extends Controller
             ->orderBy('name')
             ->get()
             ->map(fn (User $u) => [
-                'id'           => $u->id,
-                'uuid'         => $u->uuid,
-                'name'         => $u->name,
-                'role'         => $u->role->value,
-                'role_label'   => $u->role->label(),
-                'phone'        => $u->phone,
-                'status'       => $u->status->value,
+                'id' => $u->id,
+                'uuid' => $u->uuid,
+                'name' => $u->name,
+                'role' => $u->role->value,
+                'role_label' => $u->role->label(),
+                'phone' => $u->phone,
+                'status' => $u->status->value,
                 'status_label' => $u->status === AccountStatus::Active ? 'Actif' : 'Suspendu',
                 'visits_count' => $u->visits_count,
-                'on_site_now'  => $u->activeVisit->first()?->site?->name,
+                'on_site_now' => $u->activeVisit->first()?->site?->name,
             ]);
 
         return Inertia::render('personnel/index', [
@@ -66,12 +65,12 @@ class PersonnelController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'phone'    => ['nullable', 'string', 'max:25'],
-            'email'    => ['nullable', 'email', 'max:255'],
-            'role'     => ['required', 'string', 'in:'.implode(',', array_column($this->manageableRoles($request->user()), 'value'))],
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:25'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'role' => ['required', 'string', 'in:'.implode(',', array_column($this->manageableRoles($request->user()), 'value'))],
             'password' => ['required', 'confirmed', ...User::PROVISIONAL_PASSWORD_RULES],
-            'notes'    => ['nullable', 'string', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         if (empty($validated['phone']) && empty($validated['email'])) {
@@ -89,13 +88,13 @@ class PersonnelController extends Controller
         }
 
         $member = $request->user()->company->users()->create([
-            'name'                  => $validated['name'],
-            'phone'                 => $validated['phone'] ?? null,
-            'email'                 => isset($validated['email']) ? strtolower($validated['email']) : null,
-            'role'                  => $validated['role'],
-            'password'              => Hash::make($validated['password']),
-            'status'                => AccountStatus::Active,
-            'must_change_password'  => true,
+            'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'email' => isset($validated['email']) ? strtolower($validated['email']) : null,
+            'role' => $validated['role'],
+            'password' => Hash::make($validated['password']),
+            'status' => AccountStatus::Active,
+            'must_change_password' => true,
         ]);
 
         // Envoyer l'email de vérification si le membre a une adresse email
@@ -117,10 +116,10 @@ class PersonnelController extends Controller
 
         // Performance stats
         $stats = [
-            'total_visits'    => $visits()->count(),
-            'visits_30d'      => $visits()->where('checked_in_at', '>=', now()->subDays(30))->count(),
-            'avg_duration'    => (int) $visits()->whereNotNull('duration_minutes')->avg('duration_minutes'),
-            'completed_visits'=> $visits()->where('status', 'completed')->count(),
+            'total_visits' => $visits()->count(),
+            'visits_30d' => $visits()->where('checked_in_at', '>=', now()->subDays(30))->count(),
+            'avg_duration' => (int) $visits()->whereNotNull('duration_minutes')->avg('duration_minutes'),
+            'completed_visits' => $visits()->where('status', 'completed')->count(),
         ];
 
         // Current affectations with site info
@@ -131,17 +130,17 @@ class PersonnelController extends Controller
             ->orderBy('starts_on')
             ->get()
             ->map(fn ($a) => [
-                'id'         => $a->id,
-                'uuid'       => $a->uuid,
-                'site_id'    => $a->site_id,
-                'site_uuid'  => $a->site->uuid,
-                'site_name'  => $a->site->name,
-                'site_city'  => $a->site->city,
-                'site_type'  => $a->site->type->label(),
-                'starts_on'  => $a->starts_on->format('d/m/Y'),
-                'ends_on'    => $a->ends_on?->format('d/m/Y'),
+                'id' => $a->id,
+                'uuid' => $a->uuid,
+                'site_id' => $a->site_id,
+                'site_uuid' => $a->site->uuid,
+                'site_name' => $a->site->name,
+                'site_city' => $a->site->city,
+                'site_type' => $a->site->type->label(),
+                'starts_on' => $a->starts_on->format('d/m/Y'),
+                'ends_on' => $a->ends_on?->format('d/m/Y'),
                 'slot_start' => $a->slot_start,
-                'slot_end'   => $a->slot_end,
+                'slot_end' => $a->slot_end,
                 'is_current' => $a->isCurrentlyActive(),
             ]);
 
@@ -152,44 +151,44 @@ class PersonnelController extends Controller
             ->limit(10)
             ->get()
             ->map(fn ($v) => [
-                'id'               => $v->id,
-                'site_name'        => $v->site->name,
-                'checked_in_at'    => $v->checked_in_at->format('d/m/Y H:i'),
-                'checked_out_at'   => $v->checked_out_at?->format('H:i'),
+                'id' => $v->id,
+                'site_name' => $v->site->name,
+                'checked_in_at' => $v->checked_in_at->format('d/m/Y H:i'),
+                'checked_out_at' => $v->checked_out_at?->format('H:i'),
                 'duration_minutes' => $v->duration_minutes,
-                'status'           => $v->status->value,
-                'status_label'     => $v->status->label(),
+                'status' => $v->status->value,
+                'status_label' => $v->status->label(),
             ]);
 
         return Inertia::render('personnel/show', [
             'member' => [
-                'id'           => $personnel->id,
-                'uuid'         => $personnel->uuid,
-                'name'         => $personnel->name,
-                'role'         => $personnel->role->value,
-                'role_label'   => $personnel->role->label(),
-                'phone'        => $personnel->phone,
-                'email'        => $personnel->email,
-                'status'       => $personnel->status->value,
+                'id' => $personnel->id,
+                'uuid' => $personnel->uuid,
+                'name' => $personnel->name,
+                'role' => $personnel->role->value,
+                'role_label' => $personnel->role->label(),
+                'phone' => $personnel->phone,
+                'email' => $personnel->email,
+                'status' => $personnel->status->value,
                 'status_label' => $personnel->status === AccountStatus::Active ? 'Actif' : 'Suspendu',
             ],
-            'stats'        => $stats,
-            'documents'    => $personnel->documents()->with('uploader:id,name')->latest()->get()->map(fn (StaffDocument $d) => [
-                'id'          => $d->id,
-                'uuid'        => $d->uuid,
-                'type_label'  => StaffDocument::TYPES[$d->type] ?? $d->type,
-                'title'       => $d->title,
-                'size'        => $d->size,
-                'is_pdf'      => $d->mime === 'application/pdf',
+            'stats' => $stats,
+            'documents' => $personnel->documents()->with('uploader:id,name')->latest()->get()->map(fn (StaffDocument $d) => [
+                'id' => $d->id,
+                'uuid' => $d->uuid,
+                'type_label' => StaffDocument::TYPES[$d->type] ?? $d->type,
+                'title' => $d->title,
+                'size' => $d->size,
+                'is_pdf' => $d->mime === 'application/pdf',
                 'uploaded_at' => $d->created_at->format('d/m/Y'),
-                'uploader'    => $d->uploader?->name,
+                'uploader' => $d->uploader?->name,
             ]),
             'document_types' => collect(StaffDocument::TYPES)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values(),
             'affectations' => $affectations,
-            'recent_visits'=> $recentVisits,
+            'recent_visits' => $recentVisits,
             // Options du modal « Modifier »
-            'roles'        => $this->roleOptions($request->user()),
-            'statuses'     => [
+            'roles' => $this->roleOptions($request->user()),
+            'statuses' => [
                 ['value' => AccountStatus::Active->value,    'label' => 'Actif'],
                 ['value' => AccountStatus::Suspended->value, 'label' => 'Suspendu'],
             ],
@@ -202,15 +201,15 @@ class PersonnelController extends Controller
 
         return Inertia::render('personnel/edit', [
             'member' => [
-                'id'     => $personnel->id,
-                'uuid'   => $personnel->uuid,
-                'name'   => $personnel->name,
-                'phone'  => $personnel->phone,
-                'email'  => $personnel->email,
-                'role'   => $personnel->role->value,
+                'id' => $personnel->id,
+                'uuid' => $personnel->uuid,
+                'name' => $personnel->name,
+                'phone' => $personnel->phone,
+                'email' => $personnel->email,
+                'role' => $personnel->role->value,
                 'status' => $personnel->status->value,
             ],
-            'roles'    => $this->roleOptions($request->user()),
+            'roles' => $this->roleOptions($request->user()),
             'statuses' => [
                 ['value' => AccountStatus::Active->value,    'label' => 'Actif'],
                 ['value' => AccountStatus::Suspended->value, 'label' => 'Suspendu'],
@@ -223,11 +222,11 @@ class PersonnelController extends Controller
         $this->authorizeCompany($request, $personnel);
 
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'phone'    => ['nullable', 'string', 'max:25'],
-            'email'    => ['nullable', 'email', 'max:255'],
-            'role'     => ['required', 'string', 'in:'.implode(',', array_column($this->manageableRoles($request->user()), 'value'))],
-            'status'   => ['required', 'string', 'in:'.implode(',', array_column(self::MANAGEABLE_STATUSES, 'value'))],
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:25'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'role' => ['required', 'string', 'in:'.implode(',', array_column($this->manageableRoles($request->user()), 'value'))],
+            'status' => ['required', 'string', 'in:'.implode(',', array_column(self::MANAGEABLE_STATUSES, 'value'))],
             'password' => ['nullable', 'confirmed', ...User::PROVISIONAL_PASSWORD_RULES],
         ]);
 
@@ -250,10 +249,10 @@ class PersonnelController extends Controller
         abort_if($validated['status'] !== $personnel->status->value && ! $request->user()->hasRole(Role::CompanyAdmin), 403);
 
         $personnel->fill([
-            'name'   => $validated['name'],
-            'phone'  => $validated['phone'] ?? null,
-            'email'  => isset($validated['email']) ? strtolower($validated['email']) : null,
-            'role'   => $validated['role'],
+            'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'email' => isset($validated['email']) ? strtolower($validated['email']) : null,
+            'role' => $validated['role'],
             'status' => $validated['status'],
         ]);
 

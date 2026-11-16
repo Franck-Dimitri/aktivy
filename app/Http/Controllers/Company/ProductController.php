@@ -19,28 +19,28 @@ class ProductController extends Controller
             ->orderBy('name')
             ->get()
             ->map(fn (Product $p) => [
-                'id'               => $p->id,
-                'uuid'             => $p->uuid,
-                'name'             => $p->name,
-                'sku'              => $p->sku,
-                'description'      => $p->description,
-                'unit'             => $p->unit,
-                'price'            => $p->price,
-                'image_url'        => $p->image ? asset("storage/{$p->image}") : null,
-                'is_active'        => $p->is_active,
-                'sites_count'      => $p->site_products_count,
+                'id' => $p->id,
+                'uuid' => $p->uuid,
+                'name' => $p->name,
+                'sku' => $p->sku,
+                'description' => $p->description,
+                'unit' => $p->unit,
+                'price' => $p->price,
+                'image_url' => $p->image ? asset("storage/{$p->image}") : null,
+                'is_active' => $p->is_active,
+                'sites_count' => $p->site_products_count,
             ]);
 
         $stats = [
-            'total'    => $products->count(),
-            'active'   => $products->where('is_active', true)->count(),
+            'total' => $products->count(),
+            'active' => $products->where('is_active', true)->count(),
             'inactive' => $products->where('is_active', false)->count(),
             'deployed' => $products->where('sites_count', '>', 0)->count(),
         ];
 
         return Inertia::render('products/index', [
             'products' => $products->values(),
-            'stats'    => $stats,
+            'stats' => $stats,
         ]);
     }
 
@@ -54,13 +54,13 @@ class ProductController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'sku'         => ['nullable', 'string', 'max:60'],
+            'name' => ['required', 'string', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:60'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'unit'        => ['required', 'string', 'max:30'],
-            'price'       => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'image'       => ['nullable', 'image', 'max:3072', 'mimes:jpg,jpeg,png,webp', 'dimensions:max_width=8000,max_height=8000'],
-            'is_active'   => ['boolean'],
+            'unit' => ['required', 'string', 'max:30'],
+            'price' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'image' => ['nullable', 'image', 'max:3072', 'mimes:jpg,jpeg,png,webp', 'dimensions:max_width=8000,max_height=8000'],
+            'is_active' => ['boolean'],
         ]);
 
         $company = $request->user()->company;
@@ -78,7 +78,7 @@ class ProductController extends Controller
 
         $company->products()->create([
             ...$validated,
-            'image'      => $imagePath,
+            'image' => $imagePath,
             'created_by' => $request->user()->id,
         ]);
 
@@ -91,15 +91,15 @@ class ProductController extends Controller
 
         return Inertia::render('products/edit', [
             'product' => [
-                'id'          => $product->id,
-                'uuid'        => $product->uuid,
-                'name'        => $product->name,
-                'sku'         => $product->sku,
+                'id' => $product->id,
+                'uuid' => $product->uuid,
+                'name' => $product->name,
+                'sku' => $product->sku,
                 'description' => $product->description,
-                'unit'        => $product->unit,
-                'price'       => $product->price,
-                'image_url'   => $product->image ? asset("storage/{$product->image}") : null,
-                'is_active'   => $product->is_active,
+                'unit' => $product->unit,
+                'price' => $product->price,
+                'image_url' => $product->image ? asset("storage/{$product->image}") : null,
+                'is_active' => $product->is_active,
             ],
             'units' => self::UNITS,
         ]);
@@ -110,14 +110,14 @@ class ProductController extends Controller
         $this->authorizeCompany($request, $product);
 
         $validated = $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'sku'         => ['nullable', 'string', 'max:60'],
+            'name' => ['required', 'string', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:60'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'unit'        => ['required', 'string', 'max:30'],
-            'price'       => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'image'       => ['nullable', 'image', 'max:3072', 'mimes:jpg,jpeg,png,webp', 'dimensions:max_width=8000,max_height=8000'],
-            'remove_image'=> ['boolean'],
-            'is_active'   => ['boolean'],
+            'unit' => ['required', 'string', 'max:30'],
+            'price' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
+            'image' => ['nullable', 'image', 'max:3072', 'mimes:jpg,jpeg,png,webp', 'dimensions:max_width=8000,max_height=8000'],
+            'remove_image' => ['boolean'],
+            'is_active' => ['boolean'],
         ]);
 
         if (! empty($validated['sku']) && $validated['sku'] !== $product->sku) {

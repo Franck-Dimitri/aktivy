@@ -75,7 +75,11 @@ export const roleLabels: Record<Role, string> = {
  * forfait qui les débloque (modèle freemium : on montre ce qu'on peut débloquer) ; la page ouverte
  * explique alors comment y accéder. Les hôtesses, qui ne choisissent pas le forfait, ne les voient pas.
  */
-export function menuFor(role: Role, modules: string[], locked: Record<string, string> = {}): MenuGroup[] {
+export function menuFor(
+    role: Role,
+    modules: string[],
+    locked: Record<string, string> = {},
+): MenuGroup[] {
     const included = (i: MenuItem) => !i.module || modules.includes(i.module);
 
     return baseMenu(role)
@@ -84,7 +88,11 @@ export function menuFor(role: Role, modules: string[], locked: Record<string, st
             items:
                 role === 'field_agent'
                     ? g.items.filter(included)
-                    : g.items.map((i) => (included(i) ? i : { ...i, locked: locked[i.module!] ?? 'Pro' })),
+                    : g.items.map((i) =>
+                          included(i)
+                              ? i
+                              : { ...i, locked: locked[i.module!] ?? 'Pro' },
+                      ),
         }))
         .filter((g) => g.items.length > 0);
 }
@@ -95,23 +103,58 @@ function baseMenu(role: Role): MenuGroup[] {
             {
                 label: 'Mon espace',
                 items: [
-                    { title: 'Tableau de bord', icon: LayoutDashboard, href: terrainHome().url },
-                    { title: 'Mes statistiques', icon: TrendingUp, href: terrainStats().url },
+                    {
+                        title: 'Tableau de bord',
+                        icon: LayoutDashboard,
+                        href: terrainHome().url,
+                    },
+                    {
+                        title: 'Mes statistiques',
+                        icon: TrendingUp,
+                        href: terrainStats().url,
+                    },
                 ],
             },
             {
                 label: 'Terrain',
                 items: [
-                    { title: 'Mes rapports', icon: ClipboardList, href: terrainReports().url },
-                    { title: 'Mon planning', icon: CalendarRange, href: terrainPlanning().url },
-                    { title: 'Mes ventes', icon: ShoppingCart, href: terrainSales().url },
-                    { title: 'Boutiques extérieures', icon: Store, href: terrainExternalShops().url },
-                    { title: 'Mon stock', icon: Package, href: terrainStock().url },
+                    {
+                        title: 'Mes rapports',
+                        icon: ClipboardList,
+                        href: terrainReports().url,
+                    },
+                    {
+                        title: 'Mon planning',
+                        icon: CalendarRange,
+                        href: terrainPlanning().url,
+                    },
+                    {
+                        title: 'Mes ventes',
+                        icon: ShoppingCart,
+                        href: terrainSales().url,
+                    },
+                    {
+                        title: 'Boutiques extérieures',
+                        icon: Store,
+                        href: terrainExternalShops().url,
+                    },
+                    {
+                        title: 'Mon stock',
+                        icon: Package,
+                        href: terrainStock().url,
+                    },
                 ],
             },
             {
                 label: 'Support',
-                items: [{ title: 'Tickets', icon: MessageSquarePlus, href: terrainTickets().url, module: 'demandes' }],
+                items: [
+                    {
+                        title: 'Tickets',
+                        icon: MessageSquarePlus,
+                        href: terrainTickets().url,
+                        module: 'demandes',
+                    },
+                ],
             },
         ];
     }
@@ -131,12 +174,36 @@ function baseMenu(role: Role): MenuGroup[] {
                         icon: ClipboardCheck,
                         href: adminOnboarding(),
                     },
-                    { title: 'Entreprises', icon: Building2, href: adminCompanies().url },
-                    { title: 'Utilisateurs', icon: Users, href: adminUsers().url },
-                    { title: 'Abonnements', icon: CreditCard, href: adminSubscriptions().url },
-                    { title: 'Factures', icon: Receipt, href: adminInvoices().url },
-                    { title: 'Support', icon: LifeBuoy, href: adminSupport().url },
-                    { title: 'Journal d’audit', icon: ScrollText, href: adminAudit().url },
+                    {
+                        title: 'Entreprises',
+                        icon: Building2,
+                        href: adminCompanies().url,
+                    },
+                    {
+                        title: 'Utilisateurs',
+                        icon: Users,
+                        href: adminUsers().url,
+                    },
+                    {
+                        title: 'Abonnements',
+                        icon: CreditCard,
+                        href: adminSubscriptions().url,
+                    },
+                    {
+                        title: 'Factures',
+                        icon: Receipt,
+                        href: adminInvoices().url,
+                    },
+                    {
+                        title: 'Support',
+                        icon: LifeBuoy,
+                        href: adminSupport().url,
+                    },
+                    {
+                        title: 'Journal d’audit',
+                        icon: ScrollText,
+                        href: adminAudit().url,
+                    },
                 ],
             },
         ];
@@ -153,9 +220,28 @@ function baseMenu(role: Role): MenuGroup[] {
                     icon: LayoutDashboard,
                     href: dashboard(),
                 },
-                ...(manages ? [{ title: 'Activité du jour', icon: ClipboardCheck, href: activityIndex().url, module: 'terrain' }] : []),
-                { title: 'Rapports journaliers', icon: ClipboardList, href: dailyReportsIndex().url, module: 'terrain' },
-                { title: 'Ventes & objectifs', icon: FileBarChart, href: reportsIndex(), module: 'reporting' },
+                ...(manages
+                    ? [
+                          {
+                              title: 'Activité du jour',
+                              icon: ClipboardCheck,
+                              href: activityIndex().url,
+                              module: 'terrain',
+                          },
+                      ]
+                    : []),
+                {
+                    title: 'Rapports journaliers',
+                    icon: ClipboardList,
+                    href: dailyReportsIndex().url,
+                    module: 'terrain',
+                },
+                {
+                    title: 'Ventes & objectifs',
+                    icon: FileBarChart,
+                    href: reportsIndex(),
+                    module: 'reporting',
+                },
             ],
         },
     ];
@@ -166,12 +252,39 @@ function baseMenu(role: Role): MenuGroup[] {
             items: [
                 { title: 'Personnel', icon: Users, href: personnelIndex().url },
                 { title: 'Sites', icon: MapPin, href: sitesIndex().url },
-                { title: 'Affectations', icon: CalendarRange, href: affectationsIndex().url },
-                { title: 'Produits & prix', icon: Package, href: productsIndex().url },
+                {
+                    title: 'Affectations',
+                    icon: CalendarRange,
+                    href: affectationsIndex().url,
+                },
+                {
+                    title: 'Produits & prix',
+                    icon: Package,
+                    href: productsIndex().url,
+                },
                 // Les événements concernent toute l'entreprise : réservés au gérant
-                ...(role === 'company_admin' ? [{ title: 'Événements', icon: Zap, href: eventsIndex().url, module: 'events' }] : []),
-                { title: 'Alertes de stock', icon: PackageX, href: stockAlertsIndex().url, module: 'stocks' },
-                { title: 'Tickets', icon: MessageSquarePlus, href: ticketsIndex().url, module: 'demandes' },
+                ...(role === 'company_admin'
+                    ? [
+                          {
+                              title: 'Événements',
+                              icon: Zap,
+                              href: eventsIndex().url,
+                              module: 'events',
+                          },
+                      ]
+                    : []),
+                {
+                    title: 'Alertes de stock',
+                    icon: PackageX,
+                    href: stockAlertsIndex().url,
+                    module: 'stocks',
+                },
+                {
+                    title: 'Tickets',
+                    icon: MessageSquarePlus,
+                    href: ticketsIndex().url,
+                    module: 'demandes',
+                },
             ],
         });
     }
@@ -182,7 +295,11 @@ function baseMenu(role: Role): MenuGroup[] {
             label: 'Entreprise',
             items: [
                 { title: 'Sites', icon: MapPin, href: sitesIndex().url },
-                { title: 'Produits & prix', icon: Package, href: productsIndex().url },
+                {
+                    title: 'Produits & prix',
+                    icon: Package,
+                    href: productsIndex().url,
+                },
             ],
         });
     }
@@ -191,11 +308,31 @@ function baseMenu(role: Role): MenuGroup[] {
         groups.push({
             label: 'Entreprise',
             items: [
-                { title: 'Identité & marque', icon: Palette, href: companySettings().url },
-                { title: 'Importer des fichiers', icon: FileUp, href: companyImport().url },
-                { title: 'Abonnement', icon: CreditCard, href: companySubscription().url },
-                { title: 'Factures', icon: Receipt, href: companyInvoices().url },
-                { title: 'Mes données', icon: DatabaseBackup, href: dataExport() },
+                {
+                    title: 'Identité & marque',
+                    icon: Palette,
+                    href: companySettings().url,
+                },
+                {
+                    title: 'Importer des fichiers',
+                    icon: FileUp,
+                    href: companyImport().url,
+                },
+                {
+                    title: 'Abonnement',
+                    icon: CreditCard,
+                    href: companySubscription().url,
+                },
+                {
+                    title: 'Factures',
+                    icon: Receipt,
+                    href: companyInvoices().url,
+                },
+                {
+                    title: 'Mes données',
+                    icon: DatabaseBackup,
+                    href: dataExport(),
+                },
             ],
         });
     }

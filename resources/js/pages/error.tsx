@@ -69,25 +69,25 @@ export default function ErrorPage({
         <>
             <Head title={title} />
 
-            <main className="flex min-h-svh flex-col items-center bg-slate-50 px-4 py-10 dark:bg-background">
+            <main className="flex min-h-svh flex-col items-center bg-slate-50 px-4 py-10">
                 <Link href={home} aria-label="Motriks">
                     <MotriksLogo className="h-7" />
                 </Link>
 
                 <div className="flex w-full flex-1 items-center justify-center py-10">
-                    <section className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-sm shadow-slate-900/[0.04] dark:border-sidebar-border dark:bg-card">
+                    <section className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-8 text-center shadow-sm shadow-slate-900/[0.04]">
                         <span
                             className={`mx-auto flex size-14 items-center justify-center rounded-2xl ring-1 ${tone}`}
                         >
                             <Icon className="size-6" />
                         </span>
-                        <p className="mt-5 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+                        <p className="mt-5 text-xs font-semibold tracking-wider text-slate-500 uppercase">
                             Erreur {status}
                         </p>
                         <h1 className="mt-1 text-xl font-bold text-ink">
                             {title}
                         </h1>
-                        <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                        <p className="mt-3 text-sm leading-relaxed text-slate-600">
                             {message}
                         </p>
 
@@ -127,7 +127,7 @@ export default function ErrorPage({
                     </section>
                 </div>
 
-                <p className="text-center text-xs text-slate-400">
+                <p className="text-center text-xs text-slate-500">
                     Besoin d’aide ? Écrivez au support depuis le centre d’aide
                     de l’application.
                 </p>

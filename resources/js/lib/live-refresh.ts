@@ -51,6 +51,9 @@ async function check(): Promise<void> {
         const response = await fetch(pulse().url, {
             credentials: 'same-origin',
             cache: 'no-store',
+            // Une redirection (session expirée, page imposée) n'est jamais suivie en arrière-plan : la suivre
+            // chargerait la page de destination à l'insu de l'utilisateur (et y annulerait une saisie en cours)
+            redirect: 'manual',
             headers: {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
@@ -58,7 +61,11 @@ async function check(): Promise<void> {
         });
 
         // Session expirée, compte en attente… : la prochaine navigation s'en chargera
-        if (!response.ok || response.redirected) {
+        if (
+            !response.ok ||
+            response.redirected ||
+            response.type === 'opaqueredirect'
+        ) {
             return;
         }
 

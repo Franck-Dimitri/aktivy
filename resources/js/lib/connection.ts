@@ -77,6 +77,8 @@ export async function checkConnection(): Promise<boolean> {
         const response = await fetch(pulse().url, {
             credentials: 'same-origin',
             cache: 'no-store',
+            // Une réponse, même une redirection, prouve que le réseau répond : inutile (et risqué) de la suivre
+            redirect: 'manual',
             headers: {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',

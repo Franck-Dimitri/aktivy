@@ -23,6 +23,12 @@ class RequireAdminTwoFactor
         'password.confirmation',
         'logout',
         'impersonation.stop',
+        // Appels de fond de l'application (pouls des notifications, cloche, abonnement push) : ils ne
+        // donnent accès à rien d'administratif, et les rediriger vers la page Sécurité la rechargeait
+        // en arrière-plan, ce qui annulait l'activation en cours (Fortify efface alors le secret)
+        'notifications.pulse',
+        'notifications.recent',
+        'push.*',
     ];
 
     public function handle(Request $request, Closure $next): Response
@@ -35,6 +41,11 @@ class RequireAdminTwoFactor
             || $request->routeIs(...self::ALLOWED)
             || ! app()->isProduction()) {
             return $next($request);
+        }
+
+        // Requête de fond (fetch, JSON) : un refus net, jamais une redirection que le navigateur suivrait
+        if ($request->expectsJson() && ! $request->header('X-Inertia')) {
+            return response()->json(['message' => 'Activez la double authentification pour continuer.'], 403);
         }
 
         return redirect()->route('security.edit')

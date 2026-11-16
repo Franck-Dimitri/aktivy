@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import AuthStatus from '@/components/auth/auth-status';
 import DevTestAccounts, { type DevAccount } from '@/components/auth/dev-test-accounts';
+import { isMobileDevice, isStandalone } from '@/lib/pwa';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { StaggerItem } from './auth-card';
@@ -34,6 +35,14 @@ function validate({ login, password }: Fields): Partial<Record<keyof Fields, str
 export function LoginForm({ status, canResetPassword, devAccounts = [] }: { status?: string; canResetPassword: boolean; devAccounts?: DevAccount[] }) {
     const form = useForm<Fields>({ login: '', password: '', remember: false });
     const { data, setData, errors, processing } = form;
+
+    // Téléphone (et application installée) : on reste connecté, comme dans une application mobile.
+    // Sans cela, la session tombe après 2 h sans activité et il faut se reconnecter en plein service.
+    // Décochable sur un téléphone partagé ; réglé après l'affichage (le rendu serveur ne connaît pas l'appareil).
+    useEffect(() => {
+        if (isMobileDevice() || isStandalone()) setData('remember', true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const send = (values: Fields) => {
         const invalid = validate(values);

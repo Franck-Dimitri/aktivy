@@ -688,7 +688,17 @@ function PhotoGallery({ photos, siteUuid, canAdd, canDelete = true }: { photos: 
             </div>
 
             {lightbox && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" onClick={() => setLightbox(null)}>
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Aperçu de la photo"
+                    tabIndex={-1}
+                    // Échap, ou bouton Retour d'Android (lib/back-button.ts), referme l'aperçu
+                    onKeyDown={(e) => e.key === 'Escape' && setLightbox(null)}
+                    ref={(el) => el?.focus()}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 outline-none backdrop-blur-sm"
+                    onClick={() => setLightbox(null)}
+                >
                     <img
                         src={lightbox}
                         alt="Aperçu"

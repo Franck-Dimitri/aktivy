@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/page/empty-state';
 import { Page } from '@/components/page/page';
 import { SurfaceCard, MetricStrip } from '@/components/page/surface';
 import { toastFormError } from '@/lib/form-toast';
+import { haptic } from '@/lib/haptics';
 import { localDay, localVisits, outboxAvailable, type LocalVisit } from '@/lib/outbox';
 import { pruneLocalVisits, useSyncState } from '@/lib/sync';
 import { checkinOffline, checkoutOffline, kitUsableToday, openLocalReport, type Coords, type OfflineKit } from '@/lib/terrain-offline';
@@ -683,6 +684,7 @@ export default function TerrainHome({
     async function checkinWithoutNetwork(coords: Coords | null) {
         if (!offline_kit) return;
         const created = await checkinOffline(userId, offline_kit, coords ?? { latitude: null, longitude: null });
+        haptic('success');
         toast.success('Service pris hors ligne', {
             description: `${created.checkedIn} · ${created.siteName}. Il sera envoyé dès le retour du réseau.`,
         });
@@ -724,10 +726,12 @@ export default function TerrainHome({
             visitStore().url,
             { affectation_id: affectation.id, latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null, accuracy: coords?.accuracy ?? null },
             {
-                onSuccess: () =>
+                onSuccess: () => {
+                    haptic('success');
                     toast.success('Service pris', {
                         description: `Bonne journée sur ${affectation.site_name} !`,
-                    }),
+                    });
+                },
                 onError: toastFormError,
                 // Réseau perdu en route : la prise de service est gardée sur le téléphone
                 onNetworkError: () => {
@@ -753,6 +757,7 @@ export default function TerrainHome({
 
         const withoutNetwork = async () => {
             await checkoutOffline(ref, coords ?? { latitude: null, longitude: null });
+            haptic('success');
             toast.success('Service terminé', { description: 'Enregistré sur ce téléphone, envoyé dès le retour du réseau.' });
             setConfirmCheckout(false);
             setCheckingOut(false);
@@ -770,6 +775,7 @@ export default function TerrainHome({
             { latitude: coords?.latitude ?? null, longitude: coords?.longitude ?? null },
             {
                 onSuccess: () => {
+                    haptic('success');
                     toast.success('Service terminé', { description: 'Merci pour votre journée !' });
                     setConfirmCheckout(false);
                 },

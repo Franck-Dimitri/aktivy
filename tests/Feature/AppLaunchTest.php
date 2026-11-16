@@ -53,6 +53,46 @@ class AppLaunchTest extends TestCase
         $this->actingAs(User::factory()->create())->withHeader('User-Agent', self::DESKTOP)->get('/')->assertOk();
     }
 
+    public function test_un_raccourci_de_l_icone_ouvre_le_bon_ecran_selon_le_role(): void
+    {
+        $hostess = User::factory()->fieldAgent()->create();
+        $supervisor = User::factory()->supervisor()->create();
+
+        $this->actingAs($hostess)->get('/app?ouvrir=rapports')->assertRedirect(route('terrain.reports.index', absolute: false));
+        $this->actingAs($hostess)->get('/app?ouvrir=ventes')->assertRedirect(route('terrain.sales', absolute: false));
+        $this->actingAs($hostess)->get('/app?ouvrir=stock')->assertRedirect(route('terrain.stock', absolute: false));
+
+        $this->actingAs($supervisor)->get('/app?ouvrir=rapports')->assertRedirect(route('daily-reports.index', absolute: false));
+        $this->actingAs($supervisor)->get('/app?ouvrir=stock')->assertRedirect(route('stock-alerts.index', absolute: false));
+        $this->actingAs($supervisor)->get('/app?ouvrir=notifications')->assertRedirect(route('notifications.index', absolute: false));
+    }
+
+    public function test_un_raccourci_inconnu_ou_sans_ecran_pour_le_role_ouvre_l_espace_de_l_utilisateur(): void
+    {
+        $accountant = User::factory()->accountant()->create();
+
+        $this->actingAs($accountant)->get('/app?ouvrir=ventes')->assertRedirect($accountant->homeUrl());
+        $this->actingAs($accountant)->get('/app?ouvrir=nimporte-quoi')->assertRedirect($accountant->homeUrl());
+    }
+
+    public function test_un_raccourci_touche_sans_etre_connecte_s_ouvre_apres_la_connexion(): void
+    {
+        $this->get('/app?ouvrir=rapports')->assertRedirect(route('login'));
+
+        $this->assertStringEndsWith('/app?ouvrir=rapports', (string) session('url.intended'));
+    }
+
+    public function test_les_raccourcis_du_manifeste_passent_par_app(): void
+    {
+        $manifest = json_decode((string) file_get_contents(public_path('manifest.json')), true);
+
+        $this->assertNotEmpty($manifest['shortcuts']);
+        foreach ($manifest['shortcuts'] as $shortcut) {
+            $this->assertStringStartsWith('/app?ouvrir=', $shortcut['url']);
+            $this->assertFileExists(public_path(strtok($shortcut['icons'][0]['src'], '?')));
+        }
+    }
+
     public function test_le_manifeste_demarre_l_application_sur_app(): void
     {
         $manifest = json_decode((string) file_get_contents(public_path('manifest.json')), true);

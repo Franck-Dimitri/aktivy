@@ -1,12 +1,16 @@
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import { setupFlashToasts } from '@/hooks/use-flash-toast';
+import { setupAppFeel } from '@/lib/app-feel';
+import { setupBackButton } from '@/lib/back-button';
+import { setupConnection } from '@/lib/connection';
 import { setupDownloads } from '@/lib/download';
+import { setupNetworkErrors } from '@/lib/network-errors';
 import { setupLiveRefresh } from '@/lib/live-refresh';
 import { setupOffline } from '@/lib/offline';
-import { setupInstallCapture } from '@/lib/pwa';
+import { setupInstallCapture, setupLaunchQueue, setupPushSync } from '@/lib/pwa';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -58,6 +62,21 @@ setupInstallCapture();
 setupDownloads();
 // Écran à jour tout seul : nouvelle notification ou changement qui concerne l'utilisateur
 setupLiveRefresh();
+// Connexion suivie partout ; page ou envoi impossible faute de réseau : un message clair, pas un clic muet
+setupConnection();
+setupNetworkErrors();
+// Android : le bouton Retour ferme d'abord la fenêtre ou le menu ouvert, comme dans une application
+setupBackButton();
+// Icône touchée alors que l'application est déjà ouverte : on la retrouve telle quelle (sauf raccourci)
+setupLaunchQueue((url) => router.visit(url));
+// Notifications push qui ne s'arrêtent pas : abonnement de l'appareil renvoyé au serveur s'il a changé ou disparu
+const syncPushFor = setupPushSync();
+router.on('navigate', (event) => {
+    const props = event.detail.page.props as { auth?: { user?: { id: number } | null }; push?: { publicKey: string | null } };
+    syncPushFor({ userId: props.auth?.user?.id ?? null, publicKey: props.push?.publicKey ?? null });
+});
+// Application installée sur téléphone : pas de menu du navigateur à l'appui long sur un bouton ou une image
+setupAppFeel();
 
 void createInertiaApp({
     title: (title) => (title ? title : appName),

@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Admin\TrafficController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\InvitationController;
+use App\Http\Controllers\AppLaunchController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\NotificationController;
@@ -49,9 +50,8 @@ $paymentLogos = function (): array {
         : [];
 };
 
-// Ouverture de l'application installée (start_url du manifeste) : comme une application mobile,
-// l'espace de l'utilisateur s'il est connecté, sinon directement le formulaire de connexion.
-Route::get('/app', fn (Request $request) => redirect($request->user()?->homeUrl() ?? route('login')))->name('app');
+// Ouverture de l'application installée (start_url du manifeste) et raccourcis de son icône (?ouvrir=)
+Route::get('/app', AppLaunchController::class)->name('app');
 
 // Landing page (pages publiques : balises de référencement dans PublicPages)
 Route::get('/', function (Request $request) use ($paymentLogos) {

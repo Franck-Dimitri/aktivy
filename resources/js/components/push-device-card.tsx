@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
  * Sur iPhone, le push n'existe que dans l'application installée : on l'indique.
  */
 export function PushDeviceCard() {
-    const { push } = usePage().props as { push?: { publicKey: string | null } };
+    const { push, auth } = usePage().props as { push?: { publicKey: string | null }; auth?: { user?: { id: number } | null } };
     const publicKey = push?.publicKey ?? null;
     const [state, setState] = useState<PushState | 'needs-install' | null>(null);
     const [busy, setBusy] = useState(false);
@@ -30,7 +30,7 @@ export function PushDeviceCard() {
     const enable = async () => {
         setBusy(true);
         try {
-            const next = await enablePush(publicKey);
+            const next = await enablePush(publicKey, auth?.user?.id ?? null);
             setState(next);
             if (next === 'enabled') toast.success('Notifications activées sur cet appareil');
             if (next === 'denied') toast.error('Notifications refusées', { description: 'Autorisez-les dans les réglages du navigateur ou du téléphone.' });

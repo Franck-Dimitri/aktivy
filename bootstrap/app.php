@@ -24,7 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: ['telegram/webhook']);
 
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        // motriks_appareil : posé par l'application (lib/pwa.ts), lu à la déconnexion (ForgetPushDevice)
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'motriks_appareil']);
 
         $middleware->redirectUsersTo(fn (Request $request) => $request->user()->homeUrl());
 

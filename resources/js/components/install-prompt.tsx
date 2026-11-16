@@ -53,7 +53,7 @@ function IosStep({ n, icon: Icon, children }: { n: number; icon: typeof Share; c
  * « Non, merci » ou « Plus tard » : plus rien pendant 7 jours.
  */
 export function InstallPrompt() {
-    const { push } = usePage().props as { push?: { publicKey: string | null } };
+    const { push, auth } = usePage().props as { push?: { publicKey: string | null }; auth?: { user?: { id: number } | null } };
     const publicKey = push?.publicKey ?? null;
     const [step, setStep] = useState<Step>(null);
     const [busy, setBusy] = useState(false);
@@ -115,7 +115,7 @@ export function InstallPrompt() {
         if (!publicKey) return close();
         setBusy(true);
         try {
-            const state = await enablePush(publicKey);
+            const state = await enablePush(publicKey, auth?.user?.id ?? null);
             if (state === 'enabled') toast.success('Notifications activées', { description: 'Vous serez prévenu en temps réel sur ce téléphone.' });
             else if (state === 'denied') toast.error('Notifications refusées', { description: 'Vous pourrez les autoriser plus tard dans les réglages du téléphone.' });
             close();

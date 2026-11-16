@@ -20,7 +20,8 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches
             .open(ASSETS)
-            .then((cache) => cache.add(OFFLINE_PAGE))
+            // Toujours la dernière version de la page « hors ligne » (pas celle du cache HTTP du navigateur)
+            .then((cache) => cache.add(new Request(OFFLINE_PAGE, { cache: 'reload' })))
             .then(() => self.skipWaiting()),
     );
 });
@@ -74,6 +75,25 @@ self.addEventListener('push', (event) => {
             self.clients.matchAll({ type: 'window' }).then((windows) => windows.forEach((w) => w.postMessage({ type: 'push-received' }))),
             updateBadge(),
         ]),
+    );
+});
+
+/*
+ * Abonnement renouvelé par le navigateur (il expire de lui-même) : sans cela, le serveur garde l'ancienne
+ * adresse, la supprime au premier envoi refusé, et les notifications s'arrêtent sans prévenir.
+ * Réabonnement avec la même clé ; les fenêtres ouvertes envoient le nouvel abonnement au serveur
+ * (lib/pwa.ts, setupPushSync). Application fermée : il part à la prochaine ouverture (adresse changée).
+ */
+self.addEventListener('pushsubscriptionchange', (event) => {
+    event.waitUntil(
+        (async () => {
+            const key = event.oldSubscription?.options?.applicationServerKey;
+            if (key && !(await self.registration.pushManager.getSubscription())) {
+                await self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }).catch(() => {});
+            }
+            const windows = await self.clients.matchAll({ type: 'window' });
+            windows.forEach((w) => w.postMessage({ type: 'push-resubscribed' }));
+        })(),
     );
 });
 

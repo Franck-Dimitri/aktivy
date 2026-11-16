@@ -30,7 +30,9 @@ export function setupFlashToasts(): void {
     });
 
     router.on('flash', (event) => {
-        const data = (event as CustomEvent).detail?.flash?.toast as FlashToast | undefined;
+        const data = (event as CustomEvent).detail?.flash?.toast as
+            | FlashToast
+            | undefined;
 
         if (!data?.message) {
             return;

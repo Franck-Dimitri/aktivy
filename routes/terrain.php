@@ -5,13 +5,13 @@ use App\Enums\Role;
 use App\Http\Controllers\ReportPhotoController;
 use App\Http\Controllers\Terrain\DailyReportController;
 use App\Http\Controllers\Terrain\ExternalShopController;
-use App\Http\Controllers\Terrain\ReportPdfController;
-use App\Http\Controllers\Terrain\StockController;
 use App\Http\Controllers\Terrain\HomeController;
 use App\Http\Controllers\Terrain\PlanningController;
 use App\Http\Controllers\Terrain\ReportHistoryController;
+use App\Http\Controllers\Terrain\ReportPdfController;
 use App\Http\Controllers\Terrain\SalesController;
 use App\Http\Controllers\Terrain\StatsController;
+use App\Http\Controllers\Terrain\StockController;
 use App\Http\Controllers\Terrain\TicketController;
 use App\Http\Controllers\Terrain\VisitController;
 use App\Http\Middleware\EnsureModuleIsActive;
@@ -61,6 +61,6 @@ Route::middleware(['auth', 'verified', EnsureUserHasRole::using(Role::FieldAgent
         Route::middleware(EnsureModuleIsActive::using(Module::Requests))->group(function () {
             Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
             Route::post('tickets', [TicketController::class, 'store'])->name('tickets.store');
-        Route::delete('tickets/{ticket}', [TicketController::class, 'cancel'])->name('tickets.cancel');
+            Route::delete('tickets/{ticket}', [TicketController::class, 'cancel'])->name('tickets.cancel');
         });
     });

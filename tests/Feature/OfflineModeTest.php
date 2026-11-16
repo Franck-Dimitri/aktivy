@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -60,7 +61,7 @@ class OfflineModeTest extends TestCase
             ->json($method, $url, $data);
     }
 
-    private function checkin(string $uuid, string $at): \Illuminate\Testing\TestResponse
+    private function checkin(string $uuid, string $at): TestResponse
     {
         return $this->sync('POST', route('terrain.visit.store'), [
             'affectation_id' => $this->affectation->id, 'latitude' => null, 'longitude' => null,

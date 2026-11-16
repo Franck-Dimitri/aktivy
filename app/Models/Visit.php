@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\VisitStatus;
+use App\Models\Concerns\HasPublicUuid;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -48,10 +47,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class Visit extends Model
 {
+    use HasFactory;
+
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
-
-    use HasFactory;
 
     /** Au-delà de cette distance du site (en mètres), le pointage est signalé « hors site ». */
     public const OFF_SITE_METERS = 300;

@@ -1,15 +1,29 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Lock } from 'lucide-react';
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
+import {
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar,
+} from '@/components/ui/sidebar';
 import { cn, toUrl } from '@/lib/utils';
 import type { MenuGroup } from '@/types';
 
 function useActiveItem(groups: MenuGroup[]) {
     const page = usePage();
-    const currentPath = new URL(page.url, typeof window !== 'undefined' ? window.location.origin : 'http://localhost').pathname;
+    const currentPath = new URL(
+        page.url,
+        typeof window !== 'undefined'
+            ? window.location.origin
+            : 'http://localhost',
+    ).pathname;
 
     // Toutes les URLs disponibles dans le menu
-    const allHrefs = groups.flatMap((g) => g.items.filter((i) => i.href).map((i) => toUrl(i.href!)));
+    const allHrefs = groups.flatMap((g) =>
+        g.items.filter((i) => i.href).map((i) => toUrl(i.href!)),
+    );
 
     // Correspondance exacte, sinon parent (ex: /sites active sur /sites/1/edit)
     const matches = (href: string): boolean => {
@@ -19,7 +33,9 @@ function useActiveItem(groups: MenuGroup[]) {
     };
 
     // Seul l'item le plus spécifique est actif : /admin/onboarding l'emporte sur /admin
-    const activeHref = allHrefs.filter(matches).sort((a, b) => b.length - a.length)[0];
+    const activeHref = allHrefs
+        .filter(matches)
+        .sort((a, b) => b.length - a.length)[0];
 
     return (href: string): boolean => href === activeHref;
 }
@@ -37,14 +53,18 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
         <div className="flex flex-col gap-4 px-3 py-3 group-data-[collapsible=icon]:px-2">
             {groups.map((group, gi) => (
                 <SidebarGroup key={group.label} className="p-0">
-                    {gi > 0 && <div className="mb-3 h-px bg-sidebar-border group-data-[collapsible=icon]:hidden" />}
+                    {gi > 0 && (
+                        <div className="mb-3 h-px bg-sidebar-border group-data-[collapsible=icon]:hidden" />
+                    )}
                     <SidebarGroupLabel className="mb-1 h-6 px-2 text-[10.5px] font-semibold tracking-wider text-sidebar-foreground/45 group-data-[collapsible=icon]:hidden">
                         {group.label.toUpperCase()}
                     </SidebarGroupLabel>
 
                     <SidebarMenu className="gap-0.5">
                         {group.items.map((item) => {
-                            const active = item.href ? isActive(toUrl(item.href)) : false;
+                            const active = item.href
+                                ? isActive(toUrl(item.href))
+                                : false;
                             const available = !!item.href;
                             const locked = item.locked;
 
@@ -52,7 +72,11 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton
                                         asChild={available}
-                                        tooltip={{ children: locked ? `${item.title} · avec Motriks ${locked}` : item.title }}
+                                        tooltip={{
+                                            children: locked
+                                                ? `${item.title} · avec Motriks ${locked}`
+                                                : item.title,
+                                        }}
                                         aria-disabled={!available || undefined}
                                         className={cn(
                                             // Base
@@ -94,21 +118,29 @@ export function NavMain({ groups }: { groups: MenuGroup[] }) {
                                                 aria-label={`${item.title}, disponible avec Motriks ${locked}`}
                                             >
                                                 <item.icon />
-                                                <span className="flex-1 truncate">{item.title}</span>
+                                                <span className="flex-1 truncate">
+                                                    {item.title}
+                                                </span>
                                                 <span className="flex shrink-0 items-center gap-1 rounded-md bg-sidebar-foreground/10 px-1.5 py-0.5 text-[10px] font-semibold text-sidebar-foreground/70 group-data-[collapsible=icon]:hidden">
                                                     <Lock className="size-2.5" />
                                                     {locked}
                                                 </span>
                                             </Link>
                                         ) : available ? (
-                                            <Link href={item.href!} prefetch onClick={closeOnMobile}>
+                                            <Link
+                                                href={item.href!}
+                                                prefetch
+                                                onClick={closeOnMobile}
+                                            >
                                                 <item.icon />
                                                 <span>{item.title}</span>
                                             </Link>
                                         ) : (
                                             <>
                                                 <item.icon />
-                                                <span className="flex-1 truncate">{item.title}</span>
+                                                <span className="flex-1 truncate">
+                                                    {item.title}
+                                                </span>
                                                 <span className="shrink-0 rounded-md bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-medium text-sidebar-foreground/45 group-data-[collapsible=icon]:hidden">
                                                     bientôt
                                                 </span>

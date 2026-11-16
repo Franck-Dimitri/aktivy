@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * Module payant activé pour une entreprise, sur une période (sans fin si ends_on est vide).
@@ -14,8 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $company_id
  * @property Module $module
- * @property \Illuminate\Support\Carbon $starts_on
- * @property \Illuminate\Support\Carbon|null $ends_on
+ * @property Carbon $starts_on
+ * @property Carbon|null $ends_on
  * @property bool $is_trial
  */
 #[Fillable(['company_id', 'module', 'starts_on', 'ends_on', 'is_trial', 'activated_by', 'notes'])]

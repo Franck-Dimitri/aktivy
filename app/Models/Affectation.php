@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\AffectationStatus;
+use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -42,10 +41,10 @@ use Illuminate\Support\Carbon;
 ])]
 class Affectation extends Model
 {
+    use HasFactory, SoftDeletes;
+
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
-
-    use HasFactory, SoftDeletes;
 
     protected $attributes = [
         'status' => 'active',

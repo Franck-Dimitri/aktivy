@@ -1,27 +1,25 @@
 <?php
 
 use App\Enums\Role;
-use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\Admin\CompanyDocumentController as AdminCompanyDocumentController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\CompanyManagerController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CompanyPlanController;
 use App\Http\Controllers\Admin\CompanyRequestController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\InvoiceController as AdminInvoiceController;
 use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
 use App\Http\Controllers\Admin\SupportController;
 use App\Http\Controllers\Admin\TrafficController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\AppLaunchController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\InvitationController;
-use App\Http\Controllers\AppLaunchController;
-use App\Http\Controllers\HealthController;
-use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
-use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OnboardingController;
@@ -34,7 +32,8 @@ use App\Support\Seo\PublicPages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
+use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
 // Logos de paiement partagés entre la landing, le contact et les pages légales
 $paymentLogos = function (): array {
@@ -214,7 +213,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
 });
-
 
 require __DIR__.'/terrain.php';
 require __DIR__.'/company.php';

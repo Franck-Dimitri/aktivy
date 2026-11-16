@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPublicUuid;
-
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,8 +16,8 @@ use Illuminate\Support\Carbon;
  * @property int $site_id
  * @property int $user_id
  * @property int $visit_id
- * @property \Illuminate\Support\Carbon $report_date
- * @property string $status  draft|submitted
+ * @property Carbon $report_date
+ * @property string $status draft|submitted
  * @property string|null $notes
  * @property string|null $incident_notes
  * @property Carbon|null $submitted_at
@@ -25,7 +25,7 @@ use Illuminate\Support\Carbon;
  * @property-read Site $site
  * @property-read User $agent
  * @property-read Visit $visit
- * @property-read \Illuminate\Database\Eloquent\Collection<int, DailyReportLine> $lines
+ * @property-read Collection<int, DailyReportLine> $lines
  */
 #[Fillable([
     'company_id', 'site_id', 'user_id', 'visit_id', 'event_id', 'report_date', 'status', 'notes', 'incident_notes',

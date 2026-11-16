@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPublicUuid;
-
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,31 +11,31 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int         $id
- * @property int         $company_id
- * @property string      $name
+ * @property int $id
+ * @property int $company_id
+ * @property string $name
  * @property string|null $sku
  * @property string|null $description
- * @property string      $unit
- * @property float|null  $price
+ * @property string $unit
+ * @property float|null $price
  * @property string|null $image
- * @property bool        $is_active
- * @property int|null    $created_by
+ * @property bool $is_active
+ * @property int|null $created_by
  * @property-read Company     $company
  * @property-read HasMany<SiteProduct, $this> $siteProducts
  */
 #[Fillable(['name', 'sku', 'description', 'unit', 'price', 'image', 'is_active', 'created_by'])]
 class Product extends Model
 {
+    use HasFactory, SoftDeletes;
+
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
-
-    use HasFactory, SoftDeletes;
 
     protected function casts(): array
     {
         return [
-            'price'     => 'decimal:2',
+            'price' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }

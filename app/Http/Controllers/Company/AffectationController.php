@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Company;
 
-use App\Http\Controllers\Controller;
-
 use App\Enums\AffectationStatus;
 use App\Enums\Role;
+use App\Http\Controllers\Controller;
 use App\Models\Affectation;
 use App\Models\Company;
 use App\Models\Site;
@@ -36,38 +35,38 @@ class AffectationController extends Controller
             ->orderByDesc('starts_on')
             ->get()
             ->map(fn (Affectation $a) => [
-                'id'          => $a->id,
-                'uuid'        => $a->uuid,
-                'agent_id'    => $a->user_id,
-                'agent_uuid'  => $a->agent->uuid,
-                'agent_name'  => $a->agent->name,
-                'agent_role'  => $a->agent->role->value,
+                'id' => $a->id,
+                'uuid' => $a->uuid,
+                'agent_id' => $a->user_id,
+                'agent_uuid' => $a->agent->uuid,
+                'agent_name' => $a->agent->name,
+                'agent_role' => $a->agent->role->value,
                 'agent_phone' => $a->agent->phone,
-                'site_id'     => $a->site_id,
-                'site_uuid'   => $a->site->uuid,
-                'site_name'   => $a->site->name,
-                'site_city'   => $a->site->city,
-                'site_type'   => $a->site->type->label(),
-                'starts_on'   => $a->starts_on->format('d/m/Y'),
-                'ends_on'     => $a->ends_on?->format('d/m/Y'),
-                'slot_start'  => $a->slot_start,
-                'slot_end'    => $a->slot_end,
-                'status'      => $a->status->value,
-                'status_label'=> $a->status->label(),
-                'is_current'  => $a->isCurrentlyActive(),
-                'notes'       => $a->notes,
+                'site_id' => $a->site_id,
+                'site_uuid' => $a->site->uuid,
+                'site_name' => $a->site->name,
+                'site_city' => $a->site->city,
+                'site_type' => $a->site->type->label(),
+                'starts_on' => $a->starts_on->format('d/m/Y'),
+                'ends_on' => $a->ends_on?->format('d/m/Y'),
+                'slot_start' => $a->slot_start,
+                'slot_end' => $a->slot_end,
+                'status' => $a->status->value,
+                'status_label' => $a->status->label(),
+                'is_current' => $a->isCurrentlyActive(),
+                'notes' => $a->notes,
             ]);
 
         $stats = [
-            'total'     => $affectations->count(),
-            'active'    => $affectations->where('status', 'active')->count(),
-            'current'   => $affectations->where('is_current', true)->count(),
+            'total' => $affectations->count(),
+            'active' => $affectations->where('status', 'active')->count(),
+            'current' => $affectations->where('is_current', true)->count(),
             'completed' => $affectations->where('status', 'completed')->count(),
         ];
 
         return Inertia::render('affectations/index', [
             'affectations' => $affectations->values(),
-            'stats'        => $stats,
+            'stats' => $stats,
 
             // Listes en lecture seule pour la modification dans la fenêtre flottante
             // (mêmes requêtes que edit()).
@@ -79,11 +78,11 @@ class AffectationController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name', 'role', 'phone'])
                 ->map(fn ($u) => [
-                    'value'      => $u->id,
-                    'label'      => $u->name,
-                    'role'       => $u->role->value,
+                    'value' => $u->id,
+                    'label' => $u->name,
+                    'role' => $u->role->value,
                     'role_label' => $u->role->label(),
-                    'phone'      => $u->phone,
+                    'phone' => $u->phone,
                 ]),
             'statuses' => collect(AffectationStatus::cases())
                 ->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
@@ -108,15 +107,15 @@ class AffectationController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name', 'role', 'phone'])
                 ->map(fn ($u) => [
-                    'value'      => $u->id,
-                    'label'      => $u->name,
+                    'value' => $u->id,
+                    'label' => $u->name,
                     // Un superviseur peut être affecté à plusieurs points de vente d'un coup
-                    'role'       => $u->role->value,
+                    'role' => $u->role->value,
                     'role_label' => $u->role->label(),
-                    'phone'      => $u->phone,
+                    'phone' => $u->phone,
                 ]),
             'default_site_id' => (int) $request->query('site_id', 0) ?: null,
-            'default_agent_id'=> (int) $request->query('agent_id', 0) ?: null,
+            'default_agent_id' => (int) $request->query('agent_id', 0) ?: null,
         ]);
     }
 
@@ -131,15 +130,15 @@ class AffectationController extends Controller
 
         $validated = $request->validate([
             // site_ids : plusieurs sites (superviseur) ; site_id reste accepté pour un seul site
-            'site_ids'   => ['required_without:site_id', 'array', 'min:1', 'max:200'],
+            'site_ids' => ['required_without:site_id', 'array', 'min:1', 'max:200'],
             'site_ids.*' => ['integer', 'distinct', "exists:sites,id,company_id,{$company->id}"],
-            'site_id'    => ['required_without:site_ids', 'integer', "exists:sites,id,company_id,{$company->id}"],
-            'user_id'    => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
-            'starts_on'  => ['required', 'date'],
-            'ends_on'    => ['nullable', 'date', 'after_or_equal:starts_on'],
+            'site_id' => ['required_without:site_ids', 'integer', "exists:sites,id,company_id,{$company->id}"],
+            'user_id' => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
+            'starts_on' => ['required', 'date'],
+            'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
             'slot_start' => ['nullable', 'date_format:H:i'],
-            'slot_end'   => ['nullable', 'date_format:H:i', 'after:slot_start'],
-            'notes'      => ['nullable', 'string', 'max:500'],
+            'slot_end' => ['nullable', 'date_format:H:i', 'after:slot_start'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ], [
             'site_ids.required_without' => 'Choisissez au moins un point de vente.',
             'site_id.required_without' => 'Choisissez au moins un point de vente.',
@@ -170,9 +169,9 @@ class AffectationController extends Controller
 
         $created = DB::transaction(fn () => collect($toCreate)->map(fn (int $siteId) => $company->affectations()->create([
             ...$fields,
-            'site_id'     => $siteId,
+            'site_id' => $siteId,
             'assigned_by' => $request->user()->id,
-            'status'      => AffectationStatus::Active,
+            'status' => AffectationStatus::Active,
         ])));
 
         // La personne affectée l'apprend sur son téléphone : une seule notification, même pour plusieurs sites
@@ -201,16 +200,16 @@ class AffectationController extends Controller
 
         return Inertia::render('affectations/edit', [
             'affectation' => [
-                'id'         => $affectation->id,
-                'uuid'       => $affectation->uuid,
-                'site_id'    => $affectation->site_id,
-                'user_id'    => $affectation->user_id,
-                'starts_on'  => $affectation->starts_on->format('Y-m-d'),
-                'ends_on'    => $affectation->ends_on?->format('Y-m-d'),
+                'id' => $affectation->id,
+                'uuid' => $affectation->uuid,
+                'site_id' => $affectation->site_id,
+                'user_id' => $affectation->user_id,
+                'starts_on' => $affectation->starts_on->format('Y-m-d'),
+                'ends_on' => $affectation->ends_on?->format('Y-m-d'),
                 'slot_start' => $affectation->slot_start,
-                'slot_end'   => $affectation->slot_end,
-                'status'     => $affectation->status->value,
-                'notes'      => $affectation->notes,
+                'slot_end' => $affectation->slot_end,
+                'status' => $affectation->status->value,
+                'notes' => $affectation->notes,
             ],
             'sites' => $this->sites($request)
                 ->orderBy('name')
@@ -220,10 +219,10 @@ class AffectationController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name', 'role', 'phone'])
                 ->map(fn ($u) => [
-                    'value'      => $u->id,
-                    'label'      => $u->name,
+                    'value' => $u->id,
+                    'label' => $u->name,
                     'role_label' => $u->role->label(),
-                    'phone'      => $u->phone,
+                    'phone' => $u->phone,
                 ]),
             'statuses' => collect(AffectationStatus::cases())
                 ->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
@@ -237,14 +236,14 @@ class AffectationController extends Controller
         $company = $request->user()->company;
 
         $validated = $request->validate([
-            'site_id'    => ['required', 'integer', "exists:sites,id,company_id,{$company->id}"],
-            'user_id'    => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
-            'starts_on'  => ['required', 'date'],
-            'ends_on'    => ['nullable', 'date', 'after_or_equal:starts_on'],
+            'site_id' => ['required', 'integer', "exists:sites,id,company_id,{$company->id}"],
+            'user_id' => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
+            'starts_on' => ['required', 'date'],
+            'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
             'slot_start' => ['nullable', 'date_format:H:i'],
-            'slot_end'   => ['nullable', 'date_format:H:i', 'after:slot_start'],
-            'status'     => ['required', 'string', 'in:'.implode(',', array_column(AffectationStatus::cases(), 'value'))],
-            'notes'      => ['nullable', 'string', 'max:500'],
+            'slot_end' => ['nullable', 'date_format:H:i', 'after:slot_start'],
+            'status' => ['required', 'string', 'in:'.implode(',', array_column(AffectationStatus::cases(), 'value'))],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         $this->authorizeChoice($request, $validated['site_id'], $validated['user_id']);
@@ -275,32 +274,32 @@ class AffectationController extends Controller
         $company = $request->user()->company;
 
         $validated = $request->validate([
-            'user_id'    => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
-            'starts_on'  => ['required', 'date'],
-            'ends_on'    => ['nullable', 'date', 'after_or_equal:starts_on'],
+            'user_id' => ['required', 'integer', "exists:users,id,company_id,{$company->id}"],
+            'starts_on' => ['required', 'date'],
+            'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
             'slot_start' => ['nullable', 'date_format:H:i'],
-            'slot_end'   => ['nullable', 'date_format:H:i', 'after:slot_start'],
-            'notes'      => ['nullable', 'string', 'max:500'],
+            'slot_end' => ['nullable', 'date_format:H:i', 'after:slot_start'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         $this->authorizeChoice($request, $affectation->site_id, $validated['user_id']);
 
         DB::transaction(function () use ($affectation, $validated, $request, $company) {
             $affectation->update([
-                'status'  => AffectationStatus::Completed,
+                'status' => AffectationStatus::Completed,
                 'ends_on' => now()->toDateString(),
             ]);
 
             $company->affectations()->create([
-                'site_id'     => $affectation->site_id,
-                'user_id'     => $validated['user_id'],
-                'starts_on'   => $validated['starts_on'],
-                'ends_on'     => $validated['ends_on'] ?? null,
-                'slot_start'  => $validated['slot_start'] ?? null,
-                'slot_end'    => $validated['slot_end'] ?? null,
-                'notes'       => $validated['notes'] ?? null,
+                'site_id' => $affectation->site_id,
+                'user_id' => $validated['user_id'],
+                'starts_on' => $validated['starts_on'],
+                'ends_on' => $validated['ends_on'] ?? null,
+                'slot_start' => $validated['slot_start'] ?? null,
+                'slot_end' => $validated['slot_end'] ?? null,
+                'notes' => $validated['notes'] ?? null,
                 'assigned_by' => $request->user()->id,
-                'status'      => AffectationStatus::Active,
+                'status' => AffectationStatus::Active,
             ]);
         });
 

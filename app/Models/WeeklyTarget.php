@@ -19,7 +19,7 @@ use Illuminate\Support\Collection;
  * @property int $id
  * @property int $company_id
  * @property int $user_id
- * @property \Carbon\CarbonImmutable $week_start
+ * @property CarbonImmutable $week_start
  * @property int $amount
  * @property int|null $updated_by
  */

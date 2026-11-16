@@ -19,11 +19,17 @@ const dots: Record<StatusTone, string> = {
     info: 'bg-blue-500',
 };
 
-export function StatusBadge({ tone, children }: { tone: StatusTone; children: ReactNode }) {
+export function StatusBadge({
+    tone,
+    children,
+}: {
+    tone: StatusTone;
+    children: ReactNode;
+}) {
     return (
         <span
             className={cn(
-                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold max-w-full whitespace-normal sm:whitespace-nowrap ring-1 ring-inset',
+                'inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-normal ring-1 ring-inset sm:whitespace-nowrap',
                 tones[tone],
             )}
         >

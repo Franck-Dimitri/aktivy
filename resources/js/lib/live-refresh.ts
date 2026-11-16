@@ -22,7 +22,12 @@ let busy = 0;
 let checking = false;
 
 function canRefresh(): boolean {
-    return loggedIn && busy === 0 && document.visibilityState === 'visible' && navigator.onLine;
+    return (
+        loggedIn &&
+        busy === 0 &&
+        document.visibilityState === 'visible' &&
+        navigator.onLine
+    );
 }
 
 /** Recharge silencieuse des données de la page affichée. */
@@ -46,7 +51,10 @@ async function check(): Promise<void> {
         const response = await fetch(pulse().url, {
             credentials: 'same-origin',
             cache: 'no-store',
-            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
         });
 
         // Session expirée, compte en attente… : la prochaine navigation s'en chargera
@@ -54,7 +62,10 @@ async function check(): Promise<void> {
             return;
         }
 
-        const data = (await response.json()) as { latest: string | null; unread: number };
+        const data = (await response.json()) as {
+            latest: string | null;
+            unread: number;
+        };
         const next = `${data.latest ?? ''}|${data.unread}`;
         setAppBadge(data.unread);
 
@@ -76,7 +87,9 @@ export function setupLiveRefresh(): void {
 
     // Chaque page affichée (navigation ou rechargement) porte des données fraîches : on relève le pouls
     router.on('navigate', (event) => {
-        const props = event.detail.page.props as { auth?: { user?: unknown; unreadNotifications?: number } };
+        const props = event.detail.page.props as {
+            auth?: { user?: unknown; unreadNotifications?: number };
+        };
         loggedIn = Boolean(props.auth?.user);
         // Pastille de l'icône : non lues du compte connecté, effacée à la déconnexion
         setAppBadge(loggedIn ? (props.auth?.unreadNotifications ?? 0) : 0);
@@ -105,10 +118,13 @@ export function setupLiveRefresh(): void {
     // Notification push reçue par l'appareil : la notification est peut-être encore en cours
     // d'enregistrement, on recharge donc directement plutôt que de comparer le pouls
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.addEventListener('message', (event: MessageEvent<{ type?: string }>) => {
-            if (event.data?.type === 'push-received') {
-                window.setTimeout(refresh, 1500);
-            }
-        });
+        navigator.serviceWorker.addEventListener(
+            'message',
+            (event: MessageEvent<{ type?: string }>) => {
+                if (event.data?.type === 'push-received') {
+                    window.setTimeout(refresh, 1500);
+                }
+            },
+        );
     }
 }

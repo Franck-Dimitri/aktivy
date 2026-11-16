@@ -19,19 +19,19 @@ class StatsController extends Controller
             ->where('daily_reports.user_id', $user->id)
             ->where('daily_reports.status', 'submitted');
 
-        $thisMonthStart  = now()->startOfMonth()->toDateString();
-        $lastMonthStart  = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
-        $lastMonthEnd    = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
+        $thisMonthStart = now()->startOfMonth()->toDateString();
+        $lastMonthStart = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
+        $lastMonthEnd = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
 
-        $revenueThis    = (float) $base()->where('daily_reports.report_date', '>=', $thisMonthStart)->sum('daily_report_lines.revenue');
-        $unitsThis      = (int)   $base()->where('daily_reports.report_date', '>=', $thisMonthStart)->sum('daily_report_lines.units_sold');
-        $visitsThis     = $user->visits()->where('checked_in_at', '>=', now()->startOfMonth())->count();
-        $reportsThis    = DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->where('report_date', '>=', $thisMonthStart)->count();
+        $revenueThis = (float) $base()->where('daily_reports.report_date', '>=', $thisMonthStart)->sum('daily_report_lines.revenue');
+        $unitsThis = (int) $base()->where('daily_reports.report_date', '>=', $thisMonthStart)->sum('daily_report_lines.units_sold');
+        $visitsThis = $user->visits()->where('checked_in_at', '>=', now()->startOfMonth())->count();
+        $reportsThis = DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->where('report_date', '>=', $thisMonthStart)->count();
 
-        $revenueLast    = (float) $base()->whereBetween('daily_reports.report_date', [$lastMonthStart, $lastMonthEnd])->sum('daily_report_lines.revenue');
-        $unitsLast      = (int)   $base()->whereBetween('daily_reports.report_date', [$lastMonthStart, $lastMonthEnd])->sum('daily_report_lines.units_sold');
-        $visitsLast     = $user->visits()->whereBetween('checked_in_at', [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()])->count();
-        $reportsLast    = DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->whereBetween('report_date', [$lastMonthStart, $lastMonthEnd])->count();
+        $revenueLast = (float) $base()->whereBetween('daily_reports.report_date', [$lastMonthStart, $lastMonthEnd])->sum('daily_report_lines.revenue');
+        $unitsLast = (int) $base()->whereBetween('daily_reports.report_date', [$lastMonthStart, $lastMonthEnd])->sum('daily_report_lines.units_sold');
+        $visitsLast = $user->visits()->whereBetween('checked_in_at', [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()])->count();
+        $reportsLast = DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->whereBetween('report_date', [$lastMonthStart, $lastMonthEnd])->count();
 
         // Tendance 7 derniers jours : deux requêtes groupées par jour (au lieu de deux par jour)
         $from = now()->subDays(6)->startOfDay();
@@ -50,9 +50,9 @@ class StatsController extends Controller
             $date = now()->subDays($daysAgo)->toDateString();
 
             return [
-                'label'   => now()->subDays($daysAgo)->format('d/m'),
+                'label' => now()->subDays($daysAgo)->format('d/m'),
                 'revenue' => $revenueByDay->get($date, 0.0),
-                'visits'  => $visitsByDay->get($date, 0),
+                'visits' => $visitsByDay->get($date, 0),
             ];
         })->values();
 
@@ -88,29 +88,29 @@ class StatsController extends Controller
 
         $topProducts = $topProducts->map(fn ($p) => [
             'product_name' => $p->product_name,
-            'units'        => (int) $p->units,
-            'revenue'      => (float) $p->revenue,
-            'image_url'    => ($img = $images->get($p->product_name)) ? asset('storage/' . $img) : null,
+            'units' => (int) $p->units,
+            'revenue' => (float) $p->revenue,
+            'image_url' => ($img = $images->get($p->product_name)) ? asset('storage/'.$img) : null,
         ])->values();
 
         return Inertia::render('terrain/stats', [
             'stats' => [
                 'this_month' => [
                     'revenue' => $revenueThis,
-                    'units'   => $unitsThis,
-                    'visits'  => $visitsThis,
+                    'units' => $unitsThis,
+                    'visits' => $visitsThis,
                     'reports' => $reportsThis,
                 ],
                 'last_month' => [
                     'revenue' => $revenueLast,
-                    'units'   => $unitsLast,
-                    'visits'  => $visitsLast,
+                    'units' => $unitsLast,
+                    'visits' => $visitsLast,
                     'reports' => $reportsLast,
                 ],
-                'total_visits'  => $user->visits()->count(),
+                'total_visits' => $user->visits()->count(),
                 'total_reports' => DB::table('daily_reports')->where('user_id', $user->id)->where('status', 'submitted')->count(),
             ],
-            'trend'        => $trend,
+            'trend' => $trend,
             'top_products' => $topProducts,
         ]);
     }

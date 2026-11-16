@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\TelegramService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -22,11 +23,13 @@ Schedule::call(fn () => cache()->put('scheduler:heartbeat', now()->getTimestamp(
 // Rapport de statut quotidien à 08h00 (uniquement si le bot est configuré)
 Schedule::call(function () {
     $chatId = config('services.telegram.chat_id');
-    if (!$chatId) return;
+    if (! $chatId) {
+        return;
+    }
 
-    $telegram = app(\App\Services\TelegramService::class);
-    $msg  = "☀️ *Rapport matinal Motriks*\n\n";
-    $msg .= $telegram->buildStatusMessage() . "\n\n";
+    $telegram = app(TelegramService::class);
+    $msg = "☀️ *Rapport matinal Motriks*\n\n";
+    $msg .= $telegram->buildStatusMessage()."\n\n";
     $msg .= $telegram->buildStatsMessage();
     $telegram->sendMessage($chatId, $msg);
 })->dailyAt('08:00');

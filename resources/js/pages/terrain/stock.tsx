@@ -236,7 +236,9 @@ export default function TerrainStock({
                                 <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-600" />
                                 <p>
                                     {totals.critical} produit
-                                    {totals.critical > 1 ? 's sont' : ' est'}{' '}
+                                    {totals.critical > 1
+                                        ? 's sont'
+                                        : ' est'}{' '}
                                     presque épuisé
                                     {totals.critical > 1 ? 's' : ''}. Prévenez
                                     votre responsable pour un réassort.

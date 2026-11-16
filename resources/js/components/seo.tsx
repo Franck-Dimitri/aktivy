@@ -35,35 +35,96 @@ export function Seo({ jsonLd = [] }: { jsonLd?: JsonLd[] }) {
 
     return (
         <Head title={seo.title}>
-            <meta head-key="description" name="description" content={seo.description} />
-            <meta head-key="robots" name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+            <meta
+                head-key="description"
+                name="description"
+                content={seo.description}
+            />
+            <meta
+                head-key="robots"
+                name="robots"
+                content="index, follow, max-image-preview:large, max-snippet:-1"
+            />
             <link head-key="canonical" rel="canonical" href={seo.url} />
-            <link head-key="alternate-fr" rel="alternate" hrefLang="fr" href={seo.url} />
-            <link head-key="alternate-default" rel="alternate" hrefLang="x-default" href={seo.url} />
+            <link
+                head-key="alternate-fr"
+                rel="alternate"
+                hrefLang="fr"
+                href={seo.url}
+            />
+            <link
+                head-key="alternate-default"
+                rel="alternate"
+                hrefLang="x-default"
+                href={seo.url}
+            />
 
             <meta head-key="og:type" property="og:type" content="website" />
-            <meta head-key="og:site_name" property="og:site_name" content="Motriks" />
+            <meta
+                head-key="og:site_name"
+                property="og:site_name"
+                content="Motriks"
+            />
             <meta head-key="og:locale" property="og:locale" content="fr_FR" />
             <meta head-key="og:title" property="og:title" content={seo.title} />
-            <meta head-key="og:description" property="og:description" content={seo.description} />
+            <meta
+                head-key="og:description"
+                property="og:description"
+                content={seo.description}
+            />
             <meta head-key="og:url" property="og:url" content={seo.url} />
             <meta head-key="og:image" property="og:image" content={seo.image} />
-            <meta head-key="og:image:width" property="og:image:width" content="1200" />
-            <meta head-key="og:image:height" property="og:image:height" content="630" />
-            <meta head-key="og:image:alt" property="og:image:alt" content={seo.image_alt} />
+            <meta
+                head-key="og:image:width"
+                property="og:image:width"
+                content="1200"
+            />
+            <meta
+                head-key="og:image:height"
+                property="og:image:height"
+                content="630"
+            />
+            <meta
+                head-key="og:image:alt"
+                property="og:image:alt"
+                content={seo.image_alt}
+            />
 
-            <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
-            <meta head-key="twitter:title" name="twitter:title" content={seo.title} />
-            <meta head-key="twitter:description" name="twitter:description" content={seo.description} />
-            <meta head-key="twitter:image" name="twitter:image" content={seo.image} />
-            <meta head-key="twitter:image:alt" name="twitter:image:alt" content={seo.image_alt} />
+            <meta
+                head-key="twitter:card"
+                name="twitter:card"
+                content="summary_large_image"
+            />
+            <meta
+                head-key="twitter:title"
+                name="twitter:title"
+                content={seo.title}
+            />
+            <meta
+                head-key="twitter:description"
+                name="twitter:description"
+                content={seo.description}
+            />
+            <meta
+                head-key="twitter:image"
+                name="twitter:image"
+                content={seo.image}
+            />
+            <meta
+                head-key="twitter:image:alt"
+                name="twitter:image:alt"
+                content={seo.image_alt}
+            />
 
             {graph.length > 0 && (
                 <script
                     head-key="json-ld"
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c'),
+                        __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@graph': graph,
+                        }).replace(/</g, '\\u003c'),
                     }}
                 />
             )}

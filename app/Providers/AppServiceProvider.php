@@ -4,16 +4,17 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Support\ErrorAlert;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
-use Illuminate\Queue\Events\JobFailed;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -48,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Motriks est en français : dates et durées (« il y a 2 minutes », « mardi 10 novembre »)
         // quelle que soit la langue configurée dans .env
-        \Carbon\Carbon::setLocale('fr');
+        Carbon::setLocale('fr');
         CarbonImmutable::setLocale('fr');
 
         DB::prohibitDestructiveCommands(

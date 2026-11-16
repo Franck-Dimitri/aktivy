@@ -2,8 +2,14 @@ import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { show as reportShow } from '@/routes/terrain/report';
 import { store as photoStore } from '@/routes/terrain/report/photos';
-import { checkout as visitCheckout, store as visitStore } from '@/routes/terrain/visit';
-import { submit as reportSubmit, update as reportUpdate } from '@/routes/terrain/report';
+import {
+    checkout as visitCheckout,
+    store as visitStore,
+} from '@/routes/terrain/visit';
+import {
+    submit as reportSubmit,
+    update as reportUpdate,
+} from '@/routes/terrain/report';
 import {
     dropSaves,
     enqueue,
@@ -36,18 +42,31 @@ export type OfflineKit = {
     report: LocalReport;
 };
 
-export type Coords = { latitude: number | null; longitude: number | null; accuracy?: number | null };
+export type Coords = {
+    latitude: number | null;
+    longitude: number | null;
+    accuracy?: number | null;
+};
 
 /** La trousse permet-elle de pointer aujourd'hui ? */
-export function kitUsableToday(kit: OfflineKit | null | undefined, affectationId: number | undefined): kit is OfflineKit {
+export function kitUsableToday(
+    kit: OfflineKit | null | undefined,
+    affectationId: number | undefined,
+): kit is OfflineKit {
     if (!kit || kit.affectation_id !== affectationId) return false;
     const today = localDay();
 
-    return kit.starts_on <= today && (kit.ends_on === null || kit.ends_on >= today);
+    return (
+        kit.starts_on <= today && (kit.ends_on === null || kit.ends_on >= today)
+    );
 }
 
 /** Prise de service sans réseau : la visite est créée sur le téléphone, le rapport s'ouvre. */
-export async function checkinOffline(userId: number, kit: OfflineKit, coords: Coords): Promise<LocalVisit> {
+export async function checkinOffline(
+    userId: number,
+    kit: OfflineKit,
+    coords: Coords,
+): Promise<LocalVisit> {
     const now = new Date();
     const uuid = newUuid();
     const visit: LocalVisit = {
@@ -87,21 +106,39 @@ export async function checkinOffline(userId: number, kit: OfflineKit, coords: Co
 export function openLocalReport(visit: LocalVisit) {
     if (!visit.report) return;
 
-    const reportDate = new Date(`${visit.date}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const reportDate = new Date(`${visit.date}T12:00:00`).toLocaleDateString(
+        'fr-FR',
+        { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' },
+    );
 
     router.push({
         url: reportShow({ visit: visit.uuid }).url,
         component: 'terrain/report',
         props: (current) => ({
             ...current,
-            visit: { id: 0, uuid: visit.uuid, checked_in_at: visit.checkedIn, checked_out_at: visit.checkedOut, status: visit.checkedOut ? 'completed' : 'in_progress' },
+            visit: {
+                id: 0,
+                uuid: visit.uuid,
+                checked_in_at: visit.checkedIn,
+                checked_out_at: visit.checkedOut,
+                status: visit.checkedOut ? 'completed' : 'in_progress',
+            },
             // Toujours « brouillon » : un rapport déjà prêt à partir s'affiche comme tel (file d'attente)
-            report: { ...visit.report, report_date: reportDate, status: 'draft' },
+            report: {
+                ...visit.report,
+                report_date: reportDate,
+                status: 'draft',
+            },
         }),
     });
 }
 
-type VisitRef = { userId: number; visitUuid: string; siteName: string; checkedIn: string };
+type VisitRef = {
+    userId: number;
+    visitUuid: string;
+    siteName: string;
+    checkedIn: string;
+};
 
 /** Garde (ou crée) la visite sur le téléphone pour que l'accueil affiche l'état réel de la journée. */
 async function overlay(ref: VisitRef, changes: Partial<LocalVisit>) {
@@ -127,7 +164,10 @@ async function overlay(ref: VisitRef, changes: Partial<LocalVisit>) {
     });
 }
 
-export async function checkoutOffline(ref: VisitRef, coords: Coords): Promise<void> {
+export async function checkoutOffline(
+    ref: VisitRef,
+    coords: Coords,
+): Promise<void> {
     const now = new Date();
 
     await overlay(ref, { checkedOut: localTime(now) });
@@ -137,12 +177,19 @@ export async function checkoutOffline(ref: VisitRef, coords: Coords): Promise<vo
         visit: ref.visitUuid,
         method: 'patch',
         url: visitCheckout({ visit: ref.visitUuid }).url,
-        body: { latitude: coords.latitude, longitude: coords.longitude, checked_out_at: now.toISOString() },
+        body: {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            checked_out_at: now.toISOString(),
+        },
         siteName: ref.siteName,
     });
 }
 
-export async function saveReportOffline(ref: VisitRef, payload: Record<string, unknown>): Promise<void> {
+export async function saveReportOffline(
+    ref: VisitRef,
+    payload: Record<string, unknown>,
+): Promise<void> {
     await enqueueSave({
         userId: ref.userId,
         visit: ref.visitUuid,
@@ -153,7 +200,10 @@ export async function saveReportOffline(ref: VisitRef, payload: Record<string, u
     });
 }
 
-export async function submitReportOffline(ref: VisitRef, payload: Record<string, unknown>): Promise<void> {
+export async function submitReportOffline(
+    ref: VisitRef,
+    payload: Record<string, unknown>,
+): Promise<void> {
     // D'abord le rapport complet dans la file : si l'écriture échoue, les brouillons restent intacts
     await enqueue({
         userId: ref.userId,
@@ -161,7 +211,11 @@ export async function submitReportOffline(ref: VisitRef, payload: Record<string,
         visit: ref.visitUuid,
         method: 'post',
         url: reportSubmit({ visit: ref.visitUuid }).url,
-        body: { ...payload, queued: true, submitted_at: new Date().toISOString() },
+        body: {
+            ...payload,
+            queued: true,
+            submitted_at: new Date().toISOString(),
+        },
         siteName: ref.siteName,
     });
     // Puis il remplace les brouillons pas encore partis
@@ -175,12 +229,18 @@ export async function submitReportOffline(ref: VisitRef, payload: Record<string,
  */
 export function offlineSaveFailed(what: string): void {
     toast.error(`${what} n’a pas pu être gardé sur ce téléphone`, {
-        description: 'Mémoire du téléphone pleine ou stockage bloqué. Libérez de la place, puis réessayez. Rien n’a été envoyé.',
+        description:
+            'Mémoire du téléphone pleine ou stockage bloqué. Libérez de la place, puis réessayez. Rien n’a été envoyé.',
         duration: 12_000,
     });
 }
 
-export async function addPhotoOffline(ref: VisitRef, photo: Blob, fileName: string, caption: string | null): Promise<void> {
+export async function addPhotoOffline(
+    ref: VisitRef,
+    photo: Blob,
+    fileName: string,
+    caption: string | null,
+): Promise<void> {
     await enqueue({
         userId: ref.userId,
         kind: 'photo',
@@ -200,7 +260,12 @@ const LEGACY_KEY = 'motriks:rapports-a-envoyer';
 
 /** Rapports mis en attente par l'ancienne version de l'application : repris dans la nouvelle file. */
 export async function adoptLegacyQueue(userId: number): Promise<void> {
-    let items: { userId: number; url: string; payload: Record<string, unknown>; siteName: string }[] = [];
+    let items: {
+        userId: number;
+        url: string;
+        payload: Record<string, unknown>;
+        siteName: string;
+    }[] = [];
 
     try {
         items = JSON.parse(window.localStorage.getItem(LEGACY_KEY) ?? '[]');
@@ -214,20 +279,39 @@ export async function adoptLegacyQueue(userId: number): Promise<void> {
     for (const item of mine) {
         const uuid = item.url.match(/rapport\/([^/]+)\/soumettre/)?.[1];
         if (!uuid) continue;
-        await enqueue({ userId, kind: 'submit', visit: uuid, method: 'post', url: item.url, body: { ...item.payload, queued: true }, siteName: item.siteName });
+        await enqueue({
+            userId,
+            kind: 'submit',
+            visit: uuid,
+            method: 'post',
+            url: item.url,
+            body: { ...item.payload, queued: true },
+            siteName: item.siteName,
+        });
     }
 
     try {
-        window.localStorage.setItem(LEGACY_KEY, JSON.stringify(items.filter((item) => item.userId !== userId)));
+        window.localStorage.setItem(
+            LEGACY_KEY,
+            JSON.stringify(items.filter((item) => item.userId !== userId)),
+        );
     } catch {
         // stockage indisponible : la file sera reprise une autre fois
     }
 }
 
 /** « Modifier » un rapport prêt à partir : il reste sur le téléphone, de nouveau modifiable. */
-export async function cancelQueuedSubmit(userId: number, visitUuid: string): Promise<void> {
+export async function cancelQueuedSubmit(
+    userId: number,
+    visitUuid: string,
+): Promise<void> {
     for (const op of await operations(userId)) {
-        if (op.kind === 'submit' && op.visit === visitUuid && op.id !== undefined) await removeOperation(op.id);
+        if (
+            op.kind === 'submit' &&
+            op.visit === visitUuid &&
+            op.id !== undefined
+        )
+            await removeOperation(op.id);
     }
     await updateLocalVisit(visitUuid, { reportStatus: 'draft' });
     notifyOutbox();

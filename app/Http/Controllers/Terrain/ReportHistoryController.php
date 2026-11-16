@@ -20,7 +20,7 @@ class ReportHistoryController extends Controller
 
         $reports = DailyReport::where('user_id', $user->id)
             ->where('company_id', $user->company_id)
-            ->with(['site:id,name', 'visit:id,uuid', 'lines','lines.siteProduct.product:id,image', 'externalLines'])
+            ->with(['site:id,name', 'visit:id,uuid', 'lines', 'lines.siteProduct.product:id,image', 'externalLines'])
             ->latest('report_date')
             ->limit(30)
             ->get()
@@ -28,35 +28,35 @@ class ReportHistoryController extends Controller
                 $incident = Incident::meaningful($r->incident_notes);
 
                 return [
-                    'id'               => $r->id,
-                    'uuid'             => $r->uuid,
-                    'visit_id'         => $r->visit_id,
-                    'visit_uuid'       => $r->visit->uuid,
-                    'site_name'        => $r->site->name,
-                    'report_date'      => $r->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
-                    'report_date_iso'  => $r->report_date->toDateString(),
-                    'status'           => $r->status,
-                    'total_revenue'    => $r->totalRevenue(),
+                    'id' => $r->id,
+                    'uuid' => $r->uuid,
+                    'visit_id' => $r->visit_id,
+                    'visit_uuid' => $r->visit->uuid,
+                    'site_name' => $r->site->name,
+                    'report_date' => $r->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
+                    'report_date_iso' => $r->report_date->toDateString(),
+                    'status' => $r->status,
+                    'total_revenue' => $r->totalRevenue(),
                     'total_units_sold' => $r->totalUnitsSold(),
-                    'submitted_at'     => $r->submitted_at?->format('H:i'),
-                    'has_incident'     => $incident !== null,
-                    'notes'            => $r->notes,
-                    'incident_notes'   => $incident,
-                    'lines'            => $r->lines->map(fn ($l) => [
-                        'id'            => $l->id,
-                        'product_name'  => $l->product_name,
-                        'unit'          => $l->unit,
-                        'unit_price'    => $l->unit_price,
+                    'submitted_at' => $r->submitted_at?->format('H:i'),
+                    'has_incident' => $incident !== null,
+                    'notes' => $r->notes,
+                    'incident_notes' => $incident,
+                    'lines' => $r->lines->map(fn ($l) => [
+                        'id' => $l->id,
+                        'product_name' => $l->product_name,
+                        'unit' => $l->unit,
+                        'unit_price' => $l->unit_price,
                         'opening_stock' => $l->opening_stock,
-                        'units_sold'    => $l->units_sold,
+                        'units_sold' => $l->units_sold,
                         'closing_stock' => $l->closing_stock,
-                        'revenue'       => $l->revenue,
-                        'image_url'     => $l->siteProduct?->product?->image
-                            ? asset('storage/' . $l->siteProduct->product->image)
+                        'revenue' => $l->revenue,
+                        'image_url' => $l->siteProduct?->product?->image
+                            ? asset('storage/'.$l->siteProduct->product->image)
                             : null,
                     ])->values(),
                     // Ventes en boutique extérieure, par boutique
-                    'external_sales'   => ExternalSales::present($r),
+                    'external_sales' => ExternalSales::present($r),
                 ];
             });
 

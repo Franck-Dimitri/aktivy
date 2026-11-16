@@ -9,6 +9,7 @@ use App\Models\EventPack;
 use App\Models\User;
 use App\Support\Reports\ExternalSales;
 use App\Support\Reports\ReportSales;
+use Illuminate\Support\Collection;
 
 /**
  * Trousse hors ligne de l'hôtesse : tout ce qu'il faut pour prendre son service et remplir son
@@ -103,7 +104,7 @@ final class OfflineKit
      * Packs actifs de l'événement dont tous les produits sont vendus sur ce point de vente
      * (même règle que ReportSales::availablePacks).
      *
-     * @param  \Illuminate\Support\Collection<int, DailyReportLine>  $byProduct  lignes par produit
+     * @param  Collection<int, DailyReportLine>  $byProduct  lignes par produit
      * @return list<array<string, mixed>>
      */
     private static function packs(?int $eventId, $byProduct): array

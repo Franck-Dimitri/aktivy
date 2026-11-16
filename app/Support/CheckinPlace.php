@@ -18,7 +18,7 @@ final class CheckinPlace
 {
     /**
      * @param  Collection<int, Site>|null  $companySites  points de vente de l'entreprise ayant des coordonnées,
-     *                                                     pour reconnaître un pointage fait sur un autre point de vente
+     *                                                    pour reconnaître un pointage fait sur un autre point de vente
      * @return array{state: 'on_site'|'other_site'|'off_site'|'unchecked'|'unknown', label: string, short: string, distance_m: int|null, accuracy_m: int|null, other_site: string|null, map_url: string|null}
      */
     public static function describe(Visit $visit, ?Site $site, ?Collection $companySites = null): array

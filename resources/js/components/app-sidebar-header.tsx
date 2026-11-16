@@ -21,10 +21,28 @@ import { edit as profileEdit } from '@/routes/profile';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import { initials } from '@/lib/initials';
 
-const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const DAYS_FR = [
+    'Dimanche',
+    'Lundi',
+    'Mardi',
+    'Mercredi',
+    'Jeudi',
+    'Vendredi',
+    'Samedi',
+];
 const MONTHS_FR = [
-    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+    'janvier',
+    'février',
+    'mars',
+    'avril',
+    'mai',
+    'juin',
+    'juillet',
+    'août',
+    'septembre',
+    'octobre',
+    'novembre',
+    'décembre',
 ];
 
 function todayLabel(): string {
@@ -32,8 +50,11 @@ function todayLabel(): string {
     return `${DAYS_FR[d.getDay()]} ${d.getDate()} ${MONTHS_FR[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-
-export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
+export function AppSidebarHeader({
+    breadcrumbs = [],
+}: {
+    breadcrumbs?: BreadcrumbItemType[];
+}) {
     const { auth } = usePage().props;
     const currentUrl = usePage().url;
     const { ask, dialog } = useLogoutDialog();
@@ -44,103 +65,135 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
     const parent =
         [...breadcrumbs].reverse().find((b) => {
             if (!b.href) return false;
-            const path = toUrl(b.href).replace(/^https?:\/\/[^/]+/, '').split('?')[0].replace(/\/$/, '');
-            return path !== '' && path !== currentPath && currentPath.startsWith(`${path}/`);
+            const path = toUrl(b.href)
+                .replace(/^https?:\/\/[^/]+/, '')
+                .split('?')[0]
+                .replace(/\/$/, '');
+            return (
+                path !== '' &&
+                path !== currentPath &&
+                currentPath.startsWith(`${path}/`)
+            );
         }) ?? null;
 
     return (
         <>
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 [view-transition-name:app-header] items-center gap-2 border-b border-border/70 bg-card/85 px-4 backdrop-blur-xl sm:px-6">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-                {/* Téléphone avec onglets en bas : le menu s'ouvre par l'onglet « Plus », pas de bouton en double */}
-                <SidebarToggle className={cn('-ml-2 md:-ml-1.5', tabs && 'max-md:hidden')} />
-                {/* Téléphone (et application installée, sans bouton Retour du navigateur) : retour à la page parente */}
-                {parent ? (
-                    <Link
-                        href={parent.href}
-                        className="-ml-1 flex min-w-0 items-center gap-0.5 rounded-lg py-2 pr-2 text-sm font-semibold text-slate-700 transition-colors hover:text-ink md:hidden"
-                        aria-label={`Retour : ${parent.title}`}
-                    >
-                        <ChevronLeft className="size-5 shrink-0 text-slate-400" />
-                        <span className="truncate">{parent.title}</span>
-                    </Link>
-                ) : (
-                    <div className="flex min-w-0 items-center gap-1 md:hidden">
-                        <AppLogo />
+            <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b border-border/70 bg-card/85 px-4 backdrop-blur-xl [view-transition-name:app-header] sm:px-6">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                    {/* Téléphone avec onglets en bas : le menu s'ouvre par l'onglet « Plus », pas de bouton en double */}
+                    <SidebarToggle
+                        className={cn(
+                            '-ml-2 md:-ml-1.5',
+                            tabs && 'max-md:hidden',
+                        )}
+                    />
+                    {/* Téléphone (et application installée, sans bouton Retour du navigateur) : retour à la page parente */}
+                    {parent ? (
+                        <Link
+                            href={parent.href}
+                            className="-ml-1 flex min-w-0 items-center gap-0.5 rounded-lg py-2 pr-2 text-sm font-semibold text-slate-700 transition-colors hover:text-ink md:hidden"
+                            aria-label={`Retour : ${parent.title}`}
+                        >
+                            <ChevronLeft className="size-5 shrink-0 text-slate-400" />
+                            <span className="truncate">{parent.title}</span>
+                        </Link>
+                    ) : (
+                        <div className="flex min-w-0 items-center gap-1 md:hidden">
+                            <AppLogo />
+                        </div>
+                    )}
+                    <div className="hidden min-w-0 md:block">
+                        <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
-                )}
-                <div className="hidden min-w-0 md:block">
-                    <Breadcrumbs breadcrumbs={breadcrumbs} />
                 </div>
-            </div>
 
-            <div className="flex shrink-0 items-center gap-2">
-                <p className="hidden rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500 lg:block">
-                    {todayLabel()}
-                </p>
+                <div className="flex shrink-0 items-center gap-2">
+                    <p className="hidden rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500 lg:block">
+                        {todayLabel()}
+                    </p>
 
-                {/* Hors ligne ou réseau trop faible : visible même en bas d'une longue page */}
-                <ConnectionPill />
+                    {/* Hors ligne ou réseau trop faible : visible même en bas d'une longue page */}
+                    <ConnectionPill />
 
-                <NotificationBell />
+                    <NotificationBell />
 
-                {auth.user && (
-                    <DropdownMenu modal={false}>
-                        <DropdownMenuTrigger asChild>
-                            <button
-                                type="button"
-                                className="flex size-10 items-center justify-center rounded-full bg-motriks text-xs font-bold text-white shadow-sm md:size-9 shadow-green-600/25 ring-2 ring-transparent ring-offset-2 transition-all hover:ring-motriks/30 focus-visible:ring-motriks focus-visible:outline-none"
-                                aria-label="Mon compte"
+                    {auth.user && (
+                        <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    type="button"
+                                    className="flex size-10 items-center justify-center rounded-full bg-motriks text-xs font-bold text-white shadow-sm ring-2 shadow-green-600/25 ring-transparent ring-offset-2 transition-all hover:ring-motriks/30 focus-visible:ring-motriks focus-visible:outline-none md:size-9"
+                                    aria-label="Mon compte"
+                                >
+                                    {initials(auth.user.name)}
+                                </button>
+                            </DropdownMenuTrigger>
+
+                            <DropdownMenuContent
+                                align="end"
+                                className="w-60 rounded-2xl p-1.5"
                             >
-                                {initials(auth.user.name)}
-                            </button>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent align="end" className="w-60 rounded-2xl p-1.5">
-                            <DropdownMenuLabel className="p-0">
-                                <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-                                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-motriks text-sm font-bold text-white">
-                                        {initials(auth.user.name)}
+                                <DropdownMenuLabel className="p-0">
+                                    <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+                                        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-motriks text-sm font-bold text-white">
+                                            {initials(auth.user.name)}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="truncate text-sm font-semibold text-ink">
+                                                {auth.user.name}
+                                            </p>
+                                            <p className="text-xs font-normal text-slate-500">
+                                                {roleLabels[
+                                                    auth.user
+                                                        .role as keyof typeof roleLabels
+                                                ] ?? auth.user.role}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="min-w-0">
-                                        <p className="truncate text-sm font-semibold text-ink">{auth.user.name}</p>
-                                        <p className="text-xs font-normal text-slate-500">
-                                            {roleLabels[auth.user.role as keyof typeof roleLabels] ?? auth.user.role}
-                                        </p>
-                                    </div>
-                                </div>
-                            </DropdownMenuLabel>
+                                </DropdownMenuLabel>
 
-                            <DropdownMenuSeparator />
+                                <DropdownMenuSeparator />
 
-                            <DropdownMenuItem asChild className="rounded-lg">
-                                <Link href={profileEdit()} className="cursor-pointer">
-                                    <User className="mr-2 size-4" />
-                                    Mon profil
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild className="rounded-lg">
-                                <Link href={profileEdit()} className="cursor-pointer">
-                                    <Settings className="mr-2 size-4" />
-                                    Paramètres
-                                </Link>
-                            </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    asChild
+                                    className="rounded-lg"
+                                >
+                                    <Link
+                                        href={profileEdit()}
+                                        className="cursor-pointer"
+                                    >
+                                        <User className="mr-2 size-4" />
+                                        Mon profil
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    asChild
+                                    className="rounded-lg"
+                                >
+                                    <Link
+                                        href={profileEdit()}
+                                        className="cursor-pointer"
+                                    >
+                                        <Settings className="mr-2 size-4" />
+                                        Paramètres
+                                    </Link>
+                                </DropdownMenuItem>
 
-                            <DropdownMenuSeparator />
+                                <DropdownMenuSeparator />
 
-                            <DropdownMenuItem
-                                onSelect={ask}
-                                className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600"
-                            >
-                                <LogOut className="mr-2 size-4" />
-                                Se déconnecter
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
-            </div>
-        </header>
-        {dialog}
+                                <DropdownMenuItem
+                                    onSelect={ask}
+                                    className="cursor-pointer rounded-lg text-red-600 focus:bg-red-50 focus:text-red-600"
+                                >
+                                    <LogOut className="mr-2 size-4" />
+                                    Se déconnecter
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
+            </header>
+            {dialog}
         </>
     );
 }

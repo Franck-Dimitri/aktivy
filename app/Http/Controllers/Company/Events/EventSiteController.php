@@ -17,9 +17,9 @@ class EventSiteController extends Controller
 
         $data = $request->validate([
             'site_id' => ['nullable', 'integer', "exists:sites,id,company_id,{$event->company_id}"],
-            'name'    => 'nullable|string|max:255',
+            'name' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
-            'city'    => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
         ]);
 
         // Soit on rattache un PDV existant, soit on saisit un nom
@@ -28,7 +28,7 @@ class EventSiteController extends Controller
         }
 
         // Vérifier que ce PDV n'est pas déjà dans l'event
-        if (!empty($data['site_id'])) {
+        if (! empty($data['site_id'])) {
             $exists = $event->sites()->where('site_id', $data['site_id'])->exists();
             if ($exists) {
                 return back()->withErrors(['site_id' => 'Ce point de vente est déjà dans l\'événement.']);

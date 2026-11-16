@@ -32,9 +32,15 @@ function filenameFrom(response: Response, fallback: string): string {
 
 /** Enregistre un fichier déjà en mémoire (partage sur iPhone, téléchargement ailleurs). */
 export async function saveBlob(blob: Blob, filename: string): Promise<void> {
-    const file = new File([blob], filename, { type: blob.type || 'application/octet-stream' });
+    const file = new File([blob], filename, {
+        type: blob.type || 'application/octet-stream',
+    });
 
-    if (isIOS() && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+    if (
+        isIOS() &&
+        typeof navigator.canShare === 'function' &&
+        navigator.canShare({ files: [file] })
+    ) {
         try {
             await navigator.share({ files: [file], title: filename });
 
@@ -61,7 +67,10 @@ export async function saveBlob(blob: Blob, filename: string): Promise<void> {
 }
 
 /** Récupère le fichier à cette adresse, puis l'enregistre. */
-export async function downloadFile(url: string, fallbackName = 'document'): Promise<void> {
+export async function downloadFile(
+    url: string,
+    fallbackName = 'document',
+): Promise<void> {
     const pending = toast.loading('Préparation du fichier…');
 
     try {
@@ -69,19 +78,31 @@ export async function downloadFile(url: string, fallbackName = 'document'): Prom
 
         // Redirection = session expirée (page de connexion) ou fichier refusé
         if (response.redirected || !response.ok) {
-            throw new Error(response.status === 404 ? 'Ce fichier est introuvable.' : 'Le fichier n’a pas pu être téléchargé.');
+            throw new Error(
+                response.status === 404
+                    ? 'Ce fichier est introuvable.'
+                    : 'Le fichier n’a pas pu être téléchargé.',
+            );
         }
 
         const type = response.headers.get('content-type') ?? '';
         if (type.includes('text/html')) {
-            throw new Error('Votre session a expiré. Rechargez la page pour vous reconnecter.');
+            throw new Error(
+                'Votre session a expiré. Rechargez la page pour vous reconnecter.',
+            );
         }
 
-        await saveBlob(await response.blob(), filenameFrom(response, fallbackName));
+        await saveBlob(
+            await response.blob(),
+            filenameFrom(response, fallbackName),
+        );
         toast.dismiss(pending);
     } catch (error) {
         toast.error(
-            error instanceof TypeError ? 'Connexion impossible. Vérifiez votre réseau, puis réessayez.' : (error as Error).message || 'Le fichier n’a pas pu être téléchargé.',
+            error instanceof TypeError
+                ? 'Connexion impossible. Vérifiez votre réseau, puis réessayez.'
+                : (error as Error).message ||
+                      'Le fichier n’a pas pu être téléchargé.',
             { id: pending },
         );
     }
@@ -94,16 +115,31 @@ export function setupDownloads(): void {
     }
 
     document.addEventListener('click', (event) => {
-        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !isStandalone()) {
+        if (
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey ||
+            !isStandalone()
+        ) {
             return;
         }
 
         const link = (event.target as Element | null)?.closest?.('a[download]');
-        if (!(link instanceof HTMLAnchorElement) || !link.href || new URL(link.href).origin !== window.location.origin) {
+        if (
+            !(link instanceof HTMLAnchorElement) ||
+            !link.href ||
+            new URL(link.href).origin !== window.location.origin
+        ) {
             return;
         }
 
         event.preventDefault();
-        void downloadFile(link.href, link.getAttribute('download') || 'document');
+        void downloadFile(
+            link.href,
+            link.getAttribute('download') || 'document',
+        );
     });
 }

@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\AccountStatus;
 use App\Enums\Role;
+use App\Models\Concerns\HasPublicUuid;
 use App\Notifications\Auth\QueuedResetPassword;
 use App\Notifications\Auth\QueuedVerifyEmail;
 use App\Support\PhoneNumber;
@@ -54,11 +53,11 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'last_login_ip'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
-    /** UUID dans les adresses à la place du numéro */
-    use HasPublicUuid;
-
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasPushSubscriptions, Notifiable, PasskeyAuthenticatable, SoftDeletes, TwoFactorAuthenticatable;
+
+    /** UUID dans les adresses à la place du numéro */
+    use HasPublicUuid;
 
     /**
      * Mot de passe provisoire donné par un gérant (membre du personnel, hôtesse d'événement, import) :

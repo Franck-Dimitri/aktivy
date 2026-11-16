@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\SiteStatus;
 use App\Enums\SiteType;
+use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -49,10 +48,10 @@ use Illuminate\Support\Carbon;
 ])]
 class Site extends Model
 {
+    use HasFactory, SoftDeletes;
+
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
-
-    use HasFactory, SoftDeletes;
 
     protected $attributes = [
         'type' => 'autre',

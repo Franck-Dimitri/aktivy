@@ -94,7 +94,7 @@ export default function TwoFactorChallenge() {
                                                         <InputOTPSlot
                                                             key={index}
                                                             index={index}
-                                                            className="h-12 w-10 rounded-xl border sm:h-14 sm:w-12 border-slate-200 bg-white text-xl font-bold text-ink shadow-none first:rounded-xl last:rounded-xl"
+                                                            className="h-12 w-10 rounded-xl border border-slate-200 bg-white text-xl font-bold text-ink shadow-none first:rounded-xl last:rounded-xl sm:h-14 sm:w-12"
                                                         />
                                                     ),
                                                 )}

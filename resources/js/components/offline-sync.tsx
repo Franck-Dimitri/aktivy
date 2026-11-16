@@ -1,22 +1,40 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { CloudOff, CloudUpload, Loader2, LogIn, RefreshCw, WifiOff } from 'lucide-react';
+import {
+    CloudOff,
+    CloudUpload,
+    Loader2,
+    LogIn,
+    RefreshCw,
+    WifiOff,
+} from 'lucide-react';
 import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { login } from '@/routes';
 import { outboxAvailable, type OutboxOperation } from '@/lib/outbox';
-import { flush, KIND_LABEL, refreshPending, retryNow, setOnline, syncState, useSyncState } from '@/lib/sync';
+import {
+    flush,
+    KIND_LABEL,
+    refreshPending,
+    retryNow,
+    setOnline,
+    syncState,
+    useSyncState,
+} from '@/lib/sync';
 import { adoptLegacyQueue } from '@/lib/terrain-offline';
 import { cn } from '@/lib/utils';
 
 /** « Prise de service, 2 photos, rapport » : ce qui attend, en clair. */
 function summary(pending: OutboxOperation[]): string {
     const counts = new Map<string, number>();
-    pending.forEach((op) => counts.set(op.kind, (counts.get(op.kind) ?? 0) + 1));
+    pending.forEach((op) =>
+        counts.set(op.kind, (counts.get(op.kind) ?? 0) + 1),
+    );
 
     return [...counts.entries()]
         .map(([kind, n], i) => {
             const label = KIND_LABEL[kind as OutboxOperation['kind']];
-            const text = kind === 'photo' ? `${n} photo${n > 1 ? 's' : ''}` : label;
+            const text =
+                kind === 'photo' ? `${n} photo${n > 1 ? 's' : ''}` : label;
 
             return i === 0 ? text : text.toLowerCase();
         })
@@ -42,10 +60,13 @@ export function OfflineSync() {
         if (!result) return;
 
         result.rejected.forEach((r) =>
-            toast.error(`${KIND_LABEL[r.kind]} ${r.kind === 'submit' ? 'refusé' : 'refusée'}`, {
-                description: `${r.siteName} : ${r.message}`,
-                duration: 12_000,
-            }),
+            toast.error(
+                `${KIND_LABEL[r.kind]} ${r.kind === 'submit' ? 'refusé' : 'refusée'}`,
+                {
+                    description: `${r.siteName} : ${r.message}`,
+                    duration: 12_000,
+                },
+            ),
         );
 
         if (result.sent.length > 0 && result.remaining === 0) {
@@ -86,7 +107,8 @@ export function OfflineSync() {
         document.addEventListener('visibilitychange', visible);
         // Réseau présent mais trop faible : nouvel essai régulier (espacé après chaque échec, cf. sync.ts)
         const timer = window.setInterval(() => {
-            if (syncState().pending.length > 0 && !syncState().syncing) void run();
+            if (syncState().pending.length > 0 && !syncState().syncing)
+                void run();
         }, 10_000);
 
         return () => {
@@ -112,18 +134,27 @@ export function OfflineSync() {
 
     let icon = <CloudUpload className="size-4" />;
     let title: string;
-    let detail = waiting > 0 ? `En attente : ${summary(sync.pending)}.` : 'Vos actions sont gardées sur ce téléphone.';
+    let detail =
+        waiting > 0
+            ? `En attente : ${summary(sync.pending)}.`
+            : 'Vos actions sont gardées sur ce téléphone.';
     let action: ReactNode = null;
 
     if (!sync.online) {
         icon = <WifiOff className="size-4" />;
         title = 'Hors ligne';
-        detail = waiting > 0 ? `${summary(sync.pending)} : envoi automatique au retour du réseau.` : 'Vous pouvez travailler : tout sera envoyé au retour du réseau.';
+        detail =
+            waiting > 0
+                ? `${summary(sync.pending)} : envoi automatique au retour du réseau.`
+                : 'Vous pouvez travailler : tout sera envoyé au retour du réseau.';
     } else if (sync.blocked === 'auth') {
         icon = <LogIn className="size-4" />;
         title = 'Reconnectez-vous pour terminer l’envoi';
         action = (
-            <Link href={login()} className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700">
+            <Link
+                href={login()}
+                className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+            >
                 Se connecter
             </Link>
         );
@@ -131,8 +162,14 @@ export function OfflineSync() {
         icon = <Loader2 className="size-4 animate-spin" />;
         title = `Envoi en cours · ${waiting} restant${waiting > 1 ? 's' : ''}`;
     } else {
-        icon = sync.blocked ? <CloudOff className="size-4" /> : <CloudUpload className="size-4" />;
-        title = sync.blocked ? 'Envoi interrompu' : 'Réseau trop faible · nouvel essai automatique';
+        icon = sync.blocked ? (
+            <CloudOff className="size-4" />
+        ) : (
+            <CloudUpload className="size-4" />
+        );
+        title = sync.blocked
+            ? 'Envoi interrompu'
+            : 'Réseau trop faible · nouvel essai automatique';
         action = (
             <button
                 type="button"
@@ -149,8 +186,17 @@ export function OfflineSync() {
     }
 
     return (
-        <div role="status" aria-live="polite" className={cn('mx-4 mt-4 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm md:mx-6', tone)}>
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white/80 shadow-sm">{icon}</span>
+        <div
+            role="status"
+            aria-live="polite"
+            className={cn(
+                'mx-4 mt-4 flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm md:mx-6',
+                tone,
+            )}
+        >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white/80 shadow-sm">
+                {icon}
+            </span>
             <div className="min-w-0 flex-1">
                 <p className="font-semibold">{title}</p>
                 <p className="text-xs opacity-80">{detail}</p>

@@ -7,7 +7,15 @@ import { cn } from '@/lib/utils';
  * et repli propre sur une icône si l'image est absente ou ne charge pas.
  * La taille se règle avec className (ex. "size-12").
  */
-export function ProductImage({ src, alt, className }: { src: string | null; alt: string; className?: string }) {
+export function ProductImage({
+    src,
+    alt,
+    className,
+}: {
+    src: string | null;
+    alt: string;
+    className?: string;
+}) {
     const [failed, setFailed] = useState(false);
 
     return (
@@ -18,9 +26,18 @@ export function ProductImage({ src, alt, className }: { src: string | null; alt:
             )}
         >
             {src && !failed ? (
-                <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} className="size-full object-contain p-1.5" />
+                <img
+                    src={src}
+                    alt={alt}
+                    loading="lazy"
+                    onError={() => setFailed(true)}
+                    className="size-full object-contain p-1.5"
+                />
             ) : (
-                <Package className="size-1/2 text-slate-300" aria-hidden="true" />
+                <Package
+                    className="size-1/2 text-slate-300"
+                    aria-hidden="true"
+                />
             )}
         </span>
     );

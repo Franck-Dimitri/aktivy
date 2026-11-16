@@ -20,7 +20,7 @@ use Illuminate\Support\Collection;
  * @property int $company_id
  * @property int|null $site_id
  * @property int|null $user_id
- * @property \Carbon\CarbonImmutable $month
+ * @property CarbonImmutable $month
  * @property int $amount
  */
 #[Fillable(['company_id', 'site_id', 'user_id', 'month', 'amount', 'updated_by'])]

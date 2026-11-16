@@ -20,12 +20,17 @@ import MotriksLogo from '@/components/motriks-logo';
 import MotriksMark from '@/components/motriks-mark';
 import { initials } from '@/lib/initials';
 
-
 function pendingMenu(normalGroups: MenuGroup[]): MenuGroup[] {
     return [
         {
             label: 'Mon compte',
-            items: [{ title: 'Profil entreprise', icon: Building2, href: onboardingShow().url }],
+            items: [
+                {
+                    title: 'Profil entreprise',
+                    icon: Building2,
+                    href: onboardingShow().url,
+                },
+            ],
         },
         ...normalGroups.map((g) => ({
             ...g,
@@ -37,10 +42,18 @@ function pendingMenu(normalGroups: MenuGroup[]): MenuGroup[] {
 export function AppSidebar() {
     const { auth } = usePage().props;
     const { isMobile, setOpenMobile } = useSidebar();
-    const isPending = auth.company?.status === 'pending' || auth.company?.status === 'rejected';
-    const normalGroups = menuFor(auth.user.role, auth.modules, auth.lockedModules);
+    const isPending =
+        auth.company?.status === 'pending' ||
+        auth.company?.status === 'rejected';
+    const normalGroups = menuFor(
+        auth.user.role,
+        auth.modules,
+        auth.lockedModules,
+    );
     const groups = isPending ? pendingMenu(normalGroups) : normalGroups;
-    const home = isPending ? onboardingShow().url : (groups[0].items[0].href ?? '/');
+    const home = isPending
+        ? onboardingShow().url
+        : (groups[0].items[0].href ?? '/');
     const companyName = auth.company?.name ?? 'Motriks';
     const roleName = roleLabels[auth.user.role] ?? auth.user.role;
 
@@ -54,12 +67,23 @@ export function AppSidebar() {
                             <SidebarMenuButton
                                 size="lg"
                                 asChild
-                                className="h-auto rounded-xl p-2 hover:bg-sidebar-accent active:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-[10px] group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:hover:bg-transparent"
+                                className="h-auto rounded-xl p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-[10px] group-data-[collapsible=icon]:p-0! hover:bg-sidebar-accent group-data-[collapsible=icon]:hover:bg-transparent active:bg-sidebar-accent"
                             >
-                                <Link href={home} prefetch aria-label="Motriks, tableau de bord" className="group/logo" onClick={() => isMobile && setOpenMobile(false)}>
+                                <Link
+                                    href={home}
+                                    prefetch
+                                    aria-label="Motriks, tableau de bord"
+                                    className="group/logo"
+                                    onClick={() =>
+                                        isMobile && setOpenMobile(false)
+                                    }
+                                >
                                     {/* Déplié : logo horizontal en blanc ; replié en icônes : le symbole seul */}
-                                    <MotriksLogo variant="white" className="h-[26px] group-data-[collapsible=icon]:hidden" />
-                                    <MotriksMark className="hidden size-8 rounded-[10px] shadow-sm shadow-black/15 ring-0 transition-transform duration-200 group-hover/logo:scale-105 group-data-[collapsible=icon]:flex" />
+                                    <MotriksLogo
+                                        variant="white"
+                                        className="h-[26px] group-data-[collapsible=icon]:hidden"
+                                    />
+                                    <MotriksMark className="hidden size-8 rounded-[10px] shadow-sm ring-0 shadow-black/15 transition-transform duration-200 group-hover/logo:scale-105 group-data-[collapsible=icon]:flex" />
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -72,7 +96,7 @@ export function AppSidebar() {
                         {initials(companyName)}
                     </span>
                     <div className="min-w-0">
-                        <p className="truncate text-[12.5px] font-semibold leading-tight text-sidebar-primary">
+                        <p className="truncate text-[12.5px] leading-tight font-semibold text-sidebar-primary">
                             {companyName}
                         </p>
                         <p className="truncate text-[11px] leading-tight text-sidebar-foreground/55">
@@ -104,7 +128,12 @@ export function AppSidebar() {
                                         tooltip={{ children: 'Aide' }}
                                         className="h-9 rounded-xl px-3 text-[13px] text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&>svg]:size-4 [&>svg]:text-sidebar-foreground/70"
                                     >
-                                        <Link href={helpRoute().url} onClick={() => isMobile && setOpenMobile(false)}>
+                                        <Link
+                                            href={helpRoute().url}
+                                            onClick={() =>
+                                                isMobile && setOpenMobile(false)
+                                            }
+                                        >
                                             <LifeBuoy />
                                             <span>Aide</span>
                                         </Link>

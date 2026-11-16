@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,7 +24,7 @@ return new class extends Migration
         });
 
         // Mettre les entreprises existantes en actif si pas encore fait
-        \Illuminate\Support\Facades\DB::statement(
+        DB::statement(
             "UPDATE companies SET onboarding_completed_at = created_at WHERE status = 'active' AND onboarding_completed_at IS NULL"
         );
     }

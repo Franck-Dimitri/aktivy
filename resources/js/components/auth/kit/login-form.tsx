@@ -3,36 +3,59 @@ import { FlaskConical, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import AuthStatus from '@/components/auth/auth-status';
-import DevTestAccounts, { type DevAccount } from '@/components/auth/dev-test-accounts';
+import DevTestAccounts, {
+    type DevAccount,
+} from '@/components/auth/dev-test-accounts';
 import { isMobileDevice, isStandalone } from '@/lib/pwa';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { StaggerItem } from './auth-card';
 import { TransitionLink } from './auth-transition';
-import { AuthButton, AuthCheckbox, AuthInput, AuthPasswordInput, authLink } from './fields';
+import {
+    AuthButton,
+    AuthCheckbox,
+    AuthInput,
+    AuthPasswordInput,
+    authLink,
+} from './fields';
 import { SocialButtons } from './social-buttons';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /** Que des chiffres, espaces, +, tirets, points ou parenthèses : c'est un numéro de téléphone. */
-const looksLikePhone = (v: string) => v.trim() !== '' && /^[+\d\s().-]+$/.test(v.trim());
+const looksLikePhone = (v: string) =>
+    v.trim() !== '' && /^[+\d\s().-]+$/.test(v.trim());
 
 type Fields = { login: string; password: string; remember: boolean };
 
-function validate({ login, password }: Fields): Partial<Record<keyof Fields, string>> {
+function validate({
+    login,
+    password,
+}: Fields): Partial<Record<keyof Fields, string>> {
     const errors: Partial<Record<keyof Fields, string>> = {};
     const value = login.trim();
 
-    if (!value) errors.login = 'Saisissez votre e-mail ou votre numéro de téléphone.';
+    if (!value)
+        errors.login = 'Saisissez votre e-mail ou votre numéro de téléphone.';
     else if (looksLikePhone(value)) {
-        if (value.replace(/\D/g, '').length < 8) errors.login = 'Ce numéro paraît incomplet.';
-    } else if (!EMAIL.test(value)) errors.login = 'Cette adresse e-mail n’est pas valide.';
+        if (value.replace(/\D/g, '').length < 8)
+            errors.login = 'Ce numéro paraît incomplet.';
+    } else if (!EMAIL.test(value))
+        errors.login = 'Cette adresse e-mail n’est pas valide.';
 
     if (!password) errors.password = 'Saisissez votre mot de passe.';
 
     return errors;
 }
 
-export function LoginForm({ status, canResetPassword, devAccounts = [] }: { status?: string; canResetPassword: boolean; devAccounts?: DevAccount[] }) {
+export function LoginForm({
+    status,
+    canResetPassword,
+    devAccounts = [],
+}: {
+    status?: string;
+    canResetPassword: boolean;
+    devAccounts?: DevAccount[];
+}) {
     const form = useForm<Fields>({ login: '', password: '', remember: false });
     const { data, setData, errors, processing } = form;
 
@@ -103,7 +126,10 @@ export function LoginForm({ status, canResetPassword, devAccounts = [] }: { stat
                         label="Mot de passe"
                         labelAside={
                             canResetPassword && (
-                                <TransitionLink href={request().url} className={`text-[13px] whitespace-nowrap ${authLink}`}>
+                                <TransitionLink
+                                    href={request().url}
+                                    className={`text-[13px] whitespace-nowrap ${authLink}`}
+                                >
                                     Mot de passe oublié ?
                                 </TransitionLink>
                             )
@@ -117,13 +143,22 @@ export function LoginForm({ status, canResetPassword, devAccounts = [] }: { stat
                 </StaggerItem>
 
                 <StaggerItem>
-                    <AuthCheckbox id="remember" name="remember" checked={data.remember} onChange={(v) => setData('remember', v)}>
+                    <AuthCheckbox
+                        id="remember"
+                        name="remember"
+                        checked={data.remember}
+                        onChange={(v) => setData('remember', v)}
+                    >
                         Se souvenir de moi
                     </AuthCheckbox>
                 </StaggerItem>
 
                 <StaggerItem>
-                    <AuthButton type="submit" loading={processing} data-test="login-button">
+                    <AuthButton
+                        type="submit"
+                        loading={processing}
+                        data-test="login-button"
+                    >
                         Se connecter
                     </AuthButton>
                 </StaggerItem>
@@ -146,7 +181,15 @@ export function LoginForm({ status, canResetPassword, devAccounts = [] }: { stat
 }
 
 /** Comptes de test (environnement local uniquement) : tiroir rattaché à la page, hors de la carte animée. */
-function DevAccountsDock({ accounts, currentLogin, onSelect }: { accounts: DevAccount[]; currentLogin: string; onSelect: (login: string, password: string, autoSubmit?: boolean) => void }) {
+function DevAccountsDock({
+    accounts,
+    currentLogin,
+    onSelect,
+}: {
+    accounts: DevAccount[];
+    currentLogin: string;
+    onSelect: (login: string, password: string, autoSubmit?: boolean) => void;
+}) {
     const [open, setOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
@@ -171,7 +214,11 @@ function DevAccountsDock({ accounts, currentLogin, onSelect }: { accounts: DevAc
                 onClick={() => setOpen((v) => !v)}
                 className="flex h-9 items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50 hover:text-ink"
             >
-                {open ? <X className="size-3.5" /> : <FlaskConical className="size-3.5 text-motriks" />}
+                {open ? (
+                    <X className="size-3.5" />
+                ) : (
+                    <FlaskConical className="size-3.5 text-motriks" />
+                )}
                 Comptes de test
             </button>
         </div>,

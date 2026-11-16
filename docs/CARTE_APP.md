@@ -64,19 +64,19 @@ Chaque rôle ne voit dans son menu que ce qu'il a le droit d'ouvrir. Une URL tap
 
 Le gérant, le superviseur et le comptable partagent le même back-office, avec un menu filtré :
 
-| Menu back-office | Route | Gérant | Superviseur | Comptable |
-| --- | --- | :---: | :---: | :---: |
-| Tableau de bord | `/dashboard` | ✅ | ✅ | Lecture |
-| Activité du jour (clôtures à valider) | `/activite` | ✅ | ✅ | — |
-| Personnel | `/personnel` | ✅ | ✅ | — |
-| Sites | `/sites` | ✅ | ✅ | — |
-| Affectations | `/affectations` | ✅ | ✅ | — |
-| Produits & prix | `/produits` | ✅ | ✅ | — |
-| Rapports & exports | `/rapports` | ✅ | ✅ | Lecture + export |
-| Paramètres de l'entreprise | `/entreprise` | ✅ | — | — |
-| Utilisateurs | `/entreprise/utilisateurs` | ✅ | — | — |
-| Abonnement & modules | `/entreprise/abonnement` | ✅ | — | — |
-| Mon compte, Aide | `/settings`, `/aide` | ✅ | ✅ | ✅ |
+| Menu back-office                      | Route                      | Gérant | Superviseur |    Comptable     |
+| ------------------------------------- | -------------------------- | :----: | :---------: | :--------------: |
+| Tableau de bord                       | `/dashboard`               |   ✅   |     ✅      |     Lecture      |
+| Activité du jour (clôtures à valider) | `/activite`                |   ✅   |     ✅      |        —         |
+| Personnel                             | `/personnel`               |   ✅   |     ✅      |        —         |
+| Sites                                 | `/sites`                   |   ✅   |     ✅      |        —         |
+| Affectations                          | `/affectations`            |   ✅   |     ✅      |        —         |
+| Produits & prix                       | `/produits`                |   ✅   |     ✅      |        —         |
+| Rapports & exports                    | `/rapports`                |   ✅   |     ✅      | Lecture + export |
+| Paramètres de l'entreprise            | `/entreprise`              |   ✅   |      —      |        —         |
+| Utilisateurs                          | `/entreprise/utilisateurs` |   ✅   |      —      |        —         |
+| Abonnement & modules                  | `/entreprise/abonnement`   |   ✅   |      —      |        —         |
+| Mon compte, Aide                      | `/settings`, `/aide`       |   ✅   |     ✅      |        ✅        |
 
 Les deux autres rôles ont leur propre espace et leur propre menu :
 
@@ -154,17 +154,17 @@ On garde l'identité de la page d'accueil (Montserrat, ardoise foncée et vert M
 
 ### Couleurs
 
-| Jeton | Valeur | Usage |
-| --- | --- | --- |
-| Ardoise | `#0F172A` | Boutons principaux, titres, carré du logo |
-| Vert Motriks | `#4FC031` | Accents, point du logo, état « validé », bouton principal du terrain |
-| Vert foncé | `#2F7D1C` | Liens et texte vert (le vert Motriks est trop clair pour du petit texte) |
-| Fond | `#F1F5F9` | Fond des pages du back-office |
-| Carte | `#FFFFFF` + bordure `#E2E8F0` | Cartes, tableaux, formulaires |
-| Texte secondaire | `#64748B` | Aides, légendes, métadonnées |
-| Avertissement | `#F59E0B` | Saisie en retard, stock bas |
-| Erreur | `#DC2626` | Écart de clôture, saisie refusée, compte suspendu |
-| Couleur de l'entreprise | `companies.primary_color` | Seulement pour l'en-tête des PDF et exports et le liseré du logo client. Ne remplace jamais une couleur d'état. |
+| Jeton                   | Valeur                        | Usage                                                                                                           |
+| ----------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Ardoise                 | `#0F172A`                     | Boutons principaux, titres, carré du logo                                                                       |
+| Vert Motriks            | `#4FC031`                     | Accents, point du logo, état « validé », bouton principal du terrain                                            |
+| Vert foncé              | `#2F7D1C`                     | Liens et texte vert (le vert Motriks est trop clair pour du petit texte)                                        |
+| Fond                    | `#F1F5F9`                     | Fond des pages du back-office                                                                                   |
+| Carte                   | `#FFFFFF` + bordure `#E2E8F0` | Cartes, tableaux, formulaires                                                                                   |
+| Texte secondaire        | `#64748B`                     | Aides, légendes, métadonnées                                                                                    |
+| Avertissement           | `#F59E0B`                     | Saisie en retard, stock bas                                                                                     |
+| Erreur                  | `#DC2626`                     | Écart de clôture, saisie refusée, compte suspendu                                                               |
+| Couleur de l'entreprise | `companies.primary_color`     | Seulement pour l'en-tête des PDF et exports et le liseré du logo client. Ne remplace jamais une couleur d'état. |
 
 ### Typographie et formes
 
@@ -193,28 +193,29 @@ Interface en français. Montants : `12 500 FCFA`. Dates : `08/10/2026`. Heures :
 
 18 interfaces au total : **6 pour le Dev 1, 7 pour le Dev 2, 3 pour le Dev 3, et 2 encore sans responsable**. Mettez à jour la colonne État au fil du sprint.
 
-| N° | Interface | Route | Rôles | Réf. | Dev | État |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | Gabarit back-office : menu par rôle, en-tête entreprise | toutes les pages back-office | Gérant, Superviseur, Comptable | FN-03 | Dev 1 | Fait |
-| 2 | Gabarit terrain mobile : site du jour, navigation basse, état hors-ligne | `/terrain/*` | Hôtesse | FN-07, FN-10 | Dev 1 | En cours |
-| 3 | Utilisateurs — liste (filtres rôle, statut) | `/entreprise/utilisateurs` | Gérant | FN-03 | Dev 1 | À faire |
-| 4 | Utilisateur — créer, modifier, suspendre (rôle, mot de passe temporaire) | `/entreprise/utilisateurs/{id}` | Gérant | FN-03 | Dev 1 | À faire |
-| 5 | Paramètres de l'entreprise (logo, couleur, coordonnées) | `/entreprise` | Gérant | FN-02 | Dev 1 | À faire |
-| 6 | Admin — Entreprises (liste, suspendre, réactiver) | `/admin/entreprises` | Super admin | FN-02 | Dev 1 | À faire |
-| 7 | Personnel — liste (recherche, filtres statut) | `/personnel` | Gérant, Superviseur | FN-04 | Dev 2 | À faire |
-| 8 | Personnel — fiche (identité, documents, affectations) | `/personnel/{id}` | Gérant, Superviseur | FN-04 | Dev 2 | À faire |
-| 9 | Personnel — formulaire créer, modifier, archiver | `/personnel/create` | Gérant, Superviseur | FN-04 | Dev 2 | À faire |
-| 10 | Sites — liste | `/sites` | Gérant, Superviseur | FN-05 | Dev 2 | À faire |
-| 11 | Site — fiche (hôtesses affectées, contact sur place) | `/sites/{id}` | Gérant, Superviseur | FN-05 | Dev 2 | À faire |
-| 12 | Site — formulaire (adresse, GPS, contact, statut) | `/sites/create` | Gérant, Superviseur | FN-05 | Dev 2 | À faire |
-| 13 | Affectations — liste + formulaire (dates, créneau) | `/affectations` | Gérant, Superviseur | FN-05 | Dev 2 | À faire |
-| 14 | Produits & prix — catalogue simple | `/produits` | Gérant, Superviseur | FN-07, FN-08 | **À attribuer** | À faire |
-| 15 | Aujourd'hui — site du jour + prise de poste | `/terrain` | Hôtesse | FN-07 | Dev 3 | En cours |
-| 16 | Saisie rapide — compteurs + / − | `/terrain/saisie` | Hôtesse | FN-07, FN-08, FN-10 | Dev 3 | À faire |
-| 17 | Clôture — récapitulatif + motif d'écart | `/terrain/cloture` | Hôtesse | FN-09 | Dev 3 | À faire |
-| 18 | Activité du jour — clôtures à valider | `/activite` | Gérant, Superviseur | FN-09 | **À attribuer** | À faire |
+| N°  | Interface                                                                | Route                           | Rôles                          | Réf.                | Dev             | État     |
+| --- | ------------------------------------------------------------------------ | ------------------------------- | ------------------------------ | ------------------- | --------------- | -------- |
+| 1   | Gabarit back-office : menu par rôle, en-tête entreprise                  | toutes les pages back-office    | Gérant, Superviseur, Comptable | FN-03               | Dev 1           | Fait     |
+| 2   | Gabarit terrain mobile : site du jour, navigation basse, état hors-ligne | `/terrain/*`                    | Hôtesse                        | FN-07, FN-10        | Dev 1           | En cours |
+| 3   | Utilisateurs — liste (filtres rôle, statut)                              | `/entreprise/utilisateurs`      | Gérant                         | FN-03               | Dev 1           | À faire  |
+| 4   | Utilisateur — créer, modifier, suspendre (rôle, mot de passe temporaire) | `/entreprise/utilisateurs/{id}` | Gérant                         | FN-03               | Dev 1           | À faire  |
+| 5   | Paramètres de l'entreprise (logo, couleur, coordonnées)                  | `/entreprise`                   | Gérant                         | FN-02               | Dev 1           | À faire  |
+| 6   | Admin — Entreprises (liste, suspendre, réactiver)                        | `/admin/entreprises`            | Super admin                    | FN-02               | Dev 1           | À faire  |
+| 7   | Personnel — liste (recherche, filtres statut)                            | `/personnel`                    | Gérant, Superviseur            | FN-04               | Dev 2           | À faire  |
+| 8   | Personnel — fiche (identité, documents, affectations)                    | `/personnel/{id}`               | Gérant, Superviseur            | FN-04               | Dev 2           | À faire  |
+| 9   | Personnel — formulaire créer, modifier, archiver                         | `/personnel/create`             | Gérant, Superviseur            | FN-04               | Dev 2           | À faire  |
+| 10  | Sites — liste                                                            | `/sites`                        | Gérant, Superviseur            | FN-05               | Dev 2           | À faire  |
+| 11  | Site — fiche (hôtesses affectées, contact sur place)                     | `/sites/{id}`                   | Gérant, Superviseur            | FN-05               | Dev 2           | À faire  |
+| 12  | Site — formulaire (adresse, GPS, contact, statut)                        | `/sites/create`                 | Gérant, Superviseur            | FN-05               | Dev 2           | À faire  |
+| 13  | Affectations — liste + formulaire (dates, créneau)                       | `/affectations`                 | Gérant, Superviseur            | FN-05               | Dev 2           | À faire  |
+| 14  | Produits & prix — catalogue simple                                       | `/produits`                     | Gérant, Superviseur            | FN-07, FN-08        | **À attribuer** | À faire  |
+| 15  | Aujourd'hui — site du jour + prise de poste                              | `/terrain`                      | Hôtesse                        | FN-07               | Dev 3           | En cours |
+| 16  | Saisie rapide — compteurs + / −                                          | `/terrain/saisie`               | Hôtesse                        | FN-07, FN-08, FN-10 | Dev 3           | À faire  |
+| 17  | Clôture — récapitulatif + motif d'écart                                  | `/terrain/cloture`              | Hôtesse                        | FN-09               | Dev 3           | À faire  |
+| 18  | Activité du jour — clôtures à valider                                    | `/activite`                     | Gérant, Superviseur            | FN-09               | **À attribuer** | À faire  |
 
 **Ordre de construction :**
+
 - Les gabarits 1 et 2 d'abord, car toutes les pages en dépendent.
 - Les produits (14) doivent exister avant la saisie (16).
 - Les affectations (13) doivent exister avant l'écran Aujourd'hui (15).
@@ -227,21 +228,21 @@ Interface en français. Montants : `12 500 FCFA`. Dates : `08/10/2026`. Heures :
 
 13 interfaces complètent le MVP (FN-01 à FN-13 et FN-32). Elles seront réparties au prochain sprint.
 
-| Interface | Route | Rôles | Réf. |
-| --- | --- | --- | --- |
-| Tableau de bord entreprise (effectifs, activité du jour, tendance de la semaine) | `/dashboard` | Gérant, Superviseur, Comptable | FN-06 |
-| Rapports hebdomadaires et mensuels | `/rapports` | Gérant, Superviseur, Comptable | FN-11 |
-| Exports PDF et Excel aux couleurs de l'entreprise | `/rapports` | Gérant, Superviseur, Comptable | FN-12 |
-| Abonnement & modules (activation, paiement Mobile Money) | `/entreprise/abonnement` | Gérant | FN-13 |
-| Import Excel (personnel, sites, produits) | `/entreprise/import` | Gérant | FN-32 |
-| Assistant de démarrage | `/bienvenue` | Gérant | FN-32 |
-| Centre d'aide | `/aide` | Tous | FN-32 |
-| Historique personnel de l'hôtesse | `/terrain/historique` | Hôtesse | FN-07 |
-| Profil terrain (mot de passe, langue) | `/terrain/profil` | Hôtesse | FN-01 |
-| Admin — tableau de bord plateforme | `/admin` | Super admin | FN-02 |
-| Admin — fiche entreprise (utilisateurs, abonnement) | `/admin/entreprises/{id}` | Super admin | FN-02 |
-| Admin — catalogue des modules et tarifs | `/admin/modules` | Super admin | FN-13 |
-| Admin — journal d'audit | `/admin/audit` | Super admin | Sécurité |
+| Interface                                                                        | Route                     | Rôles                          | Réf.     |
+| -------------------------------------------------------------------------------- | ------------------------- | ------------------------------ | -------- |
+| Tableau de bord entreprise (effectifs, activité du jour, tendance de la semaine) | `/dashboard`              | Gérant, Superviseur, Comptable | FN-06    |
+| Rapports hebdomadaires et mensuels                                               | `/rapports`               | Gérant, Superviseur, Comptable | FN-11    |
+| Exports PDF et Excel aux couleurs de l'entreprise                                | `/rapports`               | Gérant, Superviseur, Comptable | FN-12    |
+| Abonnement & modules (activation, paiement Mobile Money)                         | `/entreprise/abonnement`  | Gérant                         | FN-13    |
+| Import Excel (personnel, sites, produits)                                        | `/entreprise/import`      | Gérant                         | FN-32    |
+| Assistant de démarrage                                                           | `/bienvenue`              | Gérant                         | FN-32    |
+| Centre d'aide                                                                    | `/aide`                   | Tous                           | FN-32    |
+| Historique personnel de l'hôtesse                                                | `/terrain/historique`     | Hôtesse                        | FN-07    |
+| Profil terrain (mot de passe, langue)                                            | `/terrain/profil`         | Hôtesse                        | FN-01    |
+| Admin — tableau de bord plateforme                                               | `/admin`                  | Super admin                    | FN-02    |
+| Admin — fiche entreprise (utilisateurs, abonnement)                              | `/admin/entreprises/{id}` | Super admin                    | FN-02    |
+| Admin — catalogue des modules et tarifs                                          | `/admin/modules`          | Super admin                    | FN-13    |
+| Admin — journal d'audit                                                          | `/admin/audit`            | Super admin                    | Sécurité |
 
 Les modules V2 et V3 (plannings, pointage, stocks, primes, IA…) ajouteront chacun leur entrée au menu quand l'entreprise les activera. Ils ne sont pas détaillés ici.
 

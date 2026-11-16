@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasPublicUuid;
-
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -14,13 +14,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $user_id
  * @property string $subject
  * @property string $body
- * @property string $priority  normal|urgent
- * @property string $status    open|in_review|closed
+ * @property string $priority normal|urgent
+ * @property string $status open|in_review|closed
  * @property string|null $response
  * @property int|null $responded_by
- * @property \Illuminate\Support\Carbon|null $responded_at
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
+ * @property Carbon|null $responded_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  * @property-read Company $company
  * @property-read User $agent
  * @property-read User|null $responder

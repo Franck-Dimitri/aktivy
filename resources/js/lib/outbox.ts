@@ -28,7 +28,10 @@ export type OutboxOperation = {
 };
 
 /** Rapport tel que l'affiche la page « Rapport » (forme de DailyReportController::show / OfflineKit). */
-export type LocalReport = Record<string, unknown> & { site_name: string; lines: unknown[] };
+export type LocalReport = Record<string, unknown> & {
+    site_name: string;
+    lines: unknown[];
+};
 
 export type LocalVisit = {
     uuid: string;
@@ -58,8 +61,13 @@ function database(): Promise<IDBDatabase> {
         const request = indexedDB.open(DB_NAME, 1);
         request.onupgradeneeded = () => {
             const db = request.result;
-            if (!db.objectStoreNames.contains(OPERATIONS)) db.createObjectStore(OPERATIONS, { keyPath: 'id', autoIncrement: true });
-            if (!db.objectStoreNames.contains(VISITS)) db.createObjectStore(VISITS, { keyPath: 'uuid' });
+            if (!db.objectStoreNames.contains(OPERATIONS))
+                db.createObjectStore(OPERATIONS, {
+                    keyPath: 'id',
+                    autoIncrement: true,
+                });
+            if (!db.objectStoreNames.contains(VISITS))
+                db.createObjectStore(VISITS, { keyPath: 'uuid' });
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => {
@@ -71,13 +79,18 @@ function database(): Promise<IDBDatabase> {
     return opening;
 }
 
-function run<T>(store: string, mode: IDBTransactionMode, work: (s: IDBObjectStore) => IDBRequest<T> | void): Promise<T | undefined> {
+function run<T>(
+    store: string,
+    mode: IDBTransactionMode,
+    work: (s: IDBObjectStore) => IDBRequest<T> | void,
+): Promise<T | undefined> {
     return database().then(
         (db) =>
             new Promise<T | undefined>((resolve, reject) => {
                 const tx = db.transaction(store, mode);
                 const request = work(tx.objectStore(store));
-                tx.oncomplete = () => resolve(request ? request.result : undefined);
+                tx.oncomplete = () =>
+                    resolve(request ? request.result : undefined);
                 tx.onerror = () => reject(tx.error);
                 tx.onabort = () => reject(tx.error);
             }),
@@ -92,13 +105,21 @@ export function notifyOutbox() {
 /* ─── Opérations ─── */
 
 export async function operations(userId: number): Promise<OutboxOperation[]> {
-    const all = ((await run<OutboxOperation[]>(OPERATIONS, 'readonly', (s) => s.getAll())) ?? []) as OutboxOperation[];
+    const all = ((await run<OutboxOperation[]>(OPERATIONS, 'readonly', (s) =>
+        s.getAll(),
+    )) ?? []) as OutboxOperation[];
 
-    return all.filter((op) => op.userId === userId).sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+    return all
+        .filter((op) => op.userId === userId)
+        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
 }
 
-export async function enqueue(op: Omit<OutboxOperation, 'id' | 'createdAt'>): Promise<void> {
-    await run(OPERATIONS, 'readwrite', (s) => s.add({ ...op, createdAt: Date.now() }));
+export async function enqueue(
+    op: Omit<OutboxOperation, 'id' | 'createdAt'>,
+): Promise<void> {
+    await run(OPERATIONS, 'readwrite', (s) =>
+        s.add({ ...op, createdAt: Date.now() }),
+    );
     notifyOutbox();
 }
 
@@ -106,11 +127,17 @@ export async function enqueue(op: Omit<OutboxOperation, 'id' | 'createdAt'>): Pr
  * Brouillon du rapport : seul le dernier compte. Le précédent, pas encore parti, est remplacé
  * (à sa place dans la file s'il y en avait un, sinon à la fin).
  */
-export async function enqueueSave(op: Omit<OutboxOperation, 'id' | 'createdAt' | 'kind'>): Promise<void> {
-    const previous = (await operations(op.userId)).find((o) => o.kind === 'save' && o.visit === op.visit);
+export async function enqueueSave(
+    op: Omit<OutboxOperation, 'id' | 'createdAt' | 'kind'>,
+): Promise<void> {
+    const previous = (await operations(op.userId)).find(
+        (o) => o.kind === 'save' && o.visit === op.visit,
+    );
 
     if (previous?.id !== undefined) {
-        await run(OPERATIONS, 'readwrite', (s) => s.put({ ...previous, ...op, kind: 'save' }));
+        await run(OPERATIONS, 'readwrite', (s) =>
+            s.put({ ...previous, ...op, kind: 'save' }),
+        );
         notifyOutbox();
 
         return;
@@ -126,7 +153,8 @@ export async function removeOperation(id: number): Promise<void> {
 /** Brouillons d'une visite devenus inutiles (le rapport complet part après eux). */
 export async function dropSaves(userId: number, visit: string): Promise<void> {
     for (const op of await operations(userId)) {
-        if (op.kind === 'save' && op.visit === visit && op.id !== undefined) await removeOperation(op.id);
+        if (op.kind === 'save' && op.visit === visit && op.id !== undefined)
+            await removeOperation(op.id);
     }
 }
 
@@ -134,10 +162,16 @@ export async function dropSaves(userId: number, visit: string): Promise<void> {
  * Le serveur a rattaché la prise de service à une autre visite (déjà pointé ce jour-là) :
  * les actions suivantes et la visite locale suivent.
  */
-export async function moveVisit(userId: number, from: string, to: string): Promise<void> {
+export async function moveVisit(
+    userId: number,
+    from: string,
+    to: string,
+): Promise<void> {
     for (const op of await operations(userId)) {
         if (op.visit !== from) continue;
-        await run(OPERATIONS, 'readwrite', (s) => s.put({ ...op, visit: to, url: op.url.replace(from, to) }));
+        await run(OPERATIONS, 'readwrite', (s) =>
+            s.put({ ...op, visit: to, url: op.url.replace(from, to) }),
+        );
     }
 
     const local = await localVisit(from);
@@ -149,22 +183,35 @@ export async function moveVisit(userId: number, from: string, to: string): Promi
 
 /* ─── Visites locales ─── */
 
-export async function localVisit(uuid: string): Promise<LocalVisit | undefined> {
-    return (await run<LocalVisit>(VISITS, 'readonly', (s) => s.get(uuid))) as LocalVisit | undefined;
+export async function localVisit(
+    uuid: string,
+): Promise<LocalVisit | undefined> {
+    return (await run<LocalVisit>(VISITS, 'readonly', (s) => s.get(uuid))) as
+        | LocalVisit
+        | undefined;
 }
 
 export async function localVisits(userId: number): Promise<LocalVisit[]> {
-    const all = ((await run<LocalVisit[]>(VISITS, 'readonly', (s) => s.getAll())) ?? []) as LocalVisit[];
+    const all = ((await run<LocalVisit[]>(VISITS, 'readonly', (s) =>
+        s.getAll(),
+    )) ?? []) as LocalVisit[];
 
-    return all.filter((v) => v.userId === userId).sort((a, b) => b.updatedAt - a.updatedAt);
+    return all
+        .filter((v) => v.userId === userId)
+        .sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export async function saveLocalVisit(visit: LocalVisit): Promise<void> {
-    await run(VISITS, 'readwrite', (s) => s.put({ ...visit, updatedAt: Date.now() }));
+    await run(VISITS, 'readwrite', (s) =>
+        s.put({ ...visit, updatedAt: Date.now() }),
+    );
     notifyOutbox();
 }
 
-export async function updateLocalVisit(uuid: string, changes: Partial<LocalVisit>): Promise<void> {
+export async function updateLocalVisit(
+    uuid: string,
+    changes: Partial<LocalVisit>,
+): Promise<void> {
     const current = await localVisit(uuid);
     if (current) await saveLocalVisit({ ...current, ...changes });
 }
@@ -195,7 +242,10 @@ export function localDay(date = new Date()): string {
 }
 
 export function localTime(date = new Date()): string {
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 }
 
 /** IndexedDB disponible (absent dans certains modes privés) : sinon, pas de mode hors ligne. */

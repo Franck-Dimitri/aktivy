@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Company\Events;
 
-use App\Http\Controllers\Controller;
 use App\Enums\AccountStatus;
+use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventPack;
 use App\Models\User;
@@ -11,8 +11,8 @@ use App\Notifications\LiveNotification;
 use App\Support\Notifications\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class EventPackController extends Controller
 {
@@ -24,10 +24,10 @@ class EventPackController extends Controller
         $data = $this->validatePack($request);
 
         $pack = $event->packs()->create([
-            'name'        => $data['name'],
+            'name' => $data['name'],
             'description' => $data['description'] ?? null,
-            'type'        => $data['type'],
-            'price'       => $data['price'] ?? null,
+            'type' => $data['type'],
+            'price' => $data['price'] ?? null,
         ]);
 
         foreach ($data['lines'] as $line) {
@@ -64,11 +64,11 @@ class EventPackController extends Controller
 
         $wasActive = (bool) $pack->active;
         $pack->update([
-            'name'        => $data['name'],
+            'name' => $data['name'],
             'description' => $data['description'] ?? null,
-            'type'        => $data['type'],
-            'price'       => $data['price'] ?? null,
-            'active'      => $data['active'] ?? $pack->active,
+            'type' => $data['type'],
+            'price' => $data['price'] ?? null,
+            'active' => $data['active'] ?? $pack->active,
         ]);
 
         $pack->lines()->delete();
@@ -103,28 +103,28 @@ class EventPackController extends Controller
     private function validatePack(Request $request, array $extraRules = []): array
     {
         $validator = Validator::make($request->all(), [
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'type'        => 'required|in:grouped_discount,buy_get_free',
-            'price'       => 'nullable|required_if:type,grouped_discount|integer|min:0',
-            'lines'       => 'required|array|min:1',
+            'type' => 'required|in:grouped_discount,buy_get_free',
+            'price' => 'nullable|required_if:type,grouped_discount|integer|min:0',
+            'lines' => 'required|array|min:1',
             'lines.*.product_id' => [
                 'required',
                 'integer',
                 Rule::exists('products', 'id')->where('company_id', $request->user()->company_id),
             ],
-            'lines.*.quantity'   => 'required|integer|min:1',
-            'lines.*.role'       => 'required|in:paid,free',
+            'lines.*.quantity' => 'required|integer|min:1',
+            'lines.*.role' => 'required|in:paid,free',
             'lines.*.unit_price' => 'nullable|integer|min:0',
             ...$extraRules,
         ], [
-            'price.required_if'           => 'Indiquez le prix du bundle.',
-            'price.integer'               => 'Le prix doit être un nombre entier, sans décimales.',
-            'lines.required'              => 'Ajoutez au moins un produit au pack.',
+            'price.required_if' => 'Indiquez le prix du bundle.',
+            'price.integer' => 'Le prix doit être un nombre entier, sans décimales.',
+            'lines.required' => 'Ajoutez au moins un produit au pack.',
             'lines.*.product_id.required' => 'Choisissez un produit pour chaque ligne.',
-            'lines.*.product_id.exists'   => 'Ce produit n’existe pas dans votre catalogue.',
-            'lines.*.quantity.required'   => 'Indiquez une quantité pour chaque produit.',
-            'lines.*.quantity.min'        => 'La quantité de chaque produit doit être d’au moins 1.',
+            'lines.*.product_id.exists' => 'Ce produit n’existe pas dans votre catalogue.',
+            'lines.*.quantity.required' => 'Indiquez une quantité pour chaque produit.',
+            'lines.*.quantity.min' => 'La quantité de chaque produit doit être d’au moins 1.',
         ], [
             'name' => 'nom du pack',
         ]);

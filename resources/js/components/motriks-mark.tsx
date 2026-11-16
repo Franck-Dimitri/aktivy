@@ -7,8 +7,19 @@ import { cn } from '@/lib/utils';
  */
 export default function MotriksMark({ className }: { className?: string }) {
     return (
-        <span aria-hidden="true" className={cn('flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[24%] bg-white shadow-xs ring-1 ring-slate-900/5', className)}>
-            <img src="/images/logos/motriks-mark.svg" alt="" draggable={false} className="w-[72%] select-none" />
+        <span
+            aria-hidden="true"
+            className={cn(
+                'flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[24%] bg-white shadow-xs ring-1 ring-slate-900/5',
+                className,
+            )}
+        >
+            <img
+                src="/images/logos/motriks-mark.svg"
+                alt=""
+                draggable={false}
+                className="w-[72%] select-none"
+            />
         </span>
     );
 }

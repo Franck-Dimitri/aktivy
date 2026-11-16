@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\EventPackType;
+use App\Models\Concerns\HasPublicUuid;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,16 +25,16 @@ class EventPack extends Model
     use HasPublicUuid;
 
     protected $attributes = [
-        'type'   => 'grouped_discount',
+        'type' => 'grouped_discount',
         'active' => true,
     ];
 
     protected function casts(): array
     {
         return [
-            'type'   => EventPackType::class,
+            'type' => EventPackType::class,
             'active' => 'boolean',
-            'price'  => 'integer',
+            'price' => 'integer',
         ];
     }
 

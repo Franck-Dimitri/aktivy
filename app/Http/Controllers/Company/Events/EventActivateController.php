@@ -49,7 +49,7 @@ class EventActivateController extends Controller
     private function activate(Event $event, int $activatedBy): void
     {
         $event->update([
-            'status'       => EventStatus::Active,
+            'status' => EventStatus::Active,
             'activated_at' => now(),
         ]);
 
@@ -59,7 +59,7 @@ class EventActivateController extends Controller
 
             // Si le PDV de l'event est un nouveau (sans site_id), on ne peut pas créer d'affectation standard
             // On crée quand même si on a un site_id
-            if (!$siteId) {
+            if (! $siteId) {
                 continue;
             }
 
@@ -75,17 +75,17 @@ class EventActivateController extends Controller
 
             // Insertion directe (sans le modèle) : l'identifiant public est fourni ici
             DB::table('affectations')->insert([
-                'uuid'        => (string) Str::uuid7(),
-                'company_id'  => $event->company_id,
-                'event_id'    => $event->id,
-                'site_id'     => $siteId,
-                'user_id'     => $hostess->user_id,
+                'uuid' => (string) Str::uuid7(),
+                'company_id' => $event->company_id,
+                'event_id' => $event->id,
+                'site_id' => $siteId,
+                'user_id' => $hostess->user_id,
                 'assigned_by' => $activatedBy,
-                'starts_on'   => $event->start_date,
-                'ends_on'     => $event->end_date,
-                'status'      => 'active',
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'starts_on' => $event->start_date,
+                'ends_on' => $event->end_date,
+                'status' => 'active',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }
@@ -93,7 +93,7 @@ class EventActivateController extends Controller
     private function complete(Event $event): void
     {
         $event->update([
-            'status'       => EventStatus::Completed,
+            'status' => EventStatus::Completed,
             'completed_at' => now(),
         ]);
 

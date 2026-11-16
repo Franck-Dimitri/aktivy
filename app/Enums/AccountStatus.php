@@ -4,8 +4,8 @@ namespace App\Enums;
 
 enum AccountStatus: string
 {
-    case Active    = 'active';
-    case Pending   = 'pending';
-    case Rejected  = 'rejected';
+    case Active = 'active';
+    case Pending = 'pending';
+    case Rejected = 'rejected';
     case Suspended = 'suspended';
 }

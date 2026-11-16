@@ -1,10 +1,25 @@
-import { BarChart3, ClipboardCheck, CreditCard, Package, Rocket, Smartphone, Sun, Target, Users, WifiOff, type LucideIcon } from 'lucide-react';
+import {
+    BarChart3,
+    ClipboardCheck,
+    CreditCard,
+    Package,
+    Rocket,
+    Smartphone,
+    Sun,
+    Target,
+    Users,
+    WifiOff,
+    type LucideIcon,
+} from 'lucide-react';
 import { dashboard } from '@/routes';
 import { index as activityIndex } from '@/routes/activity';
 import { subscription as companySubscription } from '@/routes/company';
 import { index as companyImport } from '@/routes/company/import';
 import { index as dailyReportsIndex } from '@/routes/daily-reports';
-import { index as reportsIndex, objectives as reportsObjectives } from '@/routes/reports';
+import {
+    index as reportsIndex,
+    objectives as reportsObjectives,
+} from '@/routes/reports';
 import { index as stockAlertsIndex } from '@/routes/stock-alerts';
 import { home as terrainHome } from '@/routes/terrain';
 import { index as terrainTickets } from '@/routes/terrain/tickets';
@@ -22,7 +37,12 @@ export type Guide = {
     roles?: Role[];
 };
 
-export type Topic = { id: string; title: string; icon: LucideIcon; guides: Guide[] };
+export type Topic = {
+    id: string;
+    title: string;
+    icon: LucideIcon;
+    guides: Guide[];
+};
 
 const managerTopics = (): Topic[] => [
     {
@@ -33,13 +53,19 @@ const managerTopics = (): Topic[] => [
             {
                 question: 'Par où commencer ?',
                 answer: 'Suivez l’assistant « Bien démarrer » du tableau de bord : identité de l’entreprise, points de vente, produits, hôtesses, affectations, stock de départ, puis un premier rapport envoyé. Chaque étape se coche toute seule une fois faite.',
-                link: { label: 'Ouvrir le tableau de bord', href: dashboard().url },
+                link: {
+                    label: 'Ouvrir le tableau de bord',
+                    href: dashboard().url,
+                },
                 roles: ['company_admin'],
             },
             {
                 question: 'Comment importer mes listes Excel ?',
                 answer: 'Menu « Importer des fichiers » : sites, produits et personnel, depuis un Excel (.xlsx) ou un CSV. Téléchargez le modèle, remplissez-le, puis envoyez-le. Au moindre souci, rien n’est importé et chaque ligne à corriger est indiquée. Le personnel importé reçoit un mot de passe provisoire, à changer à la première connexion.',
-                link: { label: 'Importer des fichiers', href: companyImport().url },
+                link: {
+                    label: 'Importer des fichiers',
+                    href: companyImport().url,
+                },
                 roles: ['company_admin'],
             },
         ],
@@ -59,7 +85,10 @@ const managerTopics = (): Topic[] => [
             {
                 question: 'Comment voir les rapports du jour ?',
                 answer: '« Rapports journaliers » liste les rapports d’une date : envoyés, en cours, et les hôtesses affectées qui n’ont pas pointé. Ouvrez un rapport pour voir les ventes, le stock, les notes et les photos.',
-                link: { label: 'Rapports journaliers', href: dailyReportsIndex().url },
+                link: {
+                    label: 'Rapports journaliers',
+                    href: dailyReportsIndex().url,
+                },
                 module: 'terrain',
             },
             {
@@ -90,7 +119,10 @@ const managerTopics = (): Topic[] => [
             {
                 question: 'Comment être prévenu d’une rupture ?',
                 answer: 'Fixez un seuil d’alerte et un seuil critique pour chaque produit d’un site. Sous le seuil, le produit apparaît dans « Alertes de stock » ; sous le seuil critique, vous recevez une notification.',
-                link: { label: 'Alertes de stock', href: stockAlertsIndex().url },
+                link: {
+                    label: 'Alertes de stock',
+                    href: stockAlertsIndex().url,
+                },
                 module: 'stocks',
                 roles: ['company_admin', 'supervisor'],
             },
@@ -104,7 +136,10 @@ const managerTopics = (): Topic[] => [
             {
                 question: 'Comment fixer des objectifs ?',
                 answer: 'Dans « Ventes & objectifs », onglet Objectifs : par semaine (bouton « Objectifs de la semaine ») ou par mois (entreprise, sites, hôtesses). Fixé une fois, un objectif reste en place jusqu’à ce que vous le changiez ou le retiriez. Si vous n’en fixez qu’un, l’autre est calculé automatiquement (environ 4,3 semaines par mois). L’onglet montre qui l’atteint, qui est en bonne voie et qui est en retard.',
-                link: { label: 'Voir les objectifs', href: reportsObjectives().url },
+                link: {
+                    label: 'Voir les objectifs',
+                    href: reportsObjectives().url,
+                },
                 module: 'reporting',
                 roles: ['company_admin', 'supervisor'],
             },
@@ -153,7 +188,10 @@ const managerTopics = (): Topic[] => [
             {
                 question: 'Comment fonctionne l’abonnement ?',
                 answer: 'Le socle (tableau de bord, sites, personnel, affectations, produits, import, export) est inclus. Les modules — suivi terrain, stocks, reporting, événements, photos, demandes — s’activent selon vos besoins. Une nouvelle entreprise les essaie tous pendant 7 jours ; vous êtes prévenu avant chaque échéance. Pour activer ou prolonger un module, écrivez-nous.',
-                link: { label: 'Voir mon abonnement', href: companySubscription().url },
+                link: {
+                    label: 'Voir mon abonnement',
+                    href: companySubscription().url,
+                },
                 roles: ['company_admin'],
             },
         ],
@@ -166,11 +204,28 @@ const hostessTopics = (): Topic[] => [
         title: 'Ma journée',
         icon: Sun,
         guides: [
-            { question: 'Comment commencer ma journée ?', answer: 'Sur votre accueil, appuyez sur « Prendre mon service » une fois arrivée sur le point de vente. Votre position est enregistrée si vous l’autorisez.', link: { label: 'Mon accueil', href: terrainHome().url } },
-            { question: 'Comment saisir mes ventes ?', answer: 'Ouvrez « Saisir mes ventes » et utilisez + et − pour chaque produit. Les montants se calculent seuls. Enregistrez le brouillon quand vous voulez.' },
-            { question: 'Comment terminer ma journée ?', answer: 'Appuyez sur « Réviser », comptez ce qu’il reste de chaque produit (indiquez le motif s’il y a un écart), puis « Soumettre le rapport ». Terminez ensuite votre service.' },
-            { question: 'Je me suis trompée après avoir soumis.', answer: 'Dans votre rapport, appuyez sur « Signaler une erreur » et expliquez-la : votre responsable peut corriger les quantités.' },
-            { question: 'Comment joindre une photo ?', answer: 'Dans votre rapport, rubrique Photos : stand, rayon, rupture… jusqu’à 6 photos, réduites automatiquement pour partir vite.', module: 'photos' },
+            {
+                question: 'Comment commencer ma journée ?',
+                answer: 'Sur votre accueil, appuyez sur « Prendre mon service » une fois arrivée sur le point de vente. Votre position est enregistrée si vous l’autorisez.',
+                link: { label: 'Mon accueil', href: terrainHome().url },
+            },
+            {
+                question: 'Comment saisir mes ventes ?',
+                answer: 'Ouvrez « Saisir mes ventes » et utilisez + et − pour chaque produit. Les montants se calculent seuls. Enregistrez le brouillon quand vous voulez.',
+            },
+            {
+                question: 'Comment terminer ma journée ?',
+                answer: 'Appuyez sur « Réviser », comptez ce qu’il reste de chaque produit (indiquez le motif s’il y a un écart), puis « Soumettre le rapport ». Terminez ensuite votre service.',
+            },
+            {
+                question: 'Je me suis trompée après avoir soumis.',
+                answer: 'Dans votre rapport, appuyez sur « Signaler une erreur » et expliquez-la : votre responsable peut corriger les quantités.',
+            },
+            {
+                question: 'Comment joindre une photo ?',
+                answer: 'Dans votre rapport, rubrique Photos : stand, rayon, rupture… jusqu’à 6 photos, réduites automatiquement pour partir vite.',
+                module: 'photos',
+            },
         ],
     },
     {
@@ -178,7 +233,10 @@ const hostessTopics = (): Topic[] => [
         title: 'Sans réseau',
         icon: WifiOff,
         guides: [
-            { question: 'Et si je n’ai plus de réseau ?', answer: 'Continuez votre saisie : elle reste sur votre téléphone. Si vous soumettez sans réseau, le rapport partira tout seul au retour de la connexion. La prise de service, elle, a besoin de réseau.' },
+            {
+                question: 'Et si je n’ai plus de réseau ?',
+                answer: 'Continuez votre saisie : elle reste sur votre téléphone. Si vous soumettez sans réseau, le rapport partira tout seul au retour de la connexion. La prise de service, elle, a besoin de réseau.',
+            },
         ],
     },
     {
@@ -186,7 +244,11 @@ const hostessTopics = (): Topic[] => [
         title: 'Mes objectifs',
         icon: BarChart3,
         guides: [
-            { question: 'Où voir mon objectif ?', answer: 'Sur votre accueil : l’objectif de la semaine et celui du mois, quand votre responsable en a fixé, avec ce qu’il vous reste à réaliser par jour.', link: { label: 'Mon accueil', href: terrainHome().url } },
+            {
+                question: 'Où voir mon objectif ?',
+                answer: 'Sur votre accueil : l’objectif de la semaine et celui du mois, quand votre responsable en a fixé, avec ce qu’il vous reste à réaliser par jour.',
+                link: { label: 'Mon accueil', href: terrainHome().url },
+            },
         ],
     },
     {
@@ -194,7 +256,12 @@ const hostessTopics = (): Topic[] => [
         title: 'Mon responsable',
         icon: Smartphone,
         guides: [
-            { question: 'Comment poser une question à mon responsable ?', answer: '« Tickets » : écrivez votre demande (urgente si besoin). Vous êtes prévenue sous la cloche dès qu’il répond.', link: { label: 'Mes tickets', href: terrainTickets().url }, module: 'demandes' },
+            {
+                question: 'Comment poser une question à mon responsable ?',
+                answer: '« Tickets » : écrivez votre demande (urgente si besoin). Vous êtes prévenue sous la cloche dès qu’il répond.',
+                link: { label: 'Mes tickets', href: terrainTickets().url },
+                module: 'demandes',
+            },
         ],
     },
 ];
@@ -203,12 +270,19 @@ const hostessTopics = (): Topic[] => [
 export function topicsFor(role: Role, modules: string[]): Topic[] {
     const topics = role === 'field_agent' ? hostessTopics() : managerTopics();
     // Sans rôle précisé : les rôles d'une entreprise (pas le super-admin)
-    const defaults: Role[] = role === 'field_agent' ? ['field_agent'] : ['company_admin', 'supervisor', 'accountant'];
+    const defaults: Role[] =
+        role === 'field_agent'
+            ? ['field_agent']
+            : ['company_admin', 'supervisor', 'accountant'];
 
     return topics
         .map((t) => ({
             ...t,
-            guides: t.guides.filter((g) => (!g.module || modules.includes(g.module)) && (g.roles ?? defaults).includes(role)),
+            guides: t.guides.filter(
+                (g) =>
+                    (!g.module || modules.includes(g.module)) &&
+                    (g.roles ?? defaults).includes(role),
+            ),
         }))
         .filter((t) => t.guides.length > 0);
 }

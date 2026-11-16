@@ -163,7 +163,9 @@ class DemoDataSeeder extends Seeder
             ]);
 
             foreach ($stocks as $stock) {
-                $sold = max(0, (int) round(mt_rand(0, 12) * match ($stock->product->unit) { 'paquet' => 3, 'pièce' => 2, default => 1 } * ($day->isSaturday() ? 1.5 : 1)));
+                $sold = max(0, (int) round(mt_rand(0, 12) * match ($stock->product->unit) {
+                    'paquet' => 3, 'pièce' => 2, default => 1
+                } * ($day->isSaturday() ? 1.5 : 1)));
                 $closing = $running[$stock->id];
                 $running[$stock->id] = $closing + $sold;
 

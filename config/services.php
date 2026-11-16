@@ -44,10 +44,10 @@ return [
     ],
 
     'telegram' => [
-        'bot_token'      => env('TELEGRAM_BOT_TOKEN'),
-        'chat_id'        => env('TELEGRAM_CHAT_ID'),
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'chat_id' => env('TELEGRAM_CHAT_ID'),
         'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
-        'allowed_ids'    => env('TELEGRAM_ALLOWED_IDS', ''),
+        'allowed_ids' => env('TELEGRAM_ALLOWED_IDS', ''),
     ],
 
 ];

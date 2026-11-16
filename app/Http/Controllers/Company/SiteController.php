@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Company;
 
-use App\Support\Plans\PlanUsage;
-use App\Http\Controllers\Controller;
-
 use App\Enums\AffectationStatus;
 use App\Enums\Role;
 use App\Enums\SiteStatus;
 use App\Enums\SiteType;
+use App\Http\Controllers\Controller;
 use App\Models\Site;
 use App\Models\StockMovement;
+use App\Support\Plans\PlanUsage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -129,17 +129,17 @@ class SiteController extends Controller
             ->orderBy('starts_on')
             ->get()
             ->map(fn ($a) => [
-                'id'          => $a->id,
-                'uuid'        => $a->uuid,
-                'agent_id'    => $a->user_id,
-                'agent_uuid'  => $a->agent->uuid,
-                'agent_name'  => $a->agent->name,
+                'id' => $a->id,
+                'uuid' => $a->uuid,
+                'agent_id' => $a->user_id,
+                'agent_uuid' => $a->agent->uuid,
+                'agent_name' => $a->agent->name,
                 'agent_phone' => $a->agent->phone,
-                'starts_on'   => $a->starts_on->format('d/m/Y'),
-                'ends_on'     => $a->ends_on?->format('d/m/Y'),
-                'slot_start'  => $a->slot_start,
-                'slot_end'    => $a->slot_end,
-                'is_current'  => $a->isCurrentlyActive(),
+                'starts_on' => $a->starts_on->format('d/m/Y'),
+                'ends_on' => $a->ends_on?->format('d/m/Y'),
+                'slot_start' => $a->slot_start,
+                'slot_end' => $a->slot_end,
+                'is_current' => $a->isCurrentlyActive(),
             ]);
 
         // ── Visites récentes (10) ─────────────────────────────────────────────
@@ -149,22 +149,22 @@ class SiteController extends Controller
             ->limit(10)
             ->get()
             ->map(fn ($v) => [
-                'id'               => $v->id,
-                'uuid'             => $v->uuid,
-                'agent_id'         => $v->user_id,
-                'agent_uuid'       => $v->agent->uuid,
-                'agent_name'       => $v->agent->name,
-                'checked_in_at'    => $v->checked_in_at->format('d/m/Y H:i'),
-                'checked_out_at'   => $v->checked_out_at?->format('H:i'),
+                'id' => $v->id,
+                'uuid' => $v->uuid,
+                'agent_id' => $v->user_id,
+                'agent_uuid' => $v->agent->uuid,
+                'agent_name' => $v->agent->name,
+                'checked_in_at' => $v->checked_in_at->format('d/m/Y H:i'),
+                'checked_out_at' => $v->checked_out_at?->format('H:i'),
                 'duration_minutes' => $v->duration_minutes,
-                'status'           => $v->status->value,
-                'status_label'     => $v->status->label(),
+                'status' => $v->status->value,
+                'status_label' => $v->status->label(),
             ]);
 
         // ── Stats globales ────────────────────────────────────────────────────
-        $totalVisits     = $site->visits()->count();
+        $totalVisits = $site->visits()->count();
         $visitsThisMonth = $site->visits()->where('checked_in_at', '>=', now()->startOfMonth())->count();
-        $avgDuration     = (int) ($site->visits()->whereNotNull('duration_minutes')->avg('duration_minutes') ?? 0);
+        $avgDuration = (int) ($site->visits()->whereNotNull('duration_minutes')->avg('duration_minutes') ?? 0);
         $completedVisits = $site->visits()->where('status', 'completed')->count();
 
         // ── Stats ventes du site ──────────────────────────────────────────────
@@ -173,10 +173,10 @@ class SiteController extends Controller
             ->where('daily_reports.site_id', $site->id)
             ->where('daily_reports.status', 'submitted');
 
-        $revenueAllTime     = (float) $siteSalesBase()->sum('daily_report_lines.revenue');
-        $revenueThisMonth   = (float) $siteSalesBase()->where('daily_reports.report_date', '>=', now()->startOfMonth()->toDateString())->sum('daily_report_lines.revenue');
-        $unitsSoldThisMonth = (int)   $siteSalesBase()->where('daily_reports.report_date', '>=', now()->startOfMonth()->toDateString())->sum('daily_report_lines.units_sold');
-        $reportsSubmitted   = DB::table('daily_reports')->where('site_id', $site->id)->where('status', 'submitted')->count();
+        $revenueAllTime = (float) $siteSalesBase()->sum('daily_report_lines.revenue');
+        $revenueThisMonth = (float) $siteSalesBase()->where('daily_reports.report_date', '>=', now()->startOfMonth()->toDateString())->sum('daily_report_lines.revenue');
+        $unitsSoldThisMonth = (int) $siteSalesBase()->where('daily_reports.report_date', '>=', now()->startOfMonth()->toDateString())->sum('daily_report_lines.units_sold');
+        $reportsSubmitted = DB::table('daily_reports')->where('site_id', $site->id)->where('status', 'submitted')->count();
 
         // ── Données graphique : 7 derniers jours ─────────────────────────────
         // Une seule lecture des pointages des 12 derniers mois, comptés par jour puis par mois
@@ -190,6 +190,7 @@ class SiteController extends Controller
 
         $weekData = collect(range(6, 0))->map(function ($daysAgo) use ($weekRows) {
             $date = now()->subDays($daysAgo)->format('Y-m-d');
+
             return [
                 'label' => now()->subDays($daysAgo)->locale('fr')->isoFormat('ddd D'),
                 'count' => (int) ($weekRows[$date] ?? 0),
@@ -201,6 +202,7 @@ class SiteController extends Controller
 
         $monthData = collect(range(29, 0))->map(function ($daysAgo) use ($monthRows) {
             $date = now()->subDays($daysAgo)->format('Y-m-d');
+
             return [
                 'label' => now()->subDays($daysAgo)->format('d/m'),
                 'count' => (int) ($monthRows[$date] ?? 0),
@@ -212,6 +214,7 @@ class SiteController extends Controller
 
         $yearData = collect(range(11, 0))->map(function ($monthsAgo) use ($yearRows) {
             $month = now()->subMonths($monthsAgo)->format('Y-m');
+
             return [
                 'label' => now()->subMonths($monthsAgo)->locale('fr')->isoFormat('MMM YY'),
                 'count' => (int) ($yearRows[$month] ?? 0),
@@ -233,22 +236,22 @@ class SiteController extends Controller
         $hostessHistory = $allAffectations
             ->groupBy('user_id')
             ->map(function ($aff) use ($visitCounts) {
-                $agent      = $aff->first()->agent;
+                $agent = $aff->first()->agent;
                 $visitCount = (int) ($visitCounts[$agent->id] ?? 0);
-                $firstDate  = $aff->min(fn ($a) => $a->starts_on->toDateString());
-                $lastDate   = $aff->max(fn ($a) => $a->ends_on?->toDateString() ?? now()->toDateString());
-                $isCurrent  = $aff->contains(fn ($a) => $a->isCurrentlyActive());
+                $firstDate = $aff->min(fn ($a) => $a->starts_on->toDateString());
+                $lastDate = $aff->max(fn ($a) => $a->ends_on?->toDateString() ?? now()->toDateString());
+                $isCurrent = $aff->contains(fn ($a) => $a->isCurrentlyActive());
 
                 return [
-                    'agent_id'    => $agent->id,
-                    'agent_uuid'  => $agent->uuid,
-                    'agent_name'  => $agent->name,
+                    'agent_id' => $agent->id,
+                    'agent_uuid' => $agent->uuid,
+                    'agent_name' => $agent->name,
                     'agent_phone' => $agent->phone,
-                    'role_label'  => $agent->role?->label() ?? '',
+                    'role_label' => $agent->role?->label() ?? '',
                     'visit_count' => $visitCount,
-                    'first_date'  => Carbon::parse($firstDate)->format('d/m/Y'),
-                    'last_date'   => Carbon::parse($lastDate)->format('d/m/Y'),
-                    'is_current'  => $isCurrent,
+                    'first_date' => Carbon::parse($firstDate)->format('d/m/Y'),
+                    'last_date' => Carbon::parse($lastDate)->format('d/m/Y'),
+                    'is_current' => $isCurrent,
                 ];
             })
             ->values()
@@ -263,19 +266,19 @@ class SiteController extends Controller
             ->orderBy('created_at')
             ->get()
             ->map(fn ($sp) => [
-                'id'                 => $sp->id,
-                'uuid'               => $sp->uuid,
-                'product_id'         => $sp->product_id,
-                'product_name'       => $sp->product->name,
-                'product_sku'        => $sp->product->sku,
-                'product_unit'       => $sp->product->unit,
-                'product_price'      => $sp->product->price,
-                'product_image_url'  => $sp->product->image ? asset("storage/{$sp->product->image}") : null,
-                'current_stock'      => $sp->current_stock,
-                'alert_threshold'    => $sp->alert_threshold,
+                'id' => $sp->id,
+                'uuid' => $sp->uuid,
+                'product_id' => $sp->product_id,
+                'product_name' => $sp->product->name,
+                'product_sku' => $sp->product->sku,
+                'product_unit' => $sp->product->unit,
+                'product_price' => $sp->product->price,
+                'product_image_url' => $sp->product->image ? asset("storage/{$sp->product->image}") : null,
+                'current_stock' => $sp->current_stock,
+                'alert_threshold' => $sp->alert_threshold,
                 'critical_threshold' => $sp->critical_threshold,
-                'stock_status'       => $sp->stockStatus(),
-                'updated_at'         => $sp->updated_at->diffForHumans(),
+                'stock_status' => $sp->stockStatus(),
+                'updated_at' => $sp->updated_at->diffForHumans(),
             ]);
 
         // ── Produits disponibles (pas encore dans l'inventaire de ce site) ──
@@ -288,7 +291,7 @@ class SiteController extends Controller
             ->map(fn ($p) => [
                 'value' => $p->id,
                 'label' => $p->sku ? "{$p->name} ({$p->sku})" : $p->name,
-                'unit'  => $p->unit,
+                'unit' => $p->unit,
             ]);
 
         // ── Personnel affectable ──────────────────────────────────────────────
@@ -299,79 +302,79 @@ class SiteController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'role'])
             ->map(fn ($u) => [
-                'value'      => $u->id,
-                'label'      => $u->name,
+                'value' => $u->id,
+                'label' => $u->name,
                 'role_label' => $u->role->label(),
             ]);
 
         return Inertia::render('sites/show', [
             'site' => [
-                'id'           => $site->id,
-                'uuid'         => $site->uuid,
-                'name'         => $site->name,
-                'code'         => $site->code,
-                'type'         => $site->type->value,
-                'type_label'   => $site->type->label(),
-                'address'      => $site->address,
-                'city'         => $site->city,
-                'region'       => $site->region,
-                'latitude'     => $site->latitude,
-                'longitude'    => $site->longitude,
+                'id' => $site->id,
+                'uuid' => $site->uuid,
+                'name' => $site->name,
+                'code' => $site->code,
+                'type' => $site->type->value,
+                'type_label' => $site->type->label(),
+                'address' => $site->address,
+                'city' => $site->city,
+                'region' => $site->region,
+                'latitude' => $site->latitude,
+                'longitude' => $site->longitude,
                 'contact_name' => $site->contact_name,
-                'contact_phone'=> $site->contact_phone,
+                'contact_phone' => $site->contact_phone,
                 'opening_time' => $site->opening_time,
                 'closing_time' => $site->closing_time,
-                'notes'        => $site->notes,
-                'status'       => $site->status->value,
+                'notes' => $site->notes,
+                'status' => $site->status->value,
                 'status_label' => $site->status->label(),
-                'last_visit_at'=> $site->last_visit_at?->diffForHumans(),
-                'photos'       => $photos,
+                'last_visit_at' => $site->last_visit_at?->diffForHumans(),
+                'photos' => $photos,
                 'photos_count' => count($photos),
             ],
             'stats' => [
-                'total_visits'        => $totalVisits,
-                'visits_this_month'   => $visitsThisMonth,
-                'avg_duration'        => $avgDuration,
-                'completed_visits'    => $completedVisits,
-                'revenue_all_time'    => $revenueAllTime,
-                'revenue_this_month'  => $revenueThisMonth,
+                'total_visits' => $totalVisits,
+                'visits_this_month' => $visitsThisMonth,
+                'avg_duration' => $avgDuration,
+                'completed_visits' => $completedVisits,
+                'revenue_all_time' => $revenueAllTime,
+                'revenue_this_month' => $revenueThisMonth,
                 'units_sold_this_month' => $unitsSoldThisMonth,
-                'reports_submitted'   => $reportsSubmitted,
+                'reports_submitted' => $reportsSubmitted,
             ],
             'chart' => [
-                'week'  => $weekData,
+                'week' => $weekData,
                 'month' => $monthData,
-                'year'  => $yearData,
+                'year' => $yearData,
             ],
             // Chiffres du site : ce mois face au mois dernier, meilleurs produits et hôtesses sur 30 jours
             'performance' => $this->performance($site),
-            'affectations'    => $affectations,
-            'recent_visits'   => $recentVisits,
-            'hostess_history'   => $hostessHistory,
-            'available_staff'   => $availableStaff,
-            'inventory'         => $inventory,
+            'affectations' => $affectations,
+            'recent_visits' => $recentVisits,
+            'hostess_history' => $hostessHistory,
+            'available_staff' => $availableStaff,
+            'inventory' => $inventory,
             // Journal des mouvements de stock du site (les plus récents)
-            'stock_movements'   => StockMovement::where('site_id', $site->id)
+            'stock_movements' => StockMovement::where('site_id', $site->id)
                 ->with(['siteProduct.product:id,name', 'author:id,name', 'dailyReport:id,uuid'])
                 ->latest('id')
                 ->limit(50)
                 ->get()
                 ->map(fn (StockMovement $m) => [
-                    'id'              => $m->id,
-                    'date'            => $m->created_at->format('d/m/Y H:i'),
-                    'product_name'    => $m->siteProduct?->product?->name,
-                    'type'            => $m->type,
-                    'type_label'      => StockMovement::LABELS[$m->type] ?? $m->type,
-                    'quantity'        => $m->quantity,
-                    'stock_after'     => $m->stock_after,
-                    'author'          => $m->author?->name,
-                    'notes'           => $m->notes,
+                    'id' => $m->id,
+                    'date' => $m->created_at->format('d/m/Y H:i'),
+                    'product_name' => $m->siteProduct?->product?->name,
+                    'type' => $m->type,
+                    'type_label' => StockMovement::LABELS[$m->type] ?? $m->type,
+                    'quantity' => $m->quantity,
+                    'stock_after' => $m->stock_after,
+                    'author' => $m->author?->name,
+                    'notes' => $m->notes,
                     'daily_report_id' => $m->daily_report_id,
                     'daily_report_uuid' => $m->dailyReport?->uuid,
                 ]),
-            'available_products'=> $availableProducts,
+            'available_products' => $availableProducts,
             // Options du modal « Modifier »
-            'types'    => collect(SiteType::cases())->map(fn ($t) => [
+            'types' => collect(SiteType::cases())->map(fn ($t) => [
                 'value' => $t->value,
                 'label' => $t->label(),
             ]),
@@ -562,7 +565,7 @@ class SiteController extends Controller
      * (AT TIME ZONE, TO_CHAR…) diffèrent entre SQLite et PostgreSQL, alors que
      * ce calcul fonctionne à l'identique sur toutes les bases.
      *
-     * @return \Illuminate\Support\Collection<string, int>
+     * @return Collection<string, int>
      */
     private function authorizeCompany(Request $request, Site $site): void
     {

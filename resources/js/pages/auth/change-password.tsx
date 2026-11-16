@@ -37,7 +37,9 @@ export default function ChangePassword({ passwordRules }: Props) {
                             showStrength
                             error={errors.password}
                         />
-                        <p className="-mt-3 text-xs leading-snug text-slate-500">{passwordHint(passwordRules)}</p>
+                        <p className="-mt-3 text-xs leading-snug text-slate-500">
+                            {passwordHint(passwordRules)}
+                        </p>
 
                         <AuthPasswordField
                             id="password_confirmation"

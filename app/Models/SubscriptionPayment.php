@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasPublicUuid;
-
 use App\Enums\Plan;
 use App\Models\Concerns\BelongsToCompany;
+use App\Models\Concerns\HasPublicUuid;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -32,10 +31,10 @@ use Illuminate\Support\Facades\DB;
 ])]
 class SubscriptionPayment extends Model
 {
+    use BelongsToCompany;
+
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
-
-    use BelongsToCompany;
 
     /** Moyens de paiement acceptés, avec leur libellé. */
     public const METHODS = [

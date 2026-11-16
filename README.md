@@ -1,4 +1,3 @@
-
 # Motriks
 
 Plateforme SaaS de gestion d'équipes terrain et de reporting journalier pour les entreprises de distribution et de promotion commerciale.
@@ -19,17 +18,17 @@ Motriks permet à une entreprise de piloter ses hôtesses et agents de terrain d
 
 ## Stack technique
 
-| Couche           | Technologie                                      |
-| ---------------- | ------------------------------------------------ |
-| Backend          | Laravel 13 (PHP 8.3)                             |
-| Frontend         | React 19 + TypeScript + Inertia.js v3            |
-| Styles           | Tailwind CSS v4                                  |
-| Base de données | PostgreSQL                                       |
-| Auth             | Laravel Fortify (email **ou** téléphone) |
-| Routes typées   | Laravel Wayfinder                                |
-| Composants UI    | Radix UI + shadcn/ui                             |
-| Graphiques       | Recharts                                         |
-| Notifications    | Sonner                                           |
+| Couche          | Technologie                              |
+| --------------- | ---------------------------------------- |
+| Backend         | Laravel 13 (PHP 8.3)                     |
+| Frontend        | React 19 + TypeScript + Inertia.js v3    |
+| Styles          | Tailwind CSS v4                          |
+| Base de données | PostgreSQL                               |
+| Auth            | Laravel Fortify (email **ou** téléphone) |
+| Routes typées   | Laravel Wayfinder                        |
+| Composants UI   | Radix UI + shadcn/ui                     |
+| Graphiques      | Recharts                                 |
+| Notifications   | Sonner                                   |
 
 ---
 
@@ -47,13 +46,13 @@ Une entreprise ne peut jamais voir ni modifier les données d'une autre.
 
 ## Rôles
 
-| Rôle             | Label                | Accès                                              |
-| ----------------- | -------------------- | --------------------------------------------------- |
-| `super_admin`   | Super administrateur | Administration globale de la plateforme             |
-| `company_admin` | Gérant              | Tableau de bord, équipe, sites, produits, rapports |
+| Rôle            | Label                | Accès                                                                                                                                                                                       |
+| --------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `super_admin`   | Super administrateur | Administration globale de la plateforme                                                                                                                                                     |
+| `company_admin` | Gérant               | Tableau de bord, équipe, sites, produits, rapports                                                                                                                                          |
 | `supervisor`    | Superviseur          | Uniquement les points de vente où il est affecté : leurs hôtesses, affectations, rapports, ventes, objectifs et tickets. Ne crée ni ne supprime de site, ne gère ni catalogue ni événements |
-| `field_agent`   | Hôtesse             | Interface terrain mobile uniquement                 |
-| `accountant`    | Comptable            | Lecture des rapports journaliers et des ventes, export Excel |
+| `field_agent`   | Hôtesse              | Interface terrain mobile uniquement                                                                                                                                                         |
+| `accountant`    | Comptable            | Lecture des rapports journaliers et des ventes, export Excel                                                                                                                                |
 
 ---
 
@@ -309,11 +308,11 @@ stdout_logfile=/var/www/motriks/storage/logs/worker.log
 
 ### Sauvegardes
 
-| Quoi | Quand | Commande |
-|---|---|---|
-| Base PostgreSQL (chiffrée) | chaque nuit 02 h 00 | `db:backup` |
-| Fichiers déposés : pièces d'identité, photos, documents (chiffrés) | chaque nuit 02 h 30 | `files:backup` |
-| Les dernières se déchiffrent et se relisent | chaque lundi 05 h 00 | `backup:verify` |
+| Quoi                                                               | Quand                | Commande        |
+| ------------------------------------------------------------------ | -------------------- | --------------- |
+| Base PostgreSQL (chiffrée)                                         | chaque nuit 02 h 00  | `db:backup`     |
+| Fichiers déposés : pièces d'identité, photos, documents (chiffrés) | chaque nuit 02 h 30  | `files:backup`  |
+| Les dernières se déchiffrent et se relisent                        | chaque lundi 05 h 00 | `backup:verify` |
 
 - `BACKUP_PASSPHRASE` est obligatoire (aucune sauvegarde en clair). Garder une copie de la phrase **hors du
   serveur** : sans elle, les sauvegardes sont illisibles.

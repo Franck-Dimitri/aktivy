@@ -2,6 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Company;
+use App\Models\DailyReport;
+use App\Models\Event;
+use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -21,9 +25,9 @@ class TelegramService
     {
         try {
             Http::timeout(10)->post("{$this->apiBase}/sendMessage", [
-                'chat_id'                  => $chatId,
-                'text'                     => $text,
-                'parse_mode'               => $parseMode,
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => $parseMode,
                 'disable_web_page_preview' => true,
             ]);
         } catch (Throwable) {
@@ -35,9 +39,10 @@ class TelegramService
     {
         $maxBytes = 50 * 1024 * 1024; // Telegram bot limit: 50 MB
 
-        if (!file_exists($filePath) || filesize($filePath) > $maxBytes) {
-            $size = file_exists($filePath) ? round(filesize($filePath) / 1024 / 1024, 1) . ' Mo' : 'introuvable';
-            $this->sendMessage($chatId, "⚠️ Fichier non envoyé ({$size}) — limite Telegram 50 Mo dépassée.\nFichier disponible localement : `" . basename($filePath) . "`");
+        if (! file_exists($filePath) || filesize($filePath) > $maxBytes) {
+            $size = file_exists($filePath) ? round(filesize($filePath) / 1024 / 1024, 1).' Mo' : 'introuvable';
+            $this->sendMessage($chatId, "⚠️ Fichier non envoyé ({$size}) — limite Telegram 50 Mo dépassée.\nFichier disponible localement : `".basename($filePath).'`');
+
             return false;
         }
 
@@ -53,7 +58,8 @@ class TelegramService
             // Telegram répond par une erreur HTTP sans lever d'exception : l'envoi doit être vérifié
             return $response->successful();
         } catch (Throwable $e) {
-            $this->sendMessage($chatId, "❌ Erreur envoi fichier : " . $e->getMessage());
+            $this->sendMessage($chatId, '❌ Erreur envoi fichier : '.$e->getMessage());
+
             return false;
         }
     }
@@ -61,7 +67,7 @@ class TelegramService
     public function setWebhook(string $url, string $secret): array
     {
         return Http::post("{$this->apiBase}/setWebhook", [
-            'url'          => $url,
+            'url' => $url,
             'secret_token' => $secret,
             'allowed_updates' => ['message'],
         ])->json();
@@ -77,32 +83,39 @@ class TelegramService
     public function buildStatusMessage(): string
     {
         $dbOk = true;
-        try { DB::select('SELECT 1'); } catch (Throwable) { $dbOk = false; }
+        try {
+            DB::select('SELECT 1');
+        } catch (Throwable) {
+            $dbOk = false;
+        }
 
         $cacheOk = true;
         try {
             Cache::put('tg_health_check', 1, 5);
             $cacheOk = Cache::get('tg_health_check') === 1;
-        } catch (Throwable) { $cacheOk = false; }
+        } catch (Throwable) {
+            $cacheOk = false;
+        }
 
-        $diskFree  = disk_free_space('/');
+        $diskFree = disk_free_space('/');
         $diskTotal = disk_total_space('/');
-        $diskPct   = $diskTotal > 0 ? round((1 - $diskFree / $diskTotal) * 100) : 0;
+        $diskPct = $diskTotal > 0 ? round((1 - $diskFree / $diskTotal) * 100) : 0;
         $diskAlert = $diskPct >= 85 ? '⚠️' : '✅';
 
-        $memMb   = round(memory_get_usage(true) / 1024 / 1024, 1);
-        $env     = app()->environment();
+        $memMb = round(memory_get_usage(true) / 1024 / 1024, 1);
+        $env = app()->environment();
         $version = app()->version();
-        $now     = now()->format('d/m/Y H:i:s');
+        $now = now()->format('d/m/Y H:i:s');
 
         $queueSize = 0;
         try {
             $queueSize = (int) DB::table('jobs')->count();
-        } catch (Throwable) {}
+        } catch (Throwable) {
+        }
 
-        $msg  = "📊 *Statut Motriks* — `{$now}`\n\n";
-        $msg .= ($dbOk    ? '✅' : '❌') . " Base de données\n";
-        $msg .= ($cacheOk ? '✅' : '❌') . " Cache\n";
+        $msg = "📊 *Statut Motriks* — `{$now}`\n\n";
+        $msg .= ($dbOk ? '✅' : '❌')." Base de données\n";
+        $msg .= ($cacheOk ? '✅' : '❌')." Cache\n";
         $msg .= "{$diskAlert} Disque : `{$diskPct}%` utilisé\n";
         $msg .= "🧠 Mémoire PHP : `{$memMb} Mo`\n";
         if ($queueSize > 0) {
@@ -115,15 +128,15 @@ class TelegramService
 
     public function buildStatsMessage(): string
     {
-        $companies    = \App\Models\Company::count();
-        $users        = \App\Models\User::count();
-        $events       = \App\Models\Event::count();
-        $eventsActive = \App\Models\Event::where('status', 'active')->count();
-        $reports      = \App\Models\DailyReport::where('status', 'submitted')->count();
-        $reportsToday = \App\Models\DailyReport::where('status', 'submitted')
+        $companies = Company::count();
+        $users = User::count();
+        $events = Event::count();
+        $eventsActive = Event::where('status', 'active')->count();
+        $reports = DailyReport::where('status', 'submitted')->count();
+        $reportsToday = DailyReport::where('status', 'submitted')
             ->whereDate('report_date', today())->count();
 
-        $msg  = "📈 *Statistiques Motriks* — " . now()->format('d/m/Y') . "\n\n";
+        $msg = '📈 *Statistiques Motriks* — '.now()->format('d/m/Y')."\n\n";
         $msg .= "🏢 Entreprises : *{$companies}*\n";
         $msg .= "👤 Utilisateurs : *{$users}*\n";
         $msg .= "🎪 Événements : *{$events}*";

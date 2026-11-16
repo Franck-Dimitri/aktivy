@@ -12,11 +12,19 @@ type Props = {
     devAccounts?: DevAccount[];
 };
 
-export default function Login({ status, canResetPassword, devAccounts }: Props) {
+export default function Login({
+    status,
+    canResetPassword,
+    devAccounts,
+}: Props) {
     return (
         <>
             <Head title="Connexion" />
-            <LoginForm status={status} canResetPassword={canResetPassword} devAccounts={devAccounts} />
+            <LoginForm
+                status={status}
+                canResetPassword={canResetPassword}
+                devAccounts={devAccounts}
+            />
         </>
     );
 }

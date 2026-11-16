@@ -41,7 +41,7 @@ class EventHostessController extends Controller
         $data = $request->validate([
             // Une hôtesse active de l'entreprise : ni un superviseur (l'affectation d'événement lui ouvrirait
             // d'autres sites), ni un compte supprimé
-            'user_id'       => ['required', 'integer', "exists:users,id,company_id,{$event->company_id},role,field_agent,deleted_at,NULL"],
+            'user_id' => ['required', 'integer', "exists:users,id,company_id,{$event->company_id},role,field_agent,deleted_at,NULL"],
             'event_site_id' => ['nullable', 'integer', "exists:event_sites,id,event_id,{$event->id}"],
         ]);
 
@@ -50,9 +50,9 @@ class EventHostessController extends Controller
         }
 
         $this->notifyAssigned($event, $event->hostesses()->create([
-            'user_id'              => $data['user_id'],
-            'event_site_id'        => $data['event_site_id'] ?? null,
-            'recruited_for_event'  => false,
+            'user_id' => $data['user_id'],
+            'event_site_id' => $data['event_site_id'] ?? null,
+            'recruited_for_event' => false,
         ]));
 
         return back()->with('success', 'Hôtesse ajoutée à l\'événement.');
@@ -61,9 +61,9 @@ class EventHostessController extends Controller
     private function storeNew(Request $request, Event $event): RedirectResponse
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:255',
-            'phone'         => 'required|string|max:25',
-            'password'      => ['required', ...User::PROVISIONAL_PASSWORD_RULES],
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:25',
+            'password' => ['required', ...User::PROVISIONAL_PASSWORD_RULES],
             'event_site_id' => ['nullable', 'integer', "exists:event_sites,id,event_id,{$event->id}"],
         ]);
 
@@ -77,19 +77,19 @@ class EventHostessController extends Controller
         }
 
         $user = $event->company->users()->create([
-            'name'     => $data['name'],
-            'phone'    => $data['phone'],
+            'name' => $data['name'],
+            'phone' => $data['phone'],
             'password' => Hash::make($data['password']),
-            'role'     => Role::FieldAgent->value,
-            'status'   => AccountStatus::Active->value,
+            'role' => Role::FieldAgent->value,
+            'status' => AccountStatus::Active->value,
             'must_change_password' => true,
         ]);
 
         // Visible sous sa cloche dès sa première connexion
         $this->notifyAssigned($event, $event->hostesses()->create([
-            'user_id'              => $user->id,
-            'event_site_id'        => $data['event_site_id'] ?? null,
-            'recruited_for_event'  => true,
+            'user_id' => $user->id,
+            'event_site_id' => $data['event_site_id'] ?? null,
+            'recruited_for_event' => true,
         ]));
 
         return back()->with('success', 'Hôtesse créée et ajoutée à l\'événement.');

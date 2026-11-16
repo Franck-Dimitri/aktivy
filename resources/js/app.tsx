@@ -10,7 +10,11 @@ import { setupDownloads } from '@/lib/download';
 import { setupNetworkErrors } from '@/lib/network-errors';
 import { setupLiveRefresh } from '@/lib/live-refresh';
 import { setupOffline } from '@/lib/offline';
-import { setupInstallCapture, setupLaunchQueue, setupPushSync } from '@/lib/pwa';
+import {
+    setupInstallCapture,
+    setupLaunchQueue,
+    setupPushSync,
+} from '@/lib/pwa';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -72,8 +76,14 @@ setupLaunchQueue((url) => router.visit(url));
 // Notifications push qui ne s'arrêtent pas : abonnement de l'appareil renvoyé au serveur s'il a changé ou disparu
 const syncPushFor = setupPushSync();
 router.on('navigate', (event) => {
-    const props = event.detail.page.props as { auth?: { user?: { id: number } | null }; push?: { publicKey: string | null } };
-    syncPushFor({ userId: props.auth?.user?.id ?? null, publicKey: props.push?.publicKey ?? null });
+    const props = event.detail.page.props as {
+        auth?: { user?: { id: number } | null };
+        push?: { publicKey: string | null };
+    };
+    syncPushFor({
+        userId: props.auth?.user?.id ?? null,
+        publicKey: props.push?.publicKey ?? null,
+    });
 });
 // Application installée sur téléphone : pas de menu du navigateur à l'appui long sur un bouton ou une image
 setupAppFeel();

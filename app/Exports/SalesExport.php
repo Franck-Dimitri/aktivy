@@ -3,8 +3,8 @@
 namespace App\Exports;
 
 use App\Support\Excel\Workbook;
-use Carbon\CarbonImmutable;
 use App\Support\Reports\SalesReport;
+use Carbon\CarbonImmutable;
 
 /**
  * Export comptable des ventes : synthèse, journal détaillé et ventilations (jour, site, produit, hôtesse).

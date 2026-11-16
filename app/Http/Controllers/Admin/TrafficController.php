@@ -8,6 +8,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -174,7 +175,7 @@ class TrafficController extends Controller
         return collect(range(0, 23))->map(fn (int $h) => ['hour' => $h, 'views' => (int) ($rows[$h] ?? 0)])->all();
     }
 
-    /** @return \Illuminate\Support\Collection<int, array{label: ?string, visits: int, views: int}> */
+    /** @return Collection<int, array{label: ?string, visits: int, views: int}> */
     private function breakdown(Builder $query, string $column, int $limit = 8)
     {
         return (clone $query)
@@ -190,7 +191,7 @@ class TrafficController extends Controller
     /**
      * Provenance : campagne (utm_source), sinon site d'origine regroupé (Google, Facebook…), sinon accès direct.
      *
-     * @return \Illuminate\Support\Collection<int, array{label: string, visits: int, views: int}>
+     * @return Collection<int, array{label: string, visits: int, views: int}>
      */
     private function sources(Builder $query)
     {

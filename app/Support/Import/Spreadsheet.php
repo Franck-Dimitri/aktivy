@@ -2,6 +2,7 @@
 
 namespace App\Support\Import;
 
+use Illuminate\Support\Str;
 use OpenSpout\Reader\CSV\Options as CsvOptions;
 use OpenSpout\Reader\CSV\Reader as CsvReader;
 use OpenSpout\Reader\XLSX\Reader as XlsxReader;
@@ -61,7 +62,7 @@ class Spreadsheet
     /** « Téléphone contact » → « telephone contact » : minuscules, sans accents ni ponctuation. */
     public static function normalize(string $header): string
     {
-        $ascii = strtolower(\Illuminate\Support\Str::ascii($header));
+        $ascii = strtolower(Str::ascii($header));
 
         return trim(preg_replace('/[^a-z0-9]+/', ' ', $ascii));
     }

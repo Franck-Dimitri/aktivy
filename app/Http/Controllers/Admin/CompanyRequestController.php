@@ -26,16 +26,16 @@ class CompanyRequestController extends Controller
             ->latest('onboarding_completed_at')
             ->get()
             ->map(fn (Company $c) => [
-                'id'                       => $c->id,
-                'uuid'                     => $c->uuid,
-                'name'                     => $c->name,
-                'sector'                   => $c->sector,
-                'city'                     => $c->city,
-                'status'                   => $c->status->value,
-                'onboarding_completed_at'  => $c->onboarding_completed_at?->format('d/m/Y H:i'),
-                'admin_name'               => $c->users->first()?->name,
-                'admin_email'              => $c->users->first()?->email,
-                'rejection_reason'         => $c->rejection_reason,
+                'id' => $c->id,
+                'uuid' => $c->uuid,
+                'name' => $c->name,
+                'sector' => $c->sector,
+                'city' => $c->city,
+                'status' => $c->status->value,
+                'onboarding_completed_at' => $c->onboarding_completed_at?->format('d/m/Y H:i'),
+                'admin_name' => $c->users->first()?->name,
+                'admin_email' => $c->users->first()?->email,
+                'rejection_reason' => $c->rejection_reason,
             ]);
 
         // Pending incomplete (registered but haven't filled onboarding yet)
@@ -45,7 +45,7 @@ class CompanyRequestController extends Controller
             ->count();
 
         return Inertia::render('admin/onboarding/index', [
-            'companies'  => $companies,
+            'companies' => $companies,
             'incomplete' => $incomplete,
         ]);
     }
@@ -56,26 +56,26 @@ class CompanyRequestController extends Controller
 
         return Inertia::render('admin/onboarding/show', [
             'company' => [
-                'id'                       => $company->id,
-                'uuid'                     => $company->uuid,
-                'name'                     => $company->name,
-                'sector'                   => $company->sector,
-                'city'                     => $company->city,
-                'address'                  => $company->address,
-                'email'                    => $company->email,
-                'phone'                    => $company->phone,
-                'status'                   => $company->status->value,
-                'rejection_reason'         => $company->rejection_reason,
-                'onboarding_completed_at'  => $company->onboarding_completed_at?->format('d/m/Y H:i'),
-                'logo_url'                 => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
-                'documents'                => [
-                    'id_card_front'    => $this->documentKind($company->id_card_front_path),
-                    'id_card_back'     => $this->documentKind($company->id_card_back_path),
+                'id' => $company->id,
+                'uuid' => $company->uuid,
+                'name' => $company->name,
+                'sector' => $company->sector,
+                'city' => $company->city,
+                'address' => $company->address,
+                'email' => $company->email,
+                'phone' => $company->phone,
+                'status' => $company->status->value,
+                'rejection_reason' => $company->rejection_reason,
+                'onboarding_completed_at' => $company->onboarding_completed_at?->format('d/m/Y H:i'),
+                'logo_url' => $company->logo_path ? asset('storage/'.$company->logo_path) : null,
+                'documents' => [
+                    'id_card_front' => $this->documentKind($company->id_card_front_path),
+                    'id_card_back' => $this->documentKind($company->id_card_back_path),
                     'registration_doc' => $this->documentKind($company->registration_doc_path),
                 ],
             ],
             'admin' => [
-                'name'  => $admin?->name,
+                'name' => $admin?->name,
                 'email' => $admin?->email,
                 'phone' => $admin?->phone,
             ],
@@ -87,7 +87,7 @@ class CompanyRequestController extends Controller
         abort_unless($company->isPending(), 422, 'Cette entreprise ne peut pas être approuvée.');
 
         $company->update([
-            'status'           => AccountStatus::Active,
+            'status' => AccountStatus::Active,
             'rejection_reason' => null,
         ]);
 
@@ -109,7 +109,7 @@ class CompanyRequestController extends Controller
         ]);
 
         $company->update([
-            'status'           => AccountStatus::Rejected,
+            'status' => AccountStatus::Rejected,
             'rejection_reason' => $validated['reason'],
         ]);
 

@@ -38,11 +38,17 @@ class EventPack extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Event, $this>
+     */
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
     }
 
+    /**
+     * @return HasMany<EventPackLine, $this>
+     */
     public function lines(): HasMany
     {
         return $this->hasMany(EventPackLine::class);

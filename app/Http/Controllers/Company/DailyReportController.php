@@ -76,9 +76,9 @@ class DailyReportController extends Controller
             ->unique('user_id')
             ->map(fn (Affectation $a) => [
                 'user_id' => $a->user_id,
-                'agent_name' => $a->agent?->name,
-                'agent_phone' => $a->agent?->phone,
-                'site_name' => $a->site?->name,
+                'agent_name' => $a->agent->name,
+                'agent_phone' => $a->agent->phone,
+                'site_name' => $a->site->name,
                 'slot_start' => $a->slot_start,
             ])
             ->values();
@@ -99,11 +99,11 @@ class DailyReportController extends Controller
                 'id' => $r->id,
                 'uuid' => $r->uuid,
                 'status' => $r->status,
-                'agent_name' => $r->agent?->name,
-                'agent_phone' => $r->agent?->phone,
-                'site_name' => $r->site?->name,
-                'checked_in_at' => $r->visit?->checked_in_at?->format('H:i'),
-                'checked_out_at' => $r->visit?->checked_out_at?->format('H:i'),
+                'agent_name' => $r->agent->name,
+                'agent_phone' => $r->agent->phone,
+                'site_name' => $r->site->name,
+                'checked_in_at' => $r->visit->checked_in_at->format('H:i'),
+                'checked_out_at' => $r->visit->checked_out_at?->format('H:i'),
                 'submitted_at' => $r->submitted_at?->format('H:i'),
                 'revenue' => (float) $r->lines_sum_revenue,
                 'units_sold' => (int) $r->lines_sum_units_sold,
@@ -111,8 +111,8 @@ class DailyReportController extends Controller
                 'has_incident' => Incident::meaningful($r->incident_notes) !== null,
                 'validated' => $r->isValidated(),
                 'has_gap' => (bool) $r->has_gap,
-                'checkin_distance_m' => $r->visit?->checkin_distance_m,
-                'off_site' => $r->visit?->isOffSite() ?? false,
+                'checkin_distance_m' => $r->visit->checkin_distance_m,
+                'off_site' => $r->visit->isOffSite() ?? false,
             ]),
             'missing' => $missing,
             // Aucune affectation en cours : on le dit plutôt que d'afficher une page vide
@@ -128,7 +128,7 @@ class DailyReportController extends Controller
         $dailyReport->load(['agent:id,name,phone', 'site:id,name,city', 'visit', 'lines.siteProduct', 'packs', 'corrector:id,name', 'validator:id,name']);
         $visit = $dailyReport->visit;
         $canReview = $user->hasRole(Role::CompanyAdmin, Role::Supervisor);
-        $linesByProduct = $dailyReport->lines->keyBy(fn (DailyReportLine $l) => $l->siteProduct?->product_id);
+        $linesByProduct = $dailyReport->lines->keyBy('siteProduct.product_id');
         $soldPacks = $dailyReport->packs->keyBy('event_pack_id');
 
         return Inertia::render('daily-reports/show', [
@@ -141,18 +141,16 @@ class DailyReportController extends Controller
                 'status' => $dailyReport->status,
                 'report_date' => $dailyReport->report_date->toDateString(),
                 'date_label' => $dailyReport->report_date->translatedFormat('l j F Y'),
-                'agent_name' => $dailyReport->agent?->name,
-                'agent_phone' => $dailyReport->agent?->phone,
-                'site_name' => $dailyReport->site?->name,
-                'site_city' => $dailyReport->site?->city,
-                'checked_in_at' => $visit?->checked_in_at?->format('H:i'),
-                'checked_out_at' => $visit?->checked_out_at?->format('H:i'),
-                'duration_minutes' => $visit?->duration_minutes,
-                'checkin_distance_m' => $visit?->checkin_distance_m,
-                'off_site' => $visit?->isOffSite(),
-                'checkin_place' => $visit
-                    ? CheckinPlace::describe($visit, $dailyReport->site, $visit->isOffSite() ? CheckinPlace::companySites($dailyReport->company_id) : null)
-                    : null,
+                'agent_name' => $dailyReport->agent->name,
+                'agent_phone' => $dailyReport->agent->phone,
+                'site_name' => $dailyReport->site->name,
+                'site_city' => $dailyReport->site->city,
+                'checked_in_at' => $visit->checked_in_at->format('H:i'),
+                'checked_out_at' => $visit->checked_out_at?->format('H:i'),
+                'duration_minutes' => $visit->duration_minutes,
+                'checkin_distance_m' => $visit->checkin_distance_m,
+                'off_site' => $visit->isOffSite(),
+                'checkin_place' => CheckinPlace::describe($visit, $dailyReport->site, $visit->isOffSite() ? CheckinPlace::companySites($dailyReport->company_id) : null),
                 'submitted_at' => $dailyReport->submitted_at?->format('H:i'),
                 // Actions faites sans réseau : heure du téléphone, et heure de réception
                 'offline_trace' => OfflineTrace::of($visit, $dailyReport),
@@ -187,7 +185,7 @@ class DailyReportController extends Controller
                         'id' => $pack->id,
                         'name' => $pack->name,
                         'value' => ReportSales::packValue($pack, $linesByProduct),
-                        'quantity' => (int) ($soldPacks->get($pack->id)?->quantity ?? 0),
+                        'quantity' => (int) ($soldPacks->get($pack->id)->quantity ?? 0),
                     ])
                     // Un pack retiré de l'événement depuis la vente reste affiché
                     ->concat($dailyReport->packs
@@ -216,6 +214,7 @@ class DailyReportController extends Controller
     {
         $this->authorizeReview($request, $dailyReport);
 
+        /** @var array{lines: array<int, array{id: int, units_sold: int}>, packs?: array<int, array{id: int, quantity: int}>|null} $validated */
         $validated = $request->validate([
             'lines' => ['required', 'array'],
             'lines.*.id' => ['required', 'integer'],

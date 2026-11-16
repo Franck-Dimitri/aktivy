@@ -63,8 +63,9 @@ class Workbook
     /**
      * Ajoute un onglet.
      *
-     * @param  array<string, array{0: string, 1?: float}>  $columns  intitulé => [type, largeur]
+     * @param  array<string, array{0: string, 1?: int|float}>  $columns  intitulé => [type, largeur]
      * @param  iterable<array<int, mixed>>  $rows  valeurs dans l'ordre des colonnes
+     * @param  array<int, mixed>  $intro  lignes affichées avant le tableau (une valeur ou une liste de valeurs)
      */
     public function sheet(string $name, array $columns, iterable $rows, array $intro = []): void
     {
@@ -111,7 +112,7 @@ class Workbook
         }
 
         $sheet->setSheetView((new SheetView)->setFreezeRow($headerRow + 1));
-        $sheet->setAutoFilter(new AutoFilter(0, $headerRow, count($columns) - 1, $headerRow + max($count, 1)));
+        $sheet->setAutoFilter(new AutoFilter(0, $headerRow, max(count($columns) - 1, 0), $headerRow + max($count, 1)));
     }
 
     public function close(): void

@@ -38,9 +38,16 @@ abstract class AppNotification extends Notification implements ShouldQueue
 
     abstract public function body(): string;
 
-    /** Nom et paramètres de la route à ouvrir. */
+    /**
+     * Nom et paramètres de la route à ouvrir.
+     *
+     * @return array{0: string, 1?: array<string, mixed>}
+     */
     abstract protected function route(): array;
 
+    /**
+     * @return list<string>
+     */
     public function via(object $notifiable): array
     {
         $channels = ['database'];
@@ -73,6 +80,9 @@ abstract class AppNotification extends Notification implements ShouldQueue
             ->options(['TTL' => 86400, 'urgency' => in_array($this->kind(), ['incident', 'attendance', 'stock'], true) ? 'high' : 'normal']);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(object $notifiable): array
     {
         [$name, $parameters] = $this->route() + [1 => []];

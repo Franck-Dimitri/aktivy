@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Http\Controllers\Auth\InvitationController;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -26,11 +27,17 @@ class CompanyInvitation extends Notification implements ShouldQueue
 
     public function __construct(public Company $company) {}
 
+    /**
+     * @return list<string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];
     }
 
+    /**
+     * @param  User  $notifiable  invitation envoyée au compte créé pour la personne invitée
+     */
     public function toMail(object $notifiable): MailMessage
     {
         $url = URL::temporarySignedRoute(

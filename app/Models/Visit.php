@@ -6,10 +6,10 @@ use App\Enums\VisitStatus;
 use App\Models\Concerns\HasPublicUuid;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -18,15 +18,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int $user_id
  * @property int|null $affectation_id
  * @property Carbon $checked_in_at
- * @property Carbon|null $checked_out_at
+ * @property CarbonInterface|null $checked_out_at
  * @property float|null $checkin_latitude
  * @property int|null $checkin_distance_m
  * @property int|null $checkin_accuracy_m Précision du GPS à la prise de service (mètres)
  * @property float|null $checkin_longitude
  * @property float|null $checkout_latitude
  * @property float|null $checkout_longitude
- * @property Carbon|null $checkin_synced_at Pointage fait hors ligne : heure de réception par le serveur
- * @property Carbon|null $checkout_synced_at Fin de service faite hors ligne : heure de réception
+ * @property CarbonInterface|null $checkin_synced_at Pointage fait hors ligne : heure de réception par le serveur
+ * @property CarbonInterface|null $checkout_synced_at Fin de service faite hors ligne : heure de réception
  * @property int|null $duration_minutes
  * @property VisitStatus $status
  * @property string|null $notes
@@ -47,8 +47,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class Visit extends Model
 {
-    use HasFactory;
-
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
 
@@ -84,26 +82,41 @@ class Visit extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<Site, $this>
+     */
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class)->withTrashed();
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id')->withTrashed();
     }
 
+    /**
+     * @return BelongsTo<Affectation, $this>
+     */
     public function affectation(): BelongsTo
     {
         return $this->belongsTo(Affectation::class);
     }
 
+    /**
+     * @return HasOne<DailyReport, $this>
+     */
     public function dailyReport(): HasOne
     {
         return $this->hasOne(DailyReport::class);

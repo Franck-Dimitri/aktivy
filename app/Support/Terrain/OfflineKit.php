@@ -28,7 +28,8 @@ final class OfflineKit
     public static function for(Affectation $affectation, User $user): array
     {
         $site = $affectation->site;
-        $siteProducts = $site->siteProducts()->with('product:id,name,unit,price,image')->get();
+        // Produits archivés exclus, comme à la prise de service
+        $siteProducts = $site->siteProducts()->whereHas('product')->with('product:id,name,unit,price,image')->get();
 
         // Lignes du futur rapport, comme les crée la prise de service
         $lines = $siteProducts->map(function ($sp) {
@@ -105,7 +106,7 @@ final class OfflineKit
      * (même règle que ReportSales::availablePacks).
      *
      * @param  Collection<int, DailyReportLine>  $byProduct  lignes par produit
-     * @return list<array<string, mixed>>
+     * @return array<int, array<string, mixed>>
      */
     private static function packs(?int $eventId, $byProduct): array
     {
@@ -127,7 +128,7 @@ final class OfflineKit
                 'quantity' => 0,
                 'items' => $pack->lines->map(fn ($l) => [
                     'line_id' => $byProduct->get($l->product_id)?->id,
-                    'name' => $byProduct->get($l->product_id)?->product_name ?? '',
+                    'name' => $byProduct->get($l->product_id)->product_name ?? '',
                     'quantity' => $l->quantity,
                     'free' => $l->role === 'free',
                 ])->values(),

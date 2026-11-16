@@ -17,9 +17,9 @@ class StockCritical extends AppNotification
 
     public function __construct(SiteProduct $stock, private int $remaining, private int $threshold)
     {
-        $this->product = $stock->product?->name ?? 'Un produit';
-        $this->site = $stock->site?->name ?? 'un point de vente';
-        $this->unit = $stock->product?->unit ?? 'unités';
+        $this->product = $stock->product->name ?? 'Un produit';
+        $this->site = $stock->site->name ?? 'un point de vente';
+        $this->unit = $stock->product->unit ?? 'unités';
     }
 
     public function kind(): string

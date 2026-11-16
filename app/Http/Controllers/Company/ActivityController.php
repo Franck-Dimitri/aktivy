@@ -10,6 +10,7 @@ use App\Models\SiteProduct;
 use App\Models\Visit;
 use App\Support\CheckinPlace;
 use App\Support\Incident;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -62,24 +63,24 @@ class ActivityController extends Controller
             ->pluck('total', 'site_id');
 
         // Pour reconnaître un pointage fait sur un autre point de vente de l'entreprise
-        $companySites = $visits->contains(fn (Visit $v) => $v->isOffSite()) ? CheckinPlace::companySites($company->id) : collect();
+        $companySites = $visits->contains(fn (Visit $v) => $v->isOffSite() === true) ? CheckinPlace::companySites($company->id) : collect();
 
         $sites = $affectations->groupBy('site_id')->map(function (Collection $group) use ($visits, $reports, $stockAlerts, $now, $companySites) {
             $site = $group->first()->site;
 
             return [
-                'id' => $site?->id,
-                'name' => $site?->name,
-                'city' => $site?->city,
-                'stock_alerts' => (int) ($stockAlerts[$site?->id] ?? 0),
+                'id' => $site->id,
+                'name' => $site->name,
+                'city' => $site->city,
+                'stock_alerts' => (int) ($stockAlerts[$site->id] ?? 0),
                 'hostesses' => $group->unique('user_id')->map(function (Affectation $a) use ($visits, $reports, $now, $companySites) {
                     $visit = $visits->get($a->user_id);
                     $report = $reports->get($a->user_id);
 
                     return [
                         'user_id' => $a->user_id,
-                        'name' => $a->agent?->name,
-                        'phone' => $a->agent?->phone,
+                        'name' => $a->agent->name,
+                        'phone' => $a->agent->phone,
                         'slot_start' => $a->slot_start ? substr($a->slot_start, 0, 5) : null,
                         'slot_end' => $a->slot_end ? substr($a->slot_end, 0, 5) : null,
                         'state' => $this->state($a, $visit, $now),
@@ -91,8 +92,8 @@ class ActivityController extends Controller
                         'report_id' => $report?->id,
                         'report_uuid' => $report?->uuid,
                         'report_status' => $report?->status,
-                        'revenue' => (float) ($report?->lines_sum_revenue ?? 0),
-                        'units_sold' => (int) ($report?->lines_sum_units_sold ?? 0),
+                        'revenue' => (float) ($report->lines_sum_revenue ?? 0),
+                        'units_sold' => (int) ($report->lines_sum_units_sold ?? 0),
                         'has_incident' => Incident::meaningful($report?->incident_notes) !== null,
                     ];
                 })->sortBy('name')->values(),
@@ -119,7 +120,7 @@ class ActivityController extends Controller
     /**
      * en poste, terminé, non pointée (créneau dépassé) ou attendue (pas encore l'heure).
      */
-    private function state(Affectation $affectation, ?Visit $visit, $now): string
+    private function state(Affectation $affectation, ?Visit $visit, CarbonInterface $now): string
     {
         if ($visit) {
             return $visit->checked_out_at ? 'done' : 'on_site';

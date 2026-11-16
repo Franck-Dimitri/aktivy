@@ -34,7 +34,7 @@ class WeeklyTargetController extends Controller
         $lastStart = $weekStart->subWeek();
 
         $hostesses = WeeklyTargets::hostesses($user, $weekStart)
-            ->with(['affectations' => fn ($a) => $a->ongoing()->with('site:id,name')])
+            ->with(['affectations' => fn ($a) => $a->scopes(['ongoing'])->with('site:id,name')])
             ->orderBy('name')
             ->get(['id', 'name']);
         $ids = $hostesses->pluck('id');
@@ -80,6 +80,7 @@ class WeeklyTargetController extends Controller
         $user = $request->user();
         $current = WeeklyTarget::weekOf(WeeklyTargets::today($user));
 
+        /** @var array{week_start: string, targets: array<int, array{user_id: int, amount?: int|null}>} $data */
         $data = $request->validate([
             'week_start' => ['required', 'date', Rule::in([$current->toDateString(), $current->addWeek()->toDateString()])],
             'targets' => ['present', 'array', 'max:500'],
@@ -106,8 +107,8 @@ class WeeklyTargetController extends Controller
             foreach ($data['targets'] as $row) {
                 $userId = $row['user_id'];
                 $desired = (int) ($row['amount'] ?? 0);
-                $before = (int) ($inherited->get($userId)?->amount ?? 0);
-                $current = (int) ($atWeek->get($userId)?->amount ?? $before);
+                $before = (int) ($inherited->get($userId)->amount ?? 0);
+                $current = (int) ($atWeek->get($userId)->amount ?? $before);
 
                 if ($desired === $current) {
                     continue;

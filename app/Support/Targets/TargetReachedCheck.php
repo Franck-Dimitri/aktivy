@@ -20,9 +20,6 @@ class TargetReachedCheck
     public static function afterSubmit(DailyReport $report): void
     {
         $hostess = $report->agent;
-        if (! $hostess) {
-            return;
-        }
 
         $day = CarbonImmutable::parse($report->report_date);
         $weekStart = WeeklyTarget::weekOf($day);

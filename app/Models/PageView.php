@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\PageViewFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Prunable;
  */
 class PageView extends Model
 {
+    /** @use HasFactory<PageViewFactory> */
     use HasFactory, Prunable;
 
     public const RETENTION_MONTHS = 13;
@@ -28,9 +30,13 @@ class PageView extends Model
         return ['viewed_at' => 'datetime'];
     }
 
-    /** Vues plus anciennes que la durée de conservation : supprimées par model:prune. */
+    /**
+     * Vues plus anciennes que la durée de conservation : supprimées par model:prune.
+     *
+     * @return Builder<static>
+     */
     public function prunable(): Builder
     {
-        return static::where('viewed_at', '<', now()->subMonths(self::RETENTION_MONTHS));
+        return static::query()->where('viewed_at', '<', now()->subMonths(self::RETENTION_MONTHS));
     }
 }

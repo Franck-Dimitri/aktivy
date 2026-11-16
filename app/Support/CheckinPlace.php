@@ -69,7 +69,11 @@ final class CheckinPlace
         return [...$base, 'state' => 'off_site', 'label' => 'À '.self::meters($distance).' de son point de vente', 'short' => 'à '.self::meters($distance).' de son point de vente'];
     }
 
-    /** Points de vente géolocalisés de l'entreprise, chargés une fois pour toute une liste. */
+    /**
+     * Points de vente géolocalisés de l'entreprise, chargés une fois pour toute une liste.
+     *
+     * @return Collection<int, Site>
+     */
     public static function companySites(int $companyId): Collection
     {
         return Site::where('company_id', $companyId)

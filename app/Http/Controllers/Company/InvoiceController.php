@@ -31,7 +31,7 @@ class InvoiceController extends Controller
                 'count' => $payments->count(),
                 'total' => $payments->sum('amount'),
                 'this_year' => $payments->filter(fn (SubscriptionPayment $p) => $p->paid_at->isCurrentYear())->sum('amount'),
-                'currency' => $payments->first()?->currency ?? $company->currency ?? 'XAF',
+                'currency' => $payments->first()->currency ?? $company->currency ?? 'XAF',
                 'last_paid_at' => $payments->first()?->paid_at->format('d/m/Y'),
                 'next_due' => $plan['expired'] ? null : $plan['ends_on'],
                 'plan' => $plan['label'],
@@ -61,7 +61,11 @@ class InvoiceController extends Controller
         abort_unless(Gate::allows('view', $payment), 404);
     }
 
-    /** Une facture telle que l'affichent les pages Abonnement et Factures. */
+    /**
+     * Une facture telle que l'affichent les pages Abonnement et Factures.
+     *
+     * @return array<string, mixed>
+     */
     public static function present(SubscriptionPayment $p): array
     {
         return [

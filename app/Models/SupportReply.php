@@ -17,11 +17,17 @@ class SupportReply extends Model
         return ['emailed' => 'boolean'];
     }
 
+    /**
+     * @return BelongsTo<SupportRequest, $this>
+     */
     public function request(): BelongsTo
     {
         return $this->belongsTo(SupportRequest::class, 'support_request_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

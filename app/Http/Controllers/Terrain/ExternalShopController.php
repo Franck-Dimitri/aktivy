@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
+use stdClass;
 
 /**
  * Ventes en boutique extérieure de l'hôtesse : ce qu'elle a vendu hors de son point de vente,
@@ -35,6 +36,8 @@ class ExternalShopController extends Controller
             ->whereDate('r.report_date', '>=', $since->toDateString())
             ->orderByDesc('r.report_date')
             ->orderBy('daily_report_lines.external_shop')
+            // Lignes jointes au rapport, à la visite et au site : lues comme de simples enregistrements
+            ->toBase()
             ->get([
                 'daily_report_lines.*',
                 'r.report_date', 'r.status as report_status', 'r.visit_id', 'v.uuid as visit_uuid', 's.name as site_name',
@@ -62,28 +65,40 @@ class ExternalShopController extends Controller
                 ->values(),
             // Journées, de la plus récente à la plus ancienne
             'days' => $lines->groupBy(fn ($l) => CarbonImmutable::parse($l->report_date)->toDateString())
-                ->map(fn (Collection $day, string $date) => [
-                    'date' => $date,
-                    'date_label' => CarbonImmutable::parse($date)->locale('fr')->isoFormat('dddd D MMMM'),
-                    'site_name' => $day->first()->site_name,
-                    'visit_id' => $day->first()->visit_id,
-                    'visit_uuid' => $day->first()->visit_uuid,
-                    'submitted' => $day->first()->report_status === 'submitted',
-                    'revenue' => (float) $day->sum('revenue'),
-                    'shops' => $day->groupBy('external_shop')->map(fn (Collection $g, string $shop) => [
-                        'shop' => $shop,
-                        'revenue' => (float) $g->sum('revenue'),
-                        'lines' => $g->map(fn ($l) => [
-                            'id' => $l->id,
-                            'product_name' => $l->product_name,
-                            'unit' => $l->unit,
-                            'unit_price' => (float) $l->unit_price,
-                            'units' => (int) $l->units_sold,
-                            'revenue' => (float) $l->revenue,
-                        ])->values(),
-                    ])->values(),
-                ])
+                // Clé de regroupement : la date « AAAA-MM-JJ » (clé de tableau, d'où int|string)
+                ->map(fn (Collection $day, int|string $date) => $this->day($day, (string) $date))
                 ->values(),
         ]);
+    }
+
+    /**
+     * Une journée de ventes en boutique extérieure, regroupées par boutique.
+     *
+     * @param  Collection<int, stdClass>  $day  lignes du jour (jointes au rapport, à la visite et au site)
+     * @return array<string, mixed>
+     */
+    private function day(Collection $day, string $date): array
+    {
+        return [
+            'date' => $date,
+            'date_label' => CarbonImmutable::parse($date)->settings(['locale' => 'fr'])->isoFormat('dddd D MMMM'),
+            'site_name' => $day->first()->site_name,
+            'visit_id' => $day->first()->visit_id,
+            'visit_uuid' => $day->first()->visit_uuid,
+            'submitted' => $day->first()->report_status === 'submitted',
+            'revenue' => (float) $day->sum('revenue'),
+            'shops' => $day->groupBy('external_shop')->map(fn (Collection $g, int|string $shop) => [
+                'shop' => (string) $shop,
+                'revenue' => (float) $g->sum('revenue'),
+                'lines' => $g->map(fn ($l) => [
+                    'id' => $l->id,
+                    'product_name' => $l->product_name,
+                    'unit' => $l->unit,
+                    'unit_price' => (float) $l->unit_price,
+                    'units' => (int) $l->units_sold,
+                    'revenue' => (float) $l->revenue,
+                ])->values(),
+            ])->values(),
+        ];
     }
 }

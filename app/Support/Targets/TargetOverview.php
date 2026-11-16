@@ -70,8 +70,8 @@ class TargetOverview
             ];
         })->sortBy([
             // Ceux qui ont un objectif d'abord, les mieux avancés en tête
-            fn ($a, $b) => ($a['target'] === null) <=> ($b['target'] === null),
-            fn ($a, $b) => ($b['target'] ? $b['actual'] / $b['target'] : 0) <=> ($a['target'] ? $a['actual'] / $a['target'] : 0),
+            fn (array $a, array $b) => ($a['target'] === null) <=> ($b['target'] === null),
+            fn (array $a, array $b) => ($b['target'] ? $b['actual'] / $b['target'] : 0) <=> ($a['target'] ? $a['actual'] / $a['target'] : 0),
         ])->values();
 
         $withTarget = $rows->whereNotNull('target');
@@ -129,7 +129,7 @@ class TargetOverview
                 ->whereHas('affectations', fn ($a) => $a->ongoing()->when($siteIds !== null, fn ($a) => $a->whereIn('site_id', $siteIds)))
                 ->orWhereIn('id', WeeklyTarget::whereDate('week_start', '<=', $start->toDateString())->where('amount', '>', 0)->select('user_id'))
                 ->orWhereIn('id', SalesTarget::whereNotNull('user_id')->whereDate('month', '<=', $start->toDateString())->where('amount', '>', 0)->select('user_id')))
-            ->with(['affectations' => fn ($a) => $a->ongoing()->with('site:id,name')])
+            ->with(['affectations' => fn ($a) => $a->scopes(['ongoing'])->with('site:id,name')])
             ->orderBy('name')
             ->get(['id', 'name']);
     }
@@ -211,7 +211,7 @@ class TargetOverview
         for ($i = self::HISTORY; $i >= 1; $i--) {
             $from = $isWeek ? $start->subWeeks($i) : $start->subMonthsNoOverflow($i)->startOfMonth();
             $to = $isWeek ? $from->addDays(6) : $from->endOfMonth();
-            $label = $isWeek ? 'Sem. du '.$from->locale('fr')->translatedFormat('j M') : ucfirst($from->locale('fr')->translatedFormat('F'));
+            $label = $isWeek ? 'Sem. du '.$from->settings(['locale' => 'fr'])->translatedFormat('j M') : ucfirst($from->settings(['locale' => 'fr'])->translatedFormat('F'));
             $targets = $this->targets($ids, $from, $isWeek);
             $actual = (new SalesReport($company, $from, $to->endOfDay(), allowedSiteIds: $this->viewer->managedSiteIds()))->revenueByHostess();
 

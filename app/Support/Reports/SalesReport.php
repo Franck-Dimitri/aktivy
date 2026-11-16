@@ -9,10 +9,13 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\LazyCollection;
+use stdClass;
 
 /**
  * Ventes d'une entreprise sur une période, à partir des rapports journaliers envoyés.
  * Source unique de la page « Rapports » et de l'export Excel, pour que les chiffres concordent.
+ *
+ * @phpstan-type SalesGroup array{label: string, detail: mixed, revenue: float, units_sold: int, reports_count: int}
  */
 class SalesReport
 {
@@ -23,12 +26,15 @@ class SalesReport
         public readonly ?int $siteId = null,
         public readonly ?int $userId = null,
         public readonly ?int $eventId = null,
-        // Sites visibles (superviseur) ; null = toute l'entreprise
+        /** @var array<int, int>|null Sites visibles (superviseur) ; null = toute l'entreprise */
         public readonly ?array $allowedSiteIds = null,
     ) {}
 
     /**
      * Construit le rapport depuis les filtres de la requête ; par défaut, le mois en cours.
+     *
+     * @param  array<string, mixed>  $filters
+     * @param  array<int, int>|null  $allowedSiteIds
      */
     public static function fromFilters(Company $company, array $filters, ?array $allowedSiteIds = null): self
     {
@@ -70,6 +76,9 @@ class SalesReport
             ->when($this->eventId, fn ($q) => $q->where('r.event_id', $this->eventId));
     }
 
+    /**
+     * @return array{revenue: float, units_sold: int, external_revenue: float, reports_count: int, days_count: int, sites_count: int, hostesses_count: int}
+     */
     public function totals(): array
     {
         $row = $this->query()
@@ -94,21 +103,33 @@ class SalesReport
         ];
     }
 
+    /**
+     * @return Collection<int, SalesGroup>
+     */
     public function byDay(): Collection
     {
         return $this->aggregate('r.report_date', 'r.report_date as label', 'r.report_date');
     }
 
+    /**
+     * @return Collection<int, SalesGroup>
+     */
     public function bySite(): Collection
     {
         return $this->aggregate(['r.site_id', 's.name', 's.city'], "COALESCE(s.name, 'Site supprimé') as label, s.city as detail");
     }
 
+    /**
+     * @return Collection<int, SalesGroup>
+     */
     public function byProduct(): Collection
     {
         return $this->aggregate(['l.product_name', 'l.unit'], 'l.product_name as label, l.unit as detail');
     }
 
+    /**
+     * @return Collection<int, SalesGroup>
+     */
     public function byHostess(): Collection
     {
         return $this->aggregate(['r.user_id', 'u.name', 'u.phone'], "COALESCE(u.name, 'Compte supprimé') as label, u.phone as detail");
@@ -116,6 +137,8 @@ class SalesReport
 
     /**
      * Journal des ventes, une ligne par produit et par rapport, du plus ancien au plus récent.
+     *
+     * @return Collection<int, stdClass>
      */
     public function lines(?int $limit = null): Collection
     {
@@ -126,7 +149,7 @@ class SalesReport
      * Les mêmes lignes, lues au fil de l'eau : l'export Excel d'une année (~90 000 lignes) ne charge
      * plus tout en mémoire pendant la requête.
      *
-     * @return LazyCollection<int, object>
+     * @return LazyCollection<int, stdClass>
      */
     public function linesCursor(): LazyCollection
     {
@@ -166,7 +189,11 @@ class SalesReport
             ->all();
     }
 
-    /** Chiffre d'affaires par hôtesse, indexé par user_id. */
+    /**
+     * Chiffre d'affaires par hôtesse, indexé par user_id.
+     *
+     * @return array<int, float>
+     */
     public function revenueByHostess(): array
     {
         return $this->query()
@@ -216,6 +243,8 @@ class SalesReport
     /**
      * Courbe d'évolution du chiffre d'affaires, période précédente alignée point par point.
      * Les jours sans vente valent zéro, pour une courbe continue.
+     *
+     * @return array{granularity: string, points: list<array{date: string, revenue: float, units_sold: int, previous_date: string|null, previous_revenue: float|null}>}
      */
     public function timeline(): array
     {
@@ -241,6 +270,8 @@ class SalesReport
 
     /**
      * Les 12 derniers mois jusqu'au mois de fin de la période, avec la variation d'un mois sur l'autre.
+     *
+     * @return list<array{date: string, revenue: float, units_sold: int, reports_count: int, variation: float|null}>
      */
     public function monthly(int $months = 12): array
     {
@@ -309,6 +340,10 @@ class SalesReport
 
     /**
      * Regroupe les ventes : chiffre d'affaires, quantités et nombre de rapports par groupe.
+     *
+     * @param  string|list<string>  $groupBy
+     * @param  literal-string  $labelSelect
+     * @return Collection<int, SalesGroup>
      */
     private function aggregate(string|array $groupBy, string $labelSelect, ?string $orderBy = null): Collection
     {

@@ -121,6 +121,7 @@ class TrafficController extends Controller
     }
 
     /**
+     * @param  Builder<PageView>  $query
      * @return array{views: int, visits: int, pages_per_visit: float, mobile_share: float, devices: array<string, int>}
      */
     private function totals(Builder $query): array
@@ -138,10 +139,16 @@ class TrafficController extends Controller
         ];
     }
 
-    /** Une ligne par jour de la période, jours sans visite compris. */
+    /**
+     * Une ligne par jour de la période, jours sans visite compris.
+     *
+     * @param  Builder<PageView>  $query
+     * @return array<int, array{date: string, label: string, long: string, views: int, visits: int}>
+     */
     private function daily(Builder $query, CarbonInterface $start, int $days): array
     {
-        $rows = (clone $query)
+        // Lignes agrégées (et non des vues) : lues comme de simples enregistrements
+        $rows = (clone $query)->toBase()
             ->selectRaw('date(viewed_at) as day, count(*) as views, count(distinct visitor) as visits')
             ->groupByRaw('date(viewed_at)')
             ->get()
@@ -153,15 +160,20 @@ class TrafficController extends Controller
 
             return [
                 'date' => $day->toDateString(),
-                'label' => $day->locale('fr')->isoFormat('D MMM'),
-                'long' => ucfirst($day->locale('fr')->isoFormat('dddd D MMMM')).($day->isToday() ? ' (en cours)' : ''),
+                'label' => $day->settings(['locale' => 'fr'])->isoFormat('D MMM'),
+                'long' => ucfirst($day->settings(['locale' => 'fr'])->isoFormat('dddd D MMMM')).($day->isToday() ? ' (en cours)' : ''),
                 'views' => (int) ($row->views ?? 0),
                 'visits' => (int) ($row->visits ?? 0),
             ];
         })->all();
     }
 
-    /** Pages vues par heure de la journée (heure du serveur, Afrique centrale). */
+    /**
+     * Pages vues par heure de la journée (heure du serveur, Afrique centrale).
+     *
+     * @param  Builder<PageView>  $query
+     * @return array<int, array{hour: int, views: int}>
+     */
     private function hours(Builder $query): array
     {
         $hour = match (DB::connection()->getDriverName()) {
@@ -175,27 +187,32 @@ class TrafficController extends Controller
         return collect(range(0, 23))->map(fn (int $h) => ['hour' => $h, 'views' => (int) ($rows[$h] ?? 0)])->all();
     }
 
-    /** @return Collection<int, array{label: ?string, visits: int, views: int}> */
+    /**
+     * @param  Builder<PageView>  $query
+     * @param  literal-string  $column
+     * @return Collection<int, array{label: ?string, visits: int, views: int}>
+     */
     private function breakdown(Builder $query, string $column, int $limit = 8)
     {
-        return (clone $query)
+        return (clone $query)->toBase()
             ->selectRaw("{$column} as label, count(distinct visitor) as visits, count(*) as views")
             ->groupBy($column)
             ->orderByDesc('visits')
             ->orderByDesc('views')
             ->limit($limit)
             ->get()
-            ->map(fn ($row) => ['label' => $row->label, 'visits' => (int) $row->visits, 'views' => (int) $row->views]);
+            ->map(fn ($row) => ['label' => $row->label === null ? null : (string) $row->label, 'visits' => (int) $row->visits, 'views' => (int) $row->views]);
     }
 
     /**
      * Provenance : campagne (utm_source), sinon site d'origine regroupé (Google, Facebook…), sinon accès direct.
      *
+     * @param  Builder<PageView>  $query
      * @return Collection<int, array{label: string, visits: int, views: int}>
      */
     private function sources(Builder $query)
     {
-        return (clone $query)
+        return (clone $query)->toBase()
             ->selectRaw('coalesce(utm_source, referrer_host) as origin, count(distinct visitor) as visits, count(*) as views')
             ->groupByRaw('coalesce(utm_source, referrer_host)')
             ->orderByDesc('visits')
@@ -226,8 +243,13 @@ class TrafficController extends Controller
         return str_contains($origin, '.') ? $origin : ucfirst($origin);
     }
 
-    /** Ajoute la part des visites de chaque ligne (en %). */
-    private function share($rows, int $visits): array
+    /**
+     * Ajoute la part des visites de chaque ligne (en %).
+     *
+     * @param  iterable<int, array<string, mixed>>  $rows
+     * @return array<int, array<string, mixed>>
+     */
+    private function share(iterable $rows, int $visits): array
     {
         return collect($rows)->map(fn (array $row) => [...$row, 'share' => round(100 * $row['visits'] / $visits, 1)])->values()->all();
     }

@@ -107,6 +107,7 @@ class CompanyImport
                 'sites' => $this->site($row),
                 'produits' => $this->product($row),
                 'personnel' => $this->member($row),
+                default => throw new \InvalidArgumentException("Type d'import inconnu : {$this->type}"),
             };
 
             if ($error) {
@@ -174,7 +175,12 @@ class CompanyImport
         return null;
     }
 
-    /** Ligne du fichier ramenée aux clés connues, quel que soit l'intitulé utilisé. */
+    /**
+     * Ligne du fichier ramenée aux clés connues, quel que soit l'intitulé utilisé.
+     *
+     * @param  array<string, string>  $raw
+     * @return array<string, string>
+     */
     private function map(array $raw): array
     {
         $row = [];
@@ -196,6 +202,10 @@ class CompanyImport
         return $row;
     }
 
+    /**
+     * @param  array<string, string>  $row
+     * @return array{0: array<string, mixed>|null, 1: string|null, 2: string|null} données à créer (null si déjà présent), clé de doublon, erreur
+     */
     private function site(array $row): array
     {
         $type = $row['type'] === '' ? SiteType::Autre : $this->siteType($row['type']);
@@ -230,6 +240,10 @@ class CompanyImport
         return [$exists ? null : $data, $key, null];
     }
 
+    /**
+     * @param  array<string, string>  $row
+     * @return array{0: array<string, mixed>|null, 1: string|null, 2: string|null} données à créer (null si déjà présent), clé de doublon, erreur
+     */
     private function product(array $row): array
     {
         $row['price'] = str_replace([' ', "\u{00A0}", ','], ['', '', '.'], $row['price']);
@@ -254,6 +268,10 @@ class CompanyImport
         ], $key, null];
     }
 
+    /**
+     * @param  array<string, string>  $row
+     * @return array{0: array<string, mixed>|null, 1: string|null, 2: string|null} données à créer (null si déjà présent), clé de doublon, erreur
+     */
     private function member(array $row): array
     {
         $role = $row['role'] === '' ? Role::FieldAgent : (self::ROLES[Spreadsheet::normalize($row['role'])] ?? null);
@@ -306,7 +324,12 @@ class CompanyImport
         return null;
     }
 
-    /** Première erreur de validation de la ligne, ou null. */
+    /**
+     * Première erreur de validation de la ligne, ou null.
+     *
+     * @param  array<string, mixed>  $row
+     * @param  array<string, list<string>>  $rules
+     */
     private function check(array $row, array $rules): ?string
     {
         $validator = Validator::make($row, $rules, [], [
@@ -317,6 +340,9 @@ class CompanyImport
         return $validator->fails() ? $validator->errors()->first() : null;
     }
 
+    /**
+     * @param  array<string, mixed>  $data  ligne préparée, avec sa sorte (kind : site, product ou member)
+     */
     private function persist(array $data): void
     {
         $kind = $data['kind'];
@@ -326,9 +352,13 @@ class CompanyImport
             'site' => $this->company->sites()->create([...$data, 'created_by' => $this->by?->id]),
             'product' => $this->company->products()->create([...$data, 'created_by' => $this->by?->id]),
             'member' => $this->createMember($data),
+            default => throw new \InvalidArgumentException('Ligne d\'import de sorte inconnue.'),
         };
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     private function createMember(array $data): void
     {
         $member = $this->company->users()->create([

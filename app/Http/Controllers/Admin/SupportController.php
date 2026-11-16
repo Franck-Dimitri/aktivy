@@ -61,7 +61,7 @@ class SupportController extends Controller
                     'topic' => $r->topic,
                     'name' => $r->name,
                     'email' => $r->email,
-                    'company' => $r->company?->name ?? $r->company_name,
+                    'company' => $r->company->name ?? $r->company_name,
                     'excerpt' => Str::limit(preg_replace('/\s+/', ' ', $r->message), 160),
                     'status' => $r->status,
                     'replies_count' => $r->replies_count,
@@ -115,7 +115,7 @@ class SupportController extends Controller
     /** Date lisible : « il y a 5 minutes », « hier à 14:20 », puis la date complète. */
     private static function ago(\DateTimeInterface $at): string
     {
-        $at = Carbon::instance($at)->locale('fr');
+        $at = Carbon::instance($at)->settings(['locale' => 'fr']);
 
         return match (true) {
             $at->gt(now()->subHour()) => $at->diffForHumans(),
@@ -148,7 +148,7 @@ class SupportController extends Controller
             'role' => $supportRequest->user?->role?->label(),
             'company_id' => $supportRequest->company_id,
             'company_uuid' => $supportRequest->company?->uuid,
-            'company' => $supportRequest->company?->name ?? $supportRequest->company_name,
+            'company' => $supportRequest->company->name ?? $supportRequest->company_name,
             'message' => $supportRequest->message,
             'page' => $supportRequest->page,
             'status' => $supportRequest->status,

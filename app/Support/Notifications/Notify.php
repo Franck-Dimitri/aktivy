@@ -7,6 +7,7 @@ use App\Enums\Role;
 use App\Models\Affectation;
 use App\Models\User;
 use App\Notifications\AppNotification;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
 
@@ -28,7 +29,7 @@ class Notify
             ->where('status', AccountStatus::Active)
             ->where(fn ($q) => $q
                 ->where('role', Role::CompanyAdmin)
-                ->orWhere(fn ($q) => $q
+                ->orWhere(fn (Builder $q) => $q
                     ->where('role', Role::Supervisor)
                     ->whereHas('affectations', fn ($a) => $a->ongoing()->whereIn('site_id', $siteIds))))
             ->get();

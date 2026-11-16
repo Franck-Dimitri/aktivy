@@ -63,6 +63,7 @@ class EventPackController extends Controller
         $data = $this->validatePack($request, ['active' => 'boolean']);
 
         $wasActive = (bool) $pack->active;
+        $nowActive = (bool) ($data['active'] ?? $wasActive);
         $pack->update([
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
@@ -77,7 +78,7 @@ class EventPackController extends Controller
         }
 
         // Un pack remis en vente est de nouveau signalé aux hôtesses
-        if (! $wasActive && $pack->active) {
+        if (! $wasActive && $nowActive) {
             $this->notifyHostesses($event, $pack);
         }
 
@@ -99,6 +100,9 @@ class EventPackController extends Controller
      * Règles communes à la création et à la modification d'un pack.
      * Les produits doivent appartenir à l'entreprise ; un bundle a un prix,
      * un pack « acheté / offert » a au moins un produit payant et un produit offert.
+     *
+     * @param  array<string, mixed>  $extraRules
+     * @return array<string, mixed>
      */
     private function validatePack(Request $request, array $extraRules = []): array
     {
@@ -134,7 +138,7 @@ class EventPackController extends Controller
                 return;
             }
 
-            $roles = collect($request->input('lines', []))->pluck('role');
+            $roles = $request->collect('lines')->pluck('role');
 
             if (! $roles->contains('paid') || ! $roles->contains('free')) {
                 $validator->errors()->add('lines', 'Un pack « acheté / offert » doit contenir au moins un produit payant et un produit offert.');

@@ -23,10 +23,10 @@ class NotifyReportRemindersCommand extends Command
             ->with(['agent', 'site:id,name', 'visit:id,uuid'])
             ->get();
 
+        // Hôtesse, visite et site sont toujours présents : clés étrangères obligatoires,
+        // relations agent et site chargées avec les supprimés (archivés)
         foreach ($drafts as $report) {
-            if ($report->agent && $report->visit) {
-                Notify::send($report->agent, new ReportReminder($report->visit->uuid, $report->site?->name ?? 'votre point de vente'));
-            }
+            Notify::send($report->agent, new ReportReminder($report->visit->uuid, $report->site->name));
         }
 
         $this->info($drafts->count().' rappel(s) envoyé(s).');

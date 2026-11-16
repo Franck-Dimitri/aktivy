@@ -29,11 +29,17 @@ class DailyReportPack extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<DailyReport, $this>
+     */
     public function report(): BelongsTo
     {
         return $this->belongsTo(DailyReport::class, 'daily_report_id');
     }
 
+    /**
+     * @return BelongsTo<EventPack, $this>
+     */
     public function eventPack(): BelongsTo
     {
         return $this->belongsTo(EventPack::class);

@@ -50,6 +50,8 @@ class ReportSales
 
     /**
      * Prix de vente d'un pack : le prix du lot, ou la somme des produits payants pour un « acheté / offert ».
+     *
+     * @param  Collection<array-key, DailyReportLine>  $linesByProduct  lignes du rapport indexées par produit
      */
     public static function packValue(EventPack $pack, Collection $linesByProduct): int
     {
@@ -59,7 +61,7 @@ class ReportSales
 
         return (int) round($pack->lines
             ->where('role', 'paid')
-            ->sum(fn ($l) => $l->quantity * ($l->unit_price ?? $linesByProduct->get($l->product_id)?->unit_price ?? 0)));
+            ->sum(fn ($l) => $l->quantity * ($l->unit_price ?? $linesByProduct->get($l->product_id)->unit_price ?? 0)));
     }
 
     /**
@@ -151,11 +153,7 @@ class ReportSales
     public static function restocked(DailyReport $report, ?Collection $lines = null): array
     {
         $lines ??= $report->lines()->get();
-        $since = $report->visit?->checked_in_at;
-
-        if (! $since) {
-            return [];
-        }
+        $since = $report->visit->checked_in_at;
 
         $bySiteProduct = StockMovement::where('type', StockMovement::RESTOCK)
             ->whereIn('site_product_id', $lines->pluck('site_product_id'))
@@ -171,6 +169,7 @@ class ReportSales
     /**
      * Part du prix d'un pack revenant à chaque ligne : ses produits payants, au prorata de leur prix.
      *
+     * @param  Collection<array-key, DailyReportLine>  $byProduct  lignes du rapport indexées par produit
      * @return array<int, float> part (0 à 1) par id de ligne
      */
     private static function revenueShares(EventPack $pack, Collection $byProduct): array
@@ -204,6 +203,6 @@ class ReportSales
         $lines ??= $report->lines()->get();
         $productBySiteProduct = SiteProduct::whereIn('id', $lines->pluck('site_product_id'))->pluck('product_id', 'id');
 
-        return $lines->keyBy(fn (DailyReportLine $l) => $productBySiteProduct[$l->site_product_id] ?? 0);
+        return $lines->keyBy(fn (DailyReportLine $l) => (int) ($productBySiteProduct[$l->site_product_id] ?? 0));
     }
 }

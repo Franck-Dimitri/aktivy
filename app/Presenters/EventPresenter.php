@@ -8,6 +8,8 @@ class EventPresenter
 {
     /**
      * Forme complète : utilisée sur la page show (avec sites, packs, hôtesses chargés).
+     *
+     * @return array<string, mixed>
      */
     public static function detail(Event $event): array
     {
@@ -71,6 +73,8 @@ class EventPresenter
 
     /**
      * Forme résumée : utilisée dans les listes et cartes.
+     *
+     * @return array<string, mixed>
      */
     public static function summary(Event $event): array
     {

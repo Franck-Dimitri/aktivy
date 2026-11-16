@@ -114,13 +114,13 @@ class ContactController
             return 'jeton invalide';
         }
 
-        if (now()->timestamp - $openedAt < self::MIN_SECONDS_BEFORE_SUBMIT) {
+        if (now()->getTimestamp() - $openedAt < self::MIN_SECONDS_BEFORE_SUBMIT) {
             return 'formulaire envoyé trop vite';
         }
 
         // Jeton récupéré une fois par un robot puis réutilisé sans fin : il expire au bout de 24 h
         // (assez long pour un visiteur qui laisse la page ouverte, dont le message serait sinon perdu)
-        if (now()->timestamp - $openedAt > 24 * 3600) {
+        if (now()->getTimestamp() - $openedAt > 24 * 3600) {
             return 'jeton expiré';
         }
 

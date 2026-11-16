@@ -78,7 +78,7 @@ class HelpController extends Controller
                     'Nom' => $user->name,
                     'E-mail' => $user->email,
                     'Téléphone' => $user->phone,
-                    'Rôle' => $user->role?->label(),
+                    'Rôle' => $user->role->label(),
                     'Entreprise' => $user->company ? $user->company->name.' (n° '.$user->company_id.')' : null,
                     'Page' => ! empty($data['page']) ? Str::limit($data['page'], 200) : null,
                     'Navigateur' => Str::limit((string) $request->userAgent(), 160),

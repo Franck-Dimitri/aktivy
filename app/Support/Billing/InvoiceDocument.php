@@ -41,8 +41,8 @@ final class InvoiceDocument
         $key = sprintf(
             'invoice-pdf:%d:%d:%d:%s:v%d',
             $payment->id,
-            $payment->updated_at?->timestamp ?? 0,
-            $payment->company?->updated_at?->timestamp ?? 0,
+            $payment->updated_at->timestamp ?? 0,
+            $payment->company->updated_at->timestamp ?? 0,
             substr(md5((string) json_encode(config('motriks.billing'))), 0, 8),
             self::TEMPLATE_VERSION,
         );
@@ -100,7 +100,7 @@ final class InvoiceDocument
             'invoice' => [
                 'number' => $payment->invoice_number,
                 'issued_at' => $payment->paid_at->format('d/m/Y'),
-                'paid_at' => $payment->paid_at->locale('fr')->translatedFormat('j F Y'),
+                'paid_at' => $payment->paid_at->settings(['locale' => 'fr'])->translatedFormat('j F Y'),
                 'method' => $payment->methodLabel(),
                 'reference' => $payment->reference,
             ],

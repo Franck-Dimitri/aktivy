@@ -31,6 +31,9 @@ class DailyReportPhoto extends Model
         return min(self::MAX_PER_REPORT, (int) ($company?->planLimits()['photos_per_report'] ?? self::MAX_PER_REPORT));
     }
 
+    /**
+     * @return BelongsTo<DailyReport, $this>
+     */
     public function report(): BelongsTo
     {
         return $this->belongsTo(DailyReport::class, 'daily_report_id');

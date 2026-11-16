@@ -33,7 +33,7 @@ class ReportHistoryController extends Controller
                     'visit_id' => $r->visit_id,
                     'visit_uuid' => $r->visit->uuid,
                     'site_name' => $r->site->name,
-                    'report_date' => $r->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
+                    'report_date' => $r->report_date->settings(['locale' => 'fr'])->isoFormat('dddd D MMMM YYYY'),
                     'report_date_iso' => $r->report_date->toDateString(),
                     'status' => $r->status,
                     'total_revenue' => $r->totalRevenue(),

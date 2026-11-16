@@ -69,7 +69,11 @@ return new class extends Migration
         }
     }
 
-    /** Nom explicite et stable, pour pouvoir le retirer dans down(). */
+    /**
+     * Nom explicite et stable, pour pouvoir le retirer dans down().
+     *
+     * @param  list<string>  $columns
+     */
     private function name(string $table, array $columns): string
     {
         return $table.'_'.implode('_', $columns).'_perf_idx';

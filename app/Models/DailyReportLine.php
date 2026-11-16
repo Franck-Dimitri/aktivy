@@ -51,16 +51,25 @@ class DailyReportLine extends Model
         return $this->external_shop !== null;
     }
 
+    /**
+     * @return BelongsTo<DailyReport, $this>
+     */
     public function report(): BelongsTo
     {
         return $this->belongsTo(DailyReport::class, 'daily_report_id');
     }
 
+    /**
+     * @return BelongsTo<SiteProduct, $this>
+     */
     public function siteProduct(): BelongsTo
     {
         return $this->belongsTo(SiteProduct::class);
     }
 
+    /**
+     * @return BelongsTo<Product, $this>
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class)->withTrashed();

@@ -16,6 +16,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use stdClass;
 use ZipArchive;
 
 /**
@@ -38,6 +39,8 @@ class CompanyDataExport
 
     /**
      * Écrit le ZIP et renvoie la liste des fichiers joints introuvables sur le disque.
+     *
+     * @return list<string>
      */
     public function write(string $zipPath): array
     {
@@ -91,7 +94,7 @@ class CompanyDataExport
             ['Langue', $c->locale],
             ['Devise', $c->currency],
             ['Couleur principale', $c->primary_color],
-            ['Statut', $this->status($c->status?->value)],
+            ['Statut', $this->status($c->status->value)],
             ['Inscrite le', $c->created_at?->format('d/m/Y H:i')],
             ['Dossier envoyé le', $c->onboarding_completed_at?->format('d/m/Y H:i')],
             ['Export généré le', now()->format('d/m/Y H:i')],
@@ -300,7 +303,7 @@ class CompanyDataExport
     /**
      * Libellé français d'une valeur d'énumération ; la valeur brute si elle est inconnue.
      *
-     * @param  class-string<\BackedEnum>  $enum
+     * @param  class-string<AffectationStatus|EventHostessStatus|EventPackType|EventStatus|SiteStatus|SiteType|VisitStatus>  $enum
      */
     private function label(string $enum, ?string $value): ?string
     {
@@ -312,6 +315,10 @@ class CompanyDataExport
         return $value === null ? null : (self::STATUS_LABELS[$value] ?? $value);
     }
 
+    /**
+     * @param  stdClass  $site  ligne brute de la table sites
+     * @return list<string>
+     */
     private function sitePhotos(object $site): array
     {
         $photos = is_string($site->photos) ? json_decode($site->photos, true) : $site->photos;
@@ -319,6 +326,9 @@ class CompanyDataExport
         return array_values(array_filter((array) $photos, 'is_string'));
     }
 
+    /**
+     * @param  list<string>  $missing
+     */
     private function readme(array $missing): string
     {
         $lines = [

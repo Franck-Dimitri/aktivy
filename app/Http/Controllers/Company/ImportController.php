@@ -25,16 +25,19 @@ class ImportController extends Controller
     {
         $company = $request->user()->company;
 
+        // Éléments déjà enregistrés, par type importable (cf. LABELS)
+        $counts = [
+            'sites' => $company->sites()->count(),
+            'produits' => $company->products()->count(),
+            'personnel' => $company->users()->count() - 1,
+        ];
+
         return Inertia::render('company/import', [
             'types' => collect(self::LABELS)->map(fn ($label, $type) => [
                 'type' => $type,
                 'label' => $label,
                 'columns' => collect(CompanyImport::COLUMNS[$type])->map(fn ($c) => $c[0])->values(),
-                'count' => match ($type) {
-                    'sites' => $company->sites()->count(),
-                    'produits' => $company->products()->count(),
-                    'personnel' => $company->users()->count() - 1,
-                },
+                'count' => $counts[$type],
             ])->values(),
             'result' => $request->session()->get('import_result'),
             'max_rows' => CompanyImport::MAX_ROWS,

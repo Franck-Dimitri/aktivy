@@ -58,6 +58,9 @@ final class FrenchNumber
         return implode(' ', $out);
     }
 
+    /**
+     * @param  int<1, 99>  $n
+     */
     private static function belowHundred(int $n, bool $multiplied): string
     {
         if ($n < 20) {
@@ -75,7 +78,9 @@ final class FrenchNumber
             return $base.($ten === 7 && $unit === 1 ? ' et ' : '-').$tail;
         }
 
-        $base = self::TENS[$ten];
+        // $n va de 20 à 99, hors 70-79 et 90-99 : $ten vaut 2 à 6 ou 8, toujours présent dans TENS
+        // (PHPStan ne déduit pas les bornes d'un intdiv)
+        $base = self::TENS[$ten]; // @phpstan-ignore offsetAccess.notFound
         if ($unit === 0) {
             // « quatre-vingts », sauf devant mille
             return $ten === 8 && ! $multiplied ? 'quatre-vingts' : $base;

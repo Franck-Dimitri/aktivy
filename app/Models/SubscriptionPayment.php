@@ -60,6 +60,9 @@ class SubscriptionPayment extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function recorder(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');

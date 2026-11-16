@@ -34,11 +34,17 @@ class StaffDocument extends Model
         'other' => 'Autre',
     ];
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function member(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id')->withTrashed();
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by')->withTrashed();

@@ -32,7 +32,11 @@ class CompanyModule extends Model
         ];
     }
 
-    /** Actif aujourd'hui. */
+    /**
+     * Actif aujourd'hui.
+     *
+     * @param  Builder<self>  $query
+     */
     public function scopeActive(Builder $query): void
     {
         $today = today()->toDateString();
@@ -46,6 +50,9 @@ class CompanyModule extends Model
         return $this->starts_on->lte(today()) && ($this->ends_on === null || $this->ends_on->gte(today()));
     }
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

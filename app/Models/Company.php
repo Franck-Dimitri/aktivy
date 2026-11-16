@@ -36,11 +36,17 @@ use Illuminate\Support\Str;
  * @property string|null $registration_doc_path
  * @property string|null $rejection_reason
  * @property Carbon|null $onboarding_completed_at
+ * @property Plan $plan
+ * @property Carbon|null $plan_ends_on
+ * @property bool $plan_trial
+ * @property array<string, mixed>|null $reminder_settings Rappels automatiques (cf. App\Support\Reminders\ReminderSettings)
  * @property int $plan_extra_packs Packs hôtesses (+5 hôtesses / +5 points de vente)
  * @property int $plan_supervisor_packs Packs superviseur (+1 superviseur)
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read string|null $daily_reports_max_report_date Agrégat withMax (date du dernier rapport)
+ * @property-read int|null $hostesses_count Agrégat withCount (hôtesses)
  */
 #[Fillable([
     'name', 'slug', 'logo_path', 'primary_color', 'email', 'phone',
@@ -133,27 +139,43 @@ class Company extends Model
         return $this->hasMany(Visit::class);
     }
 
+    /**
+     * @return HasMany<Product, $this>
+     */
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
+    /**
+     * @return HasMany<DailyReport, $this>
+     */
     public function dailyReports(): HasMany
     {
         return $this->hasMany(DailyReport::class);
     }
 
+    /**
+     * @return HasMany<Event, $this>
+     */
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);
     }
 
-    /** Paiements d'abonnement reçus, avec leurs factures. */
+    /**
+     * Paiements d'abonnement reçus, avec leurs factures.
+     *
+     * @return HasMany<SubscriptionPayment, $this>
+     */
     public function subscriptionPayments(): HasMany
     {
         return $this->hasMany(SubscriptionPayment::class);
     }
 
+    /**
+     * @return HasMany<CompanyModule, $this>
+     */
     public function modules(): HasMany
     {
         return $this->hasMany(CompanyModule::class);

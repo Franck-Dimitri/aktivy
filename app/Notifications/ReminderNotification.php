@@ -11,7 +11,11 @@ use App\Models\Ticket;
  */
 class ReminderNotification extends TextNotification
 {
-    /** « Awa, Brenda et 2 autres » */
+    /**
+     * « Awa, Brenda et 2 autres »
+     *
+     * @param  array<int, string>  $names
+     */
     private static function names(array $names, int $max = 3): string
     {
         $shown = array_slice($names, 0, $max);
@@ -71,6 +75,9 @@ class ReminderNotification extends TextNotification
             'daily-reports.index');
     }
 
+    /**
+     * @param  array<int, string>  $sites
+     */
     public static function lowStock(int $total, int $critical, array $sites): self
     {
         return new self('low_stock', 'stock',
@@ -83,7 +90,7 @@ class ReminderNotification extends TextNotification
     {
         return new self('ticket_unanswered', 'ticket',
             "Demande sans réponse depuis {$hours} h",
-            "« {$ticket->subject} » · ".($ticket->agent?->name ?? 'une hôtesse').'.',
+            "« {$ticket->subject} » · ".($ticket->agent->name ?? 'une hôtesse').'.',
             'tickets.index');
     }
 

@@ -55,7 +55,7 @@ class UserController extends Controller
             })
             ->when($filters['company'] ?? null, fn (Builder $q, $id) => $q->where('company_id', $id))
             ->when($filters['role'] ?? null, fn (Builder $q, $role) => $q->where('role', $role))
-            ->when($filters['status'] ?? null, fn (Builder $q, $status) => match ($status) {
+            ->when($filters['status'] ?? null, fn ($q, $status) => match ($status) {
                 'deleted' => $q->onlyTrashed(),
                 'unconfirmed' => $q->whereNotNull('email')->whereNull('email_verified_at'),
                 default => $q->where('status', $status),
@@ -249,7 +249,11 @@ class UserController extends Controller
         return back()->with('success', "Lien de nouveau mot de passe envoyé à {$user->email}.");
     }
 
-    /** Comptes des entreprises clientes, supprimés compris (le filtre « Supprimés » les isole). */
+    /**
+     * Comptes des entreprises clientes, supprimés compris (le filtre « Supprimés » les isole).
+     *
+     * @return Builder<User>
+     */
     private function clients(): Builder
     {
         return User::withTrashed()->where('role', '!=', Role::SuperAdmin);

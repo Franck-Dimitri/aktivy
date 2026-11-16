@@ -36,6 +36,8 @@ class CompanyFactory extends Factory
     /**
      * Par défaut, Motriks Entreprise sans date de fin : toutes les fonctions, comme avant les forfaits.
      * Les tests qui portent sur les forfaits choisissent le leur avec plan() ou starter().
+     *
+     * @return array{plan: Plan, plan_ends_on: null, plan_trial: bool}
      */
     private function definitionPlan(): array
     {

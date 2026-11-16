@@ -113,7 +113,7 @@ class AuditLogController extends Controller
     /** « Aujourd’hui », « Hier », puis « Mardi 3 novembre 2026 ». */
     private function dayLabel(\DateTimeInterface $at): string
     {
-        $day = Carbon::instance($at)->locale('fr');
+        $day = Carbon::instance($at)->settings(['locale' => 'fr']);
 
         return match (true) {
             $day->isToday() => 'Aujourd’hui',

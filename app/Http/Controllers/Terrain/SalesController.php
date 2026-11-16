@@ -32,14 +32,14 @@ class SalesController extends Controller
         $reports->each(fn (DailyReport $r) => $r->setRelation('lines', $r->allLines));
 
         $imageOf = function ($line) {
-            $image = $line->siteProduct?->product?->image ?? $line->product?->image;
+            $image = $line->siteProduct->product->image ?? $line->product->image;
 
             return $image ? asset('storage/'.$image) : null;
         };
 
         // ── Grouper par mois ──
         $months = $reports
-            ->groupBy(fn ($r) => $r->report_date->locale('fr')->isoFormat('MMMM YYYY'))
+            ->groupBy(fn ($r) => $r->report_date->settings(['locale' => 'fr'])->isoFormat('MMMM YYYY'))
             ->map(function ($monthReports, $monthKey) use ($imageOf) {
                 $allLines = $monthReports->flatMap(fn ($r) => $r->lines);
                 $soldLines = $allLines->filter(fn ($l) => $l->units_sold > 0);
@@ -70,7 +70,7 @@ class SalesController extends Controller
                             'visit_id' => $r->visit_id,
                             'visit_uuid' => $r->visit->uuid,
                             'date' => $r->report_date->toDateString(),
-                            'date_formatted' => $r->report_date->locale('fr')->isoFormat('dddd D MMMM YYYY'),
+                            'date_formatted' => $r->report_date->settings(['locale' => 'fr'])->isoFormat('dddd D MMMM YYYY'),
                             'site_name' => $r->site->name,
                             'site_city' => $r->site->city,
                             'total_revenue' => (float) $r->lines->sum('revenue'),
@@ -116,7 +116,7 @@ class SalesController extends Controller
 
         $bestDay = $reports
             ->map(fn ($r) => [
-                'date' => $r->report_date->locale('fr')->isoFormat('D MMMM YYYY'),
+                'date' => $r->report_date->settings(['locale' => 'fr'])->isoFormat('D MMMM YYYY'),
                 'revenue' => (float) $r->lines->sum('revenue'),
                 'site_name' => $r->site->name,
             ])

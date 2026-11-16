@@ -8,6 +8,7 @@ use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Company;
+use App\Notifications\AppNotification;
 use App\Notifications\LiveNotification;
 use App\Support\Notifications\Notify;
 use App\Support\Plans\PlanPresenter;
@@ -53,7 +54,7 @@ class CompanyPlanController extends Controller
         }
 
         $old = [
-            'plan' => $company->plan?->value,
+            'plan' => $company->plan->value,
             'ends_on' => $company->plan_ends_on?->toDateString(),
             'trial' => (bool) $company->plan_trial,
             'extra_packs' => (int) $company->plan_extra_packs,
@@ -88,7 +89,7 @@ class CompanyPlanController extends Controller
     }
 
     /** Le gérant est prévenu de tout changement de son forfait. */
-    public static function notifyManagers(Company $company, $notification): void
+    public static function notifyManagers(Company $company, AppNotification $notification): void
     {
         $managers = $company->users()->where('role', Role::CompanyAdmin)->where('status', AccountStatus::Active)->get();
         if ($managers->isNotEmpty()) {

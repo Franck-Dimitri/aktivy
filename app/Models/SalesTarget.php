@@ -36,12 +36,20 @@ class SalesTarget extends Model
         ];
     }
 
-    /** Toujours « AAAA-MM-JJ » : comparaison de dates identique sous SQLite, PostgreSQL et MySQL. */
+    /**
+     * Toujours « AAAA-MM-JJ » : comparaison de dates identique sous SQLite, PostgreSQL et MySQL.
+     * Lecture par le cast « date » (CarbonImmutable, cf. Date::use dans AppServiceProvider).
+     *
+     * @return Attribute<CarbonImmutable, \DateTimeInterface|string>
+     */
     protected function month(): Attribute
     {
         return Attribute::make(set: fn ($value) => CarbonImmutable::parse($value)->startOfMonth()->toDateString());
     }
 
+    /**
+     * @return BelongsTo<Site, $this>
+     */
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
@@ -99,6 +107,9 @@ class SalesTarget extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function hostess(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');

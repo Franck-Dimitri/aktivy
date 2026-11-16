@@ -58,7 +58,7 @@ class AuditLog extends Model
         // Action faite par le super administrateur connecté « en tant que » : on le note
         $impersonatorId = app()->bound('session') ? app('session')->get(ImpersonationController::SESSION_KEY) : null;
         if ($impersonatorId && $impersonatorId !== $actor?->id) {
-            $new = [...($new ?? []), 'par_admin' => User::find($impersonatorId)?->name];
+            $new = [...($new ?? []), 'par_admin' => User::whereKey($impersonatorId)->value('name')];
         }
 
         $companyId = $auditable instanceof Company

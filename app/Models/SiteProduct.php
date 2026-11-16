@@ -16,9 +16,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $alert_threshold
  * @property int $critical_threshold
  * @property int|null $updated_by
- * @property-read Site    $site
- * @property-read Product $product
- * @property-read User    $updater
+ * @property-read Site|null $site Null si le site est supprimé (archivé)
+ * @property-read Product|null $product Null si le produit est archivé
+ * @property-read User|null $updater
  */
 #[Fillable(['company_id', 'site_id', 'product_id', 'current_stock', 'alert_threshold', 'critical_threshold', 'updated_by'])]
 class SiteProduct extends Model
@@ -26,16 +26,25 @@ class SiteProduct extends Model
     /** UUID dans les adresses à la place du numéro */
     use HasPublicUuid;
 
+    /**
+     * @return BelongsTo<Site, $this>
+     */
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
     }
 
+    /**
+     * @return BelongsTo<Product, $this>
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');

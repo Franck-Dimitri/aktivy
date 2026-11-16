@@ -7,11 +7,27 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * Export complet des données d'une entreprise (ZIP), préparé en arrière-plan par BuildCompanyDataExport.
  * Le fichier reste téléchargeable pendant AVAILABLE_HOURS, puis il est supprimé (model:prune).
+ *
+ * @property int $id
+ * @property int $company_id
+ * @property int|null $user_id
+ * @property string $status pending|processing|ready|failed
+ * @property string|null $path
+ * @property int|null $size
+ * @property int $missing_files
+ * @property Carbon|null $started_at
+ * @property Carbon|null $finished_at
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Company $company
+ * @property-read User|null $user
  */
 class DataExport extends Model
 {
@@ -46,11 +62,17 @@ class DataExport extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -71,7 +93,11 @@ class DataExport extends Model
             && Storage::disk(self::DISK)->exists($this->path);
     }
 
-    /** Exports à effacer : expirés, en échec ou bloqués depuis plus d'un jour. */
+    /**
+     * Exports à effacer : expirés, en échec ou bloqués depuis plus d'un jour.
+     *
+     * @return Builder<static>
+     */
     public function prunable(): Builder
     {
         return static::query()->where(fn (Builder $q) => $q

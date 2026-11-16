@@ -16,6 +16,7 @@ use App\Support\PhoneNumber;
 use App\Support\Plans\PlanPresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -47,7 +48,7 @@ class CompanyController extends Controller
                 'users_count' => $c->users_count,
                 'sites_count' => $c->sites_count,
                 'last_report' => $c->daily_reports_max_report_date
-                    ? date('d/m/Y', strtotime($c->daily_reports_max_report_date))
+                    ? Carbon::parse($c->daily_reports_max_report_date)->format('d/m/Y')
                     : null,
                 'created_at' => $c->created_at?->format('d/m/Y'),
                 'plan' => $c->currentPlan()->shortLabel(),

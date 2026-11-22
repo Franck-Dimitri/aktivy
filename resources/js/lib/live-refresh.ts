@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { setAppBadge } from '@/lib/app-badge';
 import { pulse } from '@/routes/notifications';
+import { syncState } from '@/lib/sync';
 
 /*
  * Écran à jour sans recharger la page.
@@ -32,7 +33,8 @@ function canRefresh(): boolean {
 
 /** Recharge silencieuse des données de la page affichée. */
 function refresh(): void {
-    if (!canRefresh()) {
+    // Actions hors ligne pas encore envoyées : OfflineSync rechargera l'écran une fois la file vidée
+    if (!canRefresh() || syncState().pending.length > 0) {
         signature = null; // à relever au prochain passage : la mise à jour se fera à ce moment-là
         return;
     }

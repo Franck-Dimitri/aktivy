@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { pulse } from '@/routes/notifications';
+import { syncState } from '@/lib/sync';
 
 /**
  * État de la connexion, partagé par toute l'application.
@@ -44,6 +45,10 @@ function set(next: Partial<Connection>): void {
 function goOnline(): void {
     if (state.status === 'online') return;
     set({ status: 'online', restoredAt: Date.now() });
+    // Des actions faites hors ligne attendent d'être envoyées : la page affichée (un rapport commencé sur le
+    // téléphone) n'existe peut-être pas encore sur le serveur, et la recharger donnerait « introuvable ».
+    // OfflineSync envoie la file puis recharge l'écran lui-même.
+    if (syncState().pending.length > 0) return;
     // Les données affichées datent d'avant la coupure : mise à jour en silence, saisie en cours gardée
     router.reload({ async: true, showProgress: false } as never);
 }

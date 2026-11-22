@@ -11,7 +11,7 @@ import { HeroDashboard } from '@/components/landing/hero-dashboard';
 const IMG = '/images/landing';
 
 /** Conteneur large : le contenu occupe la place, marges latérales réduites. */
-export const WRAP = 'mx-auto w-full max-w-[1520px] px-5 sm:px-8 lg:px-12';
+export const WRAP = 'mx-auto w-full max-w-[1400px] px-6 sm:px-10 lg:px-16';
 
 /** Animations propres à la page, en plus de REVEAL_CSS (fondu et montée des blocs). */
 export const ENTERPRISE_CSS = `
@@ -136,19 +136,10 @@ export function EnterpriseHero() {
                     </p>
                 </div>
 
-                {/* Même emplacement qu'avant : la fenêtre inclinée déborde à droite de l'écran */}
-                <div data-reveal className="relative lg:-mr-[22vw]">
-                    <div className="hero-tilt w-full lg:w-[980px]">
+                {/* Même emplacement qu'avant : la fenêtre inclinée, à droite, sans déborder de la page */}
+                <div data-reveal className="relative">
+                    <div className="hero-tilt w-full">
                         <HeroDashboard />
-                    </div>
-                    <div className="lp-float relative mt-6 overflow-hidden rounded-lg shadow-2xl ring-4 shadow-slate-900/25 ring-white sm:mx-auto sm:w-3/4 lg:absolute lg:-bottom-14 lg:-left-12 lg:mt-0 lg:w-[300px]">
-                        <img
-                            src={`${IMG}/supermarche-rayon.webp`}
-                            alt="Deux clientes choisissent des produits dans le rayon d’un supermarché"
-                            width={1600}
-                            height={1067}
-                            className="aspect-[4/3] w-full object-cover object-[30%_50%]"
-                        />
                     </div>
                 </div>
             </div>

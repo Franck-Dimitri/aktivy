@@ -18,6 +18,10 @@ import {
     Security,
     Solutions,
 } from '@/components/landing/enterprise-sections';
+import { ProblemSection } from '@/components/landing/problem-section';
+import { FeatureGrid } from '@/components/landing/feature-grid';
+import { LocalSection } from '@/components/landing/onboarding-sections';
+import { SectionTitle } from '@/components/landing/primitives';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { FaqSection } from '@/components/landing/faq-section';
 
@@ -83,9 +87,27 @@ export default function Landing({
 
                 <EnterpriseHero />
                 <FactsBand />
+                <ProblemSection />
                 <Solutions />
                 <Platform />
+
+                {/* Fonctionnalités (ancienne page) */}
+                <section
+                    id="fonctionnalites"
+                    className="scroll-mt-24 bg-white py-24 lg:py-32"
+                >
+                    <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-10 lg:px-16">
+                        <SectionTitle
+                            eyebrow="Fonctionnalités"
+                            title="Tout ce qu'il faut pour gérer le terrain"
+                            text="Chaque forfait ajoute des fonctions : du suivi terrain gratuit jusqu'aux campagnes et au reporting complet."
+                        />
+                        <FeatureGrid />
+                    </div>
+                </section>
+
                 <Onboarding />
+                <LocalSection />
                 <Security />
                 <PricingSection />
                 <FaqSection />

@@ -80,7 +80,7 @@ export default function LandingFooter({
                 aria-hidden="true"
             />
 
-            <div className="relative mx-auto w-full max-w-[1520px] px-5 pt-16 sm:px-8 lg:px-12 lg:pt-20">
+            <div className="relative mx-auto w-full max-w-[1400px] px-6 pt-16 sm:px-10 lg:px-16 lg:pt-20">
                 <div className="grid gap-12 lg:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))] lg:gap-10">
                     {/* marque */}
                     <div>

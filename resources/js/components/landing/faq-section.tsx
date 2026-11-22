@@ -9,7 +9,7 @@ export function FaqSection() {
     const [openFaq, setOpenFaq] = useState(0);
     return (
         <section id="faq" className="scroll-mt-24 py-20 lg:py-28">
-            <div className="mx-auto grid w-full max-w-[1520px] gap-12 px-5 sm:px-8 lg:grid-cols-12 lg:gap-10 lg:px-12">
+            <div className="mx-auto grid w-full max-w-[1400px] gap-12 px-6 sm:px-10 lg:grid-cols-12 lg:gap-10 lg:px-16">
                 {/* colonne gauche : titre et contact, fixe pendant le défilement */}
                 <div className="lg:sticky lg:top-28 lg:col-span-5 lg:self-start">
                     <div data-reveal>

@@ -9,7 +9,7 @@ export function PricingSection() {
             id="tarifs"
             className="scroll-mt-24 border-t border-slate-200 bg-white py-24 lg:py-32"
         >
-            <div className="mx-auto w-full max-w-[1520px] px-5 sm:px-8 lg:px-12">
+            <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-10 lg:px-16">
                 <SectionTitle
                     eyebrow="Tarifs"
                     title="Un forfait à la taille de votre réseau"

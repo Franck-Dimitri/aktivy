@@ -43,7 +43,7 @@ export function LandingNavbar() {
     return (
         <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-6 sm:pt-4">
             <div
-                className={`relative mx-auto flex max-w-6xl items-center justify-between rounded-full border px-2.5 backdrop-blur-xl transition-[background-color,box-shadow,border-color,padding] duration-300 ${
+                className={`relative mx-auto flex max-w-[1440px] items-center justify-between rounded-full border px-2.5 backdrop-blur-xl transition-[background-color,box-shadow,border-color,padding] duration-300 ${
                     scrolled
                         ? 'border-slate-200/80 bg-white/90 py-1.5 shadow-xl shadow-slate-900/[0.08]'
                         : 'border-white/70 bg-white/60 py-2 shadow-lg shadow-green-900/5'

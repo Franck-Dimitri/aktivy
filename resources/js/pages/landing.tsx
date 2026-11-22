@@ -3,22 +3,23 @@ import LandingFooter from '@/components/landing/footer';
 import { Seo } from '@/components/seo';
 import { isStandalone } from '@/lib/pwa';
 import { FAQS } from '@/components/landing/content';
-import { SectionTitle } from '@/components/landing/primitives';
 import {
     REVEAL_CSS,
     useScrollReveal,
 } from '@/components/landing/use-scroll-reveal';
-import { FeatureGrid } from '@/components/landing/feature-grid';
 import { LandingNavbar } from '@/components/landing/navbar';
-import { HeroSection } from '@/components/landing/hero-section';
-import { ProblemSection } from '@/components/landing/problem-section';
 import {
-    StartSection,
-    LocalSection,
-} from '@/components/landing/onboarding-sections';
+    ClosingCta,
+    ENTERPRISE_CSS,
+    EnterpriseHero,
+    FactsBand,
+    Onboarding,
+    Platform,
+    Security,
+    Solutions,
+} from '@/components/landing/enterprise-sections';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { FaqSection } from '@/components/landing/faq-section';
-import { FinalCta } from '@/components/landing/final-cta';
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -76,43 +77,19 @@ export default function Landing({
             <Seo jsonLd={FAQ_JSON_LD} />
 
             <div className="min-h-screen scroll-smooth bg-white font-sans text-slate-900 antialiased">
-                <style>{REVEAL_CSS}</style>
+                <style>{REVEAL_CSS + ENTERPRISE_CSS}</style>
                 {/* ------------------------------ Navbar ------------------------------ */}
                 <LandingNavbar />
 
-                {/* ------------------------------- Hero ------------------------------- */}
-                <HeroSection />
-
-                {/* ------------------------- Problème / solution ----------------------- */}
-                <ProblemSection />
-
-                {/* ---------------------------- Fonctionnalités ------------------------ */}
-                <section id="fonctionnalites" className="scroll-mt-24 py-20">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <SectionTitle
-                            eyebrow="Fonctionnalités"
-                            title="Tout ce qu'il faut pour gérer le terrain"
-                            text="Chaque forfait ajoute des fonctions : du suivi terrain gratuit jusqu'aux campagnes et au reporting complet."
-                        />
-                        <FeatureGrid />
-                    </div>
-                </section>
-
-                {/* ---------------------- Démarrage et publics visés -------------------- */}
-                <StartSection />
-
-                {/* ------------------------------ Atouts locaux ------------------------ */}
-                <LocalSection />
-
-                {/* --------------------------------- Tarifs ---------------------------- */}
+                <EnterpriseHero />
+                <FactsBand />
+                <Solutions />
+                <Platform />
+                <Onboarding />
+                <Security />
                 <PricingSection />
-
-                {/* ---------------------------------- FAQ ------------------------------ */}
                 <FaqSection />
-
-                {/* --------------------------------- CTA final ------------------------- */}
-                {/* Encadré clair aligné sur la grille de la page : titre à gauche, boutons à droite */}
-                <FinalCta />
+                <ClosingCta />
 
                 <LandingFooter paymentLogos={paymentLogos} />
             </div>

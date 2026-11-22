@@ -24,7 +24,7 @@ const SUBJECTS = [
 
 const NAV_LINKS = [
     { label: 'Accueil', href: '/' },
-    { label: 'Fonctionnalités', href: '/#fonctionnalites' },
+    { label: 'Solutions', href: '/#solutions' },
     { label: 'Tarifs', href: '/#tarifs' },
     { label: 'FAQ', href: '/#faq' },
 ];

@@ -5,8 +5,11 @@ import { Check, SectionTitle } from '@/components/landing/primitives';
 /* Tarifs : les forfaits Motriks */
 export function PricingSection() {
     return (
-        <section id="tarifs" className="scroll-mt-24 bg-slate-50 py-20">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section
+            id="tarifs"
+            className="scroll-mt-24 border-t border-slate-200 bg-white py-24 lg:py-32"
+        >
+            <div className="mx-auto w-full max-w-[1520px] px-5 sm:px-8 lg:px-12">
                 <SectionTitle
                     eyebrow="Tarifs"
                     title="Un forfait à la taille de votre réseau"
@@ -18,7 +21,7 @@ export function PricingSection() {
                         <div
                             key={p.name}
                             data-reveal
-                            className={`flex flex-col rounded-2xl p-8 ${
+                            className={`flex flex-col rounded-md p-8 ${
                                 p.highlight
                                     ? 'border-2 border-green-600 bg-white shadow-xl shadow-green-600/10'
                                     : 'border border-slate-200 bg-white'

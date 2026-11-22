@@ -94,7 +94,7 @@ class PlanTest extends TestCase
         $this->actingAs($manager)->put(route('admin.companies.plan.update', $company), ['plan' => 'entreprise'])->assertForbidden();
     }
 
-    public function test_a_newly_approved_company_gets_a_7_day_business_trial()
+    public function test_a_newly_approved_company_gets_a_one_month_business_trial()
     {
         $admin = User::factory()->superAdmin()->create();
         $company = Company::factory()->starter()->create(['status' => AccountStatus::Pending, 'onboarding_completed_at' => now()]);
@@ -105,7 +105,7 @@ class PlanTest extends TestCase
         $company->refresh();
         $this->assertSame(Plan::Business, $company->currentPlan());
         $this->assertTrue($company->plan_trial);
-        $this->assertSame(today()->addDays(7)->toDateString(), $company->plan_ends_on->toDateString());
+        $this->assertSame(today()->addDays(Company::TRIAL_DAYS)->toDateString(), $company->plan_ends_on->toDateString());
     }
 
     public function test_the_manager_is_reminded_before_the_plan_ends()

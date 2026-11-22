@@ -107,7 +107,7 @@ const SECTIONS: LegalSection[] = [
                         </>,
                         <>
                             <Strong>Modules payants</Strong> : activables à
-                            l'unité, avec un essai gratuit de 7 jours sans carte
+                            l'unité, avec un essai gratuit d’un mois sans carte
                             bancaire.
                         </>,
                         <>

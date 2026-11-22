@@ -94,8 +94,8 @@ export function HeroSection() {
                             carte bancaire
                         </li>
                         <li className="flex items-center gap-1.5">
-                            <Check className="h-4 w-4 text-green-600" /> Essai
-                            de 7 jours
+                            <Check className="h-4 w-4 text-green-600" /> 1 mois
+                            d’essai gratuit
                         </li>
                         <li className="flex items-center gap-1.5">
                             <Check className="h-4 w-4 text-green-600" />{' '}

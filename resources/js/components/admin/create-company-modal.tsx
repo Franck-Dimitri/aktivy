@@ -73,7 +73,7 @@ export function CreateCompanyModal({
         <Modal
             onClose={() => !processing && onClose()}
             title="Créer une entreprise"
-            description="Active tout de suite, avec 7 jours d’essai de Motriks Business. Le gérant reçoit une invitation pour choisir son mot de passe."
+            description="Active tout de suite, avec 1 mois d’essai de Motriks Business. Le gérant reçoit une invitation pour choisir son mot de passe."
             size="lg"
             icon={<Building2 />}
         >

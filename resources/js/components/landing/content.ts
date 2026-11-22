@@ -189,7 +189,7 @@ export const PLANS = [
             'PDF à vos couleurs et exports Excel',
             '1 événement et 3 packs par mois',
         ],
-        cta: 'Essayer 7 jours',
+        cta: 'Essayer 1 mois gratuit',
         highlight: false,
     },
     {
@@ -204,7 +204,7 @@ export const PLANS = [
             'Historique illimité',
             'Mise en service offerte',
         ],
-        cta: 'Essayer 7 jours',
+        cta: 'Essayer 1 mois gratuit',
         highlight: true,
     },
     {
@@ -235,7 +235,7 @@ export const FAQS = [
     },
     {
         q: 'Puis-je essayer avant de payer ?',
-        a: 'Oui. Motriks Starter est gratuit et sans engagement, et toute nouvelle entreprise essaie Motriks Business pendant 7 jours, sans carte bancaire.',
+        a: 'Oui. Motriks Starter est gratuit et sans engagement, et toute nouvelle entreprise essaie Motriks Business pendant 1 mois, gratuitement et sans carte bancaire.',
     },
     {
         q: 'Que se passe-t-il si mon abonnement expire ?',

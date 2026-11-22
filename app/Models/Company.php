@@ -197,7 +197,7 @@ class Company extends Model
     }
 
     /** Durée de l'essai gratuit de Motriks Business offert à une nouvelle entreprise (jours). */
-    public const TRIAL_DAYS = 7;
+    public const TRIAL_DAYS = 30;
 
     /**
      * Essai de Motriks Business à la validation (ou à la création) d'une entreprise.

@@ -144,7 +144,7 @@ class HomeController extends Controller
                 'slot_end' => $affectation->slot_end,
             ] : null,
             'next_affectation' => $nextAffectation ? [
-                'site_name' => $nextAffectation->site->name,
+                'site_name' => $nextAffectation->site?->name,
                 'starts_on' => $nextAffectation->starts_on->translatedFormat('l j F'),
             ] : null,
             'visit' => $visit ? [

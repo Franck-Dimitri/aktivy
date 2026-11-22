@@ -94,7 +94,7 @@ class CompanyDataExport
             ['Langue', $c->locale],
             ['Devise', $c->currency],
             ['Couleur principale', $c->primary_color],
-            ['Statut', $this->status($c->status->value)],
+            ['Statut', $this->status($c->status?->value)],
             ['Inscrite le', $c->created_at?->format('d/m/Y H:i')],
             ['Dossier envoyé le', $c->onboarding_completed_at?->format('d/m/Y H:i')],
             ['Export généré le', now()->format('d/m/Y H:i')],

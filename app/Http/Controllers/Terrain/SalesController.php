@@ -32,7 +32,7 @@ class SalesController extends Controller
         $reports->each(fn (DailyReport $r) => $r->setRelation('lines', $r->allLines));
 
         $imageOf = function ($line) {
-            $image = $line->siteProduct->product->image ?? $line->product->image;
+            $image = $line->siteProduct?->product?->image ?? $line->product?->image;
 
             return $image ? asset('storage/'.$image) : null;
         };

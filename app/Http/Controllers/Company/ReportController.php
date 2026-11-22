@@ -171,7 +171,7 @@ class ReportController extends Controller
         $key = SalesTarget::keyFor($siteId, $userId);
         $desired = (int) ($data['amount'] ?? 0);
 
-        $inherited = (int) (SalesTarget::latestFor($company->id, $monthStart->subMonth())->get($key)->amount ?? 0);
+        $inherited = (int) (SalesTarget::latestFor($company->id, $monthStart->subMonth())->get($key)?->amount ?? 0);
         $thisMonth = SalesTarget::where('company_id', $company->id)
             ->where('site_id', $siteId)
             ->where('user_id', $userId)

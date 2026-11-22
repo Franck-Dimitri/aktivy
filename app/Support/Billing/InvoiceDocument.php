@@ -41,8 +41,8 @@ final class InvoiceDocument
         $key = sprintf(
             'invoice-pdf:%d:%d:%d:%s:v%d',
             $payment->id,
-            $payment->updated_at->timestamp ?? 0,
-            $payment->company->updated_at->timestamp ?? 0,
+            $payment->updated_at?->timestamp ?? 0,
+            $payment->company?->updated_at?->timestamp ?? 0,
             substr(md5((string) json_encode(config('motriks.billing'))), 0, 8),
             self::TEMPLATE_VERSION,
         );

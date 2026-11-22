@@ -45,7 +45,11 @@ class SecurityHeaders
         }
 
         $isHtml = str_contains((string) $response->headers->get('Content-Type'), 'text/html');
-        $header = config('security.csp_report_only') ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy';
+        // Poste de développement avec Vite (npm run dev) : la CSP signale sans bloquer. Le serveur Vite
+        // écoute souvent sur [::1] (IPv6), une adresse que les navigateurs ignorent dans une CSP : ses
+        // fichiers étaient bloqués et la page s'affichait sans style ni script. Jamais le cas en production.
+        $reportOnly = config('security.csp_report_only') || (app()->isLocal() && Vite::isRunningHot());
+        $header = $reportOnly ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy';
         $headers[$isHtml ? $header : 'Content-Security-Policy'] = $isHtml ? $this->policy($nonce) : "frame-ancestors 'self'";
 
         foreach ($headers as $name => $value) {

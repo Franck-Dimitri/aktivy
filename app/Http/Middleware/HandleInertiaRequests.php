@@ -104,7 +104,7 @@ class HandleInertiaRequests extends Middleware
                 'company' => $request->user()?->company
                     ? [
                         ...$request->user()->company->only('id', 'name', 'logo_path', 'primary_color'),
-                        'status' => $request->user()->company->status->value,
+                        'status' => $request->user()->company->status?->value,
                     ]
                     : null,
                 'can' => fn () => [

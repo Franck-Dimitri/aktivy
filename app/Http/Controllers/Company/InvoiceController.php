@@ -31,7 +31,7 @@ class InvoiceController extends Controller
                 'count' => $payments->count(),
                 'total' => $payments->sum('amount'),
                 'this_year' => $payments->filter(fn (SubscriptionPayment $p) => $p->paid_at->isCurrentYear())->sum('amount'),
-                'currency' => $payments->first()->currency ?? $company->currency ?? 'XAF',
+                'currency' => $payments->first()?->currency ?? $company->currency ?? 'XAF',
                 'last_paid_at' => $payments->first()?->paid_at->format('d/m/Y'),
                 'next_due' => $plan['expired'] ? null : $plan['ends_on'],
                 'plan' => $plan['label'],

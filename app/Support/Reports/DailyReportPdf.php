@@ -20,14 +20,14 @@ final class DailyReportPdf
 
         $filename = sprintf(
             'rapport-%s-%s-%s.pdf',
-            Str::slug($report->agent->name),
-            Str::slug($report->site->name),
+            Str::slug($report->agent?->name ?? 'hotesse'),
+            Str::slug($report->site?->name ?? 'site'),
             $report->report_date->format('Y-m-d'),
         );
 
         return PdfDocument::download('pdf.daily-report', [
             'title' => 'Rapport journalier',
-            'subtitle' => $report->site->name,
+            'subtitle' => $report->site?->name,
             'company' => $company,
             'logo' => PdfDocument::logo($company),
             'currency' => $company->currency ?: 'XAF',

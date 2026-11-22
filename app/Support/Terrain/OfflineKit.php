@@ -128,7 +128,7 @@ final class OfflineKit
                 'quantity' => 0,
                 'items' => $pack->lines->map(fn ($l) => [
                     'line_id' => $byProduct->get($l->product_id)?->id,
-                    'name' => $byProduct->get($l->product_id)->product_name ?? '',
+                    'name' => $byProduct->get($l->product_id)?->product_name ?? '',
                     'quantity' => $l->quantity,
                     'free' => $l->role === 'free',
                 ])->values(),

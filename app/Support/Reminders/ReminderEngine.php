@@ -123,7 +123,7 @@ class ReminderEngine
         foreach ($affectations as $a) {
             $start = $s->at($now, $a->slot_start ?: $s->time('default_start'));
             $end = $s->at($now, $a->slot_end ?: $s->time('default_end'));
-            $site = $a->site->name;
+            $site = $a->site?->name ?? 'votre point de vente';
             $visit = $visits->get($a->user_id);
 
             if (! $visit) {
@@ -172,7 +172,7 @@ class ReminderEngine
                 // envoyé (once() renvoie false) privait de leur rappel les hôtesses suivantes
                 ->each(function (DailyReport $r) use ($company) {
                     $this->once('report_not_sent', "report-not-sent:{$r->id}", $company->id, $r->agent,
-                        ReminderNotification::reportNotSent($r->site->name, $r->visit_id));
+                        ReminderNotification::reportNotSent($r->site?->name ?? 'votre point de vente', $r->visit_id));
                 });
         }
 

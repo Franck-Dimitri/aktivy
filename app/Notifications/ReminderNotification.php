@@ -90,7 +90,7 @@ class ReminderNotification extends TextNotification
     {
         return new self('ticket_unanswered', 'ticket',
             "Demande sans réponse depuis {$hours} h",
-            "« {$ticket->subject} » · ".($ticket->agent->name ?? 'une hôtesse').'.',
+            "« {$ticket->subject} » · ".($ticket->agent?->name ?? 'une hôtesse').'.',
             'tickets.index');
     }
 

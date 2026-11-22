@@ -17,7 +17,7 @@ class TicketCreated extends AppNotification
 
     public function __construct(Ticket $ticket)
     {
-        $this->agent = $ticket->agent->name ?? 'Une hôtesse';
+        $this->agent = $ticket->agent?->name ?? 'Une hôtesse';
         $this->subject = $ticket->subject;
         $this->urgent = $ticket->priority === 'urgent';
     }

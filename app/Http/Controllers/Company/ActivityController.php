@@ -69,18 +69,18 @@ class ActivityController extends Controller
             $site = $group->first()->site;
 
             return [
-                'id' => $site->id,
-                'name' => $site->name,
-                'city' => $site->city,
-                'stock_alerts' => (int) ($stockAlerts[$site->id] ?? 0),
+                'id' => $site?->id,
+                'name' => $site?->name,
+                'city' => $site?->city,
+                'stock_alerts' => (int) ($stockAlerts[$site?->id] ?? 0),
                 'hostesses' => $group->unique('user_id')->map(function (Affectation $a) use ($visits, $reports, $now, $companySites) {
                     $visit = $visits->get($a->user_id);
                     $report = $reports->get($a->user_id);
 
                     return [
                         'user_id' => $a->user_id,
-                        'name' => $a->agent->name,
-                        'phone' => $a->agent->phone,
+                        'name' => $a->agent?->name,
+                        'phone' => $a->agent?->phone,
                         'slot_start' => $a->slot_start ? substr($a->slot_start, 0, 5) : null,
                         'slot_end' => $a->slot_end ? substr($a->slot_end, 0, 5) : null,
                         'state' => $this->state($a, $visit, $now),
@@ -92,8 +92,8 @@ class ActivityController extends Controller
                         'report_id' => $report?->id,
                         'report_uuid' => $report?->uuid,
                         'report_status' => $report?->status,
-                        'revenue' => (float) ($report->lines_sum_revenue ?? 0),
-                        'units_sold' => (int) ($report->lines_sum_units_sold ?? 0),
+                        'revenue' => (float) ($report?->lines_sum_revenue ?? 0),
+                        'units_sold' => (int) ($report?->lines_sum_units_sold ?? 0),
                         'has_incident' => Incident::meaningful($report?->incident_notes) !== null,
                     ];
                 })->sortBy('name')->values(),

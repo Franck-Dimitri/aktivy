@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Support\Excel\Workbook;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
 /**
@@ -75,6 +76,19 @@ class SecurityHardeningTest extends TestCase
         $this->assertStringNotContainsString('unsafe-eval', $csp);
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    }
+
+    public function test_with_the_vite_dev_server_the_policy_reports_without_blocking()
+    {
+        // Poste de développement avec npm run dev : Vite écoute souvent sur [::1], adresse que les
+        // navigateurs ignorent dans une CSP ; la politique signale alors sans bloquer
+        app()->detectEnvironment(fn () => 'local');
+        Vite::partialMock()->shouldReceive('isRunningHot')->andReturn(true);
+
+        $response = $this->get(route('login'));
+
+        $this->assertFalse($response->headers->has('Content-Security-Policy'));
+        $this->assertStringContainsString("script-src 'self'", (string) $response->headers->get('Content-Security-Policy-Report-Only'));
     }
 
     public function test_files_are_not_given_the_html_content_policy_and_violations_are_collected()

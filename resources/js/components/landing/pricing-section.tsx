@@ -1,31 +1,42 @@
 import { Link } from '@inertiajs/react';
 import { PLANS } from '@/components/landing/content';
-import { Check, SectionTitle } from '@/components/landing/primitives';
+import { Check } from '@/components/landing/primitives';
+import { Kicker } from '@/components/landing/sections';
 
 /* Tarifs : les forfaits Motriks */
 export function PricingSection() {
     return (
-        <section id="tarifs" className="scroll-mt-24 bg-slate-50 py-20">
+        <section
+            id="tarifs"
+            className="scroll-mt-24 bg-[#F5F6F4] py-20 lg:py-28"
+        >
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <SectionTitle
-                    eyebrow="Tarifs"
-                    title="Un forfait à la taille de votre réseau"
-                    text="Commencez gratuitement avec Motriks Starter, passez au forfait supérieur quand votre équipe grandit."
-                />
+                <div className="max-w-3xl">
+                    <Kicker>Tarifs</Kicker>
+                    <h2 className="mt-5 text-3xl leading-[1.08] font-extrabold tracking-tight text-balance text-slate-900 sm:text-4xl lg:text-5xl">
+                        Un forfait à la taille{' '}
+                        <span className="text-green-700">de votre réseau.</span>
+                    </h2>
+                    <p className="mt-5 text-lg text-slate-600">
+                        Commencez gratuitement avec Motriks Starter. Toute
+                        nouvelle entreprise profite de 1 mois offert sur Motriks
+                        Business.
+                    </p>
+                </div>
 
-                <div className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-12 grid gap-0 border-t-2 border-slate-900 sm:grid-cols-2 xl:grid-cols-4">
                     {PLANS.map((p) => (
                         <div
                             key={p.name}
                             data-reveal
-                            className={`flex flex-col rounded-2xl p-8 ${
+                            className={`flex flex-col border-b border-slate-200 p-8 sm:border-r ${
                                 p.highlight
-                                    ? 'border-2 border-green-600 bg-white shadow-xl shadow-green-600/10'
-                                    : 'border border-slate-200 bg-white'
+                                    ? 'bg-white shadow-[inset_0_4px_0_#027a48]'
+                                    : 'bg-white/60'
                             }`}
                         >
                             {p.highlight && (
-                                <span className="mb-4 w-fit rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white">
+                                <span className="mb-4 w-fit text-xs font-bold tracking-[0.2em] text-green-700 uppercase">
                                     Recommandé
                                 </span>
                             )}
@@ -51,17 +62,17 @@ export function PricingSection() {
                                         key={f}
                                         className="flex items-start gap-3 text-sm text-slate-700"
                                     >
-                                        <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                                        <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-700" />
                                         {f}
                                     </li>
                                 ))}
                             </ul>
                             <Link
                                 href="/register"
-                                className={`mt-8 rounded-full px-5 py-3 text-center text-sm font-semibold transition ${
+                                className={`mt-8 px-5 py-3 text-center text-sm font-semibold transition ${
                                     p.highlight
-                                        ? 'bg-green-600 text-white hover:bg-green-700'
-                                        : 'border border-slate-200 text-slate-700 hover:border-green-300 hover:text-green-700'
+                                        ? 'bg-slate-900 text-white hover:bg-slate-700'
+                                        : 'border border-slate-300 text-slate-900 hover:border-slate-900'
                                 }`}
                             >
                                 {p.cta}
@@ -70,7 +81,7 @@ export function PricingSection() {
                     ))}
                 </div>
 
-                <p className="mt-8 text-center text-sm text-slate-500">
+                <p className="mt-8 text-sm text-slate-500">
                     Packs d’extension : +5 hôtesses et +5 points de vente pour
                     11 500 FCFA par mois, +1 superviseur pour 1 500 FCFA par
                     mois. Paiement à l’année : 10 mois payés pour 12.

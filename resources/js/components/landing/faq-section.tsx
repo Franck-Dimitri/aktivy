@@ -37,13 +37,13 @@ export function FaqSection() {
                         <div className="mt-5 flex flex-wrap gap-2.5">
                             <a
                                 href={`https://wa.me/${CONTACT.whatsapp}`}
-                                className="inline-flex items-center justify-center rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                                className="inline-flex items-center justify-center bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-700"
                             >
                                 Écrire sur WhatsApp
                             </a>
                             <Link
                                 href="/contact"
-                                className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
+                                className="inline-flex items-center justify-center border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-900 hover:text-slate-950"
                             >
                                 Nous contacter
                             </Link>

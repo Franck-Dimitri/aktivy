@@ -80,13 +80,13 @@ export function AuthNavActions() {
             <div className="hidden items-center gap-1 xl:flex">
                 <Link
                     href="/login"
-                    className="rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap text-slate-700 transition hover:bg-slate-100"
+                    className="px-4 py-2 text-sm font-semibold whitespace-nowrap text-slate-700 transition hover:text-slate-900"
                 >
                     Connexion
                 </Link>
                 <Link
                     href="/register"
-                    className="group flex shrink-0 items-center gap-2 rounded-full bg-green-600 px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-lg shadow-green-600/30 transition hover:bg-green-700"
+                    className="group flex shrink-0 items-center gap-2 bg-slate-900 px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-slate-700"
                 >
                     Essai gratuit
                     <ArrowRight
@@ -102,7 +102,7 @@ export function AuthNavActions() {
         <div className="hidden items-center gap-2 xl:flex">
             <Link
                 href={auth.home}
-                className="group flex shrink-0 items-center gap-2 rounded-full bg-green-600 px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-lg shadow-green-600/30 transition hover:bg-green-700"
+                className="group flex shrink-0 items-center gap-2 bg-slate-900 px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-slate-700"
             >
                 <LayoutDashboard className="h-4 w-4" />
                 Mon espace
@@ -124,13 +124,13 @@ export function AuthMobileActions() {
             <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
                 <Link
                     href="/login"
-                    className="rounded-full border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold text-slate-700"
+                    className="border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-700"
                 >
                     Connexion
                 </Link>
                 <Link
                     href="/register"
-                    className="rounded-full bg-green-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-lg shadow-green-600/30"
+                    className="bg-slate-900 px-4 py-2.5 text-center text-sm font-semibold text-white"
                 >
                     Essai gratuit
                 </Link>
@@ -155,7 +155,7 @@ export function AuthMobileActions() {
             </div>
             <Link
                 href={auth.home}
-                className="flex items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-green-600/30"
+                className="flex items-center justify-center gap-2 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white"
             >
                 <LayoutDashboard className="h-4 w-4" />
                 Mon espace
@@ -164,7 +164,7 @@ export function AuthMobileActions() {
                 href={logout()}
                 method="post"
                 as="button"
-                className="rounded-full border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold text-slate-700"
+                className="border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-700"
             >
                 Se déconnecter
             </Link>

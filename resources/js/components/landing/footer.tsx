@@ -49,7 +49,6 @@ const NAV_COLS = [
         title: 'Produit',
         links: [
             { label: 'Fonctionnalités', href: '/#fonctionnalites' },
-            { label: 'Intelligence artificielle', href: '/#ia' },
             { label: 'Tarifs', href: '/#tarifs' },
             { label: 'FAQ', href: '/#faq' },
         ],
@@ -88,8 +87,8 @@ export default function LandingFooter({
                         <Logo light />
                         <p className="mt-5 max-w-sm text-sm leading-relaxed text-slate-500">
                             La plateforme qui aide les entreprises à piloter
-                            leurs équipes terrain en temps réel, avec l'appui de
-                            l'intelligence artificielle.
+                            leurs équipes terrain : présences, ventes et stock
+                            de chaque point de vente, même sans réseau.
                         </p>
                         <div className="mt-6 flex items-center gap-2.5">
                             <a

@@ -25,7 +25,6 @@ const SUBJECTS = [
 const NAV_LINKS = [
     { label: 'Accueil', href: '/' },
     { label: 'Fonctionnalités', href: '/#fonctionnalites' },
-    { label: 'Intelligence artificielle', href: '/#ia' },
     { label: 'Tarifs', href: '/#tarifs' },
     { label: 'FAQ', href: '/#faq' },
 ];

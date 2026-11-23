@@ -25,14 +25,6 @@ export function ProblemSection() {
                         <h3 className="mt-4 text-xl font-bold text-slate-500">
                             Sans Motriks
                         </h3>
-                        <img
-                            src="/images/landing/cahier-rapport.webp"
-                            alt="Rapport tenu à la main dans un cahier"
-                            width={1200}
-                            height={675}
-                            loading="lazy"
-                            className="mt-6 aspect-[16/7] w-full rounded-2xl object-cover grayscale-[35%]"
-                        />
                         <ul className="mt-7 space-y-3">
                             {PROBLEMS.map((p) => (
                                 <li
@@ -86,14 +78,6 @@ export function ProblemSection() {
                                 <h3 className="mt-4 text-xl font-bold text-slate-900">
                                     Tout est automatique
                                 </h3>
-                                <img
-                                    src="/images/landing/desktop-rapport-detail.webp"
-                                    alt="Rapport du jour reçu par le gérant dans Motriks"
-                                    width={1600}
-                                    height={1000}
-                                    loading="lazy"
-                                    className="mt-6 aspect-[16/7] w-full rounded-2xl border border-slate-200 object-cover object-[0_15%]"
-                                />
                                 <ul className="mt-7 space-y-3">
                                     {SOLUTIONS.map((sol) => (
                                         <li

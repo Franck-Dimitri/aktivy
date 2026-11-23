@@ -51,15 +51,6 @@ export function StartSection() {
                     <div className="mt-6 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-4">
                         {PERSONAS.map((p) => (
                             <div key={p.title}>
-                                <img
-                                    src={`/images/landing/${p.img}.webp`}
-                                    alt={p.title}
-                                    width={1600}
-                                    height={1067}
-                                    loading="lazy"
-                                    style={{ objectPosition: p.pos }}
-                                    className="mb-4 aspect-[4/3] w-full rounded-xl object-cover"
-                                />
                                 <h3 className="text-[15px] font-semibold text-slate-900">
                                     {p.title}
                                 </h3>
@@ -84,15 +75,6 @@ export function LocalSection() {
                     eyebrow="Adapté à votre réalité"
                     title="Pensé pour le terrain africain"
                     text="Connexion variable, téléphones d'entrée de gamme, paiement mobile : Motriks a été conçu avec ces contraintes."
-                />
-                <img
-                    src="/images/landing/vendeuse-comptoir.webp"
-                    alt="Vendeuse derrière le comptoir de sa boutique"
-                    width={1600}
-                    height={1067}
-                    loading="lazy"
-                    data-reveal
-                    className="mt-12 aspect-[21/8] w-full rounded-[1.75rem] object-cover object-[50%_45%]"
                 />
                 {/* quatre colonnes séparées par des filets verticaux, sans cartes */}
                 <div

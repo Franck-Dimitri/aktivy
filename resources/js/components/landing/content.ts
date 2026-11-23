@@ -4,6 +4,7 @@
 
 export const NAV_LINKS = [
     { label: 'Fonctionnalités', href: '#fonctionnalites' },
+    { label: 'Intelligence artificielle', href: '#ia' },
     { label: 'Tarifs', href: '#tarifs' },
     { label: 'FAQ', href: '#faq' },
 ];
@@ -11,7 +12,7 @@ export const NAV_LINKS = [
 export const STATS = [
     { value: '< 2 min', label: "pour saisir l'activité du jour" },
     { value: '0', label: 'calcul manuel à faire' },
-    { value: '1 mois', label: "d'essai Business offert" },
+    { value: "Jusqu'à 5 h", label: 'de reporting en moins par semaine' },
     { value: 'Hors-ligne', label: 'saisie possible sans réseau' },
 ];
 
@@ -28,7 +29,7 @@ export const SOLUTIONS = [
     'Totaux, montants et soldes calculés automatiquement',
     'Rapports consolidés et exportés en un clic',
     'Tableau de bord et alertes en temps réel',
-    "Pointage avec l'heure et le lieu, historique des présences",
+    "Pointage, historique et justificatifs d'absence",
 ];
 
 export const FEATURES = [
@@ -40,37 +41,60 @@ export const FEATURES = [
     {
         icon: 'clock',
         title: 'Présences et pointage',
-        text: 'Plannings par site, affectations des hôtesses, heures d’arrivée et de départ enregistrées.',
+        text: 'Plannings par site, échanges de poste, retards et absences enregistrés automatiquement.',
     },
     {
         icon: 'box',
         title: 'Stocks et réassorts',
-        text: "Stock d'ouverture repris de la veille, seuils d'alerte et critiques, réassorts enregistrés par point de vente.",
+        text: "Stock d'ouverture repris de la veille, seuils critiques, bons de commande PDF en un clic.",
     },
     {
         icon: 'file',
         title: 'Rapports et documents',
-        text: 'Exports PDF et Excel aux couleurs de votre entreprise, documents du personnel rangés au même endroit.',
+        text: 'Exports PDF et Excel aux couleurs de votre entreprise, attestations et relevés générés instantanément.',
     },
     {
         icon: 'coin',
-        title: 'Objectifs et performance',
-        text: 'Objectifs du mois et de la semaine par hôtesse et par site : une base claire pour vos primes.',
+        title: 'Primes et commissions',
+        text: 'Barèmes paramétrables, calcul automatique des primes, fiche de rémunération par hôtesse.',
     },
     {
         icon: 'bell',
         title: 'Alertes configurables',
-        text: 'Seuils par produit et par point de vente, notifications dans l’application, sur le téléphone et par e-mail.',
+        text: 'Seuils par site, notifications prioritaires par application, e-mail, SMS ou WhatsApp.',
     },
     {
         icon: 'camera',
         title: 'Preuves terrain',
-        text: 'Photos du rayon jointes au rapport, heure et lieu du pointage enregistrés.',
+        text: 'Photos du stand horodatées et géolocalisées, liste de contrôle de présentation.',
     },
     {
         icon: 'chat',
-        title: 'Rappels et notifications',
-        text: 'Rappels automatiques (rapport du jour, objectifs) et notifications en temps réel, sans groupe WhatsApp.',
+        title: 'Communication',
+        text: "Annonces à toute l'équipe, rappels automatiques et messagerie interne, fini les groupes WhatsApp.",
+    },
+];
+
+export const AI_FEATURES = [
+    {
+        icon: 'spark',
+        title: 'Synthèse automatique',
+        text: 'Le résumé de votre semaine ou de votre mois, rédigé en langage clair, prêt à lire.',
+    },
+    {
+        icon: 'alert',
+        title: "Détection d'anomalies",
+        text: 'Ventes anormales, absences répétées, incohérences : vous êtes prévenu avant la perte.',
+    },
+    {
+        icon: 'trend',
+        title: 'Prévisions',
+        text: 'Anticipez les ventes, les besoins en personnel et les risques de rupture.',
+    },
+    {
+        icon: 'chat',
+        title: 'Assistant conversationnel',
+        text: 'Posez une question comme « quel site a le mieux vendu ce mois-ci ? » et obtenez la réponse chiffrée.',
     },
 ];
 
@@ -98,27 +122,19 @@ export const STEPS = [
 export const PERSONAS = [
     {
         title: 'Gérant de PME',
-        img: 'entrepreneur-telephone',
-        pos: '64% 40%',
         text: "Voyez la performance de votre entreprise en un coup d'œil, sans rien compiler.",
     },
     {
         title: 'Responsable commercial',
-        img: 'supermarche-allee',
-        pos: '50% 35%',
         text: "Suivez l'avancement du jour sur tous vos sites et anticipez les ruptures.",
     },
     {
         title: "Agence d'hôtesses",
-        img: 'vendeuse-comptoir',
-        pos: '50% 40%',
-        text: 'Gérez plannings, présences et rapports de chaque mission, client par client.',
+        text: 'Gérez plannings, présences et facturation par client, avec portail client en marque blanche.',
     },
     {
         title: 'Comptable',
-        img: 'desktop-objectifs',
-        pos: '0% 0%',
-        text: 'Recevez des exports Excel fiables et un accès en consultation, sans ressaisie.',
+        text: 'Recevez des exports fiables, prêts pour la paie et la comptabilité, sans ressaisie.',
     },
 ];
 

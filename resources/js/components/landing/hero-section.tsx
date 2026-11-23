@@ -51,9 +51,8 @@ export function HeroSection() {
                         className="mt-7 max-w-xl text-lg leading-relaxed text-slate-600"
                     >
                         Motriks remplace les messages WhatsApp, les tableurs
-                        éparpillés et les rapports papier par un seul outil :
-                        présences, ventes et stock de chaque point de vente,
-                        même sans réseau.
+                        éparpillés et les rapports papier par un seul outil, et
+                        laisse l'intelligence artificielle vous dire où agir.
                     </p>
                     <div
                         data-reveal
@@ -122,19 +121,9 @@ export function HeroSection() {
                 </div>
 
                 {/* la fenêtre d'application est inclinée et déborde à droite de l'écran */}
-                <div data-reveal className="relative lg:-mt-2 lg:-mr-[30vw]">
+                <div data-reveal className="lg:-mt-2 lg:-mr-[30vw]">
                     <div className="hero-tilt w-full lg:w-[920px]">
                         <HeroDashboard />
-                    </div>
-                    {/* Photo terrain : le tableau de bord, c'est ce qui se passe en magasin */}
-                    <div className="mt-6 overflow-hidden rounded-2xl shadow-2xl ring-4 shadow-slate-900/20 ring-white sm:mx-auto sm:w-3/4 lg:absolute lg:-bottom-16 lg:-left-10 lg:mt-0 lg:w-[300px]">
-                        <img
-                            src="/images/landing/supermarche-rayon.webp"
-                            alt="Deux clientes choisissent des produits dans le rayon d’un supermarché"
-                            width={1600}
-                            height={1067}
-                            className="aspect-[4/3] w-full object-cover object-[30%_50%]"
-                        />
                     </div>
                 </div>
             </div>

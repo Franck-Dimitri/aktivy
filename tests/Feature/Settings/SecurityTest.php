@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
+use PragmaRX\Google2FA\Google2FA;
 use Tests\TestCase;
 
 class SecurityTest extends TestCase
@@ -46,6 +47,43 @@ class SecurityTest extends TestCase
     }
 
     /* @chisel-password-confirmation */
+    /**
+     * La clé scannée doit survivre aux réaffichages de la page Sécurité (redirection obligatoire des
+     * administrateurs, actualisation automatique) : sinon tous les codes sont refusés.
+     */
+    public function test_the_pending_two_factor_key_survives_page_reloads_until_confirmed()
+    {
+        $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
+
+        Features::twoFactorAuthentication([
+            'confirm' => true,
+            'confirmPassword' => true,
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()]);
+
+        $this->post('/user/two-factor-authentication')->assertRedirect();
+        $secret = decrypt($user->fresh()->two_factor_secret);
+
+        // La page a déjà été affichée il y a 10 s (état de session laissé par Fortify), puis elle est
+        // réaffichée sans saisie de code : c'est ce moment qui effaçait la clé
+        $this->withSession([
+            'auth.password_confirmed_at' => time(),
+            'two_factor_empty_at' => time() - 10,
+            'two_factor_confirming_at' => time() - 10,
+        ])->get(route('security.edit'))->assertOk();
+        $this->assertSame($secret, decrypt($user->fresh()->two_factor_secret));
+
+        // Réactiver ne change pas la clé déjà scannée
+        $this->post('/user/two-factor-authentication')->assertRedirect();
+        $this->assertSame($secret, decrypt($user->fresh()->two_factor_secret));
+
+        $this->post('/user/confirmed-two-factor-authentication', ['code' => (new Google2FA)->getCurrentOtp($secret)])
+            ->assertSessionHasNoErrors();
+        $this->assertNotNull($user->fresh()->two_factor_confirmed_at);
+    }
+
     public function test_security_page_requires_password_confirmation_when_enabled()
     {
         $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());

@@ -46,7 +46,12 @@ class SecurityController extends Controller
 
         /* @chisel-2fa */
         if (Features::canManageTwoFactorAuthentication()) {
-            $request->ensureStateIsValid();
+            // Pas de $request->ensureStateIsValid() : Fortify y efface la clé en attente de confirmation
+            // à chaque affichage de la page sans saisie de code. Or la page est réaffichée sans cesse
+            // (redirection obligatoire des administrateurs, actualisation automatique) : la clé scannée
+            // disparaissait et tous les codes étaient refusés. Une clé non confirmée ne protège rien et
+            // ne bloque rien (la connexion ne la demande pas) : elle reste jusqu'à la confirmation, et
+            // « Activer » à nouveau réaffiche le même QR code.
 
             $props['twoFactorEnabled'] = $request->user()->hasEnabledTwoFactorAuthentication();
             $props['requiresConfirmation'] = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');

@@ -1,4 +1,5 @@
 import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { CsrfField } from '@/components/auth/csrf-field';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
 import { KeyRound } from 'lucide-react';
@@ -62,6 +63,7 @@ export default function TwoFactorChallenge() {
                 >
                     {({ errors, processing, clearErrors }) => (
                         <>
+                            <CsrfField />
                             {showRecoveryInput ? (
                                 <AuthField
                                     id="recovery_code"

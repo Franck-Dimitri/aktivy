@@ -93,6 +93,8 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Champ caché des formulaires de connexion : ils restent utilisables sans JavaScript
+            'csrf_token' => fn () => csrf_token(),
             'appUrl' => rtrim(config('app.url'), '/'),
             'auth' => [
                 // Sans ses relations : la ligne « company » ci-dessous charge l'entreprise sur l'utilisateur, qui

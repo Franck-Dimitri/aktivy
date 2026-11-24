@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { CsrfField } from '@/components/auth/csrf-field';
 import { Mail } from 'lucide-react';
 import {
     AuthField,
@@ -27,6 +28,8 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
             >
                 {({ processing, errors }) => (
                     <>
+                        <CsrfField />
+                        <input type="hidden" name="token" value={token} />
                         <AuthField
                             id="email"
                             name="email"

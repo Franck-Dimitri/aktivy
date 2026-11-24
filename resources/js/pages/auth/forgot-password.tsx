@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { CsrfField } from '@/components/auth/csrf-field';
 import { Mail } from 'lucide-react';
 import { AuthField, AuthPrimaryButton } from '@/components/auth/auth-field';
 import AuthStatus from '@/components/auth/auth-status';
@@ -16,6 +17,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             <Form {...email.form()} className="flex flex-col gap-5">
                 {({ processing, errors }) => (
                     <>
+                        <CsrfField />
                         <AuthField
                             id="email"
                             name="email"

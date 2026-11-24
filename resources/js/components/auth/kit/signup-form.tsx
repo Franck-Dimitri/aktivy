@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { CsrfField } from '@/components/auth/csrf-field';
 import { passwordHint } from '@/lib/password-hint';
 import { conditions, confidentialite } from '@/routes';
 import { store } from '@/routes/register';
@@ -76,7 +77,14 @@ export function SignupForm({ passwordRules }: { passwordRules: string }) {
     };
 
     return (
-        <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+        <form
+            method="post"
+            action={store.url()}
+            onSubmit={submit}
+            noValidate
+            className="flex flex-col gap-4"
+        >
+            <CsrfField />
             <StaggerItem className="grid gap-4 sm:grid-cols-2 sm:gap-3">
                 <AuthInput
                     id="company_name"

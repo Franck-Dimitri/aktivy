@@ -3,6 +3,7 @@ import { FlaskConical, X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import AuthStatus from '@/components/auth/auth-status';
+import { CsrfField } from '@/components/auth/csrf-field';
 import DevTestAccounts, {
     type DevAccount,
 } from '@/components/auth/dev-test-accounts';
@@ -100,7 +101,15 @@ export function LoginForm({
                 <SocialButtons separator="ou avec votre identifiant" />
             </StaggerItem>
 
-            <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+            {/* method et action : le formulaire marche même si le JavaScript ne s'exécute pas */}
+            <form
+                method="post"
+                action={store.url()}
+                onSubmit={submit}
+                noValidate
+                className="flex flex-col gap-4"
+            >
+                <CsrfField />
                 <StaggerItem>
                     <AuthInput
                         id="login"

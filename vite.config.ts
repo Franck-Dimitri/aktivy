@@ -28,6 +28,19 @@ export default defineConfig({
             formVariants: true,
         }),
     ]),
+    // Navigateurs visés : iPhone depuis iOS 15 et Android récents. La cible par défaut de Vite 8
+    // (Safari 16.4 et plus) laissait des « blocs statiques de classe » que Safari 16.3 ne comprend pas :
+    // tout le JavaScript plantait au chargement sur ces iPhone (connexion impossible).
+    build: {
+        target: [
+            'es2020',
+            'safari15',
+            'ios15',
+            'chrome90',
+            'edge90',
+            'firefox90',
+        ],
+    },
     server: {
         watch: {
             ignored: [

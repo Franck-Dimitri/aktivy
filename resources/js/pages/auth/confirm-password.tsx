@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { CsrfField } from '@/components/auth/csrf-field';
 import {
     AuthPasswordField,
     AuthPrimaryButton,
@@ -39,6 +40,7 @@ export default function ConfirmPassword() {
             >
                 {({ processing, errors }) => (
                     <>
+                        <CsrfField />
                         <AuthPasswordField
                             id="password"
                             name="password"

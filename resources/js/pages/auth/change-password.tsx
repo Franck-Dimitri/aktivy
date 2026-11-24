@@ -1,4 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { CsrfField } from '@/components/auth/csrf-field';
 import {
     AuthPasswordField,
     AuthPrimaryButton,
@@ -25,6 +26,7 @@ export default function ChangePassword({ passwordRules }: Props) {
             >
                 {({ processing, errors }) => (
                     <>
+                        <CsrfField />
                         <AuthPasswordField
                             id="password"
                             name="password"

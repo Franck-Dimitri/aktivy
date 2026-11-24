@@ -265,22 +265,20 @@
     }
 }
 
-/* ───────── Pages de connexion : reflet qui glisse sur la bordure de la carte ───────── */
-@keyframes auth-thread {
+/* Pages de connexion : courte apparition en CSS seul (l'élément reste visible si l'animation ne joue pas) */
+@keyframes auth-in {
     from {
-        stroke-dashoffset: 1;
-    }
-    to {
-        stroke-dashoffset: 0;
+        opacity: 0.001;
+        transform: translateY(6px);
     }
 }
-.auth-thread {
-    animation: auth-thread var(--auth-thread-duration, 9s) linear infinite;
-    animation-delay: var(--auth-thread-delay, 0s);
+
+.auth-in {
+    animation: auth-in 0.25s ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .auth-thread {
+    .auth-in {
         animation: none;
     }
 }

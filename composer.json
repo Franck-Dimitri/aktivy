@@ -18,9 +18,9 @@
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "league/flysystem-aws-s3-v3": "3.0",
+        "league/flysystem-aws-s3-v3": "3.35.3",
         "maxmind-db/reader": "^1.12",
-        "openspout/openspout": "^4.28"
+        "openspout/openspout": "^5.15"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
@@ -31,7 +31,7 @@
         "laravel/sail": "^1.53",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9.3",
-        "phpunit/phpunit": "^12.5.23"
+        "phpunit/phpunit": "^13.4.8"
     },
     "autoload": {
         "psr-4": {
